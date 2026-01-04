@@ -1,0 +1,111 @@
+<!-- ============================================================
+     FUJISAN WEBSITE LAYOUT
+     ============================================================ -->
+
+<!-- Header Component -->
+<app-header></app-header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <!-- Router Outlet - Nội dung trang sẽ được render ở đây -->
+  <router-outlet></router-outlet>
+
+  <!-- Temporary content cho demo -->
+  <section
+    class="hero-section"
+    style="position: relative; min-height: 100vh; padding-top: 0; overflow: hidden"
+  >
+    <!-- Video Background -->
+    <video
+      #heroVideo
+      autoplay
+      [muted]="isMuted()"
+      loop
+      playsinline
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+      "
+    >
+      <source src="assets/video/video-hero.mp4" type="video/mp4" />
+    </video>
+
+    <!-- Video Controls - Nút Bật/Tắt âm thanh -->
+    <div class="video-controls">
+      <button
+        class="btn-volume-toggle"
+        (click)="toggleMute()"
+        [title]="isMuted() ? 'Bật âm thanh' : 'Tắt âm thanh'"
+      >
+        <i [class]="isMuted() ? 'fas fa-volume-mute' : 'fas fa-volume-up'"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section py-5">
+    <div class="container">
+      <div class="row text-center mb-5">
+        <div class="col-12">
+          <h2 class="display-5 fw-bold text-primary mb-3">Tại sao chọn FujiSan?</h2>
+          <p class="lead text-secondary">Phương châm hoạt động: Minh bạch - Uy tín - Hiệu quả</p>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="feature-card text-center p-4 h-100 bg-white rounded-custom shadow-custom">
+            <div
+              class="feature-icon bg-primary-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style="width: 80px; height: 80px"
+            >
+              <i class="fas fa-shield-alt text-primary" style="font-size: 2rem"></i>
+            </div>
+            <h4 class="h5 fw-bold mb-3">Minh bạch chi phí</h4>
+            <p class="text-secondary">
+              Công khai rõ ràng mọi chi phí, không phát sinh thêm phí ngoài hợp đồng.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card text-center p-4 h-100 bg-white rounded-custom shadow-custom">
+            <div
+              class="feature-icon bg-primary-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style="width: 80px; height: 80px"
+            >
+              <i class="fas fa-handshake text-primary" style="font-size: 2rem"></i>
+            </div>
+            <h4 class="h5 fw-bold mb-3">Hỗ trợ tối đa</h4>
+            <p class="text-secondary">
+              Đồng hành từ đăng ký đến xuất cảnh, hỗ trợ 24/7 tại Nhật Bản.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card text-center p-4 h-100 bg-white rounded-custom shadow-custom">
+            <div
+              class="feature-icon bg-primary-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style="width: 80px; height: 80px"
+            >
+              <i class="fas fa-graduation-cap text-primary" style="font-size: 2rem"></i>
+            </div>
+            <h4 class="h5 fw-bold mb-3">Đào tạo chất lượng</h4>
+            <p class="text-secondary">
+              Chương trình đào tạo tiếng Nhật và kỹ năng nghề chuyên nghiệp.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Giới thiệu công ty - About Component -->
+  <app-about></app-about>
+</main>
+
+<!-- Footer Component -->
+<app-footer></app-footer>

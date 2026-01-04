@@ -1,0 +1,316 @@
+/* ============================================================
+   GLOBAL STYLES - FujiSan Website
+   ============================================================ */
+
+/* Import Bootstrap 5 */
+@use 'bootstrap/scss/bootstrap';
+
+/* Import Font Awesome */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+/* ============================================================
+   GLOBAL VARIABLES - Biến màu sắc chính
+   ============================================================ */
+:root {
+  /* Màu chính - Xanh dương đậm */
+  --primary-color: #1e3a8a;
+  --primary-hover: #1e40af;
+  --primary-light: rgba(30, 58, 138, 0.1);
+
+  /* Màu phụ */
+  --secondary-color: #6b7280;
+  --white: #ffffff;
+  --gray-light: #f8f9fa;
+  --gray-medium: #e5e7eb;
+
+  /* Màu nhấn */
+  --accent-red: #dc2626;
+  --accent-red-hover: #b91c1c;
+  --accent-yellow: #fbbf24;
+
+  /* Font chữ */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Khoảng cách */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Border radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --border-radius-xl: 12px;
+
+  /* Box shadow */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================
+   GLOBAL STYLES - Styles toàn cục
+   ============================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.6;
+  color: #374151;
+  background-color: var(--white);
+  overflow-x: hidden;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-md);
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+h2 {
+  font-size: 2rem;
+}
+h3 {
+  font-size: 1.75rem;
+}
+h4 {
+  font-size: 1.5rem;
+}
+h5 {
+  font-size: 1.25rem;
+}
+h6 {
+  font-size: 1rem;
+}
+
+/* Links */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: var(--primary-hover);
+  }
+}
+
+/* Buttons */
+.btn {
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--border-radius-md);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+  }
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: var(--white);
+
+  &:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-outline-primary {
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+
+  &:hover {
+    background: var(--primary-color);
+    color: var(--white);
+  }
+}
+
+/* Container max width */
+.container {
+  max-width: 1200px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ============================================================
+   UTILITY CLASSES - Các class tiện ích
+   ============================================================ */
+
+/* Text colors */
+.text-primary {
+  color: var(--primary-color) !important;
+}
+.text-secondary {
+  color: var(--secondary-color) !important;
+}
+.text-accent-red {
+  color: var(--accent-red) !important;
+}
+.text-accent-yellow {
+  color: var(--accent-yellow) !important;
+}
+
+/* Background colors */
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+.bg-primary-light {
+  background-color: var(--primary-light) !important;
+}
+.bg-gray-light {
+  background-color: var(--gray-light) !important;
+}
+
+/* Font weights */
+.fw-medium {
+  font-weight: var(--font-weight-medium) !important;
+}
+.fw-semibold {
+  font-weight: var(--font-weight-semibold) !important;
+}
+.fw-extrabold {
+  font-weight: var(--font-weight-extrabold) !important;
+}
+
+/* Spacing utilities */
+.mt-section {
+  margin-top: var(--spacing-2xl);
+}
+.mb-section {
+  margin-bottom: var(--spacing-2xl);
+}
+.py-section {
+  padding: var(--spacing-2xl) 0;
+}
+
+/* Border radius */
+.rounded-custom {
+  border-radius: var(--border-radius-lg);
+}
+
+/* Shadows */
+.shadow-custom {
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================
+   RESPONSIVE UTILITIES - Utilities responsive
+   ============================================================ */
+
+/* Hide/show elements on different screen sizes */
+@media (max-width: 575.98px) {
+  .d-xs-none {
+    display: none !important;
+  }
+  .d-xs-block {
+    display: block !important;
+  }
+  .d-xs-inline {
+    display: inline !important;
+  }
+  .d-xs-inline-block {
+    display: inline-block !important;
+  }
+  .d-xs-flex {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .d-sm-none {
+    display: none !important;
+  }
+  .d-sm-block {
+    display: block !important;
+  }
+  .d-sm-inline {
+    display: inline !important;
+  }
+  .d-sm-inline-block {
+    display: inline-block !important;
+  }
+  .d-sm-flex {
+    display: flex !important;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS - Hiệu ứng chuyển động
+   ============================================================ */
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.6s ease;
+}
+
+.slide-up {
+  animation: slideUp 0.8s ease;
+}
+
+.scale-in {
+  animation: scaleIn 0.5s ease;
+}

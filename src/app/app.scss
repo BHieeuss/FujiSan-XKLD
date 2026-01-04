@@ -1,0 +1,93 @@
+/* ============================================================
+   APP GLOBAL STYLES - Styles toàn cục cho ứng dụng
+   ============================================================ */
+
+/* Main Content Styles */
+.main-content {
+  // Không cần padding-top vì header đã fixed và trong suốt
+
+  .hero-section {
+    // Hero section sẽ bắt đầu từ top của viewport
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* Video Controls */
+.video-controls {
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+
+  .btn-volume-toggle {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1e40af;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background: rgba(255, 255, 255, 1);
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    i {
+      pointer-events: none;
+    }
+  }
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+  .video-controls {
+    left: 20px;
+
+    .btn-volume-toggle {
+      width: 50px;
+      height: 50px;
+      font-size: 1.1rem;
+    }
+  }
+}
+
+/* Features Section */
+.features-section {
+  background: #f8fafc;
+
+  .feature-card {
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .feature-icon {
+    background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+}

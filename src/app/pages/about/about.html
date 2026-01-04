@@ -1,0 +1,112 @@
+<!-- ============================================================
+     GIỚI THIỆU CÔNG TY - ABOUT SECTION
+     ============================================================ -->
+
+<!-- Giới thiệu công ty -->
+<section class="about-section py-5 bg-gray-light" id="gioi-thieu">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <!-- Hình ảnh -->
+      <div class="col-lg-6">
+        <div class="about-image-wrapper">
+          <div class="about-image-placeholder">
+            <i class="fas fa-building"></i>
+            <span>Hình ảnh công ty</span>
+          </div>
+          <div class="experience-badge">
+            <span class="number">FUJISAN</span>
+          </div>
+        </div>
+      </div>
+      <!-- Nội dung -->
+      <div class="col-lg-6">
+        <div class="about-content">
+          <span class="about-section-label">
+            <i class="fas fa-info-circle me-2"></i>Giới thiệu
+          </span>
+          <h2 class="about-section-title">{{ companyInfo.name }}</h2>
+          <p class="about-text">{{ companyInfo.description }}</p>
+          <p class="about-commitment">{{ companyInfo.commitment }}</p>
+          <div class="about-cta mt-4">
+            <a routerLink="/lien-he" class="btn btn-primary btn-lg me-3">
+              <i class="fas fa-phone-alt me-2"></i>Liên hệ ngay
+            </a>
+            <a routerLink="/chuong-trinh" class="btn btn-outline-primary btn-lg">
+              <i class="fas fa-briefcase me-2"></i>Xem chương trình
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Chương trình xuất cảnh -->
+<section class="programs-section py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-6 col-md-6" *ngFor="let item of programs">
+        <div class="program-card">
+          <div class="program-icon">
+            <i [class]="item.icon"></i>
+          </div>
+          <div class="program-content">
+            <div class="program-label">{{ item.label }}</div>
+            <div class="program-description">{{ item.description }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Hoạt động công ty -->
+<section class="news-section py-5 bg-gray-light">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <span class="about-section-label"> <i class="fas fa-newspaper me-2"></i>Tin tức </span>
+      <h2 class="about-section-title">Hoạt động của công ty</h2>
+      <p class="about-section-desc">Các hoạt động nổi bật và tin tức báo chí về FujiSan</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6" *ngFor="let news of newsActivities">
+        <div class="news-card h-100">
+          <div class="news-image">
+            <div class="news-placeholder">
+              <i class="fas fa-newspaper"></i>
+            </div>
+            <span class="news-source">{{ news.source }}</span>
+          </div>
+          <div class="news-content">
+            <span class="news-date"> <i class="fas fa-calendar-alt me-2"></i>{{ news.date }} </span>
+            <h4 class="news-title">{{ news.title }}</h4>
+            <a href="#" class="news-link">Đọc thêm <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-4">
+      <a routerLink="/tin-tuc" class="btn btn-outline-primary btn-lg">
+        Xem tất cả tin tức <i class="fas fa-arrow-right ms-2"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5">
+  <div class="container">
+    <div class="cta-content text-center">
+      <h2 class="cta-title">Sẵn sàng bắt đầu hành trình mới?</h2>
+      <p class="cta-desc">Đăng ký tư vấn miễn phí ngay hôm nay để được hỗ trợ tốt nhất</p>
+      <div class="cta-buttons">
+        <a routerLink="/lien-he" class="btn btn-light btn-lg me-3">
+          <i class="fas fa-calendar-check me-2"></i>Đăng ký tư vấn
+        </a>
+        <a href="tel:1900xxxx" class="btn btn-outline-light btn-lg">
+          <i class="fas fa-phone-alt me-2"></i>Gọi ngay: 1900-xxxx
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

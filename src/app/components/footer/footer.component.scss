@@ -1,0 +1,377 @@
+/* ============================================================
+   FOOTER STYLES - Styles cho footer FujiSan
+   ============================================================ */
+
+/* ============================================================
+   MAIN FOOTER STYLES
+   ============================================================ */
+.footer {
+  position: relative;
+  width: 100%;
+
+  // Main Footer Section
+  .footer-main {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    color: #ffffff;
+    padding: 4rem 0 2rem;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+    }
+
+    .footer-section {
+      margin-bottom: 2rem;
+
+      .footer-logo {
+        height: 80px; // Tăng kích thước logo
+        width: auto;
+        object-fit: contain;
+        // Xóa filter để giữ màu gốc của logo
+        margin-bottom: 1rem;
+      }
+
+      .footer-desc {
+        font-size: 0.9375rem;
+        line-height: 1.6;
+      }
+
+      .company-details {
+        p {
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 0.875rem;
+          line-height: 1.8;
+
+          i {
+            color: #fbbf24;
+            width: 20px;
+          }
+
+          strong {
+            color: #ffffff;
+          }
+        }
+      }
+    }
+  }
+
+  // Footer Heading
+  .footer-heading {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 0.75rem;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background: #fbbf24;
+      border-radius: 2px;
+    }
+  }
+
+  // Footer Links
+  .footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-link {
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      font-size: 0.9375rem;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+
+      i {
+        font-size: 0.75rem;
+        transition: transform 0.3s ease;
+      }
+
+      &:hover {
+        color: #fbbf24;
+        padding-left: 5px;
+
+        i {
+          transform: translateX(3px);
+        }
+      }
+    }
+  }
+
+  // Contact Links
+  .footer-contact {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      margin-bottom: 1rem;
+    }
+
+    .contact-link {
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      font-size: 0.9375rem;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      i {
+        color: #fbbf24;
+        width: 24px;
+        font-size: 1rem;
+      }
+
+      &:hover {
+        color: #fbbf24;
+        transform: translateX(5px);
+      }
+    }
+  }
+
+  // Social Media
+  .social-media {
+    .social-heading {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 1rem;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 0.75rem;
+
+      .social-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        color: #ffffff;
+        font-size: 1.125rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+
+        &:hover {
+          background: #ffffff;
+          transform: translateY(-3px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        &.facebook:hover {
+          color: #1877f2;
+          border-color: #1877f2;
+        }
+
+        &.tiktok:hover {
+          color: #000000;
+          border-color: #000000;
+        }
+
+        &.youtube:hover {
+          color: #ff0000;
+          border-color: #ff0000;
+        }
+
+        &.zalo:hover {
+          color: #0068ff;
+          border-color: #0068ff;
+        }
+      }
+    }
+  }
+}
+
+/* ============================================================
+   FOOTER BOTTOM STYLES
+   ============================================================ */
+.footer-bottom {
+  background: #0f1f47;
+  padding: 1.5rem 0;
+  color: rgba(255, 255, 255, 0.7);
+
+  .copyright {
+    font-size: 0.875rem;
+
+    strong {
+      color: #fbbf24;
+    }
+  }
+
+  .footer-bottom-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+
+    @media (min-width: 768px) {
+      justify-content: flex-end;
+    }
+
+    li {
+      display: inline-flex;
+      align-items: center;
+
+      .bottom-link {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: #fbbf24;
+        }
+      }
+
+      .separator {
+        color: rgba(255, 255, 255, 0.3);
+        margin: 0 0.5rem;
+      }
+    }
+  }
+}
+
+/* ============================================================
+   BACK TO TOP BUTTON
+   ============================================================ */
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+  }
+
+  &:active {
+    transform: translateY(-2px);
+  }
+
+  i {
+    font-size: 1.125rem;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE STYLES
+   ============================================================ */
+
+/* Tablet */
+@media (max-width: 991.98px) {
+  .footer {
+    .footer-main {
+      padding: 3rem 0 1.5rem;
+
+      .footer-section {
+        margin-bottom: 2.5rem;
+      }
+    }
+  }
+}
+
+/* Mobile */
+@media (max-width: 575.98px) {
+  .footer {
+    .footer-main {
+      padding: 2.5rem 0 1rem;
+
+      .footer-logo {
+        height: 50px !important;
+      }
+
+      .footer-heading {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+      }
+    }
+
+    .footer-bottom {
+      padding: 1.25rem 0;
+
+      .row > div {
+        margin-bottom: 1rem;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    .back-to-top {
+      width: 45px;
+      height: 45px;
+      bottom: 20px;
+      right: 20px;
+      font-size: 1.125rem;
+    }
+  }
+
+  .social-media .social-links {
+    justify-content: center;
+
+    @media (min-width: 768px) {
+      justify-content: flex-start;
+    }
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.footer-section {
+  animation: fadeInUp 0.6s ease-out;
+}
