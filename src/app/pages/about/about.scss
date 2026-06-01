@@ -14,6 +14,517 @@
   margin-bottom: 1rem;
 }
 
+/* Chương trình kỹ sư */
+.engineer-program-section {
+  .engineer-program-card {
+    background: #fff;
+    border: 1px solid #dbeafe;
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 12px 30px rgba(30, 64, 175, 0.08);
+  }
+
+  .engineer-program-title {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    color: #0f172a;
+  }
+
+  .engineer-program-subtitle {
+    color: #334155;
+    margin-bottom: 1rem;
+    line-height: 1.75;
+  }
+
+  .engineer-program-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    .btn {
+      min-width: 140px;
+    }
+
+    .btn-engineer-consult {
+      background: #0f766e;
+      color: #fff;
+
+      &:hover {
+        background: #115e59;
+        color: #fff;
+      }
+    }
+  }
+
+  .engineer-program-content {
+    p {
+      color: #334155;
+      line-height: 1.8;
+      margin-bottom: 0.85rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+/* Chính sách hỗ trợ */
+.policy-section {
+  background: linear-gradient(180deg, #f8faff 0%, #eef4ff 100%);
+
+  .policy-heading-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .policy-jp-icon {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      right: -4px;
+      top: -4px;
+      background: #ef4444;
+      opacity: 0.18;
+    }
+
+    i {
+      font-size: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    &.loan {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    &.nenkin {
+      background: #eef2ff;
+      color: #4338ca;
+    }
+
+    &.protection {
+      background: #f8fafc;
+      color: #0f766e;
+    }
+  }
+
+  .policy-category-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    height: 100%;
+    transition: all 0.25s ease;
+    cursor: pointer;
+
+    &.active {
+      border-color: var(--primary-color);
+      box-shadow: 0 10px 24px rgba(30, 64, 175, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .policy-category-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      i {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+      }
+    }
+
+    .policy-category-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0 0 0.35rem;
+    }
+
+    .policy-category-status {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #6b7280;
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+
+      &.active {
+        color: #065f46;
+        background: #d1fae5;
+      }
+    }
+  }
+
+  .policy-carousel {
+    ::ng-deep .carousel-inner {
+      overflow: visible;
+    }
+
+    ::ng-deep .carousel-item {
+      transition: transform 0.55s ease-in-out;
+    }
+  }
+
+  .loan-policy-card {
+    background: #fff;
+    border: 1px solid #dbeafe;
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 12px 30px rgba(30, 64, 175, 0.08);
+
+    .loan-policy-badge {
+      display: inline-block;
+      background: #1d4ed8;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .loan-policy-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0;
+      line-height: 1.6;
+    }
+
+    .loan-policy-desc {
+      color: #475569;
+      margin-bottom: 1.25rem;
+    }
+
+    .loan-policy-highlight {
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      background: #f8fbff;
+      padding: 1rem;
+
+      .loan-policy-highlight-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+      }
+
+      .loan-policy-highlight-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+      }
+
+      .loan-policy-highlight-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.5;
+      }
+    }
+
+    .loan-policy-note {
+      border-left: 4px solid #1d4ed8;
+      background: #eff6ff;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #1e3a8a;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .loan-policy-area-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 0.85rem;
+    }
+
+    .loan-policy-province-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      .province-item {
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1e40af;
+        border-radius: 999px;
+        padding: 0.35rem 0.8rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .nenkin-policy-card {
+    background: #ffffff;
+    border: 1px solid #c7d2fe;
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 12px 30px rgba(30, 64, 175, 0.08);
+
+    .nenkin-policy-badge {
+      display: inline-block;
+      background: #312e81;
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .nenkin-policy-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0;
+      line-height: 1.6;
+    }
+
+    .nenkin-policy-desc {
+      color: #475569;
+      margin-bottom: 1rem;
+    }
+
+    .nenkin-formula-box {
+      border: 1px solid #c7d2fe;
+      border-radius: 12px;
+      background: #eef2ff;
+      padding: 0.9rem 1rem;
+
+      .nenkin-formula-label {
+        font-size: 0.85rem;
+        color: #4338ca;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+      }
+
+      .nenkin-formula-value {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #1e1b4b;
+      }
+    }
+
+    .nenkin-example-box {
+      border-left: 4px solid #4338ca;
+      background: #f8faff;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+
+      .nenkin-example-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.45rem;
+      }
+
+      .nenkin-example-content {
+        color: #334155;
+        line-height: 1.6;
+      }
+    }
+
+    .nenkin-table-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    .nenkin-table {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+
+      thead th {
+        background: #e0e7ff;
+        color: #1e3a8a;
+        border-bottom: 1px solid #c7d2fe;
+        font-size: 0.9rem;
+      }
+
+      tbody td {
+        color: #1f2937;
+        border-color: #e2e8f0;
+      }
+    }
+
+    .nenkin-note-list {
+      display: grid;
+      gap: 0.75rem;
+
+      .nenkin-note-item {
+        border: 1px solid #dbeafe;
+        background: #f8fbff;
+        border-radius: 10px;
+        padding: 0.75rem 0.9rem;
+        color: #1e3a8a;
+        font-size: 0.95rem;
+
+        &.highlight {
+          border-color: #86efac;
+          background: #ecfdf5;
+          color: #065f46;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  .protection-policy-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+
+    .protection-policy-badge {
+      display: inline-block;
+      background: #e2e8f0;
+      color: #475569;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .protection-policy-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0;
+    }
+
+    .protection-policy-desc {
+      color: #475569;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .protection-policy-list {
+      display: grid;
+      gap: 0.7rem;
+    }
+
+    .protection-policy-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.7rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid #dbeafe;
+      background: #f8fbff;
+      color: #1e3a8a;
+
+      i {
+        margin-top: 0.2rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  .programs-section {
+    .program-card {
+      padding: 1rem;
+    }
+  }
+
+  .program-modal-wrap {
+    .program-modal-title {
+      font-size: 1.45rem;
+    }
+
+    .program-modal-actions .btn {
+      width: 100%;
+    }
+  }
+
+  .policy-section {
+    .policy-carousel {
+      touch-action: pan-y;
+    }
+
+    .policy-tabs-row {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      touch-action: pan-x;
+      margin-right: 0;
+      margin-left: 0;
+      padding-bottom: 0.35rem;
+      gap: 0.65rem;
+
+      &::-webkit-scrollbar {
+        height: 5px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 999px;
+      }
+
+      > [class*='col-'] {
+        flex: 0 0 84%;
+        max-width: 84%;
+        padding-right: 0;
+        padding-left: 0;
+        scroll-snap-align: start;
+      }
+
+      scroll-snap-type: x mandatory;
+    }
+
+    .loan-policy-card,
+    .nenkin-policy-card,
+    .protection-policy-card {
+      padding: 1.25rem;
+
+      .loan-policy-title,
+      .nenkin-policy-title,
+      .protection-policy-title {
+        font-size: 1.1rem;
+      }
+    }
+  }
+}
+
 .about-section-title {
   font-size: 2.25rem;
   font-weight: 700;
@@ -128,6 +639,16 @@
     display: flex;
     align-items: flex-start;
     gap: 1rem;
+    border-radius: 14px;
+    transition: all 0.25s ease;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+      outline: none;
+    }
 
     .program-icon {
       width: 50px;
@@ -160,7 +681,159 @@
         color: rgba(255, 255, 255, 0.9);
         line-height: 1.6;
       }
+
+      .program-view-detail {
+        margin-top: 0.65rem;
+        color: #dbeafe;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
     }
+  }
+}
+
+.program-modal-wrap {
+  .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.6rem 1rem 0.55rem;
+  }
+
+  .modal-body {
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  .btn-close {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: #eef2ff;
+    opacity: 1;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #dbeafe;
+      transform: rotate(90deg);
+    }
+  }
+
+  .program-modal-title {
+    font-size: 1.85rem;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+  }
+
+  .program-modal-subtitle {
+    color: #334155;
+    line-height: 1.65;
+    margin-bottom: 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid #1e40af;
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .program-modal-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+
+    .btn {
+      min-width: 0;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.98rem;
+      border-radius: 999px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .btn-engineer-consult {
+      background: #0f766e;
+      color: #fff;
+
+      &:hover {
+        background: #115e59;
+        color: #fff;
+      }
+    }
+  }
+
+  .program-modal-content p {
+    color: #334155;
+    line-height: 1.8;
+    margin-bottom: 0.75rem;
+  }
+
+  .program-modal-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+
+    .program-gallery-item {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #dbeafe;
+      background: #f8fafc;
+
+      img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        display: block;
+      }
+    }
+  }
+}
+
+.program-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  background: rgba(2, 6, 23, 0.66);
+  backdrop-filter: blur(3px);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.program-popup-panel {
+  width: min(920px, 100%);
+  max-height: calc(100dvh - 2rem);
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.38);
+  animation: popup-slide-up 0.25s ease-out;
+}
+
+.program-popup-handle {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  margin: 0.3rem auto 0;
+}
+
+@keyframes popup-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -628,6 +1301,64 @@
         .btn {
           width: 100%;
         }
+      }
+    }
+  }
+
+  .program-popup-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .program-popup-panel {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border-bottom: 0;
+  }
+
+  .program-popup-handle {
+    display: none;
+  }
+
+  .program-modal-wrap {
+    .modal-header {
+      padding-top: 0.45rem;
+    }
+
+    .program-modal-title {
+      font-size: 1.6rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .program-modal-subtitle {
+      font-size: 1rem;
+      padding: 0.7rem 0.8rem;
+    }
+
+    .program-modal-actions {
+      grid-template-columns: 1fr;
+
+      .btn {
+        width: 100%;
+        border-radius: 12px;
+      }
+    }
+
+    .program-modal-gallery {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      .program-gallery-item:first-child {
+        grid-column: 1 / -1;
+      }
+
+      .program-gallery-item img {
+        height: 130px;
+      }
+
+      .program-gallery-item:first-child img {
+        height: 180px;
       }
     }
   }

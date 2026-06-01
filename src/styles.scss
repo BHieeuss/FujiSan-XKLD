@@ -160,6 +160,8 @@ a {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
 }
 
 /* ============================================================
