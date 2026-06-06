@@ -15,13 +15,13 @@
 
 // Thông tin công ty
 export const APP_COMPANY_INFO = {
-  name: 'CÔNG TY HỢP TÁC QUỐC TẾ FUJISAN',
-  shortName: 'FujiSan',
+  name: 'CÔNG TY HỢP TÁC QUỐC TẾ VieJap',
+  shortName: 'VieJap',
   slogan: 'Đưa ước mơ bay xa - Đón tương lai về gần',
-  taxCode: 'MST: 0123456789',
-  license: 'Giấy phép XKLĐ số: XX/SLĐTBXH-GP',
-  address: 'Địa chỉ văn phòng chính, Hà Nội, Việt Nam',
-  description: `Công ty Hợp tác quốc tế Fujisan được thành lập với sứ mệnh kết nối nguồn nhân lực Việt Nam với thị trường lao động quốc tế, đặc biệt là Nhật Bản, Hàn Quốc và các quốc gia phát triển khác. Chúng tôi tự hào đã và đang đồng hành cùng hàng nghìn lao động Việt trên con đường lập nghiệp, góp phần nâng cao đời sống và mang đến cơ hội phát triển bền vững cho cộng đồng.`,
+  taxCode: 'MST: ...',
+  license: 'đang cập nhật',
+  address: ' 111/30 Đường Nguyễn Thị Minh Khai , Phường Nguyệt Hóa, Tỉnh Vĩnh Long',
+  description: `Công ty Hợp tác quốc tế VieJap được thành lập với sứ mệnh kết nối nguồn nhân lực Việt Nam với thị trường lao động quốc tế, đặc biệt là Nhật Bản, Hàn Quốc và các quốc gia phát triển khác. Chúng tôi tự hào đã và đang đồng hành cùng hàng nghìn lao động Việt trên con đường lập nghiệp, góp phần nâng cao đời sống và mang đến cơ hội phát triển bền vững cho cộng đồng.`,
   commitment: `Chúng tôi tin rằng nguồn nhân lực Việt Nam hoàn toàn có thể vươn ra thế giới, khẳng định giá trị và vị thế trên trường quốc tế. Công ty hợp tác Quốc Tế Fujisan luôn sẵn sàng đồng hành, hỗ trợ tối đa để người lao động hiện thực hóa ước mơ, xây dựng tương lai vững chắc cho bản thân và gia đình.`,
 };
 

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgbCarousel, NgbCarouselModule } from '@ng-bootstrap/ng-bootstrap';
-import { APP_COMPANY_INFO } from '../../models/app.config';
+import { APP_COMPANY_INFO, APP_CONTACT_INFO } from '../../models/app.config';
 
 type ProgramDetail = {
   title: string;
@@ -30,6 +30,9 @@ export class About {
 
   // Thông tin công ty - từ config
   companyInfo = APP_COMPANY_INFO;
+
+  // Thông tin liên hệ - từ config
+  contactInfo = APP_CONTACT_INFO;
 
   // Phương châm hoạt động
   coreValues = [
@@ -361,7 +364,10 @@ export class About {
     { title: 'Chia sẻ từ lao động tại Nhật' },
   ];
 
-  // Hoạt động công ty
+  /* ============================================================
+     HOẠT ĐỘNG CÔNG TY - Đang cập nhật
+     ============================================================ */
+  /*
   newsActivities = [
     {
       title: 'FujiSan ký kết hợp tác với 10 doanh nghiệp Nhật Bản',
@@ -379,4 +385,8 @@ export class About {
       source: 'Dân Trí',
     },
   ];
+  */
+
+  // Placeholder tạm thời
+  newsActivities = [];
 }

@@ -337,7 +337,11 @@
   </div>
 </section>
 
+<!-- ============================================================
+     HOẠT ĐỘNG CÔNG TY - Đang cập nhật
+     ============================================================ -->
 <!-- Hoạt động công ty -->
+<!--
 <section class="news-section py-5 bg-gray-light">
   <div class="container">
     <div class="section-header text-center mb-5">
@@ -369,6 +373,10 @@
     </div>
   </div>
 </section>
+-->
+<!-- ============================================================
+     END: HOẠT ĐỘNG CÔNG TY
+     ============================================================ -->
 
 <!-- CTA Section -->
 <section class="cta-section py-5">
@@ -380,8 +388,8 @@
         <a routerLink="/lien-he" class="btn btn-light btn-lg me-3">
           <i class="fas fa-calendar-check me-2"></i>Đăng ký tư vấn
         </a>
-        <a href="tel:1900xxxx" class="btn btn-outline-light btn-lg">
-          <i class="fas fa-phone-alt me-2"></i>Gọi ngay: 1900-xxxx
+        <a [href]="'tel:' + contactInfo.hotline" class="btn btn-outline-light btn-lg">
+          <i class="fas fa-phone-alt me-2"></i>Gọi ngay: {{ contactInfo.hotline }}
         </a>
       </div>
     </div>
