@@ -27,10 +27,10 @@ export const APP_COMPANY_INFO = {
 
 // Thông tin liên hệ chính
 export const APP_CONTACT_INFO = {
-  hotline: '1900-xxxx',
-  email: 'info@fujisan.com.vn',
-  zalo: '09xx.xxx.xxx',
-  facebook: 'facebook.com/fujisan.vn',
+  hotline: '0966966284',
+  email: 'viejap@gmail.com',
+  zalo: '0966966284',
+  facebook: 'http://facebook.com/tranbanhana',
   tiktok: '@fujisan.vn',
   youtube: 'Fujisan Vietnam',
 };
