@@ -18,6 +18,6 @@ echo build Angular project...
 call ng build --configuration production
 
 echo Deploy GitHub Pages...
-call npx angular-cli-ghpages --dir=dist/app/browser --repo=https://github.com/BHieeuss/FujiSan-XKLD.git
+call npx angular-cli-ghpages --dir=dist/fujisan-website --repo=https://github.com/BHieeuss/FujiSan-XKLD.git
 echo done!
 pause
