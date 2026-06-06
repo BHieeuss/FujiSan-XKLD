@@ -32,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Build Angular app
-        run: npm run build -- --configuration=production --base-href=/FujiSan-XKLD/
+        run: npm run build -- --configuration=production
 
       - name: Add 404.html for SPA routing
         run: cp dist/fujisan-website/browser/index.html dist/fujisan-website/browser/404.html

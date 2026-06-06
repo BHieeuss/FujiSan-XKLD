@@ -36,7 +36,6 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/FujiSan-XKLD/",
               "budgets": [
                 {
                   "type": "initial",

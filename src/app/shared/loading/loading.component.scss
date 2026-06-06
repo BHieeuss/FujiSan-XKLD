@@ -1,0 +1,76 @@
+/* ============================================================
+   LOADING OVERLAY - Trang chờ với logo VieJap lắc lư
+   ============================================================ */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Nền trắng */
+  background: #ffffff;
+
+  /* Transition ẩn/hiện mượt mà */
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.4s ease,
+    visibility 0.4s ease;
+  pointer-events: none;
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+  }
+}
+
+/* Wrapper chứa logo + dots */
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* Logo wrapper - để animation không ảnh hưởng layout */
+.logo-wrapper {
+  animation: logoFloat 2.2s ease-in-out infinite;
+  will-change: transform;
+  filter: drop-shadow(0 8px 24px rgba(180, 140, 60, 0.18));
+}
+
+/* Logo image */
+.loading-logo {
+  width: 220px;
+  height: auto;
+  display: block;
+
+  @media (max-width: 480px) {
+    width: 160px;
+  }
+}
+
+/* Animation lắc lư lên xuống nhẹ */
+@keyframes logoFloat {
+  0% {
+    transform: translateY(0px);
+  }
+  30% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+  80% {
+    transform: translateY(-12px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+
