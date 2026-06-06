@@ -1,6 +1,7 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { APP_CONTACT_INFO, APP_MAIN_MENU, APP_PROGRAM_MENU } from '../../models/app.config';
 
 @Component({
   selector: 'app-header',
@@ -19,29 +20,14 @@ export class HeaderComponent implements OnInit {
   // Trạng thái có phải trang chủ (có hero section)
   isHomePage = false;
 
-  // Danh sách menu chính
-  mainMenuItems = [
-    { label: 'Trang chủ', link: '/', active: true },
-    { label: 'Giới thiệu', link: '/gioi-thieu' },
-    { label: 'Chương trình', link: '/chuong-trinh', hasDropdown: true },
-    { label: 'Quyền lợi', link: '/quyen-loi' },
-    { label: 'Liên hệ', link: '/lien-he' },
-  ];
+  // Danh sách menu chính - từ config
+  mainMenuItems = APP_MAIN_MENU;
 
-  // Danh sách submenu cho Chương trình
-  programSubmenu = [
-    { label: 'XKLĐ Thực tập sinh', link: '/chuong-trinh/thuc-tap-sinh' },
-    { label: 'Kỹ sư', link: '/chuong-trinh/ky-su' },
-    { label: 'Du học sinh', link: '/chuong-trinh/du-hoc-sinh' },
-    { label: 'So sánh chương trình', link: '/chuong-trinh/so-sanh' },
-  ];
+  // Danh sách submenu cho Chương trình - từ config
+  programSubmenu = APP_PROGRAM_MENU;
 
-  // Thông tin liên hệ nhanh
-  contactInfo = {
-    hotline: '1900-xxxx',
-    email: 'info@fujisan.com.vn',
-    zalo: '09xx.xxx.xxx',
-  };
+  // Thông tin liên hệ nhanh - từ config
+  contactInfo = APP_CONTACT_INFO;
 
   constructor(private router: Router) {}
 

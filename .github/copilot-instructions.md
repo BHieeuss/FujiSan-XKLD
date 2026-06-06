@@ -4,7 +4,7 @@
 
 - Luôn phản hòi bằng **Tiếng Việt**.
 - **Tiếng Việt** trong tất cả phần chú thích, tên biến, tên hàm và phản hồi.
-
+- Tạo 1 File về thông tin website và luôn luôn follow file đó ghi chép lại các cập nhật đã thay đổi thông tin đã sửa và hướng dẫn sử dụng cho các thành viên khác trong team.
 ---
 
 ## 🌐 Ngữ cảnh dự án

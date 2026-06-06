@@ -1,6 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import {
+  APP_COMPANY_INFO,
+  APP_CONTACT_INFO,
+  APP_QUICK_LINKS,
+  APP_PROGRAM_LINKS,
+  APP_SUPPORT_LINKS,
+  APP_SOCIAL_MEDIA,
+} from '../../models/app.config';
 
 @Component({
   selector: 'app-footer',
@@ -13,49 +21,23 @@ export class FooterComponent {
   // Năm hiện tại
   currentYear = new Date().getFullYear();
 
-  // Thông tin công ty
-  companyInfo = {
-    name: 'CÔNG TY HỢP TÁC QUỐC TẾ FUJISAN',
-    shortName: 'FujiSan',
-    taxCode: 'MST: 0123456789',
-    license: 'Giấy phép XKLĐ số: XX/SLĐTBXH-GP',
-    address: 'Địa chỉ văn phòng chính, Hà Nội, Việt Nam',
-  };
+  // Thông tin công ty - từ config
+  companyInfo = APP_COMPANY_INFO;
 
-  // Thông tin liên hệ
-  contactInfo = {
-    hotline: '1900-xxxx',
-    email: 'info@fujisan.com.vn',
-    zalo: '09xx.xxx.xxx',
-    facebook: 'facebook.com/fujisan.vn',
-    tiktok: '@fujisan.vn',
-    youtube: 'Fujisan Vietnam',
-  };
+  // Thông tin liên hệ - từ config
+  contactInfo = APP_CONTACT_INFO;
 
-  // Menu liên kết nhanh
-  quickLinks = [
-    { label: 'Trang chủ', link: '/' },
-    { label: 'Giới thiệu', link: '/gioi-thieu' },
-    { label: 'Chương trình', link: '/chuong-trinh' },
-    { label: 'Quyền lợi', link: '/quyen-loi' },
-    { label: 'Liên hệ', link: '/lien-he' },
-  ];
+  // Menu liên kết nhanh - từ config
+  quickLinks = APP_QUICK_LINKS;
 
-  // Chương trình
-  programLinks = [
-    { label: 'XKLĐ Thực tập sinh', link: '/chuong-trinh/thuc-tap-sinh' },
-    { label: 'Kỹ sư', link: '/chuong-trinh/ky-su' },
-    { label: 'Du học sinh', link: '/chuong-trinh/du-hoc-sinh' },
-    { label: 'So sánh chương trình', link: '/chuong-trinh/so-sanh' },
-  ];
+  // Chương trình - từ config
+  programLinks = APP_PROGRAM_LINKS;
 
-  // Hỗ trợ
-  supportLinks = [
-    { label: 'Câu hỏi thường gặp', link: '/faq' },
-    { label: 'Chính sách bảo mật', link: '/chinh-sach-bao-mat' },
-    { label: 'Điều khoản sử dụng', link: '/dieu-khoan' },
-    { label: 'Hướng dẫn đăng ký', link: '/huong-dan' },
-  ];
+  // Hỗ trợ - từ config
+  supportLinks = APP_SUPPORT_LINKS;
+
+  // Social media - từ config
+  socialMedia = APP_SOCIAL_MEDIA;
 
   // Xử lý click hotline
   onCallHotline(): void {

@@ -411,17 +411,6 @@
     padding: 1.5rem;
     box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
 
-    .protection-policy-badge {
-      display: inline-block;
-      background: #e2e8f0;
-      color: #475569;
-      font-size: 0.8rem;
-      font-weight: 700;
-      border-radius: 999px;
-      padding: 0.25rem 0.75rem;
-      margin-bottom: 0.75rem;
-    }
-
     .protection-policy-title {
       font-size: 1.25rem;
       font-weight: 700;
@@ -431,10 +420,85 @@
 
     .protection-policy-desc {
       color: #475569;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       line-height: 1.6;
     }
 
+    /* Các giai đoạn bảo hộ */
+    .protection-policy-stages {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .stage-item {
+      background: #f8fbff;
+      border: 2px solid #dbeafe;
+      border-radius: 14px;
+      padding: 1.25rem;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #1e3a8a;
+        box-shadow: 0 8px 20px rgba(30, 58, 138, 0.15);
+        transform: translateY(-4px);
+      }
+    }
+
+    .stage-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #dbeafe;
+    }
+
+    .stage-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      color: white;
+      border-radius: 10px;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .stage-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0;
+    }
+
+    .stage-items-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .stage-item-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      color: #475569;
+      font-size: 0.95rem;
+      line-height: 1.5;
+
+      i {
+        color: #1e3a8a;
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+        font-size: 0.85rem;
+      }
+    }
+
+    /* CSS cũ để tương thích */
     .protection-policy-list {
       display: grid;
       gap: 0.7rem;

@@ -305,7 +305,6 @@
       <ng-template ngbSlide id="policy-protection">
         <div class="protection-policy-card">
           <div class="protection-policy-head">
-            <span class="protection-policy-badge">Đang cập nhật</span>
             <div class="policy-heading-group">
               <div class="policy-jp-icon protection">
                 <i class="fas fa-shield-alt"></i>
@@ -314,10 +313,22 @@
             </div>
             <p class="protection-policy-desc">{{ protectionPolicy.description }}</p>
           </div>
-          <div class="protection-policy-list">
-            <div class="protection-policy-item" *ngFor="let item of protectionPolicy.items">
-              <i class="fas fa-check-circle"></i>
-              <span>{{ item }}</span>
+
+          <!-- Các giai đoạn bảo hộ -->
+          <div class="protection-policy-stages">
+            <div class="stage-item" *ngFor="let stage of protectionPolicy.stages">
+              <div class="stage-header">
+                <div class="stage-icon">
+                  <i [class]="stage.icon"></i>
+                </div>
+                <h4 class="stage-title">{{ stage.stage }}</h4>
+              </div>
+              <ul class="stage-items-list">
+                <li class="stage-item-content" *ngFor="let item of stage.items">
+                  <i class="fas fa-check-circle me-2"></i>
+                  <span>{{ item }}</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>

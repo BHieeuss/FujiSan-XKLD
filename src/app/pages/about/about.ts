@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgbCarousel, NgbCarouselModule } from '@ng-bootstrap/ng-bootstrap';
+import { APP_COMPANY_INFO } from '../../models/app.config';
 
 type ProgramDetail = {
   title: string;
@@ -27,14 +28,8 @@ export class About {
      DỮ LIỆU TRANG GIỚI THIỆU
      ============================================================ */
 
-  // Thông tin công ty
-  companyInfo = {
-    name: 'CÔNG TY HỢP TÁC QUỐC TẾ FUJISAN',
-    shortName: 'FujiSan',
-    slogan: 'Đưa ước mơ bay xa - Đón tương lai về gần',
-    description: `Công ty Hợp tác quốc tế Fujisan được thành lập với sứ mệnh kết nối nguồn nhân lực Việt Nam với thị trường lao động quốc tế, đặc biệt là Nhật Bản, Hàn Quốc và các quốc gia phát triển khác. Chúng tôi tự hào đã và đang đồng hành cùng hàng nghìn lao động Việt trên con đường lập nghiệp, góp phần nâng cao đời sống và mang đến cơ hội phát triển bền vững cho cộng đồng.`,
-    commitment: `Chúng tôi tin rằng nguồn nhân lực Việt Nam hoàn toàn có thể vươn ra thế giới, khẳng định giá trị và vị thế trên trường quốc tế. Công ty hợp tác Quốc Tế Fujisan luôn sẵn sàng đồng hành, hỗ trợ tối đa để người lao động hiện thực hóa ước mơ, xây dựng tương lai vững chắc cho bản thân và gia đình.`,
-  };
+  // Thông tin công ty - từ config
+  companyInfo = APP_COMPANY_INFO;
 
   // Phương châm hoạt động
   coreValues = [
@@ -263,11 +258,36 @@ export class About {
   protectionPolicy = {
     title: 'Chính sách bảo hộ lao động tại Nhật Bản',
     description:
-      'Nội dung chi tiết đang được cập nhật theo quy định mới nhất để đảm bảo quyền lợi người lao động trước, trong và sau thời gian làm việc tại Nhật Bản.',
-    items: [
-      'Bảo vệ quyền và lợi ích hợp pháp của người lao động theo hợp đồng.',
-      'Hỗ trợ xử lý tình huống phát sinh trong quá trình làm việc tại Nhật Bản.',
-      'Phối hợp với nghiệp đoàn, công ty tiếp nhận và cơ quan liên quan khi cần thiết.',
+      'FujiSan cam kết bảo vệ quyền lợi người lao động trước, trong và sau thời gian làm việc tại Nhật Bản với hỗ trợ toàn diện từ đào tạo, huấn luyện cho đến hỗ trợ thích nghi và định hướng sự nghiệp.',
+    stages: [
+      {
+        stage: 'Trước khi sang Nhật',
+        icon: 'fas fa-plane-departure',
+        items: [
+          'Hỗ trợ tiền ăn uống, sinh hoạt phí mỗi tháng cho đến khi xuất cảnh',
+          'Được tư vấn, đào tạo ngôn ngữ, văn hóa, tác phong làm việc trước khi chính thức sang Nhật làm việc',
+          'Tham gia các buổi hướng nghiệp, các buổi dã ngoại liên quan đến văn hóa, giao lưu kết nối của Việt Nam và Nhật Bản để tạo tiền đề thích nghi khi đặt chân sang Nhật',
+        ],
+      },
+      {
+        stage: 'Khi đang làm việc tại Nhật',
+        icon: 'fas fa-briefcase',
+        items: [
+          'Nghiệp đoàn quản lý và hỗ trợ 24/24 về mọi vấn đề hồ sơ, pháp lý & những phát sinh trong quá trình sinh hoạt tại Nhật như đau ốm, phiên dịch miễn phí khi có ý kiến, có nguyện vọng muốn truyền đạt đến người Nhật, công ty Nhật',
+          'Tham gia vào nhóm cập nhật thông tin để cập nhật tin tức khách quan về các chuyển biến xã hội Nhật Bản như những lưu ý về sinh hoạt khi chuyển mùa, những kinh nghiệm thực tế và biện pháp khi xảy ra tình huống phát sinh',
+          'Bảo vệ quyền lợi, pháp lý người lao động trong quá trình làm việc, sinh sống nếu có bất kỳ tình huống phát sinh',
+        ],
+      },
+      {
+        stage: 'Sau khi về nước',
+        icon: 'fas fa-home',
+        items: [
+          'Định hướng & phân tích nghề nghiệp khi chuẩn bị hết hợp đồng',
+          'Hỗ trợ hồ sơ nhận lại tiền Nenkin (Bảo hiểm)',
+          'Tạo điều kiện giới thiệu việc làm tại Việt Nam cho lao động nếu có nguyện vọng làm việc tại các công ty có sử dụng tiếng Nhật',
+          'Đối với lao động có chứng chỉ tiếng, sẽ ưu tiên làm việc tại công ty với vai trò giáo viên hoặc cố vấn học sinh',
+        ],
+      },
     ],
   };
 
