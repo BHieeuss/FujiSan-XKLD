@@ -140,6 +140,35 @@
     </div>
   </div>
 
+  <!-- Quick Access Button -->
+  <div class="quick-access" [class.is-open]="isQuickAccessOpen">
+    <div id="quick-access-menu" class="quick-access-menu" *ngIf="isQuickAccessOpen">
+      <a
+        *ngFor="let link of quickAccessLinks"
+        class="quick-access-link"
+        [href]="link.url"
+        target="_blank"
+        rel="noopener noreferrer"
+        [attr.aria-label]="link.label"
+        (click)="closeQuickAccess()"
+      >
+        <i [class]="link.icon"></i>
+        <span>{{ link.label }}</span>
+      </a>
+    </div>
+
+    <button
+      class="quick-access-toggle"
+      type="button"
+      (click)="toggleQuickAccess()"
+      [attr.aria-label]="isQuickAccessOpen ? 'Đóng liên kết nhanh' : 'Mở liên kết nhanh'"
+      [attr.aria-expanded]="isQuickAccessOpen"
+      aria-controls="quick-access-menu"
+    >
+      <i [class]="isQuickAccessOpen ? 'fas fa-times' : 'fas fa-link'"></i>
+    </button>
+  </div>
+
   <!-- Back to Top Button -->
   <button class="back-to-top" (click)="scrollToTop()" title="Về đầu trang">
     <i class="fas fa-arrow-up"></i>

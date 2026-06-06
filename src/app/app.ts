@@ -1,9 +1,17 @@
-import { Component, signal, ViewChild, ElementRef } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, signal, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { About } from './pages/about/about';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +19,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
+export class App implements OnInit, OnDestroy {
   protected readonly title = signal('FujiSan - Hợp tác quốc tế');
 
   // Video Controls

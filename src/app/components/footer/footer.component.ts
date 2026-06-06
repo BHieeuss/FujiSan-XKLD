@@ -39,6 +39,29 @@ export class FooterComponent {
   // Social media - từ config
   socialMedia = APP_SOCIAL_MEDIA;
 
+  isQuickAccessOpen = false;
+
+  quickAccessLinks = [
+    {
+      label: 'Danh sách đơn hàng',
+      url: 'https://docs.google.com/spreadsheets/d/1GA69_XZgSGQ3n5ZZoPOdA1H43DGYDHkOO47ZI2oBg-8/edit?usp=drivesdk',
+      icon: 'fas fa-list-check',
+    },
+    {
+      label: 'Đăng ký thông tin',
+      url: 'https://docs.google.com/forms/d/e/1FAIpQLSeMVFx5N6YBGfgdNvDV0kRxeb768yTDlke_QVUbcAqLekfPpw/viewform',
+      icon: 'fas fa-file-signature',
+    },
+  ];
+
+  toggleQuickAccess(): void {
+    this.isQuickAccessOpen = !this.isQuickAccessOpen;
+  }
+
+  closeQuickAccess(): void {
+    this.isQuickAccessOpen = false;
+  }
+
   // Xử lý click hotline
   onCallHotline(): void {
     window.open(`tel:${this.contactInfo.hotline}`, '_self');
