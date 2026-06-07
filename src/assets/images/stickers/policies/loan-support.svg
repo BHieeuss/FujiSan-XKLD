@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title desc">
+  <title id="title">Minh họa hỗ trợ vay vốn</title>
+  <desc id="desc">Hồ sơ, đồng yên và bàn tay hỗ trợ</desc>
+  <rect width="320" height="240" rx="28" fill="#F3F7FC"/>
+  <circle cx="258" cy="52" r="28" fill="#FFF0C7"/>
+  <circle cx="258" cy="52" r="18" fill="#F6C453"/>
+  <path d="M258 38v28m-10-19h20m-20 10h20" stroke="#7A5300" stroke-width="4" stroke-linecap="round"/>
+  <rect x="56" y="38" width="154" height="142" rx="16" fill="#fff" stroke="#BFD0E5" stroke-width="3"/>
+  <path d="M82 72h102M82 94h76M82 116h88" stroke="#9BB0C9" stroke-width="6" stroke-linecap="round"/>
+  <rect x="80" y="137" width="72" height="22" rx="11" fill="#DDEAF8"/>
+  <path d="M45 177c37-16 63-12 91 6 22 15 47 20 75 12l47-14c10-3 19 7 14 16-2 4-6 7-10 9l-58 25c-25 10-53 9-76-3l-43-22H45z" fill="#F2BF96"/>
+  <path d="M45 177v45H18v-34c0-6 5-11 11-11z" fill="#1D4B91"/>
+  <path d="M119 174l40-22c10-6 23-2 29 8l2 4-41 26" fill="#F2BF96"/>
+  <circle cx="209" cy="169" r="22" fill="#1D4B91"/>
+  <path d="M209 156v26m-9-18h18m-18 10h18" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

@@ -1,16 +1,22 @@
 import { Component, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { NgbCarousel, NgbCarouselModule } from '@ng-bootstrap/ng-bootstrap';
 import { APP_COMPANY_INFO, APP_CONTACT_INFO } from '../../models/app.config';
+
+type ProgramFact = {
+  icon: string;
+  title: string;
+  text: string;
+};
 
 type ProgramDetail = {
   title: string;
+  eyebrow: string;
   subtitle: string;
-  paragraphs: string[];
-  roadmapLink: string;
-  recruitLink: string;
-  images?: string[];
+  facts: ProgramFact[];
+  note: string;
+  images: string[];
+  guideImage: string;
+  guideAlt: string;
 };
 
 type ActivityImage = {
@@ -35,12 +41,12 @@ type CompanyActivity = {
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule, RouterModule, NgbCarouselModule],
+  imports: [CommonModule],
   templateUrl: './about.html',
   styleUrl: './about.scss',
 })
 export class About implements OnDestroy {
-  constructor() {}
+  constructor() { }
 
   /* ============================================================
      DỮ LIỆU TRANG GIỚI THIỆU
@@ -79,107 +85,198 @@ export class About implements OnDestroy {
       key: 'ky-su',
       label: 'Kỹ sư',
       icon: 'fas fa-laptop-code',
+      badge: 'Cao đẳng / Đại học',
+      supportText: 'Làm việc theo chuyên môn',
+      coverImage: 'assets/images/KySu/1.png',
+      coverAlt: 'Kỹ sư làm việc và trao đổi bản vẽ tại công trường Nhật Bản',
       description:
-        'Tốt nghiệp cao đẳng, đại học các ngành nghề, sẵn sàng làm việc trong các dự án tại Nhật Bản với kỹ năng chuyên môn.',
+        'Dành cho ứng viên có chuyên môn phù hợp, muốn làm việc và phát triển nghề nghiệp lâu dài tại Nhật Bản.',
     },
     {
       key: 'tokutei',
       label: 'Tokutei',
       icon: 'fas fa-user-cog',
+      badge: 'Kỹ năng đặc định',
+      supportText: 'Phù hợp người đã có tay nghề',
+      coverImage: 'assets/images/TKT/2.png',
+      coverAlt: 'Nhân sự ngành bếp được đào tạo kỹ năng tại Nhật Bản',
       description:
-        'Lao động có kỹ năng đặc định, được đào tạo và làm việc tại Nhật Bản trong các ngành nghề dành cho lao động có kinh nghiệm, chứng chỉ ngành nghề.',
+        'Hướng làm việc dành cho ứng viên có kinh nghiệm nghề, tiếng Nhật và mong muốn gắn bó ổn định.',
     },
     {
       key: 'thuc-tap-sinh',
       label: 'Thực tập sinh',
       icon: 'fas fa-id-badge',
+      badge: 'Đào tạo trước xuất cảnh',
+      supportText: 'Tích lũy tay nghề thực tế',
+      coverImage: 'assets/images/TTS/1.png',
+      coverAlt: 'Nhóm thực tập sinh làm việc tại doanh nghiệp Nhật Bản',
       description:
-        'Được đào tạo thực tế tại Nhật Bản, học hỏi công nghệ và trau dồi kỹ năng để phát triển sự nghiệp trong môi trường chuyên nghiệp.',
+        'Phù hợp với người muốn học nghề, làm việc thực tế và tích lũy kinh nghiệm trong môi trường Nhật Bản.',
     },
     {
       key: 'du-hoc-sinh',
       label: 'Du học sinh',
       icon: 'fas fa-book-reader',
+      badge: 'Học tập tại Nhật',
+      supportText: 'Chọn trường và chuẩn bị hồ sơ',
+      coverImage: 'assets/images/DHS/3.png',
+      coverAlt: 'Du học sinh Việt Nam trong lễ nhập học tại Nhật Bản',
       description:
-        'Học tập tại Nhật Bản, trải nghiệm văn hóa và giáo dục tiên tiến, mở rộng kiến thức và mối quan hệ cho tương lai.',
+        'Dành cho học viên muốn học tiếng, tiếp tục học tập và mở rộng cơ hội nghề nghiệp tại Nhật Bản.',
     },
   ];
 
   engineerProgram: ProgramDetail = {
-    title: 'Kỹ Sư',
+    title: 'Kỹ sư',
+    eyebrow: 'Làm việc theo đúng chuyên môn',
     subtitle:
-      'Chương trình Kỹ sư Nhật Bản là chương trình đưa lao động có trình độ chuyên môn cao sang làm việc tại các doanh nghiệp Nhật Bản theo diện visa kỹ sư (Engineer/Specialist in Humanities/International Services).',
-    paragraphs: [
-      'Đây là chương trình dành cho các ứng viên đã tốt nghiệp cao đẳng, đại học trở lên, có chuyên ngành phù hợp với vị trí tuyển dụng và có năng lực tiếng Nhật đáp ứng yêu cầu công việc.',
-      'Tham gia chương trình, ứng viên sẽ được làm việc trực tiếp tại các công ty Nhật Bản với mức lương và chế độ đãi ngộ tương đương người lao động Nhật, môi trường làm việc chuyên nghiệp, hiện đại và có nhiều cơ hội phát triển nghề nghiệp lâu dài.',
-      'Ngoài ra, người lao động còn được tham gia đầy đủ các chế độ bảo hiểm theo quy định của pháp luật Nhật Bản, có cơ hội gia hạn visa dài hạn, chuyển việc hợp pháp và bảo lãnh người thân sang Nhật sinh sống khi đáp ứng đủ điều kiện.',
-      'Chương trình Kỹ sư Nhật Bản không chỉ giúp người lao động nâng cao thu nhập mà còn là cơ hội tích lũy kinh nghiệm quốc tế, phát triển kỹ năng chuyên môn, ngoại ngữ và mở rộng cơ hội nghề nghiệp trong tương lai.',
-      'Đây được xem là một trong những con đường làm việc tại Nhật Bản ổn định, bền vững và có giá trị lâu dài đối với nguồn nhân lực chất lượng cao.',
+      'Hợp với bạn đã tốt nghiệp cao đẳng hoặc đại học đúng ngành và muốn phát triển nghề nghiệp lâu dài tại Nhật.',
+    facts: [
+      {
+        icon: 'fas fa-user-check',
+        title: 'Bạn thường cần',
+        text: 'Bằng cấp đúng chuyên ngành và tiếng Nhật phù hợp với vị trí.',
+      },
+      {
+        icon: 'fas fa-briefcase',
+        title: 'Công việc',
+        text: 'Làm tại doanh nghiệp Nhật theo chuyên môn bạn đã học.',
+      },
+      {
+        icon: 'fas fa-hands-helping',
+        title: 'VieJap đi cùng bạn',
+        text: 'Xem hồ sơ, luyện phỏng vấn và chuẩn bị trước khi sang Nhật.',
+      },
     ],
-    roadmapLink: '/chuong-trinh/ky-su/lo-trinh',
-    recruitLink: '/chuong-trinh/ky-su/don-tuyen',
+    note: 'Chưa chắc ngành học của mình có phù hợp? Cứ gửi hồ sơ hiện tại, VieJap xem cùng bạn trước.',
     images: ['assets/images/KySu/1.png', 'assets/images/KySu/2.png', 'assets/images/KySu/3.png'],
+    guideImage: 'assets/images/KySu/ks.png',
+    guideAlt: 'Lộ trình tham gia chương trình Kỹ sư Nhật Bản',
   };
 
   programDetails: Record<string, ProgramDetail> = {
     'ky-su': this.engineerProgram,
     tokutei: {
       title: 'Tokutei',
+      eyebrow: 'Dành cho người đã có tay nghề',
       subtitle:
-        'Chương trình Tokutei (Kỹ năng đặc định) dành cho ứng viên có năng lực nghề và định hướng làm việc dài hạn tại Nhật Bản.',
-      paragraphs: [
-        'Ứng viên tham gia sẽ được đào tạo tiếng Nhật, kỹ năng chuyên môn và tác phong làm việc để đáp ứng yêu cầu của doanh nghiệp tiếp nhận.',
-        'Chương trình phù hợp với nhiều nhóm ngành như chế biến thực phẩm, cơ khí, xây dựng, điều dưỡng, nhà hàng - khách sạn và các lĩnh vực đang thiếu hụt nhân lực tại Nhật Bản.',
-        'Người lao động được hưởng lương và chế độ theo quy định, đồng thời có cơ hội gia hạn thời gian lưu trú theo từng diện nghề khi đáp ứng đủ điều kiện.',
+        'Hợp với bạn đã có kinh nghiệm nghề, muốn làm việc ổn định và tiếp tục nâng tay nghề tại Nhật.',
+      facts: [
+        {
+          icon: 'fas fa-tools',
+          title: 'Bạn thường cần',
+          text: 'Kỹ năng nghề, tiếng Nhật và chứng chỉ phù hợp với nhóm ngành.',
+        },
+        {
+          icon: 'fas fa-industry',
+          title: 'Nhóm việc phổ biến',
+          text: 'Thực phẩm, cơ khí, xây dựng, điều dưỡng, nhà hàng và khách sạn.',
+        },
+        {
+          icon: 'fas fa-hands-helping',
+          title: 'VieJap đi cùng bạn',
+          text: 'Kiểm tra điều kiện, ôn kỹ năng và chuẩn bị hồ sơ phỏng vấn.',
+        },
       ],
-      roadmapLink: '/chuong-trinh/tokutei/lo-trinh',
-      recruitLink: '/chuong-trinh/tokutei/don-tuyen',
+      note: 'Nếu bạn đã từng là thực tập sinh hoặc đang có tay nghề, VieJap có thể giúp kiểm tra hướng chuyển phù hợp.',
+      images: ['assets/images/TKT/1.png', 'assets/images/TKT/2.png', 'assets/images/TKT/3.png'],
+      guideImage: 'assets/images/TKT/tkt.png',
+      guideAlt: 'Lộ trình tham gia chương trình Tokutei Nhật Bản',
     },
     'thuc-tap-sinh': {
       title: 'Thực tập sinh',
+      eyebrow: 'Vừa học nghề, vừa làm việc thực tế',
       subtitle:
-        'Chương trình Thực tập sinh kỹ năng giúp ứng viên tích lũy tay nghề, kinh nghiệm thực tế và nâng cao thu nhập tại Nhật Bản.',
-      paragraphs: [
-        'Ứng viên được đào tạo định hướng trước xuất cảnh về tiếng Nhật, văn hóa, kỷ luật lao động và kỹ năng cần thiết theo ngành đăng ký.',
-        'Trong thời gian làm việc, người lao động được hỗ trợ theo dõi và đồng hành để thích nghi môi trường làm việc chuyên nghiệp, an toàn.',
-        'Sau khi hoàn thành chương trình, ứng viên có thêm nền tảng nghề nghiệp vững chắc và nhiều cơ hội phát triển ở cả thị trường trong nước và quốc tế.',
+        'Hợp với bạn muốn học một nghề rõ ràng, có trải nghiệm làm việc tại Nhật và tích lũy nền tảng cho chặng đường sau này.',
+      facts: [
+        {
+          icon: 'fas fa-user-graduate',
+          title: 'Trước khi đi',
+          text: 'Học tiếng Nhật, tác phong, văn hóa và kỹ năng cần thiết.',
+        },
+        {
+          icon: 'fas fa-hard-hat',
+          title: 'Trong thời gian làm việc',
+          text: 'Rèn tay nghề thực tế và làm quen môi trường doanh nghiệp Nhật.',
+        },
+        {
+          icon: 'fas fa-hands-helping',
+          title: 'VieJap đi cùng bạn',
+          text: 'Theo sát từ lúc chọn ngành, chuẩn bị hồ sơ đến khi sang Nhật.',
+        },
       ],
-      roadmapLink: '/chuong-trinh/thuc-tap-sinh/lo-trinh',
-      recruitLink: '/chuong-trinh/thuc-tap-sinh/don-tuyen',
+      note: 'Chưa biết nên chọn ngành nào cũng không sao. VieJap sẽ dựa vào sức khỏe, sở thích và kế hoạch của bạn để cùng chọn.',
+      images: ['assets/images/TTS/1.png', 'assets/images/TTS/2.png', 'assets/images/TTS/3.png'],
+      guideImage: 'assets/images/TTS/tts.png',
+      guideAlt: 'Lộ trình tham gia chương trình Thực tập sinh Nhật Bản',
     },
     'du-hoc-sinh': {
       title: 'Du học sinh',
+      eyebrow: 'Học tập và mở rộng cơ hội tại Nhật',
       subtitle:
-        'Chương trình Du học Nhật Bản dành cho học viên muốn phát triển học thuật, ngoại ngữ và cơ hội nghề nghiệp quốc tế.',
-      paragraphs: [
-        'Học viên được tư vấn lộ trình trường học, ngành học, hồ sơ và kế hoạch tài chính phù hợp với điều kiện cá nhân.',
-        'Ngoài mục tiêu học tập, chương trình còn giúp học viên rèn luyện kỹ năng sống độc lập, giao tiếp quốc tế và tư duy chuyên nghiệp.',
-        'Sau tốt nghiệp, học viên có nhiều lựa chọn như làm việc tại Nhật, chuyển tiếp lên bậc học cao hơn hoặc phát triển sự nghiệp tại Việt Nam.',
+        'Hợp với bạn muốn học tiếng, tiếp tục lên chuyên môn và chuẩn bị thêm lựa chọn nghề nghiệp tại Nhật.',
+      facts: [
+        {
+          icon: 'fas fa-school',
+          title: 'Chọn hướng học',
+          text: 'Cùng xem trường, ngành học và khu vực phù hợp với mục tiêu.',
+        },
+        {
+          icon: 'fas fa-wallet',
+          title: 'Chuẩn bị tài chính',
+          text: 'Tính trước học phí, sinh hoạt phí và kế hoạch của gia đình.',
+        },
+        {
+          icon: 'fas fa-hands-helping',
+          title: 'VieJap đi cùng bạn',
+          text: 'Hỗ trợ hồ sơ, phỏng vấn trường và chuẩn bị cuộc sống tại Nhật.',
+        },
       ],
-      roadmapLink: '/chuong-trinh/du-hoc-sinh/lo-trinh',
-      recruitLink: '/chuong-trinh/du-hoc-sinh/don-tuyen',
+      note: 'Bạn chưa cần chọn trường ngay. VieJap có thể cùng gia đình xem mục tiêu học tập và mức chuẩn bị phù hợp trước.',
+      images: ['assets/images/DHS/1.png', 'assets/images/DHS/2.png', 'assets/images/DHS/3.png'],
+      guideImage: 'assets/images/DHS/dhs.png',
+      guideAlt: 'Lộ trình tham gia chương trình Du học sinh Nhật Bản',
     },
   };
 
   selectedProgramDetail: ProgramDetail = this.engineerProgram;
   isProgramPopupOpen = false;
+  isProgramRoadmapOpen = false;
 
   openProgramModal(programKey: string): void {
     this.selectedProgramDetail = this.programDetails[programKey] ?? this.engineerProgram;
+    this.isProgramRoadmapOpen = false;
     this.isProgramPopupOpen = true;
     this.togglePageScrollLocked(true);
   }
 
+  showProgramRoadmap(): void {
+    this.isProgramRoadmapOpen = true;
+  }
+
+  showProgramOverview(): void {
+    this.isProgramRoadmapOpen = false;
+  }
+
   closeProgramPopup(): void {
     this.isProgramPopupOpen = false;
+    this.isProgramRoadmapOpen = false;
     this.togglePageScrollLocked(false);
   }
 
   @HostListener('document:keydown.escape')
   closeProgramPopupOnEscape(): void {
-    if (this.isProgramPopupOpen) {
-      this.closeProgramPopup();
+    if (!this.isProgramPopupOpen) {
+      return;
     }
+
+    if (this.isProgramRoadmapOpen) {
+      this.showProgramOverview();
+      return;
+    }
+
+    this.closeProgramPopup();
   }
 
   ngOnDestroy(): void {
@@ -195,133 +292,183 @@ export class About implements OnDestroy {
   }
 
   // Chính sách hỗ trợ
+  policyVerifiedOn = '07/06/2026';
+
   policyCategories = [
     {
       id: 'policy-loan',
       icon: 'fas fa-hand-holding-usd',
-      title: 'Hỗ trợ vay vốn',
-      status: 'Đang áp dụng',
+      title: 'Vay vốn',
+      summary: 'Kiểm tra đúng đối tượng và mức vay',
     },
     {
       id: 'policy-nenkin',
       icon: 'fas fa-yen-sign',
-      title: 'Hỗ trợ nhận Nenkin',
-      status: 'Đang áp dụng',
+      title: 'Nenkin',
+      summary: 'Điều kiện và hồ sơ nhận trợ cấp',
     },
     {
       id: 'policy-protection',
       icon: 'fas fa-shield-alt',
-      title: 'Chính sách bảo hộ',
-      status: 'Đang cập nhật',
+      title: 'Quyền cần nhớ',
+      summary: 'Quyền lợi và kênh hỗ trợ chính thức',
     },
   ];
 
   selectedPolicyId = 'policy-loan';
 
   loanPolicy = {
-    title:
-      'Hỗ trợ vay vốn theo Thông tư số 27/2015/TT-BLĐTBXH của Bộ Lao Động, Thương binh & Xã hội (nay là Bộ Nội vụ)',
+    eyebrow: 'Vay theo đối tượng, không tự động áp dụng',
+    title: 'Vay chi phí đi làm việc ở nước ngoài',
     description:
-      'Người lao động Việt Nam đi làm việc tại Nhật Bản có thể được hỗ trợ vay vốn để chi trả chi phí xuất cảnh theo quy định hiện hành.',
-    maxLoan: 'Tối đa 100% chi phí làm việc ở nước ngoài theo hợp đồng',
-    interestRate: '6,6%/năm',
-    bank: 'Ngân hàng Chính sách Xã hội',
-    note: 'Mức lãi suất ưu đãi tương đương đối tượng hộ nghèo.',
-  };
-
-  loanPolicyProvinces = [
-    'Cần Thơ',
-    'An Giang',
-    'Kiên Giang',
-    'Đồng Tháp',
-    'Vĩnh Long',
-    'Bến Tre',
-    'Tiền Giang',
-    'Trà Vinh',
-    'Hậu Giang',
-    'Sóc Trăng',
-    'Bạc Liêu',
-    'Cà Mau',
-  ];
-
-  nenkinPolicy = {
-    title: 'Hỗ trợ nhận tiền Nenkin sau khi hoàn thành hợp đồng tại Nhật Bản',
-    description:
-      'Người lao động sau khi hết hợp đồng và về Việt Nam có thể nhận lại khoảng 85 đến 150 triệu đồng tùy theo thời gian làm việc tại Nhật Bản.',
-    formula: 'Số tiền nhận được = Lương trung bình x Hệ số',
-    timeToReceive: 'Số tiền thường nhận sau 3-6 tháng kể từ khi kết thúc hợp đồng và về nước.',
-    support:
-      'Ứng viên của FUJISAN được hỗ trợ miễn phí 100% thủ tục nhận tiền này, không thu phí dịch vụ.',
-    marketFeeNote: 'Phí dịch vụ thị trường thường dao động khoảng 5-10% tổng số tiền nhận được.',
-    example: {
-      title: 'Ví dụ thực tế',
-      content:
-        'Hoàn thành 3 năm thực tập sinh, lương trung bình (chưa trừ) 230.000 yên thì số tiền nhận được là 230.000 x 3.3 = 759.000 yên (~129.030.000 VNĐ).',
-    },
-  };
-
-  nenkinFactors = [
-    {
-      monthRange: '36 - 42 tháng',
-      factor: '3.3',
-    },
-    {
-      monthRange: '42 - 48 tháng',
-      factor: '3.8',
-    },
-    {
-      monthRange: '48 - 54 tháng',
-      factor: '4.4',
-    },
-    {
-      monthRange: '54 - 60 tháng',
-      factor: '4.9',
-    },
-    {
-      monthRange: 'Trên 60 tháng',
-      factor: '5.5',
-    },
-  ];
-
-  protectionPolicy = {
-    title: 'Chính sách bảo hộ lao động tại Nhật Bản',
-    description:
-      'FujiSan cam kết bảo vệ quyền lợi người lao động trước, trong và sau thời gian làm việc tại Nhật Bản với hỗ trợ toàn diện từ đào tạo, huấn luyện cho đến hỗ trợ thích nghi và định hướng sự nghiệp.',
-    stages: [
+      'Ngân hàng Chính sách Xã hội cho vay đối với một số nhóm lao động đủ điều kiện. Hồ sơ được xét tại nơi người lao động cư trú hợp pháp.',
+    illustration: 'assets/images/stickers/policies/loan-support.svg',
+    illustrationAlt: 'Minh họa hồ sơ vay vốn đi làm việc ở nước ngoài',
+    facts: [
       {
-        stage: 'Trước khi sang Nhật',
-        icon: 'fas fa-plane-departure',
-        items: [
-          'Hỗ trợ tiền ăn uống, sinh hoạt phí mỗi tháng cho đến khi xuất cảnh',
-          'Được tư vấn, đào tạo ngôn ngữ, văn hóa, tác phong làm việc trước khi chính thức sang Nhật làm việc',
-          'Tham gia các buổi hướng nghiệp, các buổi dã ngoại liên quan đến văn hóa, giao lưu kết nối của Việt Nam và Nhật Bản để tạo tiền đề thích nghi khi đặt chân sang Nhật',
-        ],
+        icon: 'fas fa-wallet',
+        label: 'Mức vay',
+        value: 'Tối đa 100% chi phí ghi trong hợp đồng',
       },
       {
-        stage: 'Khi đang làm việc tại Nhật',
-        icon: 'fas fa-briefcase',
-        items: [
-          'Nghiệp đoàn quản lý và hỗ trợ 24/24 về mọi vấn đề hồ sơ, pháp lý & những phát sinh trong quá trình sinh hoạt tại Nhật như đau ốm, phiên dịch miễn phí khi có ý kiến, có nguyện vọng muốn truyền đạt đến người Nhật, công ty Nhật',
-          'Tham gia vào nhóm cập nhật thông tin để cập nhật tin tức khách quan về các chuyển biến xã hội Nhật Bản như những lưu ý về sinh hoạt khi chuyển mùa, những kinh nghiệm thực tế và biện pháp khi xảy ra tình huống phát sinh',
-          'Bảo vệ quyền lợi, pháp lý người lao động trong quá trình làm việc, sinh sống nếu có bất kỳ tình huống phát sinh',
-        ],
+        icon: 'fas fa-percentage',
+        label: 'Lãi suất tham khảo',
+        value: '6,24%/năm từ 01/12/2025',
       },
       {
-        stage: 'Sau khi về nước',
-        icon: 'fas fa-home',
-        items: [
-          'Định hướng & phân tích nghề nghiệp khi chuẩn bị hết hợp đồng',
-          'Hỗ trợ hồ sơ nhận lại tiền Nenkin (Bảo hiểm)',
-          'Tạo điều kiện giới thiệu việc làm tại Việt Nam cho lao động nếu có nguyện vọng làm việc tại các công ty có sử dụng tiếng Nhật',
-          'Đối với lao động có chứng chỉ tiếng, sẽ ưu tiên làm việc tại công ty với vai trò giáo viên hoặc cố vấn học sinh',
-        ],
+        icon: 'fas fa-calendar-alt',
+        label: 'Thời hạn vay',
+        value: 'Không quá thời hạn làm việc trong hợp đồng',
+      },
+    ],
+    eligibleGroups: [
+      'Người lao động thuộc hộ nghèo hoặc hộ cận nghèo.',
+      'Người lao động là người dân tộc thiểu số.',
+      'Thân nhân của người có công với cách mạng.',
+      'Người lao động thuộc hộ bị thu hồi đất nông nghiệp.',
+    ],
+    requirements: [
+      'Có năng lực hành vi dân sự đầy đủ và cư trú hợp pháp.',
+      'Đã ký hợp đồng với doanh nghiệp đưa người lao động đi làm việc ở nước ngoài.',
+      'Vốn vay dùng cho các khoản chi phí được ghi trong hợp đồng.',
+      'Có bảo đảm tiền vay khi NHCSXH yêu cầu.',
+    ],
+    note:
+      'Lãi suất và chương trình bổ sung của từng địa phương có thể thay đổi. Người lao động nên xác nhận trực tiếp với NHCSXH nơi cư trú trước khi lập kế hoạch tài chính.',
+    sources: [
+      {
+        label: 'Mức lãi suất hiện hành - NHCSXH',
+        url: 'https://vbsp.org.vn/tu-ngay-1122025-nhcsxh-giam-lai-suat-cho-vay-cac-chuong-trinh-tin-dung-chinh-sach.html',
+      },
+      {
+        label: 'Tài liệu điều kiện vay - NHCSXH',
+        url: 'https://vbsp.org.vn/wp-content/uploads/2024/08/Cho-vay-ng%C6%B0%E1%BB%9Di-lao-%C4%91%E1%BB%99ng-%C4%91i-l%C3%A0m-vi%E1%BB%87c-%E1%BB%9F-n%C6%B0%E1%BB%9Bc-ngo%C3%A0i-theo-h%E1%BB%A3p-%C4%91%E1%BB%93ng.pdf',
       },
     ],
   };
 
-  selectPolicy(policyId: string, carousel?: NgbCarousel): void {
+  nenkinPolicy = {
+    eyebrow: 'Trợ cấp lương hưu trọn gói khi rời Nhật',
+    title: 'Nenkin: kiểm tra điều kiện trước khi nộp',
+    description:
+      'Số tiền không cố định theo một mức chung. Cơ quan Lương hưu Nhật Bản tính dựa trên loại bảo hiểm, thời gian tham gia và mức lương tiêu chuẩn của từng hồ sơ.',
+    illustration: 'assets/images/stickers/policies/nenkin-guide.svg',
+    illustrationAlt: 'Minh họa hồ sơ nhận trợ cấp Nenkin',
+    conditions: [
+      'Không mang quốc tịch Nhật Bản và không còn địa chỉ tại Nhật.',
+      'Có thời gian tham gia bảo hiểm đủ từ 6 tháng trở lên.',
+      'Chưa từng có quyền nhận lương hưu Nhật Bản, kể cả trợ cấp thương tật.',
+      'Nộp hồ sơ trong vòng 2 năm kể từ ngày không còn địa chỉ tại Nhật.',
+    ],
+    reminders: [
+      {
+        icon: 'fas fa-calendar-check',
+        title: 'Mức tính tối đa',
+        text: 'Thông thường tính theo tối đa 60 tháng tham gia đối với kỳ đóng cuối từ tháng 4/2021.',
+      },
+      {
+        icon: 'fas fa-history',
+        title: 'Cân nhắc thời gian đã đóng',
+        text: 'Khi nhận trợ cấp, toàn bộ thời gian tham gia trước thời điểm yêu cầu sẽ không còn được tính cho lương hưu sau này.',
+      },
+      {
+        icon: 'fas fa-receipt',
+        title: 'Thuế với Kosei Nenkin',
+        text: 'Khoản trợ cấp bảo hiểm hưu trí phúc lợi có thể bị khấu trừ 20,42% thuế; có trường hợp được làm thủ tục hoàn thuế.',
+      },
+    ],
+    steps: [
+      'Báo chuyển khỏi địa chỉ cư trú tại Nhật và giữ giấy tờ cần thiết.',
+      'Chuẩn bị đơn, bản sao hộ chiếu, thông tin tài khoản và mã số lương hưu.',
+      'Gửi hồ sơ đến Cơ quan Lương hưu Nhật Bản trong thời hạn 2 năm.',
+      'Giữ thông báo quyết định để kiểm tra khoản nhận và làm hoàn thuế nếu phù hợp.',
+    ],
+    note:
+      'Đừng ước tính Nenkin chỉ bằng số năm làm việc. Hai hồ sơ cùng thời gian ở Nhật vẫn có thể nhận số tiền khác nhau.',
+    sources: [
+      {
+        label: 'Hướng dẫn tiếng Việt - Japan Pension Service',
+        url: 'https://www.nenkin.go.jp/international/english/japanese-system/benefit/payment.files/I.pdf',
+      },
+      {
+        label: 'Trang thông tin Nenkin chính thức',
+        url: 'https://www.nenkin.go.jp/international/english/japanese-system/benefit/payment.html',
+      },
+    ],
+  };
+
+  protectionPolicy = {
+    eyebrow: 'Biết quyền của mình để chủ động hơn',
+    title: 'Quyền lợi và kênh hỗ trợ khi làm việc tại Nhật',
+    description:
+      'Người lao động có quyền được cung cấp thông tin rõ ràng, được hỗ trợ thực hiện hợp đồng và được bảo vệ quyền, lợi ích hợp pháp trong thời gian làm việc ở nước ngoài.',
+    illustration: 'assets/images/stickers/policies/worker-rights.svg',
+    illustrationAlt: 'Minh họa quyền lợi và kênh hỗ trợ người lao động',
+    rights: [
+      {
+        icon: 'fas fa-file-contract',
+        title: 'Thông tin và hợp đồng rõ ràng',
+        text: 'Được biết điều kiện làm việc, tiền lương, thời giờ làm việc, sinh hoạt và quyền lợi liên quan.',
+      },
+      {
+        icon: 'fas fa-hard-hat',
+        title: 'An toàn và điều kiện làm việc',
+        text: 'Được huấn luyện an toàn, cung cấp trang bị bảo hộ phù hợp và làm việc theo nội dung đã thỏa thuận.',
+      },
+      {
+        icon: 'fas fa-handshake',
+        title: 'Được tư vấn và hỗ trợ',
+        text: 'Được hỗ trợ thực hiện quyền, nghĩa vụ trong hợp đồng và liên hệ cơ quan có thẩm quyền khi cần.',
+      },
+      {
+        icon: 'fas fa-passport',
+        title: 'Giữ giấy tờ cá nhân',
+        text: 'Nếu bị giữ hộ chiếu, ép về nước, bạo lực hoặc công việc khác hợp đồng, hãy liên hệ kênh hỗ trợ chính thức.',
+      },
+    ],
+    emergencyExamples: [
+      'Không được trả tiền làm thêm giờ.',
+      'Bị bạo lực hoặc đe dọa.',
+      'Công việc khác với hợp đồng.',
+      'Bị yêu cầu giao hộ chiếu.',
+      'Bị ép về nước hoặc hạn chế đi lại.',
+    ],
+    viejapRole:
+      'VieJap tiếp nhận thông tin, hỗ trợ người lao động trao đổi với đơn vị liên quan và hướng dẫn tìm đúng kênh xử lý. VieJap không thay thế cơ quan nhà nước hoặc cơ quan pháp luật.',
+    sources: [
+      {
+        label: 'Luật 69/2020/QH14 - Bộ Tư pháp',
+        url: 'https://vbpl.moj.gov.vn/botuphap/Pages/vbpq-toanvan.aspx?ItemID=146643&Keyword=',
+      },
+      {
+        label: 'Kênh tư vấn tiếng Việt - OTIT',
+        url: 'https://www.support.otit.go.jp/soudan/vi/',
+      },
+    ],
+  };
+
+  selectPolicy(policyId: string): void {
     this.selectedPolicyId = policyId;
-    carousel?.select(policyId);
   }
 
   // Đội ngũ nhân sự chủ chốt

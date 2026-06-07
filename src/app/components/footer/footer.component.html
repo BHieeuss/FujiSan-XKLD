@@ -164,18 +164,25 @@
   <!-- Quick Access Button -->
   <div class="quick-access" [class.is-open]="isQuickAccessOpen">
     <div id="quick-access-menu" class="quick-access-menu" *ngIf="isQuickAccessOpen">
-      <a
+      <button
         *ngFor="let link of quickAccessLinks"
+        type="button"
         class="quick-access-link"
-        [href]="link.url"
-        target="_blank"
-        rel="noopener noreferrer"
         [attr.aria-label]="link.label"
-        (click)="closeQuickAccess()"
+        (click)="openQuickAccessLink(link)"
       >
-        <i [class]="link.icon"></i>
-        <span>{{ link.label }}</span>
-      </a>
+        <span class="quick-access-icon"><i [class]="link.icon"></i></span>
+        <span class="quick-access-copy">
+          <strong>{{ link.label }}</strong>
+          <small>{{ link.requiresPin ? 'Nhập mã để tiếp tục' : 'Xem các vị trí đang tuyển' }}</small>
+        </span>
+        <i
+          class="fas quick-access-status"
+          [class.fa-lock]="link.requiresPin"
+          [class.fa-arrow-right]="!link.requiresPin"
+          aria-hidden="true"
+        ></i>
+      </button>
     </div>
 
     <button
@@ -188,6 +195,159 @@
     >
       <i [class]="isQuickAccessOpen ? 'fas fa-times' : 'fas fa-link'"></i>
     </button>
+  </div>
+
+  <!-- Order list viewer -->
+  <div
+    class="order-list-viewer"
+    *ngIf="isOrderListOpen"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="order-list-title"
+    (click)="closeOrderListViewer()"
+  >
+    <section class="order-list-card" (click)="$event.stopPropagation()">
+      <header class="order-list-header">
+        <div class="order-list-heading">
+          <span class="order-list-icon" aria-hidden="true">
+            <i class="fas fa-list-check"></i>
+          </span>
+          <div>
+            <span class="order-list-kicker">Cập nhật từ Google Sheet</span>
+            <h2 id="order-list-title">Danh sách đơn hàng đang tuyển</h2>
+            <p>Xem nhanh các vị trí đang mở, điều kiện và ghi chú mới nhất từ VieJap.</p>
+          </div>
+        </div>
+
+        <div class="order-list-actions">
+          <button type="button" class="order-list-open" (click)="openOrderListInGoogle()">
+            <i class="fas fa-arrow-up-right-from-square"></i>
+            Mở Google Sheet
+          </button>
+          <button
+            type="button"
+            class="order-list-close"
+            aria-label="Đóng danh sách đơn hàng"
+            (click)="closeOrderListViewer()"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="order-list-frame-wrap">
+        <div class="order-list-loading" *ngIf="!isOrderListFrameLoaded">
+          <span aria-hidden="true"><i class="fas fa-spinner"></i></span>
+          <strong>Đang mở danh sách...</strong>
+          <small>Nếu Google yêu cầu quyền xem, hãy dùng nút mở Google Sheet phía trên.</small>
+        </div>
+
+        <iframe
+          class="order-list-frame"
+          [src]="orderListEmbedUrl"
+          title="Danh sách đơn hàng VieJap"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          (load)="onOrderListFrameLoad()"
+        ></iframe>
+      </div>
+
+      <footer class="order-list-footer">
+        <span><i class="fas fa-circle-info"></i> Dữ liệu lấy trực tiếp từ Google Sheet của VieJap.</span>
+        <button type="button" (click)="openOrderListInGoogle()">Không thấy nội dung? Mở bản đầy đủ</button>
+      </footer>
+    </section>
+  </div>
+
+  <!-- Registration access gate -->
+  <div
+    class="registration-gate"
+    *ngIf="isRegistrationGateOpen"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="registration-gate-title"
+    (click)="closeRegistrationGate()"
+  >
+    <section class="registration-gate-card" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="registration-gate-close"
+        aria-label="Đóng"
+        (click)="closeRegistrationGate()"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="registration-gate-icon" aria-hidden="true">
+        <i class="fas fa-user-check"></i>
+      </div>
+
+      <span class="registration-gate-kicker">Đăng ký cùng VieJap</span>
+      <h2 id="registration-gate-title">Nhập mã truy cập 4 số</h2>
+      <p>Mã này giúp VieJap xác nhận bạn đang mở đúng biểu mẫu đăng ký.</p>
+
+      <label for="registration-pin">Mã truy cập</label>
+      <div
+        class="registration-pin-field"
+        [class.is-valid]="isRegistrationPinValid"
+        [class.is-invalid]="registrationPinInput.length === 4 && !isRegistrationPinValid"
+      >
+        <i class="fas fa-lock" aria-hidden="true"></i>
+        <input
+          #registrationPinField
+          id="registration-pin"
+          type="password"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="4"
+          autocomplete="one-time-code"
+          placeholder="••••"
+          [value]="registrationPinInput"
+          (input)="onRegistrationPinInput($event)"
+          (keydown.enter)="continueToRegistration()"
+          aria-describedby="registration-pin-help"
+        />
+        <i
+          *ngIf="isRegistrationPinValid"
+          class="fas fa-check-circle registration-pin-check"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div
+        id="registration-pin-help"
+        class="registration-pin-message"
+        [class.is-success]="isRegistrationPinValid"
+        [class.is-error]="registrationPinInput.length === 4 && !isRegistrationPinValid"
+        aria-live="polite"
+      >
+        <i
+          [class]="
+            isRegistrationPinValid
+              ? 'fas fa-check-circle'
+              : registrationPinInput.length === 4
+                ? 'fas fa-exclamation-circle'
+                : 'fas fa-circle-info'
+          "
+        ></i>
+        <span>{{ registrationPinMessage || 'Vui lòng nhập đủ 4 chữ số.' }}</span>
+      </div>
+
+      <button
+        type="button"
+        class="registration-continue"
+        [disabled]="!isRegistrationPinValid"
+        (click)="continueToRegistration()"
+      >
+        <span>Tiếp tục đăng ký</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+
+      <small class="registration-gate-note">
+        <i class="fas fa-shield-alt"></i>
+        Biểu mẫu sẽ mở trong một tab mới.
+      </small>
+    </section>
   </div>
 
   <!-- Back to Top Button -->

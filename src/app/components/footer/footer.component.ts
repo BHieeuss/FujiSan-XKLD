@@ -1,6 +1,7 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   APP_COMPANY_INFO,
   APP_CONTACT_INFO,
@@ -17,7 +18,9 @@ import {
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss'],
 })
-export class FooterComponent {
+export class FooterComponent implements OnDestroy {
+  @ViewChild('registrationPinField') registrationPinInputRef?: ElementRef<HTMLInputElement>;
+
   // Năm hiện tại
   currentYear = new Date().getFullYear();
 
@@ -40,20 +43,50 @@ export class FooterComponent {
   socialMedia = APP_SOCIAL_MEDIA;
 
   isQuickAccessOpen = false;
+  isOrderListOpen = false;
+  isOrderListFrameLoaded = false;
+  isRegistrationGateOpen = false;
+  registrationPinInput = '';
+  registrationPinMessage = '';
   showBackToTop = false;
+
+  private readonly orderListSheetId = '1GA69_XZgSGQ3n5ZZoPOdA1H43DGYDHkOO47ZI2oBg-8';
+  readonly orderListUrl = `https://docs.google.com/spreadsheets/d/${this.orderListSheetId}/edit?usp=drivesdk`;
+  readonly orderListEmbedUrl: SafeResourceUrl;
+  private readonly registrationPin = '2025';
+  private readonly registrationUrl =
+    'https://docs.google.com/forms/d/e/1FAIpQLSeMVFx5N6YBGfgdNvDV0kRxeb768yTDlke_QVUbcAqLekfPpw/viewform';
+
+  constructor(private sanitizer: DomSanitizer) {
+    this.orderListEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://docs.google.com/spreadsheets/d/${this.orderListSheetId}/preview?rm=minimal`,
+    );
+  }
 
   quickAccessLinks = [
     {
       label: 'Danh sách đơn hàng',
-      url: 'https://docs.google.com/spreadsheets/d/1GA69_XZgSGQ3n5ZZoPOdA1H43DGYDHkOO47ZI2oBg-8/edit?usp=drivesdk',
+      url: this.orderListUrl,
       icon: 'fas fa-list-check',
+      kind: 'orders',
+      requiresPin: false,
     },
     {
       label: 'Đăng ký thông tin',
-      url: 'https://docs.google.com/forms/d/e/1FAIpQLSeMVFx5N6YBGfgdNvDV0kRxeb768yTDlke_QVUbcAqLekfPpw/viewform',
+      url: this.registrationUrl,
       icon: 'fas fa-file-signature',
+      kind: 'registration',
+      requiresPin: true,
     },
   ];
+
+  get isRegistrationPinValid(): boolean {
+    return this.registrationPinInput === this.registrationPin;
+  }
+
+  ngOnDestroy(): void {
+    this.setPageScrollLocked(false);
+  }
 
   quickLinkTargets: Record<string, string> = {
     'Trang chủ': '#trang-chu',
@@ -72,6 +105,82 @@ export class FooterComponent {
     this.isQuickAccessOpen = false;
   }
 
+  openQuickAccessLink(link: (typeof this.quickAccessLinks)[number]): void {
+    if (link.kind === 'orders') {
+      this.openOrderListViewer();
+      return;
+    }
+
+    if (link.requiresPin) {
+      this.openRegistrationGate();
+      return;
+    }
+
+    window.open(link.url, '_blank', 'noopener,noreferrer');
+    this.closeQuickAccess();
+  }
+
+  openOrderListViewer(): void {
+    this.closeQuickAccess();
+    this.isOrderListFrameLoaded = false;
+    this.isOrderListOpen = true;
+    this.setPageScrollLocked(true);
+  }
+
+  closeOrderListViewer(): void {
+    this.isOrderListOpen = false;
+    this.isOrderListFrameLoaded = false;
+    this.setPageScrollLocked(false);
+  }
+
+  onOrderListFrameLoad(): void {
+    this.isOrderListFrameLoaded = true;
+  }
+
+  openOrderListInGoogle(): void {
+    window.open(this.orderListUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  openRegistrationGate(): void {
+    this.closeQuickAccess();
+    this.registrationPinInput = '';
+    this.registrationPinMessage = '';
+    this.isRegistrationGateOpen = true;
+    this.setPageScrollLocked(true);
+
+    setTimeout(() => this.registrationPinInputRef?.nativeElement.focus());
+  }
+
+  closeRegistrationGate(): void {
+    this.isRegistrationGateOpen = false;
+    this.registrationPinInput = '';
+    this.registrationPinMessage = '';
+    this.setPageScrollLocked(false);
+  }
+
+  onRegistrationPinInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.registrationPinInput = input.value.replace(/\D/g, '').slice(0, 4);
+    input.value = this.registrationPinInput;
+
+    if (this.registrationPinInput.length < 4) {
+      this.registrationPinMessage = '';
+    } else if (this.isRegistrationPinValid) {
+      this.registrationPinMessage = 'Mã đúng rồi, bạn có thể tiếp tục.';
+    } else {
+      this.registrationPinMessage = 'Mã chưa đúng, bạn kiểm tra lại nhé.';
+    }
+  }
+
+  continueToRegistration(): void {
+    if (!this.isRegistrationPinValid) {
+      return;
+    }
+
+    window.open(this.registrationUrl, '_blank', 'noopener,noreferrer');
+    this.closeRegistrationGate();
+  }
+
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
     this.showBackToTop = window.scrollY > 520;
@@ -79,6 +188,16 @@ export class FooterComponent {
 
   @HostListener('document:keydown.escape', [])
   onEscape(): void {
+    if (this.isOrderListOpen) {
+      this.closeOrderListViewer();
+      return;
+    }
+
+    if (this.isRegistrationGateOpen) {
+      this.closeRegistrationGate();
+      return;
+    }
+
     this.closeQuickAccess();
   }
 
@@ -112,5 +231,11 @@ export class FooterComponent {
       top: 0,
       behavior: 'smooth',
     });
+  }
+
+  private setPageScrollLocked(isLocked: boolean): void {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = isLocked ? 'hidden' : '';
+    }
   }
 }

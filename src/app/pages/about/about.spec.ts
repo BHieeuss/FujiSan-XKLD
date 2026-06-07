@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 
 import { About } from './about';
 
@@ -10,7 +9,6 @@ describe('About', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [About],
-      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(About);
@@ -30,5 +28,51 @@ describe('About', () => {
     expect(compiled.querySelector('.activity-story h3')?.textContent).toContain(
       'THPT Sóc Trăng',
     );
+  });
+
+  it('should keep the roadmap hidden until requested', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelectorAll('.program-card').length).toBe(4);
+    expect(compiled.querySelectorAll('.program-card-media img').length).toBe(4);
+
+    component.openProgramModal('tokutei');
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.program-roadmap-poster')).toBeFalsy();
+    expect(compiled.querySelector('.program-modal-title')?.textContent).toContain('Tokutei');
+
+    component.showProgramRoadmap();
+    fixture.detectChanges();
+
+    const guide = compiled.querySelector('.program-roadmap-poster img') as HTMLImageElement;
+    expect(guide.src).toContain('/assets/images/TKT/tkt.png');
+
+    component.closeProgramPopupOnEscape();
+    fixture.detectChanges();
+
+    expect(component.isProgramRoadmapOpen).toBeFalse();
+    expect(component.isProgramPopupOpen).toBeTrue();
+  });
+
+  it('should render verified policy information and official sources', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.policy-verified')?.textContent).toContain('07/06/2026');
+    expect(compiled.querySelector('.policy-facts')?.textContent).toContain('6,24%/năm');
+
+    const loanSources = compiled.querySelectorAll<HTMLAnchorElement>(
+      '.policy-source-footer a[target="_blank"]',
+    );
+    expect(Array.from(loanSources).some((link) => link.href.includes('vbsp.org.vn'))).toBeTrue();
+
+    component.selectPolicy('policy-nenkin');
+    fixture.detectChanges();
+
+    const nenkinSource = compiled.querySelector<HTMLAnchorElement>(
+      '.policy-source-footer a[href*="nenkin.go.jp"]',
+    );
+    expect(nenkinSource).toBeTruthy();
+    expect(compiled.querySelector('.policy-panel')?.textContent).toContain('2 năm');
   });
 });

@@ -4,7 +4,7 @@
   z-index: 99999;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.98);
+  background: #fff;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -23,11 +23,10 @@
   width: min(240px, 58vw);
   display: grid;
   justify-items: center;
-  gap: 0.75rem;
 }
 
 .logo-wrapper {
-  animation: loading-logo-in 0.45s ease both;
+  animation: loading-logo-float 1.8s ease-in-out infinite;
 }
 
 .loading-logo {
@@ -37,42 +36,20 @@
   display: block;
 }
 
-.loading-line {
-  width: 112px;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e6edf7;
+@keyframes loading-logo-float {
+  0%,
+  100% {
+    transform: translateY(3px);
+  }
 
-  span {
-    width: 42%;
-    height: 100%;
-    display: block;
-    border-radius: inherit;
-    background: #1e40af;
-    animation: loading-line-move 0.8s ease-in-out infinite;
+  50% {
+    transform: translateY(-5px);
   }
 }
 
-@keyframes loading-logo-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes loading-line-move {
-  from {
-    transform: translateX(-110%);
-  }
-
-  to {
-    transform: translateX(350%);
+@media (prefers-reduced-motion: reduce) {
+  .logo-wrapper {
+    animation: none;
   }
 }
 

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-labelledby="title desc">
+  <title id="title">Minh họa quyền và kênh hỗ trợ</title>
+  <desc id="desc">Tấm khiên, điện thoại và cuộc trò chuyện hỗ trợ</desc>
+  <rect width="320" height="240" rx="28" fill="#F2F8F6"/>
+  <path d="M160 34c26 18 54 22 76 24v57c0 48-31 75-76 94-45-19-76-46-76-94V58c22-2 50-6 76-24z" fill="#D9EFE8" stroke="#21866B" stroke-width="4"/>
+  <path d="M128 114l22 22 43-51" fill="none" stroke="#21866B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="26" y="72" width="78" height="104" rx="17" fill="#fff" stroke="#BFD8D0" stroke-width="3"/>
+  <rect x="39" y="87" width="52" height="67" rx="8" fill="#E7F3EF"/>
+  <circle cx="65" cy="165" r="5" fill="#21866B"/>
+  <path d="M219 82h55c11 0 20 9 20 20v38c0 11-9 20-20 20h-25l-21 17v-17h-9c-11 0-20-9-20-20v-38c0-11 9-20 20-20z" fill="#1D4B91"/>
+  <circle cx="225" cy="121" r="5" fill="#fff"/>
+  <circle cx="246" cy="121" r="5" fill="#fff"/>
+  <circle cx="267" cy="121" r="5" fill="#fff"/>
+</svg>

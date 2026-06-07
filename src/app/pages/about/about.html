@@ -82,10 +82,26 @@
 <!-- Chương trình xuất cảnh -->
 <section class="programs-section py-5" id="chuong-trinh">
   <div class="container">
-    <div class="programs-heading">
-      <span class="programs-kicker">Lộ trình phù hợp</span>
-      <h2>Chọn chương trình dành cho bạn</h2>
-      <p>Tìm hiểu điều kiện, quyền lợi và lộ trình của từng chương trình.</p>
+    <div class="programs-heading-row">
+      <div class="programs-heading">
+        <span class="programs-kicker">4 hướng đi phổ biến</span>
+        <h2>Chọn chương trình phù hợp với bạn</h2>
+        <p>Mỗi chương trình có điều kiện và cách chuẩn bị khác nhau. Xem ảnh thực tế và lộ trình trước khi lựa chọn.</p>
+      </div>
+
+      <a
+        class="programs-help-link"
+        [href]="contactInfo.consultationUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <i class="fas fa-comment-dots"></i>
+        <span>
+          <small>Chưa rõ mình phù hợp diện nào?</small>
+          <strong>Hỏi VieJap qua Zalo</strong>
+        </span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
     </div>
 
     <div class="row g-3 g-lg-4">
@@ -96,15 +112,26 @@
           tabindex="0"
           (click)="openProgramModal(item.key)"
           (keydown.enter)="openProgramModal(item.key)"
+          [attr.aria-label]="'Xem chương trình ' + item.label"
         >
-          <div class="program-icon">
-            <i [class]="item.icon"></i>
+          <div class="program-card-media">
+            <img [src]="item.coverImage" [alt]="item.coverAlt" loading="lazy" />
+            <span class="program-card-badge">{{ item.badge }}</span>
           </div>
-          <div class="program-content">
-            <div class="program-label">{{ item.label }}</div>
+
+          <div class="program-card-body">
+            <div class="program-card-title">
+              <span class="program-icon"><i [class]="item.icon"></i></span>
+              <h3>{{ item.label }}</h3>
+            </div>
             <div class="program-description">{{ item.description }}</div>
-            <div class="program-view-detail">
-              Nhấn để xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
+
+            <div class="program-card-footer">
+              <span>{{ item.supportText }}</span>
+              <strong>
+                Xem chương trình
+                <i class="fas fa-arrow-right"></i>
+              </strong>
             </div>
           </div>
         </article>
@@ -121,62 +148,189 @@
   aria-labelledby="program-popup-title"
   (click)="closeProgramPopup()"
 >
-  <div class="program-popup-panel" (click)="$event.stopPropagation()">
+  <div
+    class="program-popup-panel"
+    [class.program-roadmap-active]="isProgramRoadmapOpen"
+    (click)="$event.stopPropagation()"
+  >
     <div class="program-popup-handle" aria-hidden="true"></div>
     <div class="program-modal-wrap">
-      <div class="modal-header border-0 pb-0">
-        <span class="about-section-label mb-0">
-          <i class="fas fa-briefcase me-2"></i>Chương trình
+      <header class="program-popup-header">
+        <button
+          *ngIf="isProgramRoadmapOpen"
+          type="button"
+          class="program-popup-back"
+          (click)="showProgramOverview()"
+        >
+          <i class="fas fa-arrow-left"></i>
+          <span>Quay lại</span>
+        </button>
+
+        <span *ngIf="!isProgramRoadmapOpen" class="program-popup-context">
+          <i class="fas fa-compass"></i>
+          Tìm hiểu chương trình
         </span>
+
         <button
           type="button"
-          class="btn-close"
-          aria-label="Đóng"
+          class="program-popup-close"
+          aria-label="Đóng thông tin chương trình"
           (click)="closeProgramPopup()"
-        ></button>
-      </div>
-      <div class="modal-body pt-2">
-        <h2 class="program-modal-title" id="program-popup-title">
-          {{ selectedProgramDetail.title }}
-        </h2>
-        <p class="program-modal-subtitle">{{ selectedProgramDetail.subtitle }}</p>
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </header>
 
-        <div class="program-modal-actions mb-3">
+      <div class="program-popup-scroll">
+        <ng-container *ngIf="!isProgramRoadmapOpen; else programRoadmapView">
+          <div class="program-detail-layout">
+            <figure class="program-detail-visual">
+              <img
+                [src]="selectedProgramDetail.images[0]"
+                [alt]="selectedProgramDetail.title"
+              />
+              <figcaption>
+                <i class="fas fa-camera"></i>
+                Hình ảnh trong môi trường học tập, làm việc
+              </figcaption>
+            </figure>
+
+            <div class="program-detail-copy">
+              <span class="program-detail-kicker">{{ selectedProgramDetail.eyebrow }}</span>
+              <h2 class="program-modal-title" id="program-popup-title">
+                {{ selectedProgramDetail.title }}
+              </h2>
+              <p class="program-modal-subtitle">{{ selectedProgramDetail.subtitle }}</p>
+
+              <div class="program-quick-facts">
+                <article class="program-fact" *ngFor="let fact of selectedProgramDetail.facts">
+                  <span class="program-fact-icon"><i [class]="fact.icon"></i></span>
+                  <span>
+                    <strong>{{ fact.title }}</strong>
+                    <small>{{ fact.text }}</small>
+                  </span>
+                </article>
+              </div>
+
+              <div class="program-friendly-note">
+                <i class="fas fa-comment-dots"></i>
+                <p>{{ selectedProgramDetail.note }}</p>
+              </div>
+            </div>
+          </div>
+
+          <section class="program-photo-section">
+            <div class="program-photo-heading">
+              <strong>Một vài hình ảnh thực tế</strong>
+              <small>Xem nhanh môi trường của chương trình</small>
+            </div>
+
+            <div class="program-photo-strip">
+              <figure
+                *ngFor="let image of selectedProgramDetail.images | slice: 1; let index = index"
+              >
+                <img
+                  [src]="image"
+                  [alt]="'Hình ảnh ' + selectedProgramDetail.title + ' ' + (index + 2)"
+                  loading="lazy"
+                />
+              </figure>
+            </div>
+          </section>
+        </ng-container>
+
+        <ng-template #programRoadmapView>
+          <section class="program-roadmap-view">
+            <div class="program-roadmap-heading">
+              <span class="program-detail-kicker">Xem từng bước</span>
+              <h2 class="program-modal-title" id="program-popup-title">
+                Lộ trình {{ selectedProgramDetail.title }}
+              </h2>
+              <p>
+                Đây là bức tranh tổng quan để bạn dễ hình dung. Từng mốc có thể thay đổi
+                một chút theo hồ sơ và thời điểm đăng ký.
+              </p>
+            </div>
+
+            <a
+              class="program-roadmap-poster"
+              [href]="selectedProgramDetail.guideImage"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                [src]="selectedProgramDetail.guideImage"
+                [alt]="selectedProgramDetail.guideAlt"
+              />
+              <span>
+                <i class="fas fa-expand-alt"></i>
+                Mở ảnh rõ hơn
+              </span>
+            </a>
+
+            <div class="program-roadmap-note">
+              <i class="fas fa-info-circle"></i>
+              <span>
+                Bạn không cần tự chuẩn bị mọi thứ một mình. VieJap sẽ cùng kiểm tra từng
+                bước trước khi bắt đầu.
+              </span>
+            </div>
+          </section>
+        </ng-template>
+      </div>
+
+      <footer class="program-popup-footer">
+        <ng-container *ngIf="!isProgramRoadmapOpen; else programRoadmapActions">
+          <button type="button" class="program-action program-action-primary" (click)="showProgramRoadmap()">
+            <span class="program-action-icon"><i class="fas fa-route"></i></span>
+            <span class="program-action-copy">
+              <strong>Xem lộ trình</strong>
+              <small>Các bước chuẩn bị từ đầu đến khi sang Nhật</small>
+            </span>
+            <i class="fas fa-arrow-right program-action-arrow"></i>
+          </button>
+
           <a
-            [routerLink]="selectedProgramDetail.roadmapLink"
-            class="btn btn-primary"
-            (click)="closeProgramPopup()"
-          >
-            <i class="fas fa-route me-2"></i>Lộ trình
-          </a>
-          <a
-            [routerLink]="selectedProgramDetail.recruitLink"
-            class="btn btn-outline-primary"
-            (click)="closeProgramPopup()"
-          >
-            <i class="fas fa-file-signature me-2"></i>Đơn tuyển
-          </a>
-          <a
+            class="program-action program-action-secondary"
             [href]="contactInfo.consultationUrl"
-            class="btn btn-engineer-consult"
             target="_blank"
             rel="noopener noreferrer"
             (click)="closeProgramPopup()"
           >
-            <i class="fas fa-headset me-2"></i>Tư vấn
+            <span class="program-action-icon"><i class="fas fa-comment-dots"></i></span>
+            <span class="program-action-copy">
+              <strong>Hỏi đơn phù hợp</strong>
+              <small>VieJap xem hồ sơ và trao đổi cùng bạn</small>
+            </span>
+            <i class="fas fa-external-link-alt program-action-arrow"></i>
           </a>
-        </div>
+        </ng-container>
 
-        <div class="program-modal-gallery mb-3" *ngIf="selectedProgramDetail.images?.length">
-          <div class="program-gallery-item" *ngFor="let image of selectedProgramDetail.images">
-            <img [src]="image" [alt]="selectedProgramDetail.title" loading="lazy" />
-          </div>
-        </div>
+        <ng-template #programRoadmapActions>
+          <button type="button" class="program-action program-action-secondary" (click)="showProgramOverview()">
+            <span class="program-action-icon"><i class="fas fa-arrow-left"></i></span>
+            <span class="program-action-copy">
+              <strong>Quay lại thông tin</strong>
+              <small>Xem điều kiện và hình ảnh chương trình</small>
+            </span>
+          </button>
 
-        <div class="program-modal-content">
-          <p *ngFor="let item of selectedProgramDetail.paragraphs">{{ item }}</p>
-        </div>
-      </div>
+          <a
+            class="program-action program-action-primary"
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            (click)="closeProgramPopup()"
+          >
+            <span class="program-action-icon"><i class="fas fa-comment-dots"></i></span>
+            <span class="program-action-copy">
+              <strong>Nhắn VieJap hỏi thêm</strong>
+              <small>Trao đổi trực tiếp qua Zalo</small>
+            </span>
+            <i class="fas fa-arrow-right program-action-arrow"></i>
+          </a>
+        </ng-template>
+      </footer>
     </div>
   </div>
 </div>
@@ -184,205 +338,271 @@
 <!-- Chính sách hỗ trợ -->
 <section class="policy-section py-5" id="chinh-sach">
   <div class="container">
-    <div class="section-header text-center mb-5">
-      <span class="about-section-label"> <i class="fas fa-balance-scale me-2"></i>Chính sách </span>
-      <h2 class="about-section-title">Chính sách hỗ trợ người lao động</h2>
-      <p class="about-section-desc">
-        Tra cứu nhanh các hỗ trợ tài chính, Nenkin và chính sách bảo hộ trong từng giai đoạn.
-      </p>
-    </div>
+    <div class="policy-section-head">
+      <div>
+        <span class="about-section-label">
+          <i class="fas fa-book-open me-2"></i>Thông tin cần biết
+        </span>
+        <h2 class="about-section-title">Hiểu đúng quyền lợi trước khi quyết định</h2>
+        <p class="about-section-desc">
+          VieJap tóm tắt lại bằng cách dễ đọc và gắn nguồn chính thức để bạn chủ động kiểm tra.
+        </p>
+      </div>
 
-    <div class="row g-3 mb-4 policy-tabs-row">
-      <div class="col-lg-4 col-md-6" *ngFor="let category of policyCategories">
-        <article
-          class="policy-category-card"
-          [class.active]="category.id === selectedPolicyId"
-          role="button"
-          tabindex="0"
-          (click)="selectPolicy(category.id, policyCarousel)"
-          (keydown.enter)="selectPolicy(category.id, policyCarousel)"
-        >
-          <div class="policy-category-icon">
-            <i [class]="category.icon"></i>
-          </div>
-          <div class="policy-category-content">
-            <h3 class="policy-category-title">{{ category.title }}</h3>
-            <span
-              class="policy-category-status"
-              [class.active]="category.status === 'Đang áp dụng'"
-              >{{ category.status }}</span
-            >
-          </div>
-        </article>
+      <div class="policy-verified">
+        <i class="fas fa-check-circle"></i>
+        <span>
+          <small>Đối chiếu nguồn chính thức</small>
+          <strong>Cập nhật {{ policyVerifiedOn }}</strong>
+        </span>
       </div>
     </div>
 
-    <ngb-carousel
-      #policyCarousel="ngbCarousel"
-      class="policy-carousel"
-      [activeId]="selectedPolicyId"
-      [showNavigationArrows]="false"
-      [showNavigationIndicators]="false"
-      [interval]="0"
-      [keyboard]="false"
-      [pauseOnHover]="false"
-      [pauseOnFocus]="false"
-      (slide)="selectedPolicyId = $event.current"
-    >
-      <ng-template ngbSlide id="policy-loan">
-        <div class="loan-policy-card">
-          <div class="loan-policy-head">
-            <span class="loan-policy-badge">Triển khai trước</span>
-            <div class="policy-heading-group">
-              <div class="policy-jp-icon loan">
-                <i class="fas fa-torii-gate"></i>
-              </div>
-              <h3 class="loan-policy-title">{{ loanPolicy.title }}</h3>
-            </div>
-            <p class="loan-policy-desc">{{ loanPolicy.description }}</p>
-          </div>
+    <div class="policy-tabs" role="tablist" aria-label="Chọn nhóm thông tin">
+      <button
+        *ngFor="let category of policyCategories"
+        type="button"
+        class="policy-tab"
+        role="tab"
+        [class.active]="category.id === selectedPolicyId"
+        [attr.aria-selected]="category.id === selectedPolicyId"
+        [attr.aria-controls]="category.id + '-panel'"
+        (click)="selectPolicy(category.id)"
+      >
+        <span class="policy-tab-icon"><i [class]="category.icon"></i></span>
+        <span>
+          <strong>{{ category.title }}</strong>
+          <small>{{ category.summary }}</small>
+        </span>
+        <i class="fas fa-chevron-right policy-tab-arrow"></i>
+      </button>
+    </div>
 
-          <div class="row g-3 mb-4">
-            <div class="col-md-4">
-              <div class="loan-policy-highlight h-100">
-                <div class="loan-policy-highlight-icon">
-                  <i class="fas fa-wallet"></i>
-                </div>
-                <div class="loan-policy-highlight-label">Mức vay tối đa</div>
-                <div class="loan-policy-highlight-value">{{ loanPolicy.maxLoan }}</div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="loan-policy-highlight h-100">
-                <div class="loan-policy-highlight-icon">
-                  <i class="fas fa-percentage"></i>
-                </div>
-                <div class="loan-policy-highlight-label">Lãi suất ưu đãi</div>
-                <div class="loan-policy-highlight-value">{{ loanPolicy.interestRate }}</div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="loan-policy-highlight h-100">
-                <div class="loan-policy-highlight-icon">
-                  <i class="fas fa-university"></i>
-                </div>
-                <div class="loan-policy-highlight-label">Kênh hỗ trợ</div>
-                <div class="loan-policy-highlight-value">{{ loanPolicy.bank }}</div>
-              </div>
-            </div>
+    <div class="policy-detail" [ngSwitch]="selectedPolicyId">
+      <article
+        *ngSwitchCase="'policy-loan'"
+        class="policy-panel"
+        id="policy-loan-panel"
+        role="tabpanel"
+      >
+        <div class="policy-panel-intro">
+          <div class="policy-panel-copy">
+            <span class="policy-panel-kicker">{{ loanPolicy.eyebrow }}</span>
+            <h3>{{ loanPolicy.title }}</h3>
+            <p>{{ loanPolicy.description }}</p>
           </div>
+          <img
+            class="policy-panel-illustration"
+            [src]="loanPolicy.illustration"
+            [alt]="loanPolicy.illustrationAlt"
+          />
+        </div>
 
-          <div class="loan-policy-note">
-            <i class="fas fa-info-circle me-2"></i>
-            {{ loanPolicy.note }}
-          </div>
-
-          <div class="loan-policy-area mt-4">
-            <h4 class="loan-policy-area-title">
-              <i class="fas fa-map-marker-alt me-2"></i>
-              Các tỉnh có mức vay phổ biến
-            </h4>
-            <div class="loan-policy-province-list">
-              <span class="province-item" *ngFor="let province of loanPolicyProvinces">{{
-                province
-              }}</span>
-            </div>
+        <div class="policy-facts">
+          <div class="policy-fact" *ngFor="let fact of loanPolicy.facts">
+            <span><i [class]="fact.icon"></i></span>
+            <small>{{ fact.label }}</small>
+            <strong>{{ fact.value }}</strong>
           </div>
         </div>
-      </ng-template>
 
-      <ng-template ngbSlide id="policy-nenkin">
-        <div class="nenkin-policy-card">
-          <div class="nenkin-policy-head">
-            <span class="nenkin-policy-badge">Chính sách đang áp dụng</span>
-            <div class="policy-heading-group">
-              <div class="policy-jp-icon nenkin">
-                <i class="fas fa-coins"></i>
-              </div>
-              <h3 class="nenkin-policy-title">{{ nenkinPolicy.title }}</h3>
-            </div>
-            <p class="nenkin-policy-desc">{{ nenkinPolicy.description }}</p>
+        <div class="policy-info-grid">
+          <section class="policy-checklist">
+            <h4><i class="fas fa-users"></i> Nhóm thường được xem xét</h4>
+            <ul>
+              <li *ngFor="let item of loanPolicy.eligibleGroups">
+                <i class="fas fa-check-circle"></i><span>{{ item }}</span>
+              </li>
+            </ul>
+          </section>
+
+          <section class="policy-checklist">
+            <h4><i class="fas fa-clipboard-check"></i> Điều kiện cần chuẩn bị</h4>
+            <ul>
+              <li *ngFor="let item of loanPolicy.requirements">
+                <i class="fas fa-check-circle"></i><span>{{ item }}</span>
+              </li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="policy-caution">
+          <i class="fas fa-info-circle"></i>
+          <p>{{ loanPolicy.note }}</p>
+        </div>
+
+        <footer class="policy-source-footer">
+          <div>
+            <span>Nguồn đối chiếu</span>
+            <a
+              *ngFor="let source of loanPolicy.sources"
+              [href]="source.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ source.label }} <i class="fas fa-external-link-alt"></i>
+            </a>
           </div>
+          <a
+            class="policy-help-action"
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fas fa-comment-dots"></i>
+            Hỏi VieJap về hồ sơ
+          </a>
+        </footer>
+      </article>
 
-          <div class="nenkin-formula-box">
-            <div class="nenkin-formula-label">Công thức tính</div>
-            <div class="nenkin-formula-value">{{ nenkinPolicy.formula }}</div>
+      <article
+        *ngSwitchCase="'policy-nenkin'"
+        class="policy-panel"
+        id="policy-nenkin-panel"
+        role="tabpanel"
+      >
+        <div class="policy-panel-intro">
+          <div class="policy-panel-copy">
+            <span class="policy-panel-kicker">{{ nenkinPolicy.eyebrow }}</span>
+            <h3>{{ nenkinPolicy.title }}</h3>
+            <p>{{ nenkinPolicy.description }}</p>
           </div>
+          <img
+            class="policy-panel-illustration"
+            [src]="nenkinPolicy.illustration"
+            [alt]="nenkinPolicy.illustrationAlt"
+          />
+        </div>
 
-          <div class="nenkin-example-box mt-3">
-            <h4 class="nenkin-example-title">{{ nenkinPolicy.example.title }}</h4>
-            <p class="nenkin-example-content mb-0">{{ nenkinPolicy.example.content }}</p>
+        <div class="policy-info-grid">
+          <section class="policy-checklist">
+            <h4><i class="fas fa-user-check"></i> Điều kiện cơ bản</h4>
+            <ul>
+              <li *ngFor="let item of nenkinPolicy.conditions">
+                <i class="fas fa-check-circle"></i><span>{{ item }}</span>
+              </li>
+            </ul>
+          </section>
+
+          <section class="policy-timeline">
+            <h4><i class="fas fa-list-ol"></i> Các bước dễ nhớ</h4>
+            <ol>
+              <li *ngFor="let step of nenkinPolicy.steps; let index = index">
+                <strong>{{ index + 1 }}</strong><span>{{ step }}</span>
+              </li>
+            </ol>
+          </section>
+        </div>
+
+        <div class="policy-reminders">
+          <article *ngFor="let item of nenkinPolicy.reminders">
+            <span><i [class]="item.icon"></i></span>
+            <div>
+              <strong>{{ item.title }}</strong>
+              <p>{{ item.text }}</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="policy-caution">
+          <i class="fas fa-info-circle"></i>
+          <p>{{ nenkinPolicy.note }}</p>
+        </div>
+
+        <footer class="policy-source-footer">
+          <div>
+            <span>Nguồn đối chiếu</span>
+            <a
+              *ngFor="let source of nenkinPolicy.sources"
+              [href]="source.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ source.label }} <i class="fas fa-external-link-alt"></i>
+            </a>
           </div>
+          <a
+            class="policy-help-action"
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fas fa-comment-dots"></i>
+            Hỏi VieJap về Nenkin
+          </a>
+        </footer>
+      </article>
 
-          <div class="nenkin-table-wrap mt-4">
-            <h4 class="nenkin-table-title mb-3">Bảng hệ số theo thời gian làm việc</h4>
-            <div class="table-responsive">
-              <table class="table nenkin-table align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th scope="col">Thời gian làm việc</th>
-                    <th scope="col" class="text-end">Hệ số</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let row of nenkinFactors">
-                    <td>{{ row.monthRange }}</td>
-                    <td class="text-end fw-bold">{{ row.factor }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+      <article
+        *ngSwitchCase="'policy-protection'"
+        class="policy-panel"
+        id="policy-protection-panel"
+        role="tabpanel"
+      >
+        <div class="policy-panel-intro">
+          <div class="policy-panel-copy">
+            <span class="policy-panel-kicker">{{ protectionPolicy.eyebrow }}</span>
+            <h3>{{ protectionPolicy.title }}</h3>
+            <p>{{ protectionPolicy.description }}</p>
           </div>
+          <img
+            class="policy-panel-illustration"
+            [src]="protectionPolicy.illustration"
+            [alt]="protectionPolicy.illustrationAlt"
+          />
+        </div>
 
-          <div class="nenkin-note-list mt-4">
-            <div class="nenkin-note-item">
-              <i class="fas fa-clock me-2"></i>
-              {{ nenkinPolicy.timeToReceive }}
+        <div class="worker-rights-grid">
+          <article *ngFor="let right of protectionPolicy.rights">
+            <span><i [class]="right.icon"></i></span>
+            <div>
+              <strong>{{ right.title }}</strong>
+              <p>{{ right.text }}</p>
             </div>
-            <div class="nenkin-note-item highlight">
-              <i class="fas fa-check-circle me-2"></i>
-              {{ nenkinPolicy.support }}
-            </div>
-            <div class="nenkin-note-item">
-              <i class="fas fa-info-circle me-2"></i>
-              {{ nenkinPolicy.marketFeeNote }}
-            </div>
+          </article>
+        </div>
+
+        <div class="policy-support-grid policy-support-grid-single">
+          <section class="policy-emergency">
+            <h4><i class="fas fa-exclamation-circle"></i> Nên liên hệ ngay khi</h4>
+            <ul>
+              <li *ngFor="let item of protectionPolicy.emergencyExamples">{{ item }}</li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="viejap-support-note">
+          <i class="fas fa-hands-helping"></i>
+          <div>
+            <strong>VieJap hỗ trợ ở vai trò nào?</strong>
+            <p>{{ protectionPolicy.viejapRole }}</p>
           </div>
         </div>
-      </ng-template>
 
-      <ng-template ngbSlide id="policy-protection">
-        <div class="protection-policy-card">
-          <div class="protection-policy-head">
-            <div class="policy-heading-group">
-              <div class="policy-jp-icon protection">
-                <i class="fas fa-shield-alt"></i>
-              </div>
-              <h3 class="protection-policy-title">{{ protectionPolicy.title }}</h3>
-            </div>
-            <p class="protection-policy-desc">{{ protectionPolicy.description }}</p>
+        <footer class="policy-source-footer">
+          <div>
+            <span>Nguồn đối chiếu</span>
+            <a
+              *ngFor="let source of protectionPolicy.sources"
+              [href]="source.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ source.label }} <i class="fas fa-external-link-alt"></i>
+            </a>
           </div>
-
-          <!-- Các giai đoạn bảo hộ -->
-          <div class="protection-policy-stages">
-            <div class="stage-item" *ngFor="let stage of protectionPolicy.stages">
-              <div class="stage-header">
-                <div class="stage-icon">
-                  <i [class]="stage.icon"></i>
-                </div>
-                <h4 class="stage-title">{{ stage.stage }}</h4>
-              </div>
-              <ul class="stage-items-list">
-                <li class="stage-item-content" *ngFor="let item of stage.items">
-                  <i class="fas fa-check-circle me-2"></i>
-                  <span>{{ item }}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </ng-template>
-    </ngb-carousel>
+          <a
+            class="policy-help-action"
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fas fa-comment-dots"></i>
+            Báo VieJap cần hỗ trợ
+          </a>
+        </footer>
+      </article>
+    </div>
   </div>
 </section>
 
@@ -530,7 +750,7 @@
           rel="noopener noreferrer"
           class="btn btn-light btn-lg me-3"
         >
-          <i class="fas fa-calendar-check me-2"></i>Đăng ký tư vấn
+          <i class="fas fa-comment-dots me-2"></i>Nhắn Zalo để được tư vấn
         </a>
         <a [href]="'tel:' + contactInfo.hotline" class="btn btn-outline-light btn-lg">
           <i class="fas fa-phone-alt me-2"></i>Gọi ngay: {{ contactInfo.hotline }}

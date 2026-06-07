@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
 
@@ -22,4 +22,20 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('Đi Nhật có lộ trình');
   });
+
+  it('should keep the initial loading screen visible for three seconds', fakeAsync(() => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    const overlay = fixture.nativeElement.querySelector('.loading-overlay') as HTMLElement;
+    expect(overlay.classList.contains('visible')).toBeTrue();
+
+    tick(2999);
+    fixture.detectChanges();
+    expect(overlay.classList.contains('visible')).toBeTrue();
+
+    tick(1);
+    fixture.detectChanges();
+    expect(overlay.classList.contains('visible')).toBeFalse();
+  }));
 });

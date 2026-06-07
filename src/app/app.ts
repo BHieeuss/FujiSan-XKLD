@@ -44,19 +44,26 @@ export class App implements OnInit, OnDestroy {
   isMuted = signal(true);
 
   // Loading state
-  isLoading = signal(false);
+  isLoading = signal(true);
 
   private routerSub!: Subscription;
   private loadingTimer?: ReturnType<typeof setTimeout>;
+  private initialLoadingStartedAt = 0;
+  private initialLoadingFinished = false;
+  private readonly initialLoadingDuration = 3000;
 
   constructor(private router: Router) {}
 
   ngOnInit() {
-    this.isLoading.set(true);
-    this.hideLoadingAfter(850);
+    this.initialLoadingStartedAt = Date.now();
+    this.finishInitialLoadingAfterMinimum();
 
     this.routerSub = this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
+        if (!this.initialLoadingFinished) {
+          return;
+        }
+
         clearTimeout(this.loadingTimer);
         this.isLoading.set(true);
       } else if (
@@ -64,7 +71,11 @@ export class App implements OnInit, OnDestroy {
         event instanceof NavigationCancel ||
         event instanceof NavigationError
       ) {
-        this.hideLoadingAfter(220);
+        if (this.initialLoadingFinished) {
+          this.hideLoadingAfter(220);
+        } else {
+          this.finishInitialLoadingAfterMinimum();
+        }
       }
     });
   }
@@ -86,5 +97,16 @@ export class App implements OnInit, OnDestroy {
   private hideLoadingAfter(delay: number): void {
     clearTimeout(this.loadingTimer);
     this.loadingTimer = setTimeout(() => this.isLoading.set(false), delay);
+  }
+
+  private finishInitialLoadingAfterMinimum(): void {
+    const elapsed = Date.now() - this.initialLoadingStartedAt;
+    const remaining = Math.max(0, this.initialLoadingDuration - elapsed);
+
+    clearTimeout(this.loadingTimer);
+    this.loadingTimer = setTimeout(() => {
+      this.initialLoadingFinished = true;
+      this.isLoading.set(false);
+    }, remaining);
   }
 }
