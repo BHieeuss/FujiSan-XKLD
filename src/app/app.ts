@@ -20,6 +20,7 @@ import { About } from './pages/about/about';
 import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './shared/loading/loading.component';
 import { Subscription } from 'rxjs';
+import { APP_CONTACT_INFO } from './models/app.config';
 
 @Component({
   selector: 'app-root',
@@ -35,7 +36,8 @@ import { Subscription } from 'rxjs';
   styleUrl: './app.scss',
 })
 export class App implements OnInit, OnDestroy {
-  protected readonly title = signal('FujiSan - Hợp tác quốc tế');
+  protected readonly title = signal('VieJap - Hợp tác quốc tế');
+  protected readonly contactInfo = APP_CONTACT_INFO;
 
   // Video Controls
   @ViewChild('heroVideo') heroVideo!: ElementRef<HTMLVideoElement>;
@@ -45,40 +47,44 @@ export class App implements OnInit, OnDestroy {
   isLoading = signal(false);
 
   private routerSub!: Subscription;
+  private loadingTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private router: Router) {}
 
   ngOnInit() {
-    // Hiện loading khi khởi động trang lần đầu
     this.isLoading.set(true);
-    setTimeout(() => this.isLoading.set(false), 5000);
+    this.hideLoadingAfter(850);
 
-    // Lắng nghe sự kiện chuyển trang
     this.routerSub = this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
+        clearTimeout(this.loadingTimer);
         this.isLoading.set(true);
       } else if (
         event instanceof NavigationEnd ||
         event instanceof NavigationCancel ||
         event instanceof NavigationError
       ) {
-        // Delay nhỏ để animation mượt hơn
-        setTimeout(() => this.isLoading.set(false), 400);
+        this.hideLoadingAfter(220);
       }
     });
   }
 
   ngOnDestroy() {
+    clearTimeout(this.loadingTimer);
     if (this.routerSub) {
       this.routerSub.unsubscribe();
     }
   }
 
-  // Bật/Tắt âm thanh
   toggleMute() {
     this.isMuted.set(!this.isMuted());
     if (this.heroVideo) {
       this.heroVideo.nativeElement.muted = this.isMuted();
     }
+  }
+
+  private hideLoadingAfter(delay: number): void {
+    clearTimeout(this.loadingTimer);
+    this.loadingTimer = setTimeout(() => this.isLoading.set(false), delay);
   }
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgbCarousel, NgbCarouselModule } from '@ng-bootstrap/ng-bootstrap';
@@ -10,8 +10,26 @@ type ProgramDetail = {
   paragraphs: string[];
   roadmapLink: string;
   recruitLink: string;
-  consultLink: string;
   images?: string[];
+};
+
+type ActivityImage = {
+  src: string;
+  alt: string;
+};
+
+type CompanyActivity = {
+  id: string;
+  category: string;
+  title: string;
+  summary: string;
+  location: string;
+  metric: string;
+  metricLabel: string;
+  coverImage: ActivityImage;
+  gallery: ActivityImage[];
+  highlights: string[];
+  video?: string;
 };
 
 @Component({
@@ -21,7 +39,7 @@ type ProgramDetail = {
   templateUrl: './about.html',
   styleUrl: './about.scss',
 })
-export class About {
+export class About implements OnDestroy {
   constructor() {}
 
   /* ============================================================
@@ -100,8 +118,7 @@ export class About {
     ],
     roadmapLink: '/chuong-trinh/ky-su/lo-trinh',
     recruitLink: '/chuong-trinh/ky-su/don-tuyen',
-    consultLink: '/lien-he',
-    images: ['assets/images/KySu/1.jpg', 'assets/images/KySu/2.jpg', 'assets/images/KySu/3.jpg'],
+    images: ['assets/images/KySu/1.png', 'assets/images/KySu/2.png', 'assets/images/KySu/3.png'],
   };
 
   programDetails: Record<string, ProgramDetail> = {
@@ -117,7 +134,6 @@ export class About {
       ],
       roadmapLink: '/chuong-trinh/tokutei/lo-trinh',
       recruitLink: '/chuong-trinh/tokutei/don-tuyen',
-      consultLink: '/lien-he',
     },
     'thuc-tap-sinh': {
       title: 'Thực tập sinh',
@@ -130,7 +146,6 @@ export class About {
       ],
       roadmapLink: '/chuong-trinh/thuc-tap-sinh/lo-trinh',
       recruitLink: '/chuong-trinh/thuc-tap-sinh/don-tuyen',
-      consultLink: '/lien-he',
     },
     'du-hoc-sinh': {
       title: 'Du học sinh',
@@ -143,7 +158,6 @@ export class About {
       ],
       roadmapLink: '/chuong-trinh/du-hoc-sinh/lo-trinh',
       recruitLink: '/chuong-trinh/du-hoc-sinh/don-tuyen',
-      consultLink: '/lien-he',
     },
   };
 
@@ -158,6 +172,17 @@ export class About {
 
   closeProgramPopup(): void {
     this.isProgramPopupOpen = false;
+    this.togglePageScrollLocked(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeProgramPopupOnEscape(): void {
+    if (this.isProgramPopupOpen) {
+      this.closeProgramPopup();
+    }
+  }
+
+  ngOnDestroy(): void {
     this.togglePageScrollLocked(false);
   }
 
@@ -347,46 +372,101 @@ export class About {
     },
   ];
 
-  // Hình ảnh gallery
-  galleryImages = [
-    { alt: 'Văn phòng làm việc' },
-    { alt: 'Phòng họp hiện đại' },
-    { alt: 'Ký túc xá học viên' },
-    { alt: 'Lớp học tiếng Nhật' },
-    { alt: 'Đào tạo kỹ năng nghề' },
-    { alt: 'Buổi học văn hóa Nhật Bản' },
-  ];
-
-  // Video giới thiệu
-  introVideos = [
-    { title: 'Giới thiệu công ty FujiSan' },
-    { title: 'Cơ sở vật chất đào tạo' },
-    { title: 'Chia sẻ từ lao động tại Nhật' },
-  ];
-
-  /* ============================================================
-     HOẠT ĐỘNG CÔNG TY - Đang cập nhật
-     ============================================================ */
-  /*
-  newsActivities = [
+  companyActivities: CompanyActivity[] = [
     {
-      title: 'FujiSan ký kết hợp tác với 10 doanh nghiệp Nhật Bản',
-      date: '15/12/2025',
-      source: 'Báo Lao Động',
+      id: 'huong-nghiep-soc-trang',
+      category: 'Gặp gỡ học sinh',
+      title: 'Cùng các bạn THPT Sóc Trăng tìm hiểu hướng đi sau tốt nghiệp',
+      summary:
+        'Đội ngũ VieJap có dịp đến các điểm trường tại Sóc Trăng để trò chuyện cùng học sinh về việc học, chọn nghề và những điều cần chuẩn bị nếu muốn tìm hiểu cơ hội tại Nhật Bản.',
+      location: 'Tỉnh Sóc Trăng',
+      metric: '24',
+      metricLabel: 'điểm trường',
+      coverImage: {
+        src: 'assets/images/HoatDong/TrungThuChoEm-DaiPhuocCangLongTraVinh/z7909725364099_bcbf7fb5be2c0240114154b078a84107.jpg',
+        alt: 'Học sinh tham gia buổi hướng nghiệp tại Sóc Trăng',
+      },
+      gallery: [
+        {
+          src: 'assets/images/HoatDong/TrungThuChoEm-DaiPhuocCangLongTraVinh/z7909725364099_bcbf7fb5be2c0240114154b078a84107.jpg',
+          alt: 'Tập thể học sinh và tư vấn viên trong chương trình',
+        },
+        {
+          src: 'assets/images/HoatDong/TrungThuChoEm-DaiPhuocCangLongTraVinh/z7909725215366_6362f98f30acdb51dfbfd59565fd6dc1.jpg',
+          alt: 'Đội ngũ chương trình tại Trường THPT Thiều Văn Chỏi, Sóc Trăng',
+        },
+        {
+          src: 'assets/images/HoatDong/TrungThuChoEm-DaiPhuocCangLongTraVinh/z7909725274007_54c17cd1b5778431305a76babbc637ca.jpg',
+          alt: 'Tư vấn viên chia sẻ thông tin hướng nghiệp cùng học sinh',
+        },
+        {
+          src: 'assets/images/HoatDong/TrungThuChoEm-DaiPhuocCangLongTraVinh/z7909725286261_a8526de1baf0205a79eabc52ef3c0307.jpg',
+          alt: 'Học sinh nhận tài liệu sau buổi hướng nghiệp',
+        },
+        {
+          src: 'assets/images/HoatDong/TrungThuChoEm-DaiPhuocCangLongTraVinh/z7909725304715_adfee360d68819ee96f493147740535c.jpg',
+          alt: 'Tư vấn viên trao đổi trực tiếp với học sinh tại lớp',
+        },
+      ],
+      highlights: [
+        'Trò chuyện trực tiếp với học sinh tại trường',
+        'Giải thích các hướng học tập và nghề nghiệp bằng cách dễ hiểu',
+        'Gửi tài liệu để các bạn có thể đọc lại sau buổi gặp',
+      ],
     },
     {
-      title: 'Lễ xuất cảnh 200 thực tập sinh đợt cuối năm 2025',
-      date: '20/11/2025',
-      source: 'VnExpress',
-    },
-    {
-      title: 'Chương trình thiện nguyện - Về quê ăn Tết cùng lao động',
-      date: '05/01/2026',
-      source: 'Dân Trí',
+      id: 'trung-thu-cho-em',
+      category: 'Chia sẻ cộng đồng',
+      title: 'Trung thu cho em tại Đại Phước, Càng Long',
+      summary:
+        'Một buổi Trung thu nhỏ được tổ chức tại xã Đại Phước, huyện Càng Long, tỉnh Trà Vinh. Các em cùng vui chơi, làm đồ thủ công và nhận những phần quà được chuẩn bị từ đội ngũ.',
+      location: 'Đại Phước, Càng Long, Trà Vinh',
+      metric: '50',
+      metricLabel: 'em học sinh',
+      coverImage: {
+        src: 'assets/images/HoatDong/24DiemTruongTHPTSOCTRANG/z7909725575538_c6455e009c24635dce29c381a9bca345.jpg',
+        alt: 'Các em học sinh tham gia chương trình Trung thu cho em',
+      },
+      gallery: [
+        {
+          src: 'assets/images/HoatDong/24DiemTruongTHPTSOCTRANG/z7909725575538_c6455e009c24635dce29c381a9bca345.jpg',
+          alt: 'Các em nhỏ nhận quà tại chương trình Trung thu',
+        },
+        {
+          src: 'assets/images/HoatDong/24DiemTruongTHPTSOCTRANG/z7909725465081_daa2e0a9b36b6985d530a63466f22cb5.jpg',
+          alt: 'Tình nguyện viên và các em nhỏ trong hoạt động trải nghiệm',
+        },
+        {
+          src: 'assets/images/HoatDong/24DiemTruongTHPTSOCTRANG/z7909725467808_1928067d83fc90de966f57fd50cbbdb0.jpg',
+          alt: 'Quà Trung thu được chuẩn bị cho các em học sinh',
+        },
+        {
+          src: 'assets/images/HoatDong/24DiemTruongTHPTSOCTRANG/z7909725402170_2b11effe316f6276434229ba7bb68fb6.jpg',
+          alt: 'Trao quà Trung thu cho các em nhỏ tại Đại Phước',
+        },
+        {
+          src: 'assets/images/HoatDong/24DiemTruongTHPTSOCTRANG/z7909725606713_f062667a4b071cb41bef0f7bcad26b3f.jpg',
+          alt: 'Em nhỏ với món quà thủ công trong chương trình Trung thu',
+        },
+      ],
+      highlights: [
+        'Gửi quà Trung thu đến các em học sinh có hoàn cảnh khó khăn',
+        'Cùng các em làm đồ thủ công và sinh hoạt vui vẻ',
+        'Tạo thêm một buổi gặp gỡ ấm áp với cộng đồng địa phương',
+      ],
+      video: 'assets/images/HoatDong/VideoHoatDong/7909740530638.mp4',
     },
   ];
-  */
 
-  // Placeholder tạm thời
-  newsActivities = [];
+  selectedActivity = this.companyActivities[0];
+  selectedActivityImage = this.selectedActivity.coverImage;
+
+  selectCompanyActivity(activity: CompanyActivity): void {
+    this.selectedActivity = activity;
+    this.selectedActivityImage = activity.coverImage;
+  }
+
+  selectActivityImage(image: ActivityImage): void {
+    this.selectedActivityImage = image;
+  }
 }

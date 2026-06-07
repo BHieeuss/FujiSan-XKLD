@@ -10,7 +10,7 @@
         <div class="col-lg-4 col-md-6">
           <div class="footer-section">
             <h3 class="footer-title">
-              <img src="assets/images/logo.png" alt="FujiSan" class="footer-logo mb-3" />
+              <img src="assets/images/logo.png" alt="VieJap" class="footer-logo" />
             </h3>
             <p class="footer-desc mb-3">
               {{ companyInfo.name }} - Kết nối nguồn nhân lực Việt Nam với thị trường lao động quốc
@@ -39,7 +39,7 @@
             <h4 class="footer-heading">Liên kết nhanh</h4>
             <ul class="footer-links">
               <li *ngFor="let link of quickLinks">
-                <a [routerLink]="link.link" class="footer-link">
+                <a [href]="quickLinkTargets[link.label]" class="footer-link">
                   <i class="fas fa-angle-right me-2"></i>{{ link.label }}
                 </a>
               </li>
@@ -53,7 +53,7 @@
             <h4 class="footer-heading">Chương trình</h4>
             <ul class="footer-links">
               <li *ngFor="let link of programLinks">
-                <a [routerLink]="link.link" class="footer-link">
+                <a href="#chuong-trinh" class="footer-link">
                   <i class="fas fa-angle-right me-2"></i>{{ link.label }}
                 </a>
               </li>
@@ -67,19 +67,24 @@
             <h4 class="footer-heading">Liên hệ</h4>
             <ul class="footer-contact">
               <li>
-                <a (click)="onCallHotline()" class="contact-link">
+                <a [href]="'tel:' + contactInfo.hotline" class="contact-link">
                   <i class="fas fa-phone-alt me-2"></i>
                   <span>Hotline: {{ contactInfo.hotline }}</span>
                 </a>
               </li>
               <li>
-                <a (click)="onSendEmail()" class="contact-link">
+                <a [href]="'mailto:' + contactInfo.email" class="contact-link">
                   <i class="fas fa-envelope me-2"></i>
                   <span>{{ contactInfo.email }}</span>
                 </a>
               </li>
               <li>
-                <a (click)="onOpenZalo()" class="contact-link">
+                <a
+                  [href]="contactInfo.zaloUrl"
+                  class="contact-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <i class="fab fa-facebook-messenger me-2"></i>
                   <span>Zalo: {{ contactInfo.zalo }}</span>
                 </a>
@@ -91,23 +96,39 @@
               <h5 class="social-heading mb-3">Theo dõi chúng tôi</h5>
               <div class="social-links">
                 <a
-                  (click)="onOpenSocialMedia('facebook')"
+                  [href]="socialMedia.facebook.url"
                   class="social-link facebook"
                   title="Facebook"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <i class="fab fa-facebook-f"></i>
                 </a>
-                <a (click)="onOpenSocialMedia('tiktok')" class="social-link tiktok" title="TikTok">
+                <a
+                  [href]="socialMedia.tiktok.url"
+                  class="social-link tiktok"
+                  title="TikTok"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <i class="fab fa-tiktok"></i>
                 </a>
                 <a
-                  (click)="onOpenSocialMedia('youtube')"
+                  [href]="socialMedia.youtube.url"
                   class="social-link youtube"
                   title="YouTube"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <i class="fab fa-youtube"></i>
                 </a>
-                <a (click)="onOpenZalo()" class="social-link zalo" title="Zalo">
+                <a
+                  [href]="socialMedia.zalo.url"
+                  class="social-link zalo"
+                  title="Zalo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <i class="fas fa-comment-dots"></i>
                 </a>
               </div>
@@ -170,7 +191,14 @@
   </div>
 
   <!-- Back to Top Button -->
-  <button class="back-to-top" (click)="scrollToTop()" title="Về đầu trang">
+  <button
+    class="back-to-top"
+    [class.visible]="showBackToTop"
+    type="button"
+    (click)="scrollToTop()"
+    title="Về đầu trang"
+    aria-label="Về đầu trang"
+  >
     <i class="fas fa-arrow-up"></i>
   </button>
 </footer>

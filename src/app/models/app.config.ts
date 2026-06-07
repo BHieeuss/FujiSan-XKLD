@@ -30,9 +30,11 @@ export const APP_CONTACT_INFO = {
   hotline: '0966966284',
   email: 'viejap@gmail.com',
   zalo: '0966966284',
-  facebook: 'http://facebook.com/tranbanhana',
-  tiktok: '@fujisan.vn',
-  youtube: 'Fujisan Vietnam',
+  zaloUrl: 'https://zalo.me/0966966284',
+  consultationUrl: 'https://zalo.me/0966966284',
+  facebook: 'https://facebook.com/tranbanhana',
+  tiktok: 'https://tiktok.com/@fujisan.vn',
+  youtube: 'https://youtube.com/@fujisanvietnam',
 };
 
 // Menu chính
@@ -41,6 +43,7 @@ export const APP_MAIN_MENU = [
   { label: 'Giới thiệu', link: '/gioi-thieu' },
   { label: 'Chương trình', link: '/chuong-trinh', hasDropdown: true },
   { label: 'Quyền lợi', link: '/quyen-loi' },
+  { label: 'Hoạt động', link: '/hoat-dong' },
   { label: 'Liên hệ', link: '/lien-he' },
 ];
 
@@ -58,6 +61,7 @@ export const APP_QUICK_LINKS = [
   { label: 'Giới thiệu', link: '/gioi-thieu' },
   { label: 'Chương trình', link: '/chuong-trinh' },
   { label: 'Quyền lợi', link: '/quyen-loi' },
+  { label: 'Hoạt động', link: '/hoat-dong' },
   { label: 'Liên hệ', link: '/lien-he' },
 ];
 
@@ -80,22 +84,22 @@ export const APP_SUPPORT_LINKS = [
 // Social media URLs
 export const APP_SOCIAL_MEDIA = {
   facebook: {
-    url: 'https://facebook.com/fujisan.vn',
+    url: APP_CONTACT_INFO.facebook,
     icon: 'fab fa-facebook-f',
     label: 'Facebook',
   },
   tiktok: {
-    url: 'https://tiktok.com/@fujisan.vn',
+    url: APP_CONTACT_INFO.tiktok,
     icon: 'fab fa-tiktok',
     label: 'TikTok',
   },
   youtube: {
-    url: 'https://youtube.com/@fujisanvietnam',
+    url: APP_CONTACT_INFO.youtube,
     icon: 'fab fa-youtube',
     label: 'YouTube',
   },
   zalo: {
-    url: 'https://zalo.me/09xxxxxxxx',
+    url: APP_CONTACT_INFO.zaloUrl,
     icon: 'fab fa-comment',
     label: 'Zalo',
   },

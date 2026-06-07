@@ -7,32 +7,70 @@
   <div class="container">
     <div class="row align-items-center g-5">
       <!-- Hình ảnh -->
-      <div class="col-lg-6">
-        <div class="about-image-wrapper">
-          <div class="about-image-placeholder">
-            <i class="fas fa-building"></i>
-            <span>Hình ảnh công ty</span>
-          </div>
-          <div class="experience-badge">
-            <span class="number">FUJISAN</span>
+      <div class="col-lg-6 about-visual-column">
+        <div class="about-image-wrapper about-real-gallery">
+          <figure class="about-photo-main">
+            <img
+              src="assets/images/HoatDong/TrungThuChoEm-DaiPhuocCangLongTraVinh/z7909725653671_1f5336c32d7129c287b1d3c7d81b408a.jpg"
+              alt="VieJap gặp gỡ và hướng nghiệp cùng học sinh"
+              loading="lazy"
+            />
+            <figcaption>
+              <span>Buổi hướng nghiệp cùng các bạn học sinh tại Sóc Trăng</span>
+            </figcaption>
+          </figure>
+
+          <div class="about-photo-row">
+            <figure>
+              <img
+                src="assets/images/HoatDong/24DiemTruongTHPTSOCTRANG/z7909725575538_c6455e009c24635dce29c381a9bca345.jpg"
+                alt="Hoạt động Trung thu cho em tại Đại Phước"
+                loading="lazy"
+              />
+              <figcaption>Hoạt động cộng đồng</figcaption>
+            </figure>
+
+            <div class="about-logo-card">
+              <img src="assets/images/logo.png" alt="VieJap" />
+              <span>Cầu nối học tập và làm việc tại Nhật Bản</span>
+            </div>
           </div>
         </div>
       </div>
-      <!-- Nội dung -->
-      <div class="col-lg-6">
+      <div class="col-lg-6 about-content-column">
         <div class="about-content">
           <span class="about-section-label">
-            <i class="fas fa-info-circle me-2"></i>Giới thiệu
+            <i class="fas fa-info-circle me-2"></i>Về VieJap
           </span>
-          <h2 class="about-section-title">{{ companyInfo.name }}</h2>
-          <p class="about-text">{{ companyInfo.description }}</p>
-          <p class="about-commitment">{{ companyInfo.commitment }}</p>
+          <p class="about-company-name">{{ companyInfo.name }}</p>
+          <h2 class="about-section-title">
+            <span>Cùng bạn chuẩn bị</span>
+            <span>hành trình sang Nhật</span>
+          </h2>
+          <p class="about-text">
+            VieJap hỗ trợ học viên và người lao động tìm hiểu chương trình, chuẩn bị hồ sơ,
+            học tiếng và định hướng công việc tại Nhật Bản theo cách rõ ràng, dễ hiểu.
+          </p>
+          <div class="about-quote-card">
+            Mỗi hồ sơ có một hoàn cảnh riêng. Vì vậy VieJap ưu tiên tư vấn kỹ, nói rõ điều kiện
+            và đồng hành từng bước để bạn yên tâm hơn trước khi quyết định.
+          </div>
+          <ul class="about-values-list" aria-label="Điểm VieJap chú trọng">
+            <li><i class="fas fa-check"></i><span>Tư vấn dễ hiểu, không nói quá.</span></li>
+            <li><i class="fas fa-check"></i><span>Thông tin chương trình và chi phí rõ ràng.</span></li>
+            <li><i class="fas fa-check"></i><span>Theo sát từ lúc tìm hiểu đến khi chuẩn bị xuất cảnh.</span></li>
+          </ul>
           <div class="about-cta mt-4">
-            <a routerLink="/lien-he" class="btn btn-primary btn-lg me-3">
-              <i class="fas fa-phone-alt me-2"></i>Liên hệ ngay
+            <a
+              [href]="contactInfo.consultationUrl"
+              class="btn btn-primary btn-lg me-3"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fas fa-comment-dots me-2"></i>Trao đổi với VieJap
             </a>
-            <a routerLink="/chuong-trinh" class="btn btn-outline-primary btn-lg">
-              <i class="fas fa-briefcase me-2"></i>Xem chương trình
+            <a href="#hoat-dong" class="btn btn-outline-primary btn-lg">
+              <i class="fas fa-camera me-2"></i>Xem hoạt động thực tế
             </a>
           </div>
         </div>
@@ -42,9 +80,15 @@
 </section>
 
 <!-- Chương trình xuất cảnh -->
-<section class="programs-section py-5">
+<section class="programs-section py-5" id="chuong-trinh">
   <div class="container">
-    <div class="row g-4">
+    <div class="programs-heading">
+      <span class="programs-kicker">Lộ trình phù hợp</span>
+      <h2>Chọn chương trình dành cho bạn</h2>
+      <p>Tìm hiểu điều kiện, quyền lợi và lộ trình của từng chương trình.</p>
+    </div>
+
+    <div class="row g-3 g-lg-4">
       <div class="col-lg-6 col-md-6" *ngFor="let item of programs">
         <article
           class="program-card"
@@ -74,6 +118,7 @@
   *ngIf="isProgramPopupOpen"
   role="dialog"
   aria-modal="true"
+  aria-labelledby="program-popup-title"
   (click)="closeProgramPopup()"
 >
   <div class="program-popup-panel" (click)="$event.stopPropagation()">
@@ -91,7 +136,9 @@
         ></button>
       </div>
       <div class="modal-body pt-2">
-        <h2 class="program-modal-title">{{ selectedProgramDetail.title }}</h2>
+        <h2 class="program-modal-title" id="program-popup-title">
+          {{ selectedProgramDetail.title }}
+        </h2>
         <p class="program-modal-subtitle">{{ selectedProgramDetail.subtitle }}</p>
 
         <div class="program-modal-actions mb-3">
@@ -110,8 +157,10 @@
             <i class="fas fa-file-signature me-2"></i>Đơn tuyển
           </a>
           <a
-            [routerLink]="selectedProgramDetail.consultLink"
+            [href]="contactInfo.consultationUrl"
             class="btn btn-engineer-consult"
+            target="_blank"
+            rel="noopener noreferrer"
             (click)="closeProgramPopup()"
           >
             <i class="fas fa-headset me-2"></i>Tư vấn
@@ -139,7 +188,7 @@
       <span class="about-section-label"> <i class="fas fa-balance-scale me-2"></i>Chính sách </span>
       <h2 class="about-section-title">Chính sách hỗ trợ người lao động</h2>
       <p class="about-section-desc">
-        Thiết kế theo 3 nhóm chính sách để người dùng dễ nhìn thấy, dễ nhận dạng và tra cứu nhanh.
+        Tra cứu nhanh các hỗ trợ tài chính, Nenkin và chính sách bảo hộ trong từng giai đoạn.
       </p>
     </div>
 
@@ -337,55 +386,150 @@
   </div>
 </section>
 
-<!-- ============================================================
-     HOẠT ĐỘNG CÔNG TY - Đang cập nhật
-     ============================================================ -->
-<!-- Hoạt động công ty -->
-<!--
-<section class="news-section py-5 bg-gray-light">
+<section class="company-activities-section py-5" id="hoat-dong">
   <div class="container">
-    <div class="section-header text-center mb-5">
-      <span class="about-section-label"> <i class="fas fa-newspaper me-2"></i>Tin tức </span>
-      <h2 class="about-section-title">Hoạt động của công ty</h2>
-      <p class="about-section-desc">Các hoạt động nổi bật và tin tức báo chí về FujiSan</p>
-    </div>
-    <div class="row g-4">
-      <div class="col-lg-4 col-md-6" *ngFor="let news of newsActivities">
-        <div class="news-card h-100">
-          <div class="news-image">
-            <div class="news-placeholder">
-              <i class="fas fa-newspaper"></i>
-            </div>
-            <span class="news-source">{{ news.source }}</span>
-          </div>
-          <div class="news-content">
-            <span class="news-date"> <i class="fas fa-calendar-alt me-2"></i>{{ news.date }} </span>
-            <h4 class="news-title">{{ news.title }}</h4>
-            <a href="#" class="news-link">Đọc thêm <i class="fas fa-arrow-right ms-1"></i></a>
-          </div>
+    <div class="activities-heading">
+      <div class="activities-heading-copy">
+        <span class="about-section-label">
+          <i class="fas fa-newspaper me-2"></i>Góc hoạt động
+        </span>
+        <h2 class="about-section-title">Một vài khoảnh khắc VieJap đã cùng các bạn học sinh</h2>
+        <p class="about-section-desc">
+          Đây là những hình ảnh từ các buổi hướng nghiệp, trao quà và gặp gỡ học sinh
+          ở địa phương. VieJap lưu lại để phụ huynh và các bạn dễ hình dung hơn về
+          những hoạt động thật của đội ngũ.
+        </p>
+      </div>
+
+      <div class="activities-impact" aria-label="Dấu ấn hoạt động">
+        <div class="impact-item">
+          <strong>24</strong>
+          <span>
+            <span class="impact-label-full">điểm trường hướng nghiệp</span>
+            <span class="impact-label-short">điểm trường</span>
+          </span>
+        </div>
+        <div class="impact-item">
+          <strong>50</strong>
+          <span>
+            <span class="impact-label-full">em học sinh nhận quà</span>
+            <span class="impact-label-short">học sinh</span>
+          </span>
+        </div>
+        <div class="impact-item">
+          <strong>02</strong>
+          <span>
+            <span class="impact-label-full">nhóm hoạt động trọng tâm</span>
+            <span class="impact-label-short">hoạt động</span>
+          </span>
         </div>
       </div>
     </div>
-    <div class="text-center mt-4">
-      <a routerLink="/tin-tuc" class="btn btn-outline-primary btn-lg">
-        Xem tất cả tin tức <i class="fas fa-arrow-right ms-2"></i>
-      </a>
+
+    <div class="activity-showcase">
+      <div class="activity-media">
+        <figure class="activity-main-image">
+          <img
+            [src]="selectedActivityImage.src"
+            [alt]="selectedActivityImage.alt"
+            loading="lazy"
+          />
+          <figcaption>
+            <i class="fas fa-camera"></i>
+            Ảnh ghi lại tại chương trình
+          </figcaption>
+        </figure>
+
+        <div class="activity-thumbnails" aria-label="Chọn hình ảnh hoạt động">
+          <button
+            *ngFor="let image of selectedActivity.gallery; let index = index"
+            type="button"
+            [class.active]="image.src === selectedActivityImage.src"
+            [attr.aria-pressed]="image.src === selectedActivityImage.src"
+            (click)="selectActivityImage(image)"
+            [attr.aria-label]="'Xem ảnh ' + (index + 1) + ': ' + image.alt"
+          >
+            <img [src]="image.src" [alt]="image.alt" loading="lazy" />
+          </button>
+        </div>
+      </div>
+
+      <article class="activity-story">
+        <span class="activity-category">{{ selectedActivity.category }}</span>
+        <h3>{{ selectedActivity.title }}</h3>
+
+        <div class="activity-meta">
+          <span>
+            <i class="fas fa-location-dot"></i>
+            {{ selectedActivity.location }}
+          </span>
+          <span>
+            <strong>{{ selectedActivity.metric }}</strong>
+            {{ selectedActivity.metricLabel }}
+          </span>
+        </div>
+
+        <p class="activity-summary">{{ selectedActivity.summary }}</p>
+
+        <ul class="activity-highlights">
+          <li *ngFor="let highlight of selectedActivity.highlights">
+            <i class="fas fa-circle-check"></i>
+            <span>{{ highlight }}</span>
+          </li>
+        </ul>
+
+        <div class="activity-video" *ngIf="selectedActivity.video">
+          <div class="activity-video-heading">
+            <span><i class="fas fa-play-circle"></i> Video hoạt động</span>
+            <small>Một đoạn ngắn từ buổi gặp gỡ</small>
+          </div>
+          <video
+            controls
+            preload="metadata"
+            playsinline
+            [poster]="selectedActivity.coverImage.src"
+          >
+            <source [src]="selectedActivity.video" type="video/mp4" />
+            Trình duyệt của bạn không hỗ trợ video.
+          </video>
+        </div>
+      </article>
+    </div>
+
+    <div class="activity-selector" aria-label="Danh sách hoạt động công ty">
+      <button
+        *ngFor="let activity of companyActivities"
+        type="button"
+        class="activity-selector-card"
+        [class.active]="activity.id === selectedActivity.id"
+        [attr.aria-pressed]="activity.id === selectedActivity.id"
+        (click)="selectCompanyActivity(activity)"
+      >
+        <img [src]="activity.coverImage.src" [alt]="activity.coverImage.alt" loading="lazy" />
+        <span class="activity-selector-copy">
+          <small>{{ activity.category }}</small>
+          <strong>{{ activity.title }}</strong>
+          <span><i class="fas fa-location-dot"></i>{{ activity.location }}</span>
+        </span>
+        <i class="fas fa-arrow-right activity-selector-arrow" aria-hidden="true"></i>
+      </button>
     </div>
   </div>
 </section>
--->
-<!-- ============================================================
-     END: HOẠT ĐỘNG CÔNG TY
-     ============================================================ -->
 
 <!-- CTA Section -->
-<section class="cta-section py-5">
+<section class="cta-section py-5" id="lien-he">
   <div class="container">
     <div class="cta-content text-center">
       <h2 class="cta-title">Sẵn sàng bắt đầu hành trình mới?</h2>
       <p class="cta-desc">Đăng ký tư vấn miễn phí ngay hôm nay để được hỗ trợ tốt nhất</p>
       <div class="cta-buttons">
-        <a routerLink="/lien-he" class="btn btn-light btn-lg me-3">
+        <a
+          [href]="contactInfo.consultationUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-light btn-lg me-3"
+        >
           <i class="fas fa-calendar-check me-2"></i>Đăng ký tư vấn
         </a>
         <a [href]="'tel:' + contactInfo.hotline" class="btn btn-outline-light btn-lg">

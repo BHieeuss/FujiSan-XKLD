@@ -1,7 +1,8 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { APP_CONTACT_INFO, APP_MAIN_MENU, APP_PROGRAM_MENU } from '../../models/app.config';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -10,75 +11,116 @@ import { APP_CONTACT_INFO, APP_MAIN_MENU, APP_PROGRAM_MENU } from '../../models/
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent implements OnInit {
-  // Trạng thái menu mobile
+export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
-
-  // Trạng thái cuộn trang
+  isProgramMenuOpen = false;
   isScrolled = false;
-
-  // Trạng thái có phải trang chủ (có hero section)
   isHomePage = false;
 
-  // Danh sách menu chính - từ config
-  mainMenuItems = APP_MAIN_MENU;
-
-  // Danh sách submenu cho Chương trình - từ config
+  mainMenuItems = APP_MAIN_MENU.map((item) => ({ ...item }));
   programSubmenu = APP_PROGRAM_MENU;
-
-  // Thông tin liên hệ nhanh - từ config
   contactInfo = APP_CONTACT_INFO;
+  menuSectionMap: Record<string, string> = {
+    'Trang chủ': 'trang-chu',
+    'Giới thiệu': 'gioi-thieu',
+    'Chương trình': 'chuong-trinh',
+    'Quyền lợi': 'chinh-sach',
+    'Hoạt động': 'hoat-dong',
+    'Liên hệ': 'lien-he',
+  };
+
+  private routerSub?: Subscription;
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    // Theo dõi thay đổi route để xác định trang hiện tại
-    this.router.events.subscribe((event) => {
+    this.routerSub = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.isHomePage = event.url === '/' || event.url === '';
+        this.closeMobileMenu();
       }
     });
 
-    // Khởi tạo trạng thái ban đầu
     this.isHomePage = this.router.url === '/' || this.router.url === '';
+    this.onWindowScroll();
   }
 
-  // Theo dõi sự kiện cuộn trang
-  @HostListener('window:scroll')
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
+    this.setPageScrollLocked(false);
+  }
+
+  @HostListener('window:scroll', [])
   onWindowScroll(): void {
     const scrollTop =
       window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    this.isScrolled = scrollTop > 50; // Thay đổi trạng thái khi cuộn quá 50px
+    this.isScrolled = scrollTop > 40;
   }
 
-  // Chuyển đổi trạng thái menu mobile
-  toggleMobileMenu(): void {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  @HostListener('window:resize', [])
+  onWindowResize(): void {
+    if (window.innerWidth >= 992 && this.isMobileMenuOpen) {
+      this.closeMobileMenu();
+    }
   }
 
-  // Đóng menu mobile
-  closeMobileMenu(): void {
-    this.isMobileMenuOpen = false;
-  }
-
-  // Xử lý click vào menu item
-  onMenuClick(item: any): void {
-    // Đánh dấu menu active
-    this.mainMenuItems.forEach((menu) => (menu.active = false));
-    item.active = true;
-
-    // Đóng mobile menu
+  @HostListener('document:keydown.escape', [])
+  onEscape(): void {
     this.closeMobileMenu();
   }
 
-  // Xử lý click nút đăng ký tư vấn
-  onRegisterConsultation(): void {
-    // TODO: Implement đăng ký tư vấn
-    console.log('Đăng ký tư vấn được click');
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    this.setPageScrollLocked(this.isMobileMenuOpen);
   }
 
-  // Xử lý click hotline
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+    this.isProgramMenuOpen = false;
+    this.setPageScrollLocked(false);
+  }
+
+  toggleProgramMenu(event: Event): void {
+    event.preventDefault();
+    this.isProgramMenuOpen = !this.isProgramMenuOpen;
+  }
+
+  onMenuClick(event: Event, item: any): void {
+    event.preventDefault();
+    this.mainMenuItems.forEach((menu) => (menu.active = false));
+    item.active = true;
+    const sectionId = this.menuSectionMap[item.label];
+    this.closeMobileMenu();
+    this.scrollToSection(sectionId);
+  }
+
+  onProgramMenuClick(event: Event): void {
+    event.preventDefault();
+    this.closeMobileMenu();
+    this.scrollToSection('chuong-trinh');
+  }
+
+  onRegisterConsultation(): void {
+    this.closeMobileMenu();
+    window.open(this.contactInfo.consultationUrl, '_blank', 'noopener,noreferrer');
+  }
+
   onCallHotline(): void {
     window.open(`tel:${this.contactInfo.hotline}`, '_self');
+  }
+
+  private setPageScrollLocked(isLocked: boolean): void {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = isLocked ? 'hidden' : '';
+    }
+  }
+
+  private scrollToSection(sectionId?: string): void {
+    requestAnimationFrame(() => {
+      document.getElementById(sectionId ?? 'trang-chu')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
   }
 }

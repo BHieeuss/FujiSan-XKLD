@@ -1,60 +1,32 @@
-<!-- ============================================================
-     TOP BAR - Thanh thông tin liên hệ nhanh
-     ============================================================ -->
 <div class="top-bar d-none d-lg-block">
   <div class="container">
-    <div class="row align-items-center">
-      <!-- Thông tin liên hệ -->
-      <div class="col-md-8">
-        <div class="contact-info d-flex align-items-center">
-          <div class="contact-item me-4">
-            <i class="fas fa-phone-alt me-2"></i>
-            <span>Hotline: {{ contactInfo.hotline }}</span>
-          </div>
-          <div class="contact-item me-4">
-            <i class="fas fa-envelope me-2"></i>
-            <span>{{ contactInfo.email }}</span>
-          </div>
-          <div class="contact-item">
-            <i class="fab fa-facebook-messenger me-2"></i>
-            <span>Zalo: {{ contactInfo.zalo }}</span>
-          </div>
-        </div>
+    <div class="top-bar-inner">
+      <div class="trust-message">
+        <i class="fas fa-shield-alt"></i>
+        <span>Thông tin chương trình rõ ràng, tư vấn trực tiếp</span>
       </div>
-
-      <!-- Mạng xã hội và ngôn ngữ -->
-      <div class="col-md-4 text-end">
-        <div class="header-actions d-flex align-items-center justify-content-end">
-          <!-- Mạng xã hội -->
-          <div class="social-links me-3">
-            <a href="#" class="social-link me-2" title="Facebook">
-              <i class="fab fa-facebook-f"></i>
-            </a>
-            <a href="#" class="social-link me-2" title="TikTok">
-              <i class="fab fa-tiktok"></i>
-            </a>
-            <a href="#" class="social-link" title="YouTube">
-              <i class="fab fa-youtube"></i>
-            </a>
-          </div>
-
-          <!-- Ngôn ngữ -->
-          <div class="language-switcher">
-            <span class="lang-item active">VI</span>
-            <span class="lang-separator">|</span>
-            <span class="lang-item">JP</span>
-            <span class="lang-separator">|</span>
-            <span class="lang-item">EN</span>
-          </div>
-        </div>
+      <div class="contact-info">
+        <a [href]="'tel:' + contactInfo.hotline">
+          <i class="fas fa-phone-alt"></i>
+          Hotline: {{ contactInfo.hotline }}
+        </a>
+        <a [href]="'mailto:' + contactInfo.email">
+          <i class="fas fa-envelope"></i>
+          {{ contactInfo.email }}
+        </a>
+        <a
+          [href]="contactInfo.zaloUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fas fa-comment-dots"></i>
+          Tư vấn Zalo
+        </a>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ============================================================
-     MAIN HEADER - Header chính
-     ============================================================ -->
 <header
   class="main-header"
   [class.scrolled]="isScrolled && isHomePage"
@@ -62,60 +34,67 @@
 >
   <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container">
-      <!-- Logo -->
-      <a class="navbar-brand" routerLink="/">
-        <img src="assets/images/logo.png" alt="FujiSan" class="logo-img" />
+      <a class="navbar-brand" href="#trang-chu" aria-label="VieJap - Trang chủ">
+        <img src="assets/images/logo.png" alt="VieJap" class="logo-img" />
       </a>
 
-      <!-- Nút toggle cho mobile -->
       <button
         class="navbar-toggler"
         type="button"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="isMobileMenuOpen"
         aria-controls="navbarNav"
-        aria-label="Toggle navigation"
+        [attr.aria-label]="isMobileMenuOpen ? 'Đóng menu' : 'Mở menu'"
       >
-        <span class="navbar-toggler-icon"></span>
+        <span class="menu-icon" [class.open]="isMobileMenuOpen" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
       </button>
 
-      <!-- Menu chính -->
       <div class="collapse navbar-collapse" [class.show]="isMobileMenuOpen" id="navbarNav">
-        <!-- Menu items -->
+        <div class="mobile-menu-head d-lg-none">
+          <img src="assets/images/logo.png" alt="" class="mobile-menu-logo" />
+          <button type="button" class="mobile-menu-close" (click)="closeMobileMenu()" aria-label="Đóng menu">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <p class="mobile-menu-intro d-lg-none">
+          Thông tin chương trình, lộ trình và hỗ trợ dành cho người Việt Nam làm việc tại Nhật Bản.
+        </p>
+
         <ul class="navbar-nav mx-auto">
           <li
             class="nav-item"
             *ngFor="let item of mainMenuItems"
             [class.dropdown]="item.hasDropdown"
           >
-            <!-- Menu item thường -->
             <a
               *ngIf="!item.hasDropdown"
               class="nav-link"
-              [routerLink]="item.link"
+              [href]="'#' + menuSectionMap[item.label]"
               [class.active]="item.active"
-              (click)="onMenuClick(item)"
-              routerLinkActive="active"
+              (click)="onMenuClick($event, item)"
             >
               {{ item.label }}
             </a>
 
-            <!-- Menu item có dropdown -->
-            <a
+            <button
               *ngIf="item.hasDropdown"
-              class="nav-link dropdown-toggle"
-              href="#"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
+              type="button"
+              class="nav-link dropdown-toggle dropdown-trigger"
+              [class.active]="isProgramMenuOpen"
+              [attr.aria-expanded]="isProgramMenuOpen"
+              (click)="toggleProgramMenu($event)"
             >
-              {{ item.label }}
-            </a>
+              <span>{{ item.label }}</span>
+            </button>
 
-            <!-- Dropdown menu -->
-            <ul *ngIf="item.hasDropdown" class="dropdown-menu">
+            <ul *ngIf="item.hasDropdown" class="dropdown-menu" [class.show]="isProgramMenuOpen">
               <li *ngFor="let subItem of programSubmenu">
-                <a class="dropdown-item" [routerLink]="subItem.link" (click)="closeMobileMenu()">
+                <a class="dropdown-item" href="#chuong-trinh" (click)="onProgramMenuClick($event)">
                   {{ subItem.label }}
                 </a>
               </li>
@@ -123,21 +102,18 @@
           </li>
         </ul>
 
-        <!-- CTA Actions -->
         <div class="navbar-actions d-flex align-items-center">
-          <!-- Hotline button -->
-          <button
-            class="btn btn-outline-primary me-3 d-none d-lg-inline-flex align-items-center"
-            (click)="onCallHotline()"
+          <a
+            class="btn btn-outline-primary btn-hotline me-lg-3 d-inline-flex align-items-center"
+            [href]="'tel:' + contactInfo.hotline"
           >
             <i class="fas fa-phone-alt me-2"></i>
             {{ contactInfo.hotline }}
-          </button>
+          </a>
 
-          <!-- Đăng ký tư vấn button -->
           <button class="btn btn-primary btn-consultation" (click)="onRegisterConsultation()">
-            <i class="fas fa-calendar-check me-2"></i>
-            Đăng ký tư vấn
+            <i class="fas fa-comment-dots me-2"></i>
+            Tư vấn qua Zalo
           </button>
         </div>
       </div>
@@ -145,5 +121,4 @@
   </nav>
 </header>
 
-<!-- Mobile menu overlay -->
 <div class="mobile-menu-overlay" [class.show]="isMobileMenuOpen" (click)="closeMobileMenu()"></div>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {
@@ -40,6 +40,7 @@ export class FooterComponent {
   socialMedia = APP_SOCIAL_MEDIA;
 
   isQuickAccessOpen = false;
+  showBackToTop = false;
 
   quickAccessLinks = [
     {
@@ -54,12 +55,31 @@ export class FooterComponent {
     },
   ];
 
+  quickLinkTargets: Record<string, string> = {
+    'Trang chủ': '#trang-chu',
+    'Giới thiệu': '#gioi-thieu',
+    'Chương trình': '#chuong-trinh',
+    'Quyền lợi': '#chinh-sach',
+    'Hoạt động': '#hoat-dong',
+    'Liên hệ': '#lien-he',
+  };
+
   toggleQuickAccess(): void {
     this.isQuickAccessOpen = !this.isQuickAccessOpen;
   }
 
   closeQuickAccess(): void {
     this.isQuickAccessOpen = false;
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    this.showBackToTop = window.scrollY > 520;
+  }
+
+  @HostListener('document:keydown.escape', [])
+  onEscape(): void {
+    this.closeQuickAccess();
   }
 
   // Xử lý click hotline
@@ -74,19 +94,15 @@ export class FooterComponent {
 
   // Xử lý click Zalo
   onOpenZalo(): void {
-    window.open(`https://zalo.me/${this.contactInfo.zalo.replace(/\D/g, '')}`, '_blank');
+    window.open(this.contactInfo.zaloUrl, '_blank', 'noopener,noreferrer');
   }
 
   // Xử lý click mạng xã hội
   onOpenSocialMedia(platform: string): void {
-    const urls: { [key: string]: string } = {
-      facebook: `https://${this.contactInfo.facebook}`,
-      tiktok: `https://tiktok.com/${this.contactInfo.tiktok}`,
-      youtube: `https://youtube.com/@fujisanvietnam`,
-    };
+    const social = this.socialMedia[platform as keyof typeof this.socialMedia];
 
-    if (urls[platform]) {
-      window.open(urls[platform], '_blank');
+    if (social) {
+      window.open(social.url, '_blank', 'noopener,noreferrer');
     }
   }
 

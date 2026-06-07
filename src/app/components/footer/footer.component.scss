@@ -29,12 +29,16 @@
     .footer-section {
       margin-bottom: 2rem;
 
+      .footer-title {
+        margin: 0 0 1rem;
+        line-height: 0;
+      }
+
       .footer-logo {
-        height: 80px; // Tăng kích thước logo
-        width: auto;
+        width: 150px;
+        height: 58px;
+        display: block;
         object-fit: contain;
-        // Xóa filter để giữ màu gốc của logo
-        margin-bottom: 1rem;
       }
 
       .footer-desc {
@@ -279,10 +283,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px);
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
 
   &:hover {
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
   }
 
@@ -421,13 +436,36 @@
     .footer-main {
       padding: 2.5rem 0 1rem;
 
-      .footer-logo {
-        height: 50px !important;
+      .footer-section {
+        .footer-title {
+          margin-bottom: 0.85rem;
+        }
+
+        .footer-logo {
+          width: 132px;
+          height: 50px;
+        }
       }
 
       .footer-heading {
         font-size: 1rem;
         margin-bottom: 1rem;
+      }
+
+      .footer-section {
+        margin-bottom: 1.75rem;
+      }
+
+      .footer-links {
+        .footer-link {
+          min-height: 40px;
+        }
+      }
+
+      .footer-contact {
+        .contact-link {
+          min-height: 42px;
+        }
       }
     }
 
@@ -446,14 +484,14 @@
     .back-to-top {
       width: 45px;
       height: 45px;
-      bottom: 20px;
-      right: 20px;
+      right: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom));
       font-size: 1.125rem;
     }
 
     .quick-access {
-      bottom: 20px;
-      left: 20px;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      left: 16px;
 
       .quick-access-menu {
         gap: 0.5rem;
@@ -462,7 +500,7 @@
       .quick-access-link {
         min-height: 42px;
         min-width: 170px;
-        max-width: calc(100vw - 40px);
+        max-width: calc(100vw - 32px);
         padding: 0.65rem 0.85rem;
         font-size: 0.875rem;
       }
@@ -476,11 +514,7 @@
   }
 
   .social-media .social-links {
-    justify-content: center;
-
-    @media (min-width: 768px) {
-      justify-content: flex-start;
-    }
+    justify-content: flex-start;
   }
 }
 
