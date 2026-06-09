@@ -39,7 +39,11 @@
             <h4 class="footer-heading">Liên kết nhanh</h4>
             <ul class="footer-links">
               <li *ngFor="let link of quickLinks">
-                <a [href]="quickLinkTargets[link.label]" class="footer-link">
+                <a
+                  routerLink="/"
+                  [fragment]="quickLinkTargets[link.label]"
+                  class="footer-link"
+                >
                   <i class="fas fa-angle-right me-2"></i>{{ link.label }}
                 </a>
               </li>
@@ -53,7 +57,7 @@
             <h4 class="footer-heading">Chương trình</h4>
             <ul class="footer-links">
               <li *ngFor="let link of programLinks">
-                <a href="#chuong-trinh" class="footer-link">
+                <a routerLink="/" fragment="chuong-trinh" class="footer-link">
                   <i class="fas fa-angle-right me-2"></i>{{ link.label }}
                 </a>
               </li>

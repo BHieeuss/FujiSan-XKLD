@@ -13,6 +13,22 @@
  * - Links liên kết
  */
 
+export type AppDropdownKey = 'programs' | 'learning';
+
+export interface AppMainMenuItem {
+  label: string;
+  link: string;
+  active?: boolean;
+  hasDropdown?: boolean;
+  dropdownKey?: AppDropdownKey;
+}
+
+export interface AppSubmenuItem {
+  label: string;
+  link: string;
+  icon?: string;
+}
+
 // Thông tin công ty
 export const APP_COMPANY_INFO = {
   name: 'CÔNG TY HỢP TÁC QUỐC TẾ VieJap',
@@ -38,21 +54,37 @@ export const APP_CONTACT_INFO = {
 };
 
 // Menu chính
-export const APP_MAIN_MENU = [
+export const APP_MAIN_MENU: AppMainMenuItem[] = [
   { label: 'Trang chủ', link: '/', active: true },
   { label: 'Giới thiệu', link: '/gioi-thieu' },
-  { label: 'Chương trình', link: '/chuong-trinh', hasDropdown: true },
+  {
+    label: 'Chương trình',
+    link: '/chuong-trinh',
+    hasDropdown: true,
+    dropdownKey: 'programs',
+  },
   { label: 'Quyền lợi', link: '/quyen-loi' },
   { label: 'Hoạt động', link: '/hoat-dong' },
+  {
+    label: 'Bài học',
+    link: '/hoc-hiragana',
+    hasDropdown: true,
+    dropdownKey: 'learning',
+  },
   { label: 'Liên hệ', link: '/lien-he' },
 ];
 
 // Submenu Chương trình
-export const APP_PROGRAM_MENU = [
+export const APP_PROGRAM_MENU: AppSubmenuItem[] = [
   { label: 'XKLĐ Thực tập sinh', link: '/chuong-trinh/thuc-tap-sinh' },
   { label: 'Kỹ sư', link: '/chuong-trinh/ky-su' },
   { label: 'Du học sinh', link: '/chuong-trinh/du-hoc-sinh' },
   { label: 'So sánh chương trình', link: '/chuong-trinh/so-sanh' },
+];
+
+// Bài học - thêm bài mới vào danh sách này khi cần mở rộng
+export const APP_LEARNING_MENU: AppSubmenuItem[] = [
+  { label: 'Hiragana', link: '/hoc-hiragana', icon: 'fas fa-language' },
 ];
 
 // Menu liên kết nhanh (Footer)

@@ -1,11 +1,4 @@
-import {
-  Component,
-  signal,
-  ViewChild,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   NavigationCancel,
   NavigationEnd,
@@ -14,39 +7,22 @@ import {
   Router,
   RouterOutlet,
 } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
-import { About } from './pages/about/about';
-import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './shared/loading/loading.component';
-import { Subscription } from 'rxjs';
-import { APP_CONTACT_INFO } from './models/app.config';
 
 @Component({
   selector: 'app-root',
-  imports: [
-    RouterOutlet,
-    HeaderComponent,
-    FooterComponent,
-    About,
-    CommonModule,
-    LoadingComponent,
-  ],
+  standalone: true,
+  imports: [RouterOutlet, HeaderComponent, FooterComponent, LoadingComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App implements OnInit, OnDestroy {
-  protected readonly title = signal('VieJap - Hợp tác quốc tế');
-  protected readonly contactInfo = APP_CONTACT_INFO;
-
-  // Video Controls
-  @ViewChild('heroVideo') heroVideo!: ElementRef<HTMLVideoElement>;
-  isMuted = signal(true);
-
-  // Loading state
   isLoading = signal(true);
 
-  private routerSub!: Subscription;
+  private routerSub?: Subscription;
   private loadingTimer?: ReturnType<typeof setTimeout>;
   private initialLoadingStartedAt = 0;
   private initialLoadingFinished = false;
@@ -54,19 +30,20 @@ export class App implements OnInit, OnDestroy {
 
   constructor(private router: Router) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.initialLoadingStartedAt = Date.now();
     this.finishInitialLoadingAfterMinimum();
 
     this.routerSub = this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
-        if (!this.initialLoadingFinished) {
-          return;
+        if (this.initialLoadingFinished) {
+          clearTimeout(this.loadingTimer);
+          this.isLoading.set(true);
         }
+        return;
+      }
 
-        clearTimeout(this.loadingTimer);
-        this.isLoading.set(true);
-      } else if (
+      if (
         event instanceof NavigationEnd ||
         event instanceof NavigationCancel ||
         event instanceof NavigationError
@@ -80,18 +57,9 @@ export class App implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     clearTimeout(this.loadingTimer);
-    if (this.routerSub) {
-      this.routerSub.unsubscribe();
-    }
-  }
-
-  toggleMute() {
-    this.isMuted.set(!this.isMuted());
-    if (this.heroVideo) {
-      this.heroVideo.nativeElement.muted = this.isMuted();
-    }
+    this.routerSub?.unsubscribe();
   }
 
   private hideLoadingAfter(delay: number): void {

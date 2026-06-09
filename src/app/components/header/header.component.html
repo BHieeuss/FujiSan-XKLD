@@ -34,7 +34,13 @@
 >
   <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container">
-      <a class="navbar-brand" href="#trang-chu" aria-label="VieJap - Trang chủ">
+      <a
+        class="navbar-brand"
+        routerLink="/"
+        fragment="trang-chu"
+        aria-label="VieJap - Trang chủ"
+        (click)="closeMobileMenu()"
+      >
         <img src="assets/images/logo.png" alt="VieJap" class="logo-img" />
       </a>
 
@@ -74,7 +80,7 @@
             <a
               *ngIf="!item.hasDropdown"
               class="nav-link"
-              [href]="'#' + menuSectionMap[item.label]"
+              [href]="'/#' + (menuSectionMap[item.label] || 'trang-chu')"
               [class.active]="item.active"
               (click)="onMenuClick($event, item)"
             >
@@ -85,16 +91,25 @@
               *ngIf="item.hasDropdown"
               type="button"
               class="nav-link dropdown-toggle dropdown-trigger"
-              [class.active]="isProgramMenuOpen"
-              [attr.aria-expanded]="isProgramMenuOpen"
-              (click)="toggleProgramMenu($event)"
+              [class.active]="item.active || isDropdownOpen(item.dropdownKey)"
+              [attr.aria-expanded]="isDropdownOpen(item.dropdownKey)"
+              (click)="toggleDropdown($event, item.dropdownKey)"
             >
               <span>{{ item.label }}</span>
             </button>
 
-            <ul *ngIf="item.hasDropdown" class="dropdown-menu" [class.show]="isProgramMenuOpen">
-              <li *ngFor="let subItem of programSubmenu">
-                <a class="dropdown-item" href="#chuong-trinh" (click)="onProgramMenuClick($event)">
+            <ul
+              *ngIf="item.hasDropdown"
+              class="dropdown-menu"
+              [class.show]="isDropdownOpen(item.dropdownKey)"
+            >
+              <li *ngFor="let subItem of submenuFor(item.dropdownKey)">
+                <a
+                  class="dropdown-item"
+                  [href]="subItem.link"
+                  (click)="onSubmenuClick($event, subItem.link)"
+                >
+                  <i *ngIf="subItem.icon" [class]="subItem.icon"></i>
                   {{ subItem.label }}
                 </a>
               </li>

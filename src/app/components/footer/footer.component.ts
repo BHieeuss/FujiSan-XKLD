@@ -89,12 +89,12 @@ export class FooterComponent implements OnDestroy {
   }
 
   quickLinkTargets: Record<string, string> = {
-    'Trang chủ': '#trang-chu',
-    'Giới thiệu': '#gioi-thieu',
-    'Chương trình': '#chuong-trinh',
-    'Quyền lợi': '#chinh-sach',
-    'Hoạt động': '#hoat-dong',
-    'Liên hệ': '#lien-he',
+    'Trang chủ': 'trang-chu',
+    'Giới thiệu': 'gioi-thieu',
+    'Chương trình': 'chuong-trinh',
+    'Quyền lợi': 'chinh-sach',
+    'Hoạt động': 'hoat-dong',
+    'Liên hệ': 'lien-he',
   };
 
   toggleQuickAccess(): void {

@@ -16,11 +16,13 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the hero title', () => {
+  it('should render the shared application shell', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Đi Nhật có lộ trình');
+    expect(compiled.querySelector('app-header')).toBeTruthy();
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
+    expect(compiled.querySelector('app-footer')).toBeTruthy();
   });
 
   it('should keep the initial loading screen visible for three seconds', fakeAsync(() => {

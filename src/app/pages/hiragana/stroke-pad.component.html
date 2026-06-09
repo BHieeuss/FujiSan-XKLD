@@ -1,0 +1,125 @@
+<section
+  class="stroke-pad"
+  [class.is-active]="active"
+  [class.is-complete]="isComplete"
+  [class.is-disabled]="!active && !isComplete"
+>
+  <header class="stroke-pad-header">
+    <div>
+      <span>{{ label }}</span>
+      <strong>{{ data.glyph }}</strong>
+    </div>
+    <span class="stroke-counter">
+      <i class="fas" [class.fa-check]="isComplete" [class.fa-pen]="!isComplete"></i>
+      {{ isComplete ? 'Hoàn thành' : 'Nét ' + (currentStrokeIndex + 1) + '/' + strokeCount }}
+    </span>
+  </header>
+
+  <div class="pad-stage">
+    <span class="grid-line grid-line-horizontal" aria-hidden="true"></span>
+    <span class="grid-line grid-line-vertical" aria-hidden="true"></span>
+    <span class="grid-line grid-line-diagonal-a" aria-hidden="true"></span>
+    <span class="grid-line grid-line-diagonal-b" aria-hidden="true"></span>
+
+    <svg
+      class="stroke-reference"
+      viewBox="0 0 1024 1024"
+      role="img"
+      [attr.aria-label]="'Mẫu thứ tự nét chữ ' + data.glyph"
+    >
+      <path
+        *ngFor="let outline of data.outlines"
+        class="glyph-outline"
+        [attr.d]="outline"
+      ></path>
+
+      <ng-container *ngIf="showAnimation">
+        <path
+          *ngFor="let median of data.medians; let index = index"
+          class="animated-median"
+          pathLength="1"
+          [attr.d]="median"
+          [style.animation-delay.s]="index * 0.7"
+        ></path>
+      </ng-container>
+
+      <path
+        *ngIf="showHint && currentGuidePath"
+        class="hint-median"
+        [attr.d]="currentGuidePath"
+      ></path>
+    </svg>
+
+    <canvas
+      #drawingCanvas
+      class="drawing-canvas"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel($event)"
+      [attr.aria-label]="'Ô luyện viết chữ ' + data.glyph"
+    ></canvas>
+
+    <div class="pad-lock" *ngIf="!active && !isComplete">
+      <i class="fas fa-lock"></i>
+      <span>Hoàn thành ô trước</span>
+    </div>
+
+    <div class="pad-complete-mark" *ngIf="isComplete">
+      <i class="fas" [class.fa-check]="failedAttempts < 3" [class.fa-flag]="failedAttempts >= 3"></i>
+    </div>
+  </div>
+
+  <p class="stroke-status" [class.is-warning]="failedAttempts > 0" aria-live="polite">
+    {{ statusMessage }}
+  </p>
+
+  <div class="stroke-tools">
+    <button
+      type="button"
+      title="Xóa nét vừa đúng"
+      aria-label="Xóa nét vừa đúng"
+      [disabled]="!acceptedStrokeCount || isComplete"
+      (click)="undoLastStroke()"
+    >
+      <i class="fas fa-rotate-left"></i>
+    </button>
+    <button
+      type="button"
+      title="Làm lại chữ"
+      aria-label="Làm lại chữ"
+      [disabled]="isComplete"
+      (click)="resetPad()"
+    >
+      <i class="fas fa-eraser"></i>
+    </button>
+    <button
+      type="button"
+      title="Xem thứ tự nét"
+      aria-label="Xem thứ tự nét"
+      [disabled]="isComplete"
+      (click)="replayAnimation()"
+    >
+      <i class="fas fa-play"></i>
+    </button>
+    <button
+      type="button"
+      title="Gợi ý nét hiện tại"
+      aria-label="Gợi ý nét hiện tại"
+      [disabled]="isComplete"
+      (click)="revealHint()"
+    >
+      <i class="fas fa-lightbulb"></i>
+    </button>
+    <button
+      *ngIf="failedAttempts >= 3 && !isComplete"
+      type="button"
+      class="skip-stroke"
+      title="Bỏ qua và ôn lại sau"
+      aria-label="Bỏ qua và ôn lại sau"
+      (click)="skipCurrentStroke()"
+    >
+      <i class="fas fa-forward"></i>
+    </button>
+  </div>
+</section>

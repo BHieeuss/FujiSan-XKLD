@@ -1,7 +1,12 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
-import { APP_CONTACT_INFO, APP_MAIN_MENU, APP_PROGRAM_MENU } from '../../models/app.config';
+import {
+  APP_CONTACT_INFO,
+  APP_LEARNING_MENU,
+  APP_MAIN_MENU,
+  APP_PROGRAM_MENU,
+} from '../../models/app.config';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -13,12 +18,15 @@ import { Subscription } from 'rxjs';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
-  isProgramMenuOpen = false;
+  openDropdownKey?: string;
   isScrolled = false;
   isHomePage = false;
 
   mainMenuItems = APP_MAIN_MENU.map((item) => ({ ...item }));
-  programSubmenu = APP_PROGRAM_MENU;
+  dropdownMenus = {
+    programs: APP_PROGRAM_MENU,
+    learning: APP_LEARNING_MENU,
+  };
   contactInfo = APP_CONTACT_INFO;
   menuSectionMap: Record<string, string> = {
     'Trang chủ': 'trang-chu',
@@ -36,12 +44,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.routerSub = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.isHomePage = event.url === '/' || event.url === '';
+        this.updateRouteState(event.urlAfterRedirects);
         this.closeMobileMenu();
       }
     });
 
-    this.isHomePage = this.router.url === '/' || this.router.url === '';
+    this.updateRouteState(this.router.url);
     this.onWindowScroll();
   }
 
@@ -76,28 +84,57 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
-    this.isProgramMenuOpen = false;
+    this.openDropdownKey = undefined;
     this.setPageScrollLocked(false);
   }
 
-  toggleProgramMenu(event: Event): void {
+  toggleDropdown(event: Event, dropdownKey?: string): void {
     event.preventDefault();
-    this.isProgramMenuOpen = !this.isProgramMenuOpen;
+    if (!dropdownKey) {
+      return;
+    }
+    this.openDropdownKey =
+      this.openDropdownKey === dropdownKey ? undefined : dropdownKey;
   }
 
   onMenuClick(event: Event, item: any): void {
     event.preventDefault();
-    this.mainMenuItems.forEach((menu) => (menu.active = false));
-    item.active = true;
-    const sectionId = this.menuSectionMap[item.label];
     this.closeMobileMenu();
-    this.scrollToSection(sectionId);
+
+    if (item.link === '/hoc-hiragana') {
+      void this.router.navigate(['/hoc-hiragana']);
+      return;
+    }
+
+    const sectionId = this.menuSectionMap[item.label] ?? 'trang-chu';
+    void this.router.navigate(['/'], { fragment: sectionId }).then(() => {
+      this.scrollToSection(sectionId);
+    });
   }
 
-  onProgramMenuClick(event: Event): void {
+  onSubmenuClick(event: Event, link: string): void {
     event.preventDefault();
     this.closeMobileMenu();
-    this.scrollToSection('chuong-trinh');
+
+    if (link === '/hoc-hiragana') {
+      void this.router.navigate(['/hoc-hiragana']);
+      return;
+    }
+
+    void this.router.navigate(['/'], { fragment: 'chuong-trinh' }).then(() => {
+      this.scrollToSection('chuong-trinh');
+    });
+  }
+
+  isDropdownOpen(dropdownKey?: string): boolean {
+    return !!dropdownKey && this.openDropdownKey === dropdownKey;
+  }
+
+  submenuFor(dropdownKey?: string) {
+    if (!dropdownKey) {
+      return [];
+    }
+    return this.dropdownMenus[dropdownKey as keyof typeof this.dropdownMenus] ?? [];
   }
 
   onRegisterConsultation(): void {
@@ -122,5 +159,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
         block: 'start',
       });
     });
+  }
+
+  private updateRouteState(url: string): void {
+    const path = url.split('#')[0].split('?')[0];
+    this.isHomePage = path === '/' || path === '';
+
+    this.mainMenuItems.forEach((item) => {
+      item.active =
+        item.dropdownKey === 'learning'
+          ? path.startsWith('/hoc-')
+          : false;
+    });
+
+    if (this.isHomePage) {
+      const fragment = url.includes('#') ? url.split('#')[1] : 'trang-chu';
+      const activeLabel =
+        Object.entries(this.menuSectionMap).find(([, section]) => section === fragment)?.[0] ??
+        'Trang chủ';
+      const activeItem = this.mainMenuItems.find((item) => item.label === activeLabel);
+      if (activeItem) {
+        activeItem.active = true;
+      }
+    }
   }
 }

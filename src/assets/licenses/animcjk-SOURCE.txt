@@ -1,0 +1,5 @@
+AnimCJK kana stroke data
+Copyright 2016-2026 FM-SH
+Source: https://github.com/parsimonhi/animCJK
+Kana SVG files are licensed under LGPL-3.0-or-later.
+The generated TypeScript manifest contains outline and median SVG path data.

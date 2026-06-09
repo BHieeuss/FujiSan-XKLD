@@ -188,11 +188,20 @@
   animation: menu-in 0.18s ease both;
 
   .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     padding: 0.72rem 0.8rem;
     border-radius: 7px;
     color: #46566c;
     font-size: 0.9rem;
     font-weight: 600;
+
+    i {
+      width: 18px;
+      color: #1d4b91;
+      text-align: center;
+    }
 
     &:hover,
     &:focus {

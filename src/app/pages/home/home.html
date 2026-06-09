@@ -1,0 +1,113 @@
+<main class="main-content">
+  <section class="hero-section" id="trang-chu">
+    <video
+      #heroVideo
+      class="hero-video"
+      autoplay
+      [muted]="isMuted()"
+      loop
+      playsinline
+    >
+      <source src="assets/video/video-hero.mp4" type="video/mp4" />
+    </video>
+
+    <div class="hero-overlay" aria-hidden="true"></div>
+
+    <div class="container hero-container">
+      <div class="hero-layout">
+        <div class="hero-content">
+          <div class="hero-eyebrow">
+            <span class="hero-eyebrow-mark" aria-hidden="true"></span>
+            VieJap đồng hành cùng bạn sang Nhật
+          </div>
+          <h1>
+            <span>Đi Nhật có lộ trình,</span>
+            <span>chuẩn bị nhẹ hơn</span>
+          </h1>
+          <p class="hero-description">
+            VieJap cùng bạn xem điều kiện, chi phí và chương trình phù hợp trước khi quyết định đăng ký.
+          </p>
+
+          <div class="hero-trust-row" aria-label="Điểm hỗ trợ chính của VieJap">
+            <span><i class="fas fa-receipt"></i>Rõ chi phí</span>
+            <span><i class="fas fa-route"></i>Có lộ trình</span>
+            <span><i class="fas fa-comments"></i>Tư vấn qua Zalo</span>
+          </div>
+
+          <div class="hero-actions">
+            <a
+              class="btn btn-primary hero-primary-action"
+              [href]="contactInfo.consultationUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fas fa-comment-dots"></i>
+              Nhắn Zalo để được tư vấn
+            </a>
+            <a class="btn hero-secondary-action" href="#chuong-trinh">
+              Xem 4 chương trình
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="hero-contact">
+            <span>Tư vấn trực tiếp</span>
+            <a [href]="'tel:' + contactInfo.hotline">
+              <i class="fas fa-phone-alt"></i>
+              {{ contactInfo.hotline }}
+            </a>
+          </div>
+        </div>
+
+        <aside class="hero-program-panel" aria-labelledby="hero-program-title">
+          <div class="hero-consult-badge">
+            <i class="fas fa-comment-dots"></i>
+            Tư vấn nhanh 1:1
+          </div>
+
+          <div class="hero-program-heading">
+            <span>Chọn hướng đi cùng VieJap</span>
+            <h2 id="hero-program-title">Chưa biết bắt đầu từ đâu?</h2>
+            <p>Gửi tình trạng hiện tại, VieJap sẽ gợi ý chương trình, chi phí và mốc chuẩn bị phù hợp.</p>
+          </div>
+
+          <div class="hero-consult-topics" aria-label="Nội dung có thể hỏi VieJap">
+            <span><i class="fas fa-clipboard-check"></i>Điều kiện</span>
+            <span><i class="fas fa-wallet"></i>Chi phí</span>
+            <span><i class="fas fa-briefcase"></i>Chương trình</span>
+            <span><i class="fas fa-calendar-check"></i>Thời gian</span>
+          </div>
+
+          <a
+            class="hero-consult-cta"
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Nhắn Zalo với VieJap
+            <i class="fas fa-arrow-right"></i>
+          </a>
+
+          <p class="hero-consult-note">
+            <i class="fas fa-circle-check"></i>
+            Có thể hỏi trước, chưa cần chốt chương trình ngay.
+          </p>
+        </aside>
+      </div>
+    </div>
+
+    <div class="video-controls">
+      <button
+        class="btn-volume-toggle"
+        type="button"
+        (click)="toggleMute()"
+        [title]="isMuted() ? 'Bật âm thanh' : 'Tắt âm thanh'"
+        [attr.aria-label]="isMuted() ? 'Bật âm thanh video' : 'Tắt âm thanh video'"
+      >
+        <i [class]="isMuted() ? 'fas fa-volume-mute' : 'fas fa-volume-up'"></i>
+      </button>
+    </div>
+  </section>
+
+  <app-about></app-about>
+</main>
