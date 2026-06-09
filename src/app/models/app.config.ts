@@ -84,7 +84,9 @@ export const APP_PROGRAM_MENU: AppSubmenuItem[] = [
 
 // Bài học - thêm bài mới vào danh sách này khi cần mở rộng
 export const APP_LEARNING_MENU: AppSubmenuItem[] = [
-  { label: 'Hiragana', link: '/hoc-hiragana', icon: 'fas fa-language' },
+  { label: 'Hiragana (Chữ mềm)', link: '/hoc-hiragana', icon: 'fas fa-language' },
+  { label: 'Katakana (Chữ cứng)', link: '/hoc-katakana', icon: 'fas fa-font' },
+  { label: 'Số đếm', link: '/hoc-so-dem', icon: 'fas fa-arrow-down-1-9' },
 ];
 
 // Menu liên kết nhanh (Footer)

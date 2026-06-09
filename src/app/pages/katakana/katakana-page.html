@@ -1,0 +1,422 @@
+<div class="hiragana-page katakana-page">
+  <header class="learning-header">
+    <div class="container learning-header-inner">
+      <div class="learning-title">
+        <span class="learning-kicker">Tiếng Nhật nền tảng</span>
+        <h1>Ôn tập Katakana</h1>
+        <p>Nhận mặt chữ vay mượn bằng trắc nghiệm và luyện viết theo đúng thứ tự nét.</p>
+      </div>
+
+      <button
+        class="reset-progress"
+        type="button"
+        title="Xóa tiến độ"
+        aria-label="Xóa toàn bộ tiến độ Katakana"
+        (click)="resetProgress()"
+      >
+        <i class="fas fa-trash-can"></i>
+      </button>
+    </div>
+  </header>
+
+  <section class="learning-stats" aria-label="Tiến độ học Katakana">
+    <div class="container stats-grid">
+      <div class="stat-item">
+        <span class="stat-icon stat-icon-blue"><i class="fas fa-book-open"></i></span>
+        <span><small>Đã học</small><strong>{{ progress.studiedCount() }}/104</strong></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon stat-icon-green"><i class="fas fa-circle-check"></i></span>
+        <span><small>Thành thạo</small><strong>{{ progress.masteredCount() }}</strong></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon stat-icon-yellow"><i class="fas fa-rotate"></i></span>
+        <span><small>Cần ôn</small><strong>{{ progress.weakIds().length }}</strong></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon stat-icon-red"><i class="fas fa-fire"></i></span>
+        <span><small>Chuỗi ngày</small><strong>{{ progress.streak() }}</strong></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="learning-workspace">
+    <div class="container">
+      <nav class="mode-tabs" aria-label="Chế độ học">
+        <button
+          type="button"
+          [class.active]="activeTab === 'quiz'"
+          [attr.aria-selected]="activeTab === 'quiz'"
+          (click)="setTab('quiz')"
+        >
+          <i class="fas fa-list-check"></i>
+          Trắc nghiệm
+        </button>
+        <button
+          type="button"
+          [class.active]="activeTab === 'writing'"
+          [attr.aria-selected]="activeTab === 'writing'"
+          (click)="setTab('writing')"
+        >
+          <i class="fas fa-pen-nib"></i>
+          Luyện viết
+        </button>
+      </nav>
+
+      <div class="group-toolbar" aria-label="Chọn nhóm Katakana">
+        <button
+          *ngFor="let group of groupOptions"
+          type="button"
+          [class.active]="selectedGroup === group.id"
+          [disabled]="group.id === 'weak' && group.count === 0"
+          (click)="selectGroup(group.id)"
+        >
+          <span>{{ group.label }}</span>
+          <small>{{ group.count }}</small>
+        </button>
+      </div>
+
+      <ng-container *ngIf="activeTab === 'quiz'">
+        <div class="practice-mode-bar">
+          <div>
+            <span>Kiểu bài</span>
+            <div class="practice-mode-control" role="group" aria-label="Kiểu bài trắc nghiệm">
+              <button
+                type="button"
+                [class.active]="quizMode === 'guided'"
+                (click)="setQuizMode('guided')"
+              >
+                <i class="fas fa-list-ol"></i>
+                Lượt 10 câu
+              </button>
+              <button
+                type="button"
+                [class.active]="quizMode === 'continuous'"
+                (click)="setQuizMode('continuous')"
+              >
+                <i class="fas fa-infinity"></i>
+                Ôn liên tục
+              </button>
+            </div>
+          </div>
+          <p *ngIf="quizMode === 'continuous'">
+            <i class="fas fa-shuffle"></i>
+            Câu mới được chọn ngẫu nhiên và hạn chế lặp lại ngay.
+          </p>
+        </div>
+
+        <section class="quiz-tool" *ngIf="questions.length && !quizComplete">
+          <header class="quiz-progress">
+            <div>
+              <span>
+                Câu {{ currentQuestionNumber
+                }}{{ quizMode === 'guided' ? '/' + questions.length : '' }}
+              </span>
+              <strong>
+                {{ selectedGroupLabel }}
+                <small *ngIf="quizMode === 'continuous'">· liên tục</small>
+              </strong>
+            </div>
+            <span class="quiz-score">{{ quizScoreLabel }}</span>
+          </header>
+
+          <div
+            class="progress-track"
+            [class.is-continuous]="quizMode === 'continuous'"
+            aria-hidden="true"
+          >
+            <span [style.width.%]="quizProgressPercent"></span>
+          </div>
+
+          <div class="question-area" *ngIf="currentQuestion as question">
+            <p>
+              {{
+                question.direction === 'kana-to-romaji'
+                  ? 'Chọn cách đọc đúng'
+                  : 'Chọn chữ Katakana đúng'
+              }}
+            </p>
+            <div
+              class="question-prompt"
+              [class.is-kana]="question.direction === 'kana-to-romaji'"
+            >
+              {{ question.prompt }}
+            </div>
+
+            <div class="answer-grid">
+              <button
+                *ngFor="let answer of question.options; let index = index"
+                type="button"
+                [ngClass]="answerClass(answer)"
+                [disabled]="answerLocked"
+                (click)="chooseAnswer(answer)"
+              >
+                <span>{{ ['A', 'B', 'C', 'D'][index] }}</span>
+                <strong [class.kana-answer]="question.direction === 'romaji-to-kana'">
+                  {{ answer }}
+                </strong>
+                <i
+                  *ngIf="answerLocked && answer === question.correctAnswer"
+                  class="fas fa-check"
+                ></i>
+                <i
+                  *ngIf="
+                    answerLocked &&
+                    selectedAnswer === answer &&
+                    answer !== question.correctAnswer
+                  "
+                  class="fas fa-times"
+                ></i>
+              </button>
+            </div>
+
+            <div
+              class="answer-feedback"
+              *ngIf="answerLocked"
+              [class.is-correct]="selectedAnswer === question.correctAnswer"
+              aria-live="polite"
+            >
+              <span>
+                <i
+                  class="fas"
+                  [class.fa-circle-check]="selectedAnswer === question.correctAnswer"
+                  [class.fa-circle-exclamation]="selectedAnswer !== question.correctAnswer"
+                ></i>
+              </span>
+              <div>
+                <strong>
+                  {{
+                    selectedAnswer === question.correctAnswer
+                      ? 'Chính xác'
+                      : 'Chưa đúng, đáp án là ' + question.correctAnswer
+                  }}
+                </strong>
+                <small>{{ question.item.kana }} đọc là {{ question.item.romaji }}</small>
+              </div>
+              <button type="button" (click)="nextQuestion()">
+                {{
+                  quizMode === 'continuous'
+                    ? 'Câu ngẫu nhiên tiếp'
+                    : currentQuestionIndex === questions.length - 1
+                      ? 'Xem kết quả'
+                      : 'Câu tiếp'
+                }}
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="empty-state" *ngIf="!questions.length">
+          <i class="fas fa-circle-check"></i>
+          <h2>Chưa có chữ cần ôn</h2>
+          <p>Những chữ trả lời sai hoặc có độ chính xác dưới 80% sẽ xuất hiện tại đây.</p>
+          <button type="button" (click)="startQuiz('all')">Làm bài tổng hợp</button>
+        </section>
+
+        <section class="quiz-result" *ngIf="quizComplete">
+          <div class="result-score">
+            <span>{{ quizAccuracy }}%</span>
+            <small>{{ quizScore }}/{{ questions.length }} câu đúng</small>
+          </div>
+          <div class="result-copy">
+            <span class="learning-kicker">Hoàn thành lượt ôn</span>
+            <h2>{{ quizAccuracy >= 80 ? 'Bạn đang nhớ khá chắc' : 'Ôn lại một vòng sẽ tốt hơn' }}</h2>
+            <p>
+              {{
+                quizWrongIds.size
+                  ? quizWrongIds.size + ' chữ trong lượt này đã được thêm vào nhóm cần ôn.'
+                  : 'Bạn đã trả lời đúng toàn bộ câu hỏi trong lượt này.'
+              }}
+            </p>
+            <div class="result-actions">
+              <button type="button" class="primary-action" (click)="startQuiz()">
+                <i class="fas fa-rotate-right"></i>
+                Làm lượt mới
+              </button>
+              <button
+                *ngIf="progress.weakIds().length"
+                type="button"
+                class="secondary-action"
+                (click)="reviewWeakItems()"
+              >
+                Ôn chữ còn yếu
+              </button>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <ng-container *ngIf="activeTab === 'writing'">
+        <div class="practice-mode-bar">
+          <div>
+            <span>Kiểu bài</span>
+            <div class="practice-mode-control" role="group" aria-label="Kiểu bài luyện viết">
+              <button
+                type="button"
+                [class.active]="writingMode === 'guided'"
+                (click)="setWritingMode('guided')"
+              >
+                <i class="fas fa-table-cells"></i>
+                Chọn theo bảng
+              </button>
+              <button
+                type="button"
+                [class.active]="writingMode === 'continuous'"
+                (click)="setWritingMode('continuous')"
+              >
+                <i class="fas fa-shuffle"></i>
+                Ngẫu nhiên liên tục
+              </button>
+            </div>
+          </div>
+          <p *ngIf="writingMode === 'continuous'">
+            <i class="fas fa-pen-nib"></i>
+            Đã hoàn thành {{ writingSessionCompleted }} chữ trong phiên.
+          </p>
+        </div>
+
+        <section class="empty-state" *ngIf="!filteredWritingItems.length">
+          <i class="fas fa-pen-nib"></i>
+          <h2>Chưa có chữ cần ôn</h2>
+          <p>Chọn một nhóm khác để luyện viết hoặc làm bài trắc nghiệm trước.</p>
+          <button type="button" (click)="selectGroup('basic')">Luyện chữ cơ bản</button>
+        </section>
+
+        <div class="writing-layout" *ngIf="writingItem as item">
+          <aside class="kana-browser">
+            <header>
+              <div>
+                <span class="learning-kicker">{{ groupLabel(item.group) }}</span>
+                <h2>
+                  {{ writingMode === 'continuous' ? 'Phiên viết ngẫu nhiên' : 'Chọn chữ để luyện' }}
+                </h2>
+              </div>
+              <span>{{ filteredWritingItems.length }} âm</span>
+            </header>
+
+            <div class="kana-picker">
+              <button
+                *ngFor="let candidate of filteredWritingItems; trackBy: trackItem"
+                type="button"
+                [class.active]="candidate.id === item.id"
+                [class.is-weak]="isWeak(candidate)"
+                [class.is-mastered]="isMastered(candidate)"
+                (click)="selectWritingItem(candidate)"
+              >
+                <strong>{{ candidate.kana }}</strong>
+                <small>{{ candidate.romaji }}</small>
+              </button>
+            </div>
+
+            <div class="writing-item-summary">
+              <button
+                type="button"
+                title="Chữ trước"
+                aria-label="Chữ trước"
+                [disabled]="writingMode === 'continuous'"
+                (click)="moveWritingItem(-1)"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div>
+                <strong>{{ item.kana }}</strong>
+                <span>{{ item.romaji }}</span>
+                <small>{{ writingProgressText }}</small>
+              </div>
+              <button
+                type="button"
+                [title]="writingMode === 'continuous' ? 'Chữ ngẫu nhiên khác' : 'Chữ tiếp theo'"
+                [attr.aria-label]="
+                  writingMode === 'continuous' ? 'Chữ ngẫu nhiên khác' : 'Chữ tiếp theo'
+                "
+                (click)="
+                  writingMode === 'continuous' ? selectRandomWritingItem() : moveWritingItem(1)
+                "
+              >
+                <i
+                  class="fas"
+                  [class.fa-shuffle]="writingMode === 'continuous'"
+                  [class.fa-chevron-right]="writingMode === 'guided'"
+                ></i>
+              </button>
+            </div>
+          </aside>
+
+          <section class="writing-tool">
+            <header class="writing-tool-header">
+              <div>
+                <span class="learning-kicker">Viết theo từng nét</span>
+                <h2>
+                  {{ item.kana }}
+                  <small>{{ item.romaji }}</small>
+                </h2>
+              </div>
+              <button
+                type="button"
+                title="Làm lại toàn bộ chữ"
+                aria-label="Làm lại toàn bộ chữ"
+                (click)="restartWriting()"
+              >
+                <i class="fas fa-rotate-right"></i>
+              </button>
+              <button
+                *ngIf="writingMode === 'continuous'"
+                type="button"
+                title="Đổi sang chữ ngẫu nhiên khác"
+                aria-label="Đổi sang chữ ngẫu nhiên khác"
+                (click)="selectRandomWritingItem()"
+              >
+                <i class="fas fa-shuffle"></i>
+              </button>
+            </header>
+
+            <p class="writing-note">
+              Viết bằng chuột, bút hoặc ngón tay. Bộ chấm dùng để luyện thứ tự và hướng nét,
+              không phải đánh giá thư pháp.
+            </p>
+
+            <div class="stroke-pad-grid" [class.is-compound]="item.glyphs.length > 1">
+              <app-stroke-pad
+                *ngFor="let glyph of item.glyphs; let index = index"
+                [data]="strokeData[glyph]"
+                [label]="item.glyphs.length > 1 ? 'Ô ' + (index + 1) : 'Chữ đang luyện'"
+                [active]="index === activeGlyphIndex && !writingComplete"
+                [resetToken]="writingResetToken"
+                (padCompleted)="onGlyphCompleted(index)"
+                (padSkipped)="onGlyphSkipped(index)"
+              ></app-stroke-pad>
+            </div>
+
+            <div
+              class="writing-complete"
+              *ngIf="writingComplete"
+              [class.is-skipped]="writingSkipped"
+              aria-live="polite"
+            >
+              <span>
+                <i class="fas" [class.fa-check]="!writingSkipped" [class.fa-flag]="writingSkipped"></i>
+              </span>
+              <div>
+                <strong>
+                  {{ writingSkipped ? 'Đã lưu vào nhóm cần ôn' : 'Hoàn thành ' + item.kana }}
+                </strong>
+                <small>
+                  {{
+                    writingSkipped
+                      ? 'Bạn có thể quay lại luyện chữ này bất cứ lúc nào.'
+                      : 'Các nét đã được viết theo đúng thứ tự.'
+                  }}
+                </small>
+              </div>
+              <button type="button" (click)="continueWriting()">
+                {{ writingMode === 'continuous' ? 'Chữ ngẫu nhiên tiếp' : 'Chữ tiếp' }}
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </section>
+        </div>
+      </ng-container>
+    </div>
+  </section>
+</div>

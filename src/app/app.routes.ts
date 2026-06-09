@@ -13,6 +13,18 @@ export const routes: Routes = [
       import('./pages/hiragana/hiragana-page').then((module) => module.HiraganaPage),
   },
   {
+    path: 'hoc-katakana',
+    title: 'Học Katakana - VieJap',
+    loadComponent: () =>
+      import('./pages/katakana/katakana-page').then((module) => module.KatakanaPage),
+  },
+  {
+    path: 'hoc-so-dem',
+    title: 'Học số đếm tiếng Nhật - VieJap',
+    loadComponent: () =>
+      import('./pages/numbers/numbers-page').then((module) => module.NumbersPage),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

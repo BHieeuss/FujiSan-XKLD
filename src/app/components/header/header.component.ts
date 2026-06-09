@@ -101,8 +101,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.closeMobileMenu();
 
-    if (item.link === '/hoc-hiragana') {
-      void this.router.navigate(['/hoc-hiragana']);
+    if (item.link.startsWith('/hoc-')) {
+      void this.router.navigate([item.link]);
       return;
     }
 
@@ -116,8 +116,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.closeMobileMenu();
 
-    if (link === '/hoc-hiragana') {
-      void this.router.navigate(['/hoc-hiragana']);
+    if (link.startsWith('/hoc-')) {
+      void this.router.navigate([link]);
       return;
     }
 

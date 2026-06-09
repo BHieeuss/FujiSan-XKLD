@@ -1,0 +1,395 @@
+<div class="hiragana-page numbers-page">
+  <header class="learning-header">
+    <div class="container learning-header-inner">
+      <div class="learning-title">
+        <span class="learning-kicker">Tiếng Nhật thực hành</span>
+        <h1>Ôn tập số đếm</h1>
+        <p>Đọc số bằng trắc nghiệm và hiểu cách ghép từng hàng đến 99.999.999.</p>
+      </div>
+      <button
+        class="reset-progress"
+        type="button"
+        title="Xóa tiến độ"
+        aria-label="Xóa toàn bộ tiến độ số đếm"
+        (click)="resetProgress()"
+      >
+        <i class="fas fa-trash-can"></i>
+      </button>
+    </div>
+  </header>
+
+  <section class="learning-stats" aria-label="Tiến độ học số đếm">
+    <div class="container stats-grid">
+      <div class="stat-item">
+        <span class="stat-icon stat-icon-blue"><i class="fas fa-list-check"></i></span>
+        <span><small>Đã làm</small><strong>{{ progress.attempts() }} câu</strong></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon stat-icon-green"><i class="fas fa-bullseye"></i></span>
+        <span><small>Chính xác</small><strong>{{ progress.accuracy() }}%</strong></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon stat-icon-yellow"><i class="fas fa-layer-group"></i></span>
+        <span><small>Thành thạo</small><strong>{{ progress.masteredCount() }}/5 cấp</strong></span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon stat-icon-red"><i class="fas fa-fire"></i></span>
+        <span><small>Chuỗi ngày</small><strong>{{ progress.streak() }}</strong></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="learning-workspace">
+    <div class="container">
+      <nav class="mode-tabs" aria-label="Chế độ học số">
+        <button
+          type="button"
+          [class.active]="activeTab === 'quiz'"
+          [attr.aria-selected]="activeTab === 'quiz'"
+          (click)="setTab('quiz')"
+        >
+          <i class="fas fa-list-check"></i>
+          Trắc nghiệm
+        </button>
+        <button
+          type="button"
+          [class.active]="activeTab === 'guide'"
+          [attr.aria-selected]="activeTab === 'guide'"
+          (click)="setTab('guide')"
+        >
+          <i class="fas fa-puzzle-piece"></i>
+          Cách ghép số
+        </button>
+      </nav>
+
+      <ng-container *ngIf="activeTab === 'quiz'">
+        <div class="group-toolbar" aria-label="Chọn cấp độ số đếm">
+          <button
+            *ngFor="let group of groupOptions"
+            type="button"
+            [class.active]="selectedGroup === group.id"
+            [disabled]="group.id === 'weak' && group.count === 0"
+            (click)="selectGroup(group.id)"
+          >
+            <span>{{ group.label }}</span>
+            <small *ngIf="group.id === 'weak'">{{ group.count }}</small>
+          </button>
+        </div>
+
+        <div class="practice-mode-bar">
+          <div>
+            <span>Kiểu bài</span>
+            <div class="practice-mode-control" role="group" aria-label="Kiểu bài số đếm">
+              <button
+                type="button"
+                [class.active]="quizMode === 'guided'"
+                (click)="setQuizMode('guided')"
+              >
+                <i class="fas fa-list-ol"></i>
+                Lượt 10 câu
+              </button>
+              <button
+                type="button"
+                [class.active]="quizMode === 'continuous'"
+                (click)="setQuizMode('continuous')"
+              >
+                <i class="fas fa-infinity"></i>
+                Ôn liên tục
+              </button>
+            </div>
+          </div>
+          <p *ngIf="quizMode === 'continuous'">
+            <i class="fas fa-shuffle"></i>
+            Đọc số, nhận mặt Kanji và chọn giá trị theo câu ngẫu nhiên.
+          </p>
+        </div>
+
+        <section class="quiz-tool" *ngIf="questions.length && !quizComplete">
+          <header class="quiz-progress">
+            <div>
+              <span>
+                Câu {{ currentQuestionNumber
+                }}{{ quizMode === 'guided' ? '/' + questions.length : '' }}
+              </span>
+              <strong>{{ selectedGroupLabel }}</strong>
+            </div>
+            <span class="quiz-score">{{ quizScoreLabel }}</span>
+          </header>
+          <div
+            class="progress-track"
+            [class.is-continuous]="quizMode === 'continuous'"
+            aria-hidden="true"
+          >
+            <span [style.width.%]="quizProgressPercent"></span>
+          </div>
+
+          <div class="question-area" *ngIf="currentQuestion as question">
+            <p>
+              {{
+                question.direction === 'number-to-reading'
+                  ? 'Chọn cách đọc đúng'
+                  : question.direction === 'reading-to-number'
+                    ? 'Chọn giá trị đúng'
+                    : 'Kanji này biểu thị số nào?'
+              }}
+            </p>
+            <div
+              class="question-prompt number-prompt"
+              [class.is-reading]="question.direction === 'reading-to-number'"
+              [class.is-kanji-number]="question.direction === 'kanji-to-number'"
+            >
+              {{ question.prompt }}
+            </div>
+
+            <div class="answer-grid">
+              <button
+                *ngFor="let answer of question.options; let index = index"
+                type="button"
+                [ngClass]="answerClass(answer)"
+                [disabled]="answerLocked"
+                (click)="chooseAnswer(answer)"
+              >
+                <span>{{ ['A', 'B', 'C', 'D'][index] }}</span>
+                <strong [class.kana-answer]="question.direction === 'number-to-reading'">
+                  {{ answer }}
+                </strong>
+                <i
+                  *ngIf="answerLocked && answer === question.correctAnswer"
+                  class="fas fa-check"
+                ></i>
+                <i
+                  *ngIf="
+                    answerLocked &&
+                    selectedAnswer === answer &&
+                    answer !== question.correctAnswer
+                  "
+                  class="fas fa-times"
+                ></i>
+              </button>
+            </div>
+
+            <div
+              class="answer-feedback"
+              *ngIf="answerLocked"
+              [class.is-correct]="selectedAnswer === question.correctAnswer"
+              aria-live="polite"
+            >
+              <span>
+                <i
+                  class="fas"
+                  [class.fa-circle-check]="selectedAnswer === question.correctAnswer"
+                  [class.fa-circle-exclamation]="selectedAnswer !== question.correctAnswer"
+                ></i>
+              </span>
+              <div>
+                <strong>
+                  {{
+                    selectedAnswer === question.correctAnswer
+                      ? 'Chính xác'
+                      : 'Chưa đúng, đáp án là ' + question.correctAnswer
+                  }}
+                </strong>
+                <small>
+                  {{ format(question.value) }} · {{ question.result.kanji }} ·
+                  {{ question.result.kana }}
+                </small>
+              </div>
+              <button type="button" (click)="nextQuestion()">
+                {{
+                  quizMode === 'continuous'
+                    ? 'Câu ngẫu nhiên tiếp'
+                    : currentQuestionIndex === questions.length - 1
+                      ? 'Xem kết quả'
+                      : 'Câu tiếp'
+                }}
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="empty-state" *ngIf="!questions.length">
+          <i class="fas fa-circle-check"></i>
+          <h2>Chưa có cấp độ cần ôn</h2>
+          <p>Cấp độ trả lời sai hoặc có độ chính xác dưới 80% sẽ xuất hiện tại đây.</p>
+          <button type="button" (click)="startQuiz('all')">Làm bài tổng hợp</button>
+        </section>
+
+        <section class="quiz-result" *ngIf="quizComplete">
+          <div class="result-score">
+            <span>{{ quizAccuracy }}%</span>
+            <small>{{ quizScore }}/{{ questions.length }} câu đúng</small>
+          </div>
+          <div class="result-copy">
+            <span class="learning-kicker">Hoàn thành lượt ôn</span>
+            <h2>{{ quizAccuracy >= 80 ? 'Bạn đang ghép số khá chắc' : 'Xem lại quy tắc rồi thử lại' }}</h2>
+            <p>Kết quả từng cấp độ đã được lưu trên trình duyệt này.</p>
+            <div class="result-actions">
+              <button type="button" class="primary-action" (click)="startQuiz()">
+                <i class="fas fa-rotate-right"></i>
+                Làm lượt mới
+              </button>
+              <button
+                *ngIf="progress.weakGroups().length"
+                type="button"
+                class="secondary-action"
+                (click)="reviewWeakGroups()"
+              >
+                Ôn cấp độ còn yếu
+              </button>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <ng-container *ngIf="activeTab === 'guide'">
+        <section class="number-builder">
+          <header>
+            <div>
+              <span class="learning-kicker">Thử ghép một số</span>
+              <h2>Tách số theo đơn vị tiếng Nhật</h2>
+            </div>
+            <label>
+              <span>Nhập từ 0 đến 99.999.999</span>
+              <input
+                type="number"
+                min="0"
+                max="99999999"
+                step="1"
+                [(ngModel)]="builderValue"
+                aria-label="Số muốn ghép"
+              />
+            </label>
+          </header>
+
+          <div class="example-numbers" aria-label="Số ví dụ">
+            <button *ngFor="let example of examples" type="button" (click)="setBuilderExample(example)">
+              {{ format(example) }}
+            </button>
+          </div>
+
+          <div class="builder-result">
+            <div>
+              <small>Giá trị</small>
+              <strong>{{ format(builderResult.value) }}</strong>
+            </div>
+            <div>
+              <small>Kanji</small>
+              <strong lang="ja">{{ builderResult.kanji }}</strong>
+            </div>
+            <div>
+              <small>Hiragana</small>
+              <strong lang="ja">{{ builderResult.kana }}</strong>
+            </div>
+            <div>
+              <small>Romaji</small>
+              <strong>{{ builderResult.romaji }}</strong>
+            </div>
+          </div>
+
+          <div class="segment-flow" aria-label="Các phần cấu tạo của số">
+            <article
+              *ngFor="let segment of builderResult.segments; let last = last"
+              [class.is-irregular]="segment.irregular"
+            >
+              <span>{{ segment.unit }}</span>
+              <strong lang="ja">{{ segment.kanji }}</strong>
+              <small lang="ja">{{ segment.kana }}</small>
+              <em *ngIf="segment.irregular">Biến âm</em>
+              <i *ngIf="!last" class="fas fa-plus" aria-hidden="true"></i>
+            </article>
+          </div>
+        </section>
+
+        <section class="number-rules">
+          <header>
+            <span class="learning-kicker">Quy tắc cốt lõi</span>
+            <h2>Ghép từ đơn vị lớn xuống nhỏ</h2>
+          </header>
+          <div class="rule-grid">
+            <article>
+              <span>01</span>
+              <h3>Hàng chục</h3>
+              <p><b>20 = 二十</b>: に + じゅう. Số 10 chỉ đọc là じゅう, không thêm いち.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <h3>Trăm và nghìn</h3>
+              <p><b>百 = 100</b>, <b>千 = 1.000</b>. Bỏ いち ở trước 百 và 千.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <h3>Đơn vị 万</h3>
+              <p><b>一万 = 10.000</b>. Tiếng Nhật nhóm số theo bốn chữ số, không theo ba.</p>
+            </article>
+            <article>
+              <span>04</span>
+              <h3>Thứ tự đọc</h3>
+              <p>Đọc từ nhóm lớn đến nhỏ: 万 → 千 → 百 → 十 → đơn vị; bỏ hàng có giá trị 0.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="number-reference">
+          <div class="reference-panel">
+            <header>
+              <span class="learning-kicker">Bảng cơ bản</span>
+              <h2>0 đến 10</h2>
+            </header>
+            <div class="basic-number-grid">
+              <div *ngFor="let row of basicRows">
+                <span>{{ row.value }}</span>
+                <strong lang="ja">{{ row.kanji }}</strong>
+                <small lang="ja">{{ row.kana }}</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="reference-panel">
+            <header>
+              <span class="learning-kicker">Cần nhớ riêng</span>
+              <h2>Các biến âm chính</h2>
+            </header>
+            <div class="sound-change-list">
+              <div><span>300</span><strong lang="ja">さんびゃく</strong><small>sanbyaku</small></div>
+              <div><span>600</span><strong lang="ja">ろっぴゃく</strong><small>roppyaku</small></div>
+              <div><span>800</span><strong lang="ja">はっぴゃく</strong><small>happyaku</small></div>
+              <div><span>3.000</span><strong lang="ja">さんぜん</strong><small>sanzen</small></div>
+              <div><span>8.000</span><strong lang="ja">はっせん</strong><small>hassen</small></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="counter-section">
+          <header>
+            <span class="learning-kicker">Bước tiếp theo</span>
+            <h2>Số thường đi cùng trợ số từ</h2>
+            <p>Cách đọc có thể tiếp tục biến âm khi thêm đơn vị đếm, vì vậy nên học theo cụm.</p>
+          </header>
+          <div class="counter-table">
+            <div *ngFor="let counter of counters">
+              <strong lang="ja">{{ counter.counter }}</strong>
+              <span lang="ja">{{ counter.reading }}</span>
+              <small>{{ counter.use }}</small>
+              <em lang="ja">{{ counter.example }}</em>
+            </div>
+          </div>
+        </section>
+
+        <aside class="source-note">
+          <i class="fas fa-book-open"></i>
+          <p>
+            Nội dung đối chiếu theo tài liệu
+            <a href="https://www.irodori.jpf.go.jp/en/starter/pdf.html" target="_blank" rel="noopener">
+              Irodori Starter của Japan Foundation
+            </a>
+            và phần Numbers &amp; Counting của
+            <a href="https://guidetojapanese.org/learn/complete/numeric_system" target="_blank" rel="noopener">
+              Tae Kim's Guide
+            </a>.
+          </p>
+        </aside>
+      </ng-container>
+    </div>
+  </section>
+</div>
