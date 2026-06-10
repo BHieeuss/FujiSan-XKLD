@@ -3,14 +3,15 @@ import { toJapaneseNumber } from './japanese-number';
 describe('Japanese number composition', () => {
   it('should compose regular values from large to small units', () => {
     expect(toJapaneseNumber(47)).toEqual(
-      jasmine.objectContaining({ kanji: '四十七', kana: 'よんじゅうなな' }),
+      jasmine.objectContaining({ kana: 'よんじゅうなな' }),
     );
     expect(toJapaneseNumber(10000)).toEqual(
-      jasmine.objectContaining({ kanji: '一万', kana: 'いちまん' }),
+      jasmine.objectContaining({ kana: 'いちまん' }),
     );
     expect(toJapaneseNumber(31415)).toEqual(
-      jasmine.objectContaining({ kanji: '三万千四百十五', kana: 'さんまんせんよんひゃくじゅうご' }),
+      jasmine.objectContaining({ kana: 'さんまんせんよんひゃくじゅうご' }),
     );
+    expect(toJapaneseNumber(90000).kana).toBe('きゅうまん');
   });
 
   it('should apply the main hundred and thousand sound changes', () => {
@@ -22,7 +23,7 @@ describe('Japanese number composition', () => {
   });
 
   it('should reject values outside the supported range', () => {
-    expect(() => toJapaneseNumber(-1)).toThrowError(RangeError);
-    expect(() => toJapaneseNumber(100000000)).toThrowError(RangeError);
+    expect(() => toJapaneseNumber(0)).toThrowError(RangeError);
+    expect(() => toJapaneseNumber(90001)).toThrowError(RangeError);
   });
 });

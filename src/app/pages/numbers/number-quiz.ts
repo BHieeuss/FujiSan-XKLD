@@ -19,7 +19,6 @@ export interface NumberQuizQuestion {
 const DIRECTIONS: NumberQuizDirection[] = [
   'number-to-reading',
   'reading-to-number',
-  'kanji-to-number',
 ];
 
 export function createNumberQuiz(
@@ -54,12 +53,7 @@ function createQuestion(
   const direction = DIRECTIONS[Math.floor(random() * DIRECTIONS.length)];
   const numberAnswer = formatNumber(value);
   const correctAnswer = direction === 'number-to-reading' ? result.kana : numberAnswer;
-  const prompt =
-    direction === 'number-to-reading'
-      ? numberAnswer
-      : direction === 'reading-to-number'
-        ? result.kana
-        : result.kanji;
+  const prompt = direction === 'number-to-reading' ? numberAnswer : result.kana;
   const distractors = new Set<string>();
 
   while (distractors.size < 3) {

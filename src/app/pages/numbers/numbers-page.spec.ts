@@ -29,7 +29,7 @@ describe('NumbersPage', () => {
     component.setTab('guide');
     component.builderValue = 31415;
     fixture.detectChanges();
-    expect(component.builderResult.kanji).toBe('三万千四百十五');
+    expect(component.builderResult.kana).toBe('さんまんせんよんひゃくじゅうご');
     expect(fixture.nativeElement.querySelectorAll('.segment-flow article').length).toBe(5);
   });
 

@@ -10,6 +10,7 @@ import {
   NumberGroup,
   NumberGroupDefinition,
   toJapaneseNumber,
+  TEN_NUMBER_ROW,
 } from './japanese-number';
 import { createNumberQuiz, NumberQuizQuestion } from './number-quiz';
 import { NumberProgressService } from './number-progress.service';
@@ -28,9 +29,9 @@ type LearningGroup = 'all' | NumberGroup | 'weak';
 export class NumbersPage {
   readonly progress = inject(NumberProgressService);
   readonly numberGroups = NUMBER_GROUPS;
-  readonly basicRows = BASIC_NUMBER_ROWS;
+  readonly basicRows = [...BASIC_NUMBER_ROWS, TEN_NUMBER_ROW];
   readonly counters = COMMON_COUNTERS;
-  readonly examples = [18, 47, 300, 648, 2026, 8315, 31415, 12345678];
+  readonly examples = [18, 47, 300, 648, 2026, 8315, 31415, 90000];
 
   activeTab: LearningTab = 'quiz';
   selectedGroup: LearningGroup = 'all';
@@ -99,7 +100,7 @@ export class NumbersPage {
   }
 
   get builderResult(): JapaneseNumber {
-    const value = Math.min(99999999, Math.max(0, Math.trunc(this.builderValue ?? 0)));
+    const value = Math.min(90000, Math.max(1, Math.trunc(this.builderValue ?? 1)));
     return toJapaneseNumber(value);
   }
 
