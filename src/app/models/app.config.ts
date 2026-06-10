@@ -24,9 +24,11 @@ export interface AppMainMenuItem {
 }
 
 export interface AppSubmenuItem {
+  id?: string;
   label: string;
   link: string;
   icon?: string;
+  children?: AppSubmenuItem[];
 }
 
 // Thông tin công ty
@@ -87,6 +89,19 @@ export const APP_LEARNING_MENU: AppSubmenuItem[] = [
   { label: 'Hiragana (Chữ mềm)', link: '/hoc-hiragana', icon: 'fas fa-language' },
   { label: 'Katakana (Chữ cứng)', link: '/hoc-katakana', icon: 'fas fa-font' },
   { label: 'Số đếm', link: '/hoc-so-dem', icon: 'fas fa-arrow-down-1-9' },
+  {
+    id: 'minna-n5',
+    label: 'Minna no Nihongo N5',
+    link: '/hoc-minna-bai-1',
+    icon: 'fas fa-book-open',
+    children: [
+      {
+        label: 'Bài 1 · はじめまして',
+        link: '/hoc-minna-bai-1',
+        icon: 'fas fa-book',
+      },
+    ],
+  },
 ];
 
 // Menu liên kết nhanh (Footer)

@@ -178,7 +178,7 @@
 }
 
 .dropdown-menu {
-  min-width: 240px;
+  min-width: 280px;
   margin-top: 0.35rem;
   padding: 0.45rem;
   border: 1px solid #e3e9f1;
@@ -188,26 +188,74 @@
   animation: menu-in 0.18s ease both;
 
   .dropdown-item {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 0.55rem;
     padding: 0.72rem 0.8rem;
+    border: 0;
     border-radius: 7px;
+    background: transparent;
     color: #46566c;
+    font-family: inherit;
     font-size: 0.9rem;
     font-weight: 600;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
 
-    i {
+    > i:first-child {
       width: 18px;
       color: #1d4b91;
       text-align: center;
     }
 
     &:hover,
-    &:focus {
+    &:focus,
+    &.active {
       background: #eef3f9;
       color: #173d78;
     }
+  }
+}
+
+.dropdown-submenu {
+  position: relative;
+}
+
+.nested-trigger {
+  > span {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .submenu-chevron {
+    width: auto;
+    margin-left: auto;
+    color: #8390a2;
+    font-size: 0.68rem;
+    transition: transform 0.18s ease;
+  }
+}
+
+.nested-menu {
+  position: absolute;
+  top: -0.45rem;
+  left: calc(100% + 0.45rem);
+  z-index: 1065;
+  min-width: 245px;
+  display: none;
+  margin: 0;
+  padding: 0.45rem;
+  border: 1px solid #e3e9f1;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 16px 38px rgba(13, 42, 83, 0.14);
+  list-style: none;
+
+  &.show {
+    display: block;
+    animation: menu-in 0.18s ease both;
   }
 }
 
@@ -504,6 +552,37 @@
     .dropdown-item {
       padding: 0.68rem 0.5rem;
       font-size: 0.89rem;
+    }
+  }
+
+  .nested-trigger .submenu-chevron {
+    transform: rotate(90deg);
+  }
+
+  .nested-trigger[aria-expanded='true'] .submenu-chevron {
+    transform: rotate(270deg);
+  }
+
+  .nested-menu {
+    position: static;
+    min-width: 0;
+    display: none;
+    margin: 0 0 0.35rem 0.85rem;
+    padding: 0 0 0 0.65rem;
+    border: 0;
+    border-left: 2px solid #e1e7ef;
+    border-radius: 0;
+    box-shadow: none;
+
+    &.show {
+      display: block;
+      animation: none;
+    }
+
+    .dropdown-item {
+      padding: 0.62rem 0.5rem;
+      color: #596b82;
+      font-size: 0.84rem;
     }
   }
 

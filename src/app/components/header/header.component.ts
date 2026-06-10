@@ -6,6 +6,7 @@ import {
   APP_LEARNING_MENU,
   APP_MAIN_MENU,
   APP_PROGRAM_MENU,
+  AppSubmenuItem,
 } from '../../models/app.config';
 import { Subscription } from 'rxjs';
 
@@ -19,8 +20,10 @@ import { Subscription } from 'rxjs';
 export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
   openDropdownKey?: string;
+  openNestedMenuId?: string;
   isScrolled = false;
   isHomePage = false;
+  currentPath = '';
 
   mainMenuItems = APP_MAIN_MENU.map((item) => ({ ...item }));
   dropdownMenus = {
@@ -85,6 +88,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
     this.openDropdownKey = undefined;
+    this.openNestedMenuId = undefined;
     this.setPageScrollLocked(false);
   }
 
@@ -93,8 +97,33 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (!dropdownKey) {
       return;
     }
+    this.openNestedMenuId = undefined;
     this.openDropdownKey =
       this.openDropdownKey === dropdownKey ? undefined : dropdownKey;
+  }
+
+  toggleNestedSubmenu(event: Event, item: AppSubmenuItem): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const menuId = this.nestedMenuId(item);
+    this.openNestedMenuId = this.openNestedMenuId === menuId ? undefined : menuId;
+  }
+
+  openNestedSubmenu(item: AppSubmenuItem): void {
+    if (typeof window !== 'undefined' && window.innerWidth >= 992 && item.children?.length) {
+      this.openNestedMenuId = this.nestedMenuId(item);
+    }
+  }
+
+  isNestedSubmenuOpen(item: AppSubmenuItem): boolean {
+    return this.openNestedMenuId === this.nestedMenuId(item);
+  }
+
+  isSubmenuActive(item: AppSubmenuItem): boolean {
+    return (
+      this.currentPath === item.link ||
+      Boolean(item.children?.some((child) => this.isSubmenuActive(child)))
+    );
   }
 
   onMenuClick(event: Event, item: any): void {
@@ -163,6 +192,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private updateRouteState(url: string): void {
     const path = url.split('#')[0].split('?')[0];
+    this.currentPath = path;
     this.isHomePage = path === '/' || path === '';
 
     this.mainMenuItems.forEach((item) => {
@@ -182,5 +212,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
         activeItem.active = true;
       }
     }
+  }
+
+  private nestedMenuId(item: AppSubmenuItem): string {
+    return item.id ?? item.label;
   }
 }

@@ -103,15 +103,53 @@
               class="dropdown-menu"
               [class.show]="isDropdownOpen(item.dropdownKey)"
             >
-              <li *ngFor="let subItem of submenuFor(item.dropdownKey)">
+              <li
+                *ngFor="let subItem of submenuFor(item.dropdownKey)"
+                class="dropdown-submenu"
+                [class.has-children]="subItem.children?.length"
+                (mouseenter)="openNestedSubmenu(subItem)"
+              >
+                <button
+                  *ngIf="subItem.children?.length"
+                  type="button"
+                  class="dropdown-item nested-trigger"
+                  [class.active]="isSubmenuActive(subItem)"
+                  [attr.aria-expanded]="isNestedSubmenuOpen(subItem)"
+                  (click)="toggleNestedSubmenu($event, subItem)"
+                >
+                  <i *ngIf="subItem.icon" [class]="subItem.icon"></i>
+                  <span>{{ subItem.label }}</span>
+                  <i class="fas fa-chevron-right submenu-chevron"></i>
+                </button>
+
                 <a
+                  *ngIf="!subItem.children?.length"
                   class="dropdown-item"
+                  [class.active]="isSubmenuActive(subItem)"
                   [href]="subItem.link"
                   (click)="onSubmenuClick($event, subItem.link)"
                 >
                   <i *ngIf="subItem.icon" [class]="subItem.icon"></i>
-                  {{ subItem.label }}
+                  <span>{{ subItem.label }}</span>
                 </a>
+
+                <ul
+                  *ngIf="subItem.children?.length"
+                  class="nested-menu"
+                  [class.show]="isNestedSubmenuOpen(subItem)"
+                >
+                  <li *ngFor="let childItem of subItem.children">
+                    <a
+                      class="dropdown-item"
+                      [class.active]="isSubmenuActive(childItem)"
+                      [href]="childItem.link"
+                      (click)="onSubmenuClick($event, childItem.link)"
+                    >
+                      <i *ngIf="childItem.icon" [class]="childItem.icon"></i>
+                      <span>{{ childItem.label }}</span>
+                    </a>
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>

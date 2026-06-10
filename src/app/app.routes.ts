@@ -25,6 +25,14 @@ export const routes: Routes = [
       import('./pages/numbers/numbers-page').then((module) => module.NumbersPage),
   },
   {
+    path: 'hoc-minna-bai-1',
+    title: 'Minna no Nihongo Bài 1 - VieJap',
+    loadComponent: () =>
+      import('./pages/minna-lesson-1/minna-lesson-1-page').then(
+        (module) => module.MinnaLesson1Page,
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

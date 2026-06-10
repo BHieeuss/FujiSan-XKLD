@@ -6,6 +6,7 @@ describe('Application routes', () => {
     expect(routes.find((route) => route.path === 'hoc-hiragana')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-katakana')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-so-dem')?.loadComponent).toBeDefined();
+    expect(routes.find((route) => route.path === 'hoc-minna-bai-1')?.loadComponent).toBeDefined();
     expect(routes[routes.length - 1].path).toBe('**');
     expect(routes[routes.length - 1].redirectTo).toBe('');
   });

@@ -1,0 +1,375 @@
+<div class="minna-page">
+  <header class="lesson-header">
+    <div class="container lesson-header-inner">
+      <div>
+        <span class="lesson-kicker">Minna no Nihongo · Bài 1</span>
+        <h1>はじめまして</h1>
+        <p>Chào hỏi, tự giới thiệu và xác nhận thông tin cơ bản khi gặp lần đầu.</p>
+      </div>
+      <button
+        type="button"
+        class="reset-progress"
+        title="Xóa tiến độ"
+        aria-label="Xóa tiến độ Bài 1"
+        (click)="resetProgress()"
+      >
+        <i class="fas fa-trash-can"></i>
+      </button>
+    </div>
+  </header>
+
+  <section class="lesson-overview">
+    <div class="container overview-grid">
+      <div>
+        <span><i class="fas fa-bullseye"></i></span>
+        <p><small>Mục tiêu</small><strong>Tự giới thiệu ngắn</strong></p>
+      </div>
+      <div>
+        <span><i class="fas fa-language"></i></span>
+        <p><small>Từ vựng</small><strong>{{ progress.learnedCount() }}/{{ vocabulary.length }} đã nhớ</strong></p>
+      </div>
+      <div>
+        <span><i class="fas fa-layer-group"></i></span>
+        <p><small>Tiến độ</small><strong>{{ progress.completedSections() }}/4 phần</strong></p>
+      </div>
+      <div>
+        <span><i class="fas fa-clock"></i></span>
+        <p><small>Thời lượng</small><strong>35–45 phút</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <main class="lesson-workspace">
+    <div class="container">
+      <nav class="lesson-tabs" aria-label="Nội dung Bài 1">
+        <button
+          type="button"
+          [class.active]="activeTab === 'vocabulary'"
+          (click)="setTab('vocabulary')"
+        >
+          <i class="fas fa-book-open"></i><span>Từ vựng</span>
+        </button>
+        <button
+          type="button"
+          [class.active]="activeTab === 'grammar'"
+          (click)="setTab('grammar')"
+        >
+          <i class="fas fa-code-branch"></i><span>Ngữ pháp</span>
+        </button>
+        <button
+          type="button"
+          [class.active]="activeTab === 'reading'"
+          (click)="setTab('reading')"
+        >
+          <i class="fas fa-align-left"></i><span>Đọc hiểu</span>
+        </button>
+        <button
+          type="button"
+          [class.active]="activeTab === 'listening'"
+          (click)="setTab('listening')"
+        >
+          <i class="fas fa-headphones"></i><span>Nghe hiểu</span>
+        </button>
+      </nav>
+
+      <section *ngIf="activeTab === 'vocabulary'" class="vocabulary-section">
+        <header class="section-heading">
+          <div>
+            <span class="lesson-kicker">Nền tảng giao tiếp</span>
+            <h2>Từ vựng trọng tâm</h2>
+            <p>Nghe từng từ, lọc theo nhóm và đánh dấu những từ đã nhớ.</p>
+          </div>
+          <label class="vocabulary-search">
+            <i class="fas fa-magnifying-glass"></i>
+            <input
+              type="search"
+              [(ngModel)]="vocabularySearch"
+              placeholder="Tìm tiếng Nhật hoặc nghĩa..."
+              aria-label="Tìm từ vựng"
+            />
+          </label>
+        </header>
+
+        <div class="vocabulary-filters" aria-label="Lọc từ vựng">
+          <button
+            *ngFor="let filter of vocabularyFilters"
+            type="button"
+            [class.active]="vocabularyFilter === filter.id"
+            (click)="setVocabularyFilter(filter.id)"
+          >
+            {{ filter.label }} <small>{{ filter.count }}</small>
+          </button>
+        </div>
+
+        <div class="vocabulary-table" *ngIf="filteredVocabulary.length; else noVocabulary">
+          <div class="vocabulary-row vocabulary-table-head" aria-hidden="true">
+            <span>Từ vựng</span><span>Chữ Nhật</span><span>Nghĩa</span><span>Thao tác</span>
+          </div>
+          <article
+            class="vocabulary-row"
+            *ngFor="let item of filteredVocabulary; trackBy: trackVocabulary"
+            [class.is-learned]="progress.isVocabularyLearned(item.id)"
+          >
+            <strong lang="ja">{{ item.reading }}</strong>
+            <span lang="ja">{{ item.japanese }}</span>
+            <p>
+              {{ item.meaning }}
+              <small *ngIf="item.note">{{ item.note }}</small>
+            </p>
+            <div>
+              <button
+                type="button"
+                [class.is-playing]="activeVocabularyId === item.id"
+                title="Nghe cách đọc"
+                [attr.aria-label]="'Nghe ' + item.reading"
+                (click)="playVocabulary(item)"
+              >
+                <i class="fas fa-volume-high"></i>
+              </button>
+              <button
+                type="button"
+                [class.is-learned]="progress.isVocabularyLearned(item.id)"
+                [title]="progress.isVocabularyLearned(item.id) ? 'Bỏ đánh dấu đã nhớ' : 'Đánh dấu đã nhớ'"
+                [attr.aria-label]="
+                  progress.isVocabularyLearned(item.id) ? 'Bỏ đánh dấu đã nhớ' : 'Đánh dấu đã nhớ'
+                "
+                (click)="toggleLearned(item)"
+              >
+                <i class="fas fa-check"></i>
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #noVocabulary>
+          <div class="empty-search">
+            <i class="fas fa-magnifying-glass"></i>
+            <strong>Không tìm thấy từ phù hợp</strong>
+            <span>Thử từ khóa ngắn hơn hoặc chọn nhóm khác.</span>
+          </div>
+        </ng-template>
+
+        <aside class="audio-note">
+          <i class="fas fa-circle-info"></i>
+          <div>
+            <strong>Tự động ưu tiên giọng Nhật tự nhiên</strong>
+            <p>
+              Ứng dụng ưu tiên các giọng Nhật chất lượng cao có sẵn trên thiết bị. Để nghe tự
+              nhiên hơn trên Windows, hãy cài gói giọng nói tiếng Nhật hoặc mở trang bằng Microsoft
+              Edge hay Google Chrome.
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <section *ngIf="activeTab === 'grammar'" class="grammar-section">
+        <header class="section-heading">
+          <div>
+            <span class="lesson-kicker">5 mẫu câu cốt lõi</span>
+            <h2>Ngữ pháp Bài 1</h2>
+            <p>Mỗi mẫu có cách dùng, ví dụ và điểm cần tránh.</p>
+          </div>
+        </header>
+
+        <div class="grammar-list">
+          <article
+            *ngFor="let point of grammar; let index = index"
+            [class.expanded]="expandedGrammarId === point.id"
+          >
+            <button type="button" (click)="toggleGrammar(point)">
+              <span>{{ index + 1 | number: '2.0' }}</span>
+              <div><strong>{{ point.pattern }}</strong><small>{{ point.meaning }}</small></div>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="grammar-detail" *ngIf="expandedGrammarId === point.id">
+              <p>{{ point.usage }}</p>
+              <div class="example-list">
+                <div *ngFor="let example of point.examples">
+                  <button
+                    type="button"
+                    title="Nghe câu ví dụ"
+                    aria-label="Nghe câu ví dụ"
+                    (click)="speakJapanese(example.japanese)"
+                  >
+                    <i class="fas fa-volume-high"></i>
+                  </button>
+                  <p><strong lang="ja">{{ example.japanese }}</strong><span>{{ example.vietnamese }}</span></p>
+                </div>
+              </div>
+              <aside *ngIf="point.caution">
+                <i class="fas fa-lightbulb"></i>{{ point.caution }}
+              </aside>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section *ngIf="activeTab === 'reading'" class="skill-section">
+        <header class="section-heading">
+          <div>
+            <span class="lesson-kicker">Bài đọc tự soạn</span>
+            <h2>Một lời giới thiệu ngắn</h2>
+            <p>Đọc trước, trả lời câu hỏi rồi mới mở bản dịch.</p>
+          </div>
+        </header>
+
+        <div class="skill-layout">
+          <article class="passage-panel">
+            <header>
+              <div><span>01</span><strong lang="ja">{{ reading.title }}</strong></div>
+              <button
+                type="button"
+                title="Nghe bài đọc"
+                aria-label="Nghe bài đọc"
+                (click)="speakJapanese(reading.japanese, 0.76)"
+              >
+                <i class="fas fa-volume-high"></i>
+              </button>
+            </header>
+            <p lang="ja">{{ reading.japanese }}</p>
+            <button
+              type="button"
+              class="text-action"
+              (click)="showReadingTranslation = !showReadingTranslation"
+            >
+              <i class="fas" [class.fa-eye]="!showReadingTranslation" [class.fa-eye-slash]="showReadingTranslation"></i>
+              {{ showReadingTranslation ? 'Ẩn bản dịch' : 'Xem bản dịch' }}
+            </button>
+            <div class="translation" *ngIf="showReadingTranslation">{{ reading.vietnamese }}</div>
+          </article>
+
+          <section class="question-panel">
+            <header><span>Bài tập</span><strong>Kiểm tra nội dung</strong></header>
+            <div class="exercise-question" *ngFor="let question of reading.questions; let index = index">
+              <p><span>{{ index + 1 }}</span>{{ question.prompt }}</p>
+              <label
+                *ngFor="let option of question.options"
+                [ngClass]="answerState(readingChecked, readingAnswers[question.id], option, question.answer)"
+              >
+                <input
+                  type="radio"
+                  [name]="question.id"
+                  [value]="option"
+                  [(ngModel)]="readingAnswers[question.id]"
+                  [disabled]="readingChecked"
+                />
+                <span>{{ option }}</span>
+              </label>
+            </div>
+            <button type="button" class="check-action" (click)="checkReading()">
+              <i class="fas fa-check"></i>
+              {{ readingChecked ? 'Đúng ' + readingScore + '/' + reading.questions.length : 'Kiểm tra đáp án' }}
+            </button>
+          </section>
+        </div>
+      </section>
+
+      <section *ngIf="activeTab === 'listening'" class="skill-section">
+        <header class="section-heading">
+          <div>
+            <span class="lesson-kicker">Bài nghe tự soạn</span>
+            <h2>Hai đồng nghiệp gặp nhau</h2>
+            <p>Nghe tối thiểu hai lần trước khi mở hội thoại.</p>
+          </div>
+        </header>
+
+        <div class="listening-player">
+          <div class="player-icon"><i class="fas fa-headphones"></i></div>
+          <div>
+            <small>Hội thoại · {{ dialogue.length }} lượt nói</small>
+            <strong>はじめまして</strong>
+            <span>Giọng đọc phụ thuộc giọng tiếng Nhật được cài trên thiết bị.</span>
+          </div>
+          <div class="speed-control" role="group" aria-label="Tốc độ bài nghe">
+            <button
+              type="button"
+              [class.active]="listeningRate === 'slow'"
+              (click)="listeningRate = 'slow'"
+            >
+              0.8×
+            </button>
+            <button
+              type="button"
+              [class.active]="listeningRate === 'normal'"
+              (click)="listeningRate = 'normal'"
+            >
+              1×
+            </button>
+          </div>
+          <button type="button" class="play-action" (click)="playListening()">
+            <i class="fas fa-play"></i><span>Phát bài nghe</span>
+          </button>
+        </div>
+
+        <div class="skill-layout listening-layout">
+          <article class="transcript-panel">
+            <header>
+              <strong>Hội thoại</strong>
+              <button type="button" (click)="showListeningTranscript = !showListeningTranscript">
+                <i class="fas" [class.fa-eye]="!showListeningTranscript" [class.fa-eye-slash]="showListeningTranscript"></i>
+                {{ showListeningTranscript ? 'Ẩn lời thoại' : 'Hiện lời thoại' }}
+              </button>
+            </header>
+            <div *ngIf="showListeningTranscript; else transcriptHidden">
+              <p *ngFor="let line of dialogue">
+                <span>{{ line.speaker }}</span><strong lang="ja">{{ line.text }}</strong>
+              </p>
+            </div>
+            <ng-template #transcriptHidden>
+              <div class="transcript-hidden">
+                <i class="fas fa-ear-listen"></i>
+                <strong>Lời thoại đang được ẩn</strong>
+                <span>Tập trung nghe tên, quốc tịch, nghề nghiệp và công ty.</span>
+              </div>
+            </ng-template>
+          </article>
+
+          <section class="question-panel">
+            <header><span>Bài tập</span><strong>Nghe và chọn đáp án</strong></header>
+            <div class="exercise-question" *ngFor="let question of listeningQuestions; let index = index">
+              <p><span>{{ index + 1 }}</span>{{ question.prompt }}</p>
+              <label
+                *ngFor="let option of question.options"
+                [ngClass]="answerState(listeningChecked, listeningAnswers[question.id], option, question.answer)"
+              >
+                <input
+                  type="radio"
+                  [name]="question.id"
+                  [value]="option"
+                  [(ngModel)]="listeningAnswers[question.id]"
+                  [disabled]="listeningChecked"
+                />
+                <span>{{ option }}</span>
+              </label>
+            </div>
+            <button type="button" class="check-action" (click)="checkListening()">
+              <i class="fas fa-check"></i>
+              {{
+                listeningChecked
+                  ? 'Đúng ' + listeningScore + '/' + listeningQuestions.length
+                  : 'Kiểm tra đáp án'
+              }}
+            </button>
+          </section>
+        </div>
+
+        <aside class="source-panel">
+          <i class="fas fa-music"></i>
+          <div>
+            <strong>Nguồn bản ghi âm phù hợp để bổ sung</strong>
+            <p>
+              Có thể thu giọng riêng; tìm bản ghi CC BY-SA trên
+              <a href="https://lingualibre.org/" target="_blank" rel="noopener">Lingua Libre</a>;
+              hoặc dẫn người học đến
+              <a href="https://www.irodori.jpf.go.jp/en/starter/pdf.html" target="_blank" rel="noopener">
+                Irodori của Quỹ Giao lưu Quốc tế Nhật Bản
+              </a>
+              để nghe tài liệu chính thức. Không nên tải và đăng lại bản ghi của Minna khi chưa rõ
+              giấy phép sử dụng.
+            </p>
+          </div>
+        </aside>
+      </section>
+    </div>
+  </main>
+</div>
