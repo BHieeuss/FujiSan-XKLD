@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH="${DEPLOYPATH:-$HOME/public_html}"
+    - export PATH="/opt/cpanel/ea-nodejs20/bin:$PATH"
+    - /usr/bin/env npm ci
+    - /usr/bin/env npm run build
+    - /bin/mkdir -p "$DEPLOYPATH"
+    - /bin/cp -R dist/fujisan-website/browser/. "$DEPLOYPATH/"
