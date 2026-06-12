@@ -2,38 +2,35 @@
 cd /d %~dp0
 
 echo ==========================================
-echo  FUJISAN - AUTO DEPLOY TO GITHUB PAGES
+echo  FUJISAN - PUSH SOURCE FOR CPANEL HOSTING
 echo ==========================================
 
-echo [1/5] Staging all changes...
+echo [1/4] Staging all changes...
 git add .
 
-echo [2/5] Committing changes...
-git commit -m "Update source code and deploy to GitHub Pages" || echo "No changes to commit"
+echo [2/4] Committing changes...
+git commit -m "Update website for cPanel hosting" || echo "No changes to commit"
 
-echo [3/5] Pulling latest from remote...
+echo [3/4] Pulling latest from remote...
 git pull origin main --no-edit
+if errorlevel 1 goto :error
 
-echo [4/5] Pushing to GitHub...
+echo [4/4] Pushing source to GitHub...
 git push origin main
-
-echo [5/5] Building Angular project...
-call ng build fujisan-website --configuration production
-
-echo Copying CNAME to dist for custom domain...
-copy /Y "public\CNAME" "dist\fujisan-website\browser\CNAME"
-
-echo Copying 404.html for SPA routing...
-copy /Y "dist\fujisan-website\browser\index.html" "dist\fujisan-website\browser\404.html"
-
-echo Copying cPanel deployment config to gh-pages output...
-copy /Y ".cpanel-gh-pages.yml" "dist\fujisan-website\browser\.cpanel.yml"
-
-echo Deploying to GitHub Pages...
-call npx angular-cli-ghpages --dir=dist/fujisan-website/browser --repo=https://github.com/BHieeuss/FujiSan-XKLD.git --no-silent
+if errorlevel 1 goto :error
 
 echo ==========================================
-echo  DONE! Website deployed successfully!
+echo  SOURCE PUSHED SUCCESSFULLY
+echo  Open cPanel Git Version Control:
+echo  Update from Remote, then Deploy HEAD Commit.
 echo  Domain: https://viejap.com
 echo ==========================================
 pause
+exit /b 0
+
+:error
+echo ==========================================
+echo  DEPLOY FAILED. CHECK THE ERROR ABOVE.
+echo ==========================================
+pause
+exit /b 1

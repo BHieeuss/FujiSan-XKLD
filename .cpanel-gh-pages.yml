@@ -1,6 +1,0 @@
----
-deployment:
-  tasks:
-    - export DEPLOYPATH="${DEPLOYPATH:-$HOME/public_html}"
-    - /bin/mkdir -p "$DEPLOYPATH"
-    - /bin/cp -R ./* "$DEPLOYPATH/"
