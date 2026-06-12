@@ -26,6 +26,9 @@ copy /Y "public\CNAME" "dist\fujisan-website\browser\CNAME"
 echo Copying 404.html for SPA routing...
 copy /Y "dist\fujisan-website\browser\index.html" "dist\fujisan-website\browser\404.html"
 
+echo Copying cPanel deployment config to gh-pages output...
+copy /Y ".cpanel-gh-pages.yml" "dist\fujisan-website\browser\.cpanel.yml"
+
 echo Deploying to GitHub Pages...
 call npx angular-cli-ghpages --dir=dist/fujisan-website/browser --repo=https://github.com/BHieeuss/FujiSan-XKLD.git --no-silent
 
