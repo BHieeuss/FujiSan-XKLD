@@ -8,6 +8,8 @@ const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptDirectory, '..');
 const buildDirectory = join(projectRoot, 'dist', 'fujisan-website', 'browser');
 const outputPath = join(projectRoot, 'deployment', 'viejap-release-20260614.zip');
+const githubFileLimit = 100 * 1024 * 1024;
+const archiveDate = new Date('2026-01-01T00:00:00.000Z');
 const storedExtensions = new Set([
   '.aac',
   '.avi',
@@ -40,7 +42,9 @@ for (const path of files) {
   const extension = archivePath.slice(archivePath.lastIndexOf('.')).toLowerCase();
   zip.file(archivePath, createReadStream(path), {
     binary: true,
+    createFolders: false,
     compression: storedExtensions.has(extension) ? 'STORE' : 'DEFLATE',
+    date: archiveDate,
   });
 }
 
@@ -60,6 +64,12 @@ await new Promise((resolvePromise, rejectPromise) => {
 });
 
 const archiveSize = (await stat(outputPath)).size;
+if (archiveSize >= githubFileLimit) {
+  throw new Error(
+    `Release is ${formatBytes(archiveSize)}, which exceeds GitHub's 100 MiB file limit.`,
+  );
+}
+
 console.log(
   `Created ${relative(projectRoot, outputPath)} with ${files.length} files (${formatBytes(archiveSize)}).`,
 );
