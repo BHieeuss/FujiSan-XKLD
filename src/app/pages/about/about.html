@@ -335,6 +335,163 @@
   </div>
 </div>
 
+<section class="program-matcher-section py-5" id="phu-hop">
+  <div class="container">
+    <div class="matcher-layout">
+      <div class="matcher-intro">
+        <span class="section-kicker">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          Gợi ý trong khoảng 1 phút
+        </span>
+        <h2>Bạn phù hợp chương trình nào?</h2>
+        <p>
+          Trả lời 5 câu ngắn về mục tiêu, bằng cấp và kinh nghiệm. Kết quả chỉ là gợi ý
+          ban đầu, không yêu cầu bạn nhập thông tin cá nhân.
+        </p>
+
+        <div class="matcher-points">
+          <span><i class="fas fa-shield-halved"></i>Không lưu câu trả lời</span>
+          <span><i class="fas fa-list-check"></i>Có lý do gợi ý rõ ràng</span>
+          <span><i class="fas fa-rotate"></i>Có thể làm lại bất cứ lúc nào</span>
+        </div>
+      </div>
+
+      <div class="matcher-card">
+        <div class="matcher-progress" aria-hidden="true">
+          <span [style.width.%]="quizProgress"></span>
+        </div>
+
+        <ng-container *ngIf="!quizResult; else quizResultView">
+          <header class="matcher-question-head">
+            <span>Câu {{ quizStep + 1 }} / {{ quizQuestions.length }}</span>
+            <button
+              *ngIf="quizStep > 0"
+              type="button"
+              (click)="previousQuizQuestion()"
+            >
+              <i class="fas fa-arrow-left"></i>
+              Quay lại
+            </button>
+          </header>
+
+          <h3>{{ currentQuizQuestion.title }}</h3>
+          <p class="matcher-question-description">{{ currentQuizQuestion.description }}</p>
+
+          <div class="matcher-options">
+            <button
+              *ngFor="let option of currentQuizQuestion.options"
+              type="button"
+              class="matcher-option"
+              (click)="chooseQuizOption(option)"
+            >
+              <span class="matcher-option-check"><i class="fas fa-check"></i></span>
+              <span>
+                <strong>{{ option.label }}</strong>
+                <small>{{ option.detail }}</small>
+              </span>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </ng-container>
+
+        <ng-template #quizResultView>
+          <div class="matcher-result">
+            <span class="matcher-result-icon"><i [class]="quizResult?.icon"></i></span>
+            <span class="matcher-result-kicker">Gợi ý phù hợp nhất</span>
+            <h3>{{ quizResult?.title }}</h3>
+            <p>{{ quizResult?.summary }}</p>
+            <div class="matcher-result-reason">
+              <i class="fas fa-lightbulb"></i>
+              <span>{{ quizResult?.reason }}</span>
+            </div>
+
+            <div class="matcher-result-actions">
+              <button type="button" class="matcher-primary" (click)="viewQuizProgram()">
+                Xem chương trình
+                <i class="fas fa-arrow-right"></i>
+              </button>
+              <button type="button" class="matcher-secondary" (click)="resetQuiz()">
+                <i class="fas fa-rotate-left"></i>
+                Làm lại
+              </button>
+            </div>
+
+            <small class="matcher-disclaimer">
+              Gợi ý này không thay thế việc kiểm tra hồ sơ, sức khỏe và điều kiện của từng đơn tuyển.
+            </small>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="featured-orders-section py-5" id="don-tuyen">
+  <div class="container">
+    <div class="orders-heading">
+      <div>
+        <span class="section-kicker">
+          <i class="fas fa-list-check"></i>
+          Đơn tuyển đang mở
+        </span>
+        <h2>Xem vị trí đang tuyển trước khi quyết định</h2>
+        <p>
+          Danh sách bên dưới lấy trực tiếp từ Sheet của VieJap để bạn xem ngành nghề,
+          điều kiện, khu vực và ghi chú mới nhất.
+        </p>
+      </div>
+
+      <a
+        class="orders-open-link"
+        [href]="orderListUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Mở danh sách đầy đủ
+        <i class="fas fa-arrow-up-right-from-square"></i>
+      </a>
+    </div>
+
+    <div class="orders-live-note">
+      <span><i class="fas fa-circle"></i>{{ orderListUpdatedLabel }}</span>
+      <small>Thông tin có thể thay đổi theo thời điểm tuyển và kết quả kiểm tra hồ sơ.</small>
+    </div>
+
+    <div class="orders-preview">
+      <div class="orders-preview-loading" *ngIf="!isOrderPreviewLoaded">
+        <i class="fas fa-spinner"></i>
+        <strong>Đang tải danh sách đơn tuyển...</strong>
+        <span>Nếu không hiển thị, bạn có thể dùng nút mở danh sách đầy đủ.</span>
+      </div>
+      <iframe
+        [src]="orderListEmbedUrl"
+        title="Danh sách đơn tuyển đang mở của VieJap"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        (load)="onOrderPreviewLoad()"
+      ></iframe>
+    </div>
+
+    <div class="orders-guidance">
+      <article>
+        <i class="fas fa-filter-circle-dollar"></i>
+        <strong>Đừng chỉ nhìn mức lương</strong>
+        <span>Nên xem cả tiền nhà, bảo hiểm, giờ làm và khoản khấu trừ.</span>
+      </article>
+      <article>
+        <i class="fas fa-file-signature"></i>
+        <strong>Đối chiếu trước khi ký</strong>
+        <span>Điều kiện và chi phí cần được ghi rõ trong hồ sơ, hợp đồng.</span>
+      </article>
+      <article>
+        <i class="fas fa-comment-dots"></i>
+        <strong>Hỏi khi chưa rõ</strong>
+        <span>Gửi mã đơn qua Zalo để VieJap kiểm tra cùng bạn.</span>
+      </article>
+    </div>
+  </div>
+</section>
+
 <!-- Chính sách hỗ trợ -->
 <section class="policy-section py-5" id="chinh-sach">
   <div class="container">

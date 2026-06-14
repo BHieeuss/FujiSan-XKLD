@@ -75,4 +75,26 @@ describe('About', () => {
     expect(nenkinSource).toBeTruthy();
     expect(compiled.querySelector('.policy-panel')?.textContent).toContain('2 năm');
   });
+
+  it('should complete the program matcher without collecting personal data', () => {
+    for (let index = 0; index < component.quizQuestions.length; index += 1) {
+      component.chooseQuizOption(component.currentQuizQuestion.options[0]);
+    }
+    fixture.detectChanges();
+
+    expect(component.quizResult?.key).toBe('ky-su');
+    expect(fixture.nativeElement.querySelector('.matcher-result h3')?.textContent).toContain(
+      'Kỹ sư',
+    );
+
+    component.resetQuiz();
+    expect(component.quizResult).toBeUndefined();
+    expect(component.quizStep).toBe(0);
+  });
+
+  it('should render the live order list', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('#don-tuyen iframe')).toBeTruthy();
+  });
 });

@@ -1,0 +1,167 @@
+<div class="admin-shell">
+  <header class="admin-topbar">
+    <div class="brand">
+      <img src="assets/images/logo.png" alt="VieJap" />
+      <div>
+        <strong>VieJap Admin</strong>
+        <span>Trung tâm công cụ nội bộ</span>
+      </div>
+    </div>
+
+    <div class="account-actions">
+      <span class="signed-in-user">
+        <i class="fas fa-circle-user"></i>
+        {{ auth.session()?.username }}
+      </span>
+      <button type="button" (click)="logout()" [disabled]="loggingOut">
+        <i [class]="loggingOut ? 'fas fa-spinner fa-spin' : 'fas fa-arrow-right-from-bracket'"></i>
+        <span>Đăng xuất</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="admin-layout">
+    <aside class="admin-navigation" aria-label="Điều hướng quản trị">
+      <div class="nav-heading">
+        <span>Không gian làm việc</span>
+        <strong>Quản trị</strong>
+      </div>
+
+      <button
+        type="button"
+        [class.active]="activeSection === 'poster'"
+        (click)="selectSection('poster')"
+      >
+        <span class="nav-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+        <span>
+          <strong>Tạo poster</strong>
+          <small>Đơn tuyển dụng</small>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        [class.active]="activeSection === 'security'"
+        (click)="selectSection('security')"
+      >
+        <span class="nav-icon"><i class="fas fa-shield-halved"></i></span>
+        <span>
+          <strong>Bảo mật</strong>
+          <small>Đổi mật khẩu</small>
+        </span>
+      </button>
+
+      <div class="session-note">
+        <i class="fas fa-clock"></i>
+        <span>Phiên tự khóa sau 30 phút không hoạt động.</span>
+      </div>
+    </aside>
+
+    <main class="admin-content">
+      @if (activeSection === 'poster') {
+        <div class="content-heading">
+          <div>
+            <span class="eyebrow">Công cụ 01</span>
+            <h1>Tạo poster đơn tuyển</h1>
+            <p>Nhập nội dung, thêm ảnh và xuất file PNG ngay trên thiết bị.</p>
+          </div>
+          <span class="privacy-badge">
+            <i class="fas fa-laptop"></i>
+            Xử lý cục bộ
+          </span>
+        </div>
+
+        <app-poster-maker-page [embedded]="true"></app-poster-maker-page>
+      } @else {
+        <div class="content-heading">
+          <div>
+            <span class="eyebrow">Tài khoản</span>
+            <h1>Bảo mật đăng nhập</h1>
+            <p>Đổi mật khẩu định kỳ và không chia sẻ tài khoản quản trị.</p>
+          </div>
+        </div>
+
+        <section class="security-grid">
+          <form class="security-card" (ngSubmit)="changePassword()">
+            <div class="card-heading">
+              <span><i class="fas fa-key"></i></span>
+              <div>
+                <h2>Đổi mật khẩu</h2>
+                <p>Tối thiểu 12 ký tự, có chữ hoa, chữ thường và số.</p>
+              </div>
+            </div>
+
+            <label>
+              <span>Mật khẩu hiện tại</span>
+              <input
+                [type]="showPasswords ? 'text' : 'password'"
+                name="currentPassword"
+                [(ngModel)]="currentPassword"
+                autocomplete="current-password"
+                required
+              />
+            </label>
+
+            <label>
+              <span>Mật khẩu mới</span>
+              <input
+                [type]="showPasswords ? 'text' : 'password'"
+                name="newPassword"
+                [(ngModel)]="newPassword"
+                autocomplete="new-password"
+                minlength="12"
+                required
+              />
+            </label>
+
+            <label>
+              <span>Nhập lại mật khẩu mới</span>
+              <input
+                [type]="showPasswords ? 'text' : 'password'"
+                name="confirmPassword"
+                [(ngModel)]="confirmPassword"
+                autocomplete="new-password"
+                minlength="12"
+                required
+              />
+            </label>
+
+            <label class="show-passwords">
+              <input type="checkbox" name="showPasswords" [(ngModel)]="showPasswords" />
+              <span>Hiện mật khẩu đang nhập</span>
+            </label>
+
+            @if (securityError) {
+              <p class="form-message error" role="alert">{{ securityError }}</p>
+            }
+            @if (securityMessage) {
+              <p class="form-message success">{{ securityMessage }}</p>
+            }
+
+            <button class="change-button" type="submit" [disabled]="changingPassword">
+              <i [class]="changingPassword ? 'fas fa-spinner fa-spin' : 'fas fa-shield-halved'"></i>
+              {{ changingPassword ? 'Đang cập nhật...' : 'Cập nhật mật khẩu' }}
+            </button>
+          </form>
+
+          <aside class="security-card protection-card">
+            <div class="card-heading">
+              <span><i class="fas fa-lock"></i></span>
+              <div>
+                <h2>Lớp bảo vệ đang bật</h2>
+                <p>Bảo vệ phía máy chủ, không chỉ ẩn đường dẫn.</p>
+              </div>
+            </div>
+
+            <ul>
+              <li><i class="fas fa-check"></i> Cookie phiên không cho JavaScript truy cập</li>
+              <li><i class="fas fa-check"></i> Khóa 15 phút sau 5 lần đăng nhập sai</li>
+              <li><i class="fas fa-check"></i> Chống yêu cầu giả mạo bằng mã CSRF</li>
+              <li><i class="fas fa-check"></i> Tự hết hạn khi không hoạt động</li>
+            </ul>
+          </aside>
+        </section>
+      }
+    </main>
+  </div>
+</div>

@@ -1,6 +1,34 @@
 import { Component, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { APP_COMPANY_INFO, APP_CONTACT_INFO } from '../../models/app.config';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import {
+  APP_COMPANY_INFO,
+  APP_CONTACT_INFO,
+  APP_ORDER_LIST,
+} from '../../models/app.config';
+
+type ProgramKey = 'ky-su' | 'tokutei' | 'thuc-tap-sinh' | 'du-hoc-sinh';
+
+type QuizOption = {
+  label: string;
+  detail: string;
+  scores: Partial<Record<ProgramKey, number>>;
+};
+
+type QuizQuestion = {
+  id: string;
+  title: string;
+  description: string;
+  options: QuizOption[];
+};
+
+type QuizResult = {
+  key: ProgramKey;
+  title: string;
+  icon: string;
+  summary: string;
+  reason: string;
+};
 
 type ProgramFact = {
   icon: string;
@@ -43,10 +71,19 @@ type CompanyActivity = {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './about.html',
-  styleUrl: './about.scss',
+  styleUrls: ['./about.scss', './about-enhancements.scss'],
 })
 export class About implements OnDestroy {
-  constructor() { }
+  readonly orderListUrl = `https://docs.google.com/spreadsheets/d/${APP_ORDER_LIST.sheetId}/edit?usp=drivesdk`;
+  readonly orderListEmbedUrl: SafeResourceUrl;
+  readonly orderListUpdatedLabel = APP_ORDER_LIST.updatedLabel;
+  isOrderPreviewLoaded = false;
+
+  constructor(private sanitizer: DomSanitizer) {
+    this.orderListEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://docs.google.com/spreadsheets/d/${APP_ORDER_LIST.sheetId}/preview?rm=minimal`,
+    );
+  }
 
   /* ============================================================
      DỮ LIỆU TRANG GIỚI THIỆU
@@ -126,6 +163,179 @@ export class About implements OnDestroy {
         'Dành cho học viên muốn học tiếng, tiếp tục học tập và mở rộng cơ hội nghề nghiệp tại Nhật Bản.',
     },
   ];
+
+  quizQuestions: QuizQuestion[] = [
+    {
+      id: 'goal',
+      title: 'Mục tiêu chính của bạn khi sang Nhật là gì?',
+      description: 'Chọn phương án gần nhất với kế hoạch hiện tại.',
+      options: [
+        {
+          label: 'Làm việc đúng chuyên môn đã học',
+          detail: 'Muốn phát triển nghề nghiệp theo bằng cấp.',
+          scores: { 'ky-su': 5, tokutei: 1 },
+        },
+        {
+          label: 'Làm việc ổn định bằng tay nghề',
+          detail: 'Đã có kinh nghiệm và muốn gắn bó lâu dài.',
+          scores: { tokutei: 5, 'thuc-tap-sinh': 1 },
+        },
+        {
+          label: 'Học nghề và tích lũy kinh nghiệm',
+          detail: 'Muốn bắt đầu bằng lộ trình đào tạo rõ ràng.',
+          scores: { 'thuc-tap-sinh': 5, tokutei: 1 },
+        },
+        {
+          label: 'Học tiếng và tiếp tục học lên',
+          detail: 'Ưu tiên con đường học tập tại Nhật.',
+          scores: { 'du-hoc-sinh': 5 },
+        },
+      ],
+    },
+    {
+      id: 'education',
+      title: 'Nền tảng học tập hoặc nghề nghiệp của bạn?',
+      description: 'Thông tin này giúp thu hẹp nhóm chương trình phù hợp.',
+      options: [
+        {
+          label: 'Cao đẳng hoặc đại học đúng chuyên ngành',
+          detail: 'Có bằng và muốn tìm công việc liên quan.',
+          scores: { 'ky-su': 5, 'du-hoc-sinh': 1 },
+        },
+        {
+          label: 'Đã có kinh nghiệm hoặc chứng chỉ nghề',
+          detail: 'Có tay nghề thực tế trong một ngành cụ thể.',
+          scores: { tokutei: 5, 'thuc-tap-sinh': 2 },
+        },
+        {
+          label: 'Tốt nghiệp THPT và muốn học nghề',
+          detail: 'Chưa có nhiều kinh nghiệm làm việc.',
+          scores: { 'thuc-tap-sinh': 5, 'du-hoc-sinh': 2 },
+        },
+        {
+          label: 'Muốn tiếp tục học tiếng hoặc chuyên môn',
+          detail: 'Đang tìm trường và kế hoạch học tập.',
+          scores: { 'du-hoc-sinh': 5, 'ky-su': 1 },
+        },
+      ],
+    },
+    {
+      id: 'japanese',
+      title: 'Tiếng Nhật hiện tại của bạn ở mức nào?',
+      description: 'Không biết tiếng Nhật vẫn có thể bắt đầu chuẩn bị.',
+      options: [
+        {
+          label: 'Chưa học hoặc mới bắt đầu',
+          detail: 'Cần lộ trình học từ nền tảng.',
+          scores: { 'thuc-tap-sinh': 3, 'du-hoc-sinh': 3 },
+        },
+        {
+          label: 'Đang học, chưa thi chứng chỉ',
+          detail: 'Đã quen với bảng chữ và giao tiếp cơ bản.',
+          scores: { 'thuc-tap-sinh': 3, 'du-hoc-sinh': 2, 'ky-su': 1 },
+        },
+        {
+          label: 'Khoảng N4',
+          detail: 'Có thể tiếp tục luyện giao tiếp và phỏng vấn.',
+          scores: { tokutei: 3, 'ky-su': 2, 'thuc-tap-sinh': 2 },
+        },
+        {
+          label: 'N3 trở lên',
+          detail: 'Có nền tảng để tiếp cận nhiều vị trí hơn.',
+          scores: { 'ky-su': 4, tokutei: 4, 'du-hoc-sinh': 1 },
+        },
+      ],
+    },
+    {
+      id: 'experience',
+      title: 'Bạn đã có kinh nghiệm làm việc chưa?',
+      description: 'Chọn theo kinh nghiệm thực tế, không cần đúng hoàn toàn.',
+      options: [
+        {
+          label: 'Chưa có kinh nghiệm',
+          detail: 'Muốn được đào tạo trước khi bắt đầu.',
+          scores: { 'thuc-tap-sinh': 4, 'du-hoc-sinh': 2 },
+        },
+        {
+          label: 'Có kinh nghiệm đúng chuyên ngành đã học',
+          detail: 'Muốn tiếp tục làm công việc chuyên môn.',
+          scores: { 'ky-su': 5, tokutei: 2 },
+        },
+        {
+          label: 'Có tay nghề thực tế',
+          detail: 'Từng làm nhà hàng, cơ khí, xây dựng, thực phẩm...',
+          scores: { tokutei: 5, 'thuc-tap-sinh': 1 },
+        },
+        {
+          label: 'Chủ yếu có kinh nghiệm học tập',
+          detail: 'Muốn tiếp tục nâng tiếng Nhật hoặc chuyên môn.',
+          scores: { 'du-hoc-sinh': 5, 'ky-su': 1 },
+        },
+      ],
+    },
+    {
+      id: 'priority',
+      title: 'Điều bạn ưu tiên nhất trong 2-3 năm tới?',
+      description: 'Câu cuối giúp cân bằng giữa học tập và làm việc.',
+      options: [
+        {
+          label: 'Phát triển nghề nghiệp theo chuyên môn',
+          detail: 'Tích lũy kinh nghiệm và hướng tới công việc dài hạn.',
+          scores: { 'ky-su': 5, tokutei: 2 },
+        },
+        {
+          label: 'Ổn định công việc bằng kỹ năng hiện có',
+          detail: 'Tập trung vào tay nghề và môi trường làm việc.',
+          scores: { tokutei: 5 },
+        },
+        {
+          label: 'Học nghề, rèn tác phong và tích lũy vốn',
+          detail: 'Muốn có lộ trình dễ hình dung từ đầu.',
+          scores: { 'thuc-tap-sinh': 5 },
+        },
+        {
+          label: 'Đầu tư cho việc học và cơ hội lâu dài',
+          detail: 'Muốn học tiếng, học chuyên môn rồi mới quyết định.',
+          scores: { 'du-hoc-sinh': 5 },
+        },
+      ],
+    },
+  ];
+
+  quizStep = 0;
+  quizAnswers: Record<string, QuizOption> = {};
+  quizResult?: QuizResult;
+
+  readonly quizResults: Record<ProgramKey, QuizResult> = {
+    'ky-su': {
+      key: 'ky-su',
+      title: 'Kỹ sư',
+      icon: 'fas fa-laptop-code',
+      summary: 'Phù hợp với người có bằng cao đẳng hoặc đại học đúng chuyên ngành.',
+      reason: 'Các lựa chọn của bạn thiên về làm việc đúng chuyên môn và phát triển nghề nghiệp dài hạn.',
+    },
+    tokutei: {
+      key: 'tokutei',
+      title: 'Tokutei',
+      icon: 'fas fa-user-cog',
+      summary: 'Phù hợp với người đã có tay nghề, kinh nghiệm hoặc nền tảng tiếng Nhật.',
+      reason: 'Các lựa chọn của bạn cho thấy ưu tiên công việc ổn định dựa trên kỹ năng thực tế.',
+    },
+    'thuc-tap-sinh': {
+      key: 'thuc-tap-sinh',
+      title: 'Thực tập sinh',
+      icon: 'fas fa-id-badge',
+      summary: 'Phù hợp với người muốn học nghề và tích lũy kinh nghiệm trong lộ trình rõ ràng.',
+      reason: 'Các lựa chọn của bạn phù hợp với hướng vừa đào tạo, vừa làm việc và rèn tác phong.',
+    },
+    'du-hoc-sinh': {
+      key: 'du-hoc-sinh',
+      title: 'Du học sinh',
+      icon: 'fas fa-book-reader',
+      summary: 'Phù hợp với người ưu tiên học tiếng, học chuyên môn và mở rộng lựa chọn sau này.',
+      reason: 'Các lựa chọn của bạn đặt trọng tâm vào học tập và chuẩn bị nền tảng lâu dài.',
+    },
+  };
 
   engineerProgram: ProgramDetail = {
     title: 'Kỹ sư',
@@ -265,6 +475,49 @@ export class About implements OnDestroy {
     this.togglePageScrollLocked(false);
   }
 
+  get currentQuizQuestion(): QuizQuestion {
+    return this.quizQuestions[this.quizStep];
+  }
+
+  get quizProgress(): number {
+    return this.quizResult
+      ? 100
+      : ((this.quizStep + 1) / this.quizQuestions.length) * 100;
+  }
+
+  chooseQuizOption(option: QuizOption): void {
+    this.quizAnswers[this.currentQuizQuestion.id] = option;
+
+    if (this.quizStep < this.quizQuestions.length - 1) {
+      this.quizStep += 1;
+      return;
+    }
+
+    this.quizResult = this.calculateQuizResult();
+  }
+
+  previousQuizQuestion(): void {
+    if (this.quizStep > 0) {
+      this.quizStep -= 1;
+    }
+  }
+
+  resetQuiz(): void {
+    this.quizStep = 0;
+    this.quizAnswers = {};
+    this.quizResult = undefined;
+  }
+
+  viewQuizProgram(): void {
+    if (this.quizResult) {
+      this.openProgramModal(this.quizResult.key);
+    }
+  }
+
+  onOrderPreviewLoad(): void {
+    this.isOrderPreviewLoaded = true;
+  }
+
   @HostListener('document:keydown.escape')
   closeProgramPopupOnEscape(): void {
     if (!this.isProgramPopupOpen) {
@@ -289,6 +542,27 @@ export class About implements OnDestroy {
     }
 
     document.body.style.overflow = isLocked ? 'hidden' : '';
+  }
+
+  private calculateQuizResult(): QuizResult {
+    const scores: Record<ProgramKey, number> = {
+      'ky-su': 0,
+      tokutei: 0,
+      'thuc-tap-sinh': 0,
+      'du-hoc-sinh': 0,
+    };
+
+    Object.values(this.quizAnswers).forEach((answer) => {
+      Object.entries(answer.scores).forEach(([key, score]) => {
+        scores[key as ProgramKey] += score ?? 0;
+      });
+    });
+
+    const resultKey = (Object.keys(scores) as ProgramKey[]).reduce((best, key) =>
+      scores[key] > scores[best] ? key : best,
+    );
+
+    return this.quizResults[resultKey];
   }
 
   // Chính sách hỗ trợ

@@ -55,6 +55,11 @@ export const APP_CONTACT_INFO = {
   youtube: 'https://youtube.com/@fujisanvietnam',
 };
 
+export const APP_ORDER_LIST = {
+  sheetId: '1GA69_XZgSGQ3n5ZZoPOdA1H43DGYDHkOO47ZI2oBg-8',
+  updatedLabel: 'Cập nhật trực tiếp từ Google Sheet',
+};
+
 // Menu chính
 export const APP_MAIN_MENU: AppMainMenuItem[] = [
   { label: 'Trang chủ', link: '/', active: true },
@@ -78,6 +83,7 @@ export const APP_MAIN_MENU: AppMainMenuItem[] = [
 
 // Submenu Chương trình
 export const APP_PROGRAM_MENU: AppSubmenuItem[] = [
+  { label: 'Khai form học viên', link: '/form-hoc-vien', icon: 'fas fa-file-signature' },
   { label: 'XKLĐ Thực tập sinh', link: '/chuong-trinh/thuc-tap-sinh' },
   { label: 'Kỹ sư', link: '/chuong-trinh/ky-su' },
   { label: 'Du học sinh', link: '/chuong-trinh/du-hoc-sinh' },
@@ -116,6 +122,7 @@ export const APP_QUICK_LINKS = [
 
 // Links chương trình (Footer)
 export const APP_PROGRAM_LINKS = [
+  { label: 'Khai form học viên', link: '/form-hoc-vien' },
   { label: 'XKLĐ Thực tập sinh', link: '/chuong-trinh/thuc-tap-sinh' },
   { label: 'Kỹ sư', link: '/chuong-trinh/ky-su' },
   { label: 'Du học sinh', link: '/chuong-trinh/du-hoc-sinh' },

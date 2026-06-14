@@ -1,3 +1,6 @@
+DirectoryIndex index.html
+Options -Indexes
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -6,9 +9,13 @@
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+  RewriteRule ^admin-api/(.*)$ api/admin/$1 [L]
+
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
+
+  RewriteRule ^api/ - [L]
 
   RewriteRule ^ index.html [L]
 </IfModule>

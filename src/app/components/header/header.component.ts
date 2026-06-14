@@ -145,7 +145,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.closeMobileMenu();
 
-    if (link.startsWith('/hoc-')) {
+    if (
+      link.startsWith('/hoc-') ||
+      link === '/form-hoc-vien'
+    ) {
       void this.router.navigate([link]);
       return;
     }
@@ -199,7 +202,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
       item.active =
         item.dropdownKey === 'learning'
           ? path.startsWith('/hoc-')
-          : false;
+          : item.dropdownKey === 'programs'
+            ? path === '/form-hoc-vien'
+            : false;
     });
 
     if (this.isHomePage) {

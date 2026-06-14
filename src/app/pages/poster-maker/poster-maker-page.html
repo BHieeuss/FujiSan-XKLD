@@ -1,0 +1,269 @@
+<section class="poster-maker-page" [class.embedded]="embedded">
+  <header class="poster-page-hero" *ngIf="!embedded">
+    <div class="container">
+      <div>
+        <span class="eyebrow">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          Công cụ nội bộ
+        </span>
+        <h1>Tạo poster đơn tuyển</h1>
+        <p>
+          Nhập thông tin, chọn ảnh và tải poster PNG sẵn sàng đăng Facebook hoặc Zalo.
+          Toàn bộ dữ liệu được xử lý ngay trên thiết bị này.
+        </p>
+      </div>
+      <div class="hero-format">
+        <strong>{{ posterWidth }} × {{ posterHeight }} px</strong>
+        <span>PNG chất lượng cao</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container poster-workspace">
+    <form class="poster-form" (input)="scheduleRender()" (change)="scheduleRender()">
+      <section class="form-panel">
+        <div class="panel-heading">
+          <span>01</span>
+          <div>
+            <h2>Nội dung chính</h2>
+            <p>Tiêu đề ngắn sẽ nổi bật và dễ đọc hơn trên điện thoại.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label class="field field-full">
+            <span>Tên công ty trên poster</span>
+            <input
+              type="text"
+              name="companyHeader"
+              [(ngModel)]="data.companyHeader"
+              maxlength="70"
+            />
+          </label>
+
+          <label class="field">
+            <span>Mã đơn</span>
+            <input type="text" name="orderCode" [(ngModel)]="data.orderCode" maxlength="24" />
+          </label>
+
+          <label class="field field-wide">
+            <span>Tên đơn tuyển</span>
+            <input
+              type="text"
+              name="title"
+              [(ngModel)]="data.title"
+              maxlength="55"
+              placeholder="LINH KIỆN ĐIỆN TỬ"
+            />
+          </label>
+
+          <label class="field field-full">
+            <span>Nội dung công việc</span>
+            <textarea
+              name="jobDescription"
+              [(ngModel)]="data.jobDescription"
+              rows="3"
+              maxlength="180"
+            ></textarea>
+          </label>
+
+          <label class="field field-full">
+            <span>Lương</span>
+            <input
+              type="text"
+              name="salary"
+              [(ngModel)]="data.salary"
+              maxlength="90"
+              placeholder="Lương cơ bản: 1.049 yên/giờ"
+            />
+          </label>
+
+          <label class="field field-full">
+            <span>Quyền lợi và yêu cầu</span>
+            <textarea
+              name="requirements"
+              [(ngModel)]="data.requirements"
+              rows="5"
+              maxlength="360"
+              placeholder="Mỗi dòng sẽ trở thành một gạch đầu dòng"
+            ></textarea>
+            <small>Mỗi dòng là một gạch đầu dòng, nên ưu tiên tối đa 4 dòng.</small>
+          </label>
+        </div>
+      </section>
+
+      <section class="form-panel">
+        <div class="panel-heading">
+          <span>02</span>
+          <div>
+            <h2>Mốc tuyển dụng</h2>
+            <p>Thông tin được trình bày bằng icon rõ nghĩa trong thẻ xanh.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Địa điểm làm việc</span>
+            <input type="text" name="location" [(ngModel)]="data.location" maxlength="38" />
+          </label>
+
+          <label class="field">
+            <span>Độ tuổi</span>
+            <input
+              type="text"
+              name="ageRange"
+              [(ngModel)]="data.ageRange"
+              maxlength="24"
+              placeholder="18–35"
+            />
+          </label>
+
+          <label class="field">
+            <span>Ngày phỏng vấn</span>
+            <input type="date" name="interviewDate" [(ngModel)]="data.interviewDate" />
+          </label>
+
+          <label class="field">
+            <span>Thời gian xuất cảnh</span>
+            <input
+              type="text"
+              name="departureDate"
+              [(ngModel)]="data.departureDate"
+              maxlength="28"
+              placeholder="12/2026"
+            />
+          </label>
+
+          <label class="field">
+            <span>Hotline</span>
+            <input type="text" name="hotline" [(ngModel)]="data.hotline" maxlength="28" />
+          </label>
+        </div>
+      </section>
+
+      <section class="form-panel">
+        <div class="panel-heading">
+          <span>03</span>
+          <div>
+            <h2>Ảnh đơn tuyển</h2>
+            <p>Ảnh ngang hoặc dọc đều được tự động cắt vừa khung.</p>
+          </div>
+        </div>
+
+        <div class="photo-grid">
+          <label class="photo-picker">
+            <span class="photo-number">Ảnh lớn</span>
+            <img [src]="assets.primaryPhotoSrc" alt="Ảnh chính đang chọn" />
+            <strong>{{ primaryPhotoName }}</strong>
+            <span class="pick-action"><i class="fas fa-image"></i> Chọn ảnh khác</span>
+            <input
+              #primaryPhotoInput
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              (change)="onPhotoSelected($event, 'primary')"
+            />
+          </label>
+
+          <label class="photo-picker">
+            <span class="photo-number">Ảnh phụ</span>
+            <img [src]="assets.secondaryPhotoSrc" alt="Ảnh phụ đang chọn" />
+            <strong>{{ secondaryPhotoName }}</strong>
+            <span class="pick-action"><i class="fas fa-image"></i> Chọn ảnh khác</span>
+            <input
+              #secondaryPhotoInput
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              (change)="onPhotoSelected($event, 'secondary')"
+            />
+          </label>
+        </div>
+        <p class="upload-note">Hỗ trợ JPG, PNG, WebP; tối đa 12 MB mỗi ảnh.</p>
+      </section>
+
+      <section class="form-panel">
+        <div class="panel-heading">
+          <span>04</span>
+          <div>
+            <h2>Mã QR đăng ký</h2>
+            <p>Mã QR được tạo trực tiếp và vẫn quét được trong file PNG.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Nhãn phía trên QR</span>
+            <input
+              type="text"
+              name="registrationLabel"
+              [(ngModel)]="data.registrationLabel"
+              maxlength="30"
+            />
+          </label>
+
+          <label class="field field-wide">
+            <span>Đường dẫn đăng ký</span>
+            <input
+              type="url"
+              name="registrationUrl"
+              [(ngModel)]="data.registrationUrl"
+              maxlength="500"
+              placeholder="https://..."
+            />
+          </label>
+        </div>
+      </section>
+    </form>
+
+    <aside class="poster-preview-panel">
+      <div class="preview-heading">
+        <div>
+          <span>Bản xem trước</span>
+          <strong>Poster đơn tuyển</strong>
+        </div>
+        <span class="render-state" [class.loading]="rendering">
+          <i [class]="rendering ? 'fas fa-spinner fa-spin' : 'fas fa-circle-check'"></i>
+          {{ rendering ? 'Đang cập nhật' : 'Sẵn sàng' }}
+        </span>
+      </div>
+
+      <div class="canvas-shell">
+        <canvas
+          #posterCanvas
+          [attr.width]="posterWidth"
+          [attr.height]="posterHeight"
+          aria-label="Bản xem trước poster đơn tuyển"
+        ></canvas>
+      </div>
+
+      <p class="status-message error" *ngIf="renderError">
+        <i class="fas fa-circle-exclamation"></i>
+        {{ renderError }}
+      </p>
+      <p class="status-message success" *ngIf="downloadMessage">
+        <i class="fas fa-circle-check"></i>
+        {{ downloadMessage }}
+      </p>
+
+      <div class="preview-actions">
+        <button type="button" class="btn-reset" (click)="resetPoster()" [disabled]="rendering">
+          <i class="fas fa-rotate-left"></i>
+          Khôi phục mẫu
+        </button>
+        <button
+          type="button"
+          class="btn-download"
+          (click)="downloadPoster()"
+          [disabled]="rendering"
+        >
+          <i class="fas fa-download"></i>
+          Tải poster PNG
+        </button>
+      </div>
+
+      <small class="privacy-note">
+        <i class="fas fa-shield-halved"></i>
+        Ảnh và dữ liệu không được tải lên máy chủ.
+      </small>
+    </aside>
+  </div>
+</section>

@@ -21,6 +21,7 @@ import { LoadingComponent } from './shared/loading/loading.component';
 })
 export class App implements OnInit, OnDestroy {
   isLoading = signal(true);
+  isAdminArea = signal(false);
 
   private routerSub?: Subscription;
   private loadingTimer?: ReturnType<typeof setTimeout>;
@@ -31,11 +32,13 @@ export class App implements OnInit, OnDestroy {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+    this.updateShellVisibility(this.router.url);
     this.initialLoadingStartedAt = Date.now();
     this.finishInitialLoadingAfterMinimum();
 
     this.routerSub = this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
+        this.updateShellVisibility(event.url);
         if (this.initialLoadingFinished) {
           clearTimeout(this.loadingTimer);
           this.isLoading.set(true);
@@ -48,6 +51,9 @@ export class App implements OnInit, OnDestroy {
         event instanceof NavigationCancel ||
         event instanceof NavigationError
       ) {
+        if (event instanceof NavigationEnd) {
+          this.updateShellVisibility(event.urlAfterRedirects);
+        }
         if (this.initialLoadingFinished) {
           this.hideLoadingAfter(220);
         } else {
@@ -76,5 +82,12 @@ export class App implements OnInit, OnDestroy {
       this.initialLoadingFinished = true;
       this.isLoading.set(false);
     }, remaining);
+  }
+
+  private updateShellVisibility(url: string): void {
+    const path = url.split('?')[0].split('#')[0];
+    this.isAdminArea.set(
+      path === '/dang-nhap-quan-tri' || path.startsWith('/quan-tri-viejap'),
+    );
   }
 }

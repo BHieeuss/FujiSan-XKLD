@@ -1063,23 +1063,31 @@
 }
 
 .about-section {
-  order: 1;
+  order: 4;
 }
 
 .company-activities-section {
-  order: 2;
+  order: 5;
 }
 
 .programs-section {
+  order: 1;
+}
+
+.program-matcher-section {
+  order: 2;
+}
+
+.featured-orders-section {
   order: 3;
 }
 
 .policy-section {
-  order: 5;
+  order: 6;
 }
 
 .cta-section {
-  order: 6;
+  order: 7;
 }
 
 .company-activities-section {

@@ -1,9 +1,13 @@
 <app-loading [isVisible]="isLoading()"></app-loading>
 
-<app-header></app-header>
+@if (!isAdminArea()) {
+  <app-header></app-header>
+}
 
 <main class="app-route-content">
   <router-outlet></router-outlet>
 </main>
 
-<app-footer></app-footer>
+@if (!isAdminArea()) {
+  <app-footer></app-footer>
+}

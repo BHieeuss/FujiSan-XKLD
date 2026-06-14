@@ -9,6 +9,7 @@ import {
   APP_PROGRAM_LINKS,
   APP_SUPPORT_LINKS,
   APP_SOCIAL_MEDIA,
+  APP_ORDER_LIST,
 } from '../../models/app.config';
 
 @Component({
@@ -50,7 +51,7 @@ export class FooterComponent implements OnDestroy {
   registrationPinMessage = '';
   showBackToTop = false;
 
-  private readonly orderListSheetId = '1GA69_XZgSGQ3n5ZZoPOdA1H43DGYDHkOO47ZI2oBg-8';
+  private readonly orderListSheetId = APP_ORDER_LIST.sheetId;
   readonly orderListUrl = `https://docs.google.com/spreadsheets/d/${this.orderListSheetId}/edit?usp=drivesdk`;
   readonly orderListEmbedUrl: SafeResourceUrl;
   private readonly registrationPin = '2025';

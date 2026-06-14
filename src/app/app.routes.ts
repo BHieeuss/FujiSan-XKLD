@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminAuthGuard, adminMatchGuard } from './admin/admin-auth.guard';
 
 export const routes: Routes = [
   {
@@ -31,6 +32,55 @@ export const routes: Routes = [
       import('./pages/minna-lesson-1/minna-lesson-1-page').then(
         (module) => module.MinnaLesson1Page,
       ),
+  },
+  {
+    path: 'form-hoc-vien',
+    title: 'Khai sơ yếu lý lịch học viên - VieJap',
+    loadComponent: () =>
+      import('./pages/student-form/student-form-page').then(
+        (module) => module.StudentFormPage,
+      ),
+  },
+  {
+    path: 'dang-nhap-quan-tri',
+    title: 'Đăng nhập quản trị - VieJap',
+    loadComponent: () =>
+      import('./admin/admin-login-page').then((module) => module.AdminLoginPage),
+  },
+  {
+    path: 'quan-tri-viejap',
+    title: 'Quản trị - VieJap',
+    canMatch: [adminMatchGuard],
+    canActivate: [adminAuthGuard],
+    loadComponent: () => import('./admin/admin-page').then((module) => module.AdminPage),
+  },
+  {
+    path: 'faq',
+    title: 'Câu hỏi thường gặp - VieJap',
+    data: { pageKey: 'faq' },
+    loadComponent: () =>
+      import('./pages/support/support-page').then((module) => module.SupportPage),
+  },
+  {
+    path: 'chinh-sach-bao-mat',
+    title: 'Chính sách bảo mật - VieJap',
+    data: { pageKey: 'privacy' },
+    loadComponent: () =>
+      import('./pages/support/support-page').then((module) => module.SupportPage),
+  },
+  {
+    path: 'dieu-khoan',
+    title: 'Điều khoản sử dụng - VieJap',
+    data: { pageKey: 'terms' },
+    loadComponent: () =>
+      import('./pages/support/support-page').then((module) => module.SupportPage),
+  },
+  {
+    path: 'huong-dan',
+    title: 'Hướng dẫn đăng ký - VieJap',
+    data: { pageKey: 'guide' },
+    loadComponent: () =>
+      import('./pages/support/support-page').then((module) => module.SupportPage),
   },
   {
     path: '**',

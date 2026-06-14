@@ -1,0 +1,89 @@
+<main class="login-page">
+  <a class="public-link" routerLink="/" aria-label="Về trang chủ VieJap">
+    <i class="fas fa-arrow-left"></i>
+    Trang chủ
+  </a>
+
+  <section class="login-card" aria-labelledby="admin-login-title">
+    <div class="brand">
+      <img src="assets/images/logo.png" alt="VieJap" />
+      <div>
+        <strong>VieJap</strong>
+        <span>Không gian quản trị</span>
+      </div>
+    </div>
+
+    <div class="login-heading">
+      <span class="eyebrow"><i class="fas fa-lock"></i> Khu vực nội bộ</span>
+      <h1 id="admin-login-title">Đăng nhập quản trị</h1>
+      <p>Đăng nhập để sử dụng công cụ tạo poster và quản lý tài khoản.</p>
+    </div>
+
+    @if (checkingSession) {
+      <div class="checking-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        Đang kiểm tra phiên đăng nhập...
+      </div>
+    } @else {
+      <form (ngSubmit)="submit()" autocomplete="on">
+        <label>
+          <span>Tài khoản</span>
+          <div class="input-shell">
+            <i class="fas fa-user"></i>
+            <input
+              type="text"
+              name="username"
+              [(ngModel)]="username"
+              autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
+              required
+              autofocus
+            />
+          </div>
+        </label>
+
+        <label>
+          <span>Mật khẩu</span>
+          <div class="input-shell">
+            <i class="fas fa-key"></i>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              name="password"
+              [(ngModel)]="password"
+              autocomplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="showPassword = !showPassword"
+              [attr.aria-label]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+            >
+              <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            </button>
+          </div>
+        </label>
+
+        @if (errorMessage) {
+          <p class="login-error" role="alert">
+            <i class="fas fa-circle-exclamation"></i>
+            {{ errorMessage }}
+          </p>
+        }
+
+        <button class="submit-button" type="submit" [disabled]="submitting">
+          <i [class]="submitting ? 'fas fa-spinner fa-spin' : 'fas fa-arrow-right-to-bracket'"></i>
+          {{ submitting ? 'Đang xác thực...' : 'Đăng nhập' }}
+        </button>
+      </form>
+    }
+
+    <div class="security-note">
+      <i class="fas fa-shield-halved"></i>
+      <span>Phiên tự hết hạn sau 30 phút không hoạt động và được bảo vệ trên máy chủ.</span>
+    </div>
+  </section>
+
+  <p class="page-caption">Chỉ dành cho nhân sự được VieJap cấp quyền.</p>
+</main>
