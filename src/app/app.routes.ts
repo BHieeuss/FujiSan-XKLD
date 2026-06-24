@@ -42,6 +42,17 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'don-hang',
+    title: 'Đơn hàng đang tuyển - VieJap',
+    loadComponent: () => import('./jobs/jobs-page').then((module) => module.JobsPage),
+  },
+  {
+    path: 'don-hang/:id',
+    title: 'Thông tin đơn hàng - VieJap',
+    loadComponent: () =>
+      import('./jobs/job-order-detail-page').then((module) => module.JobOrderDetailPage),
+  },
+  {
     path: 'dang-nhap-quan-tri',
     title: 'Đăng nhập quản trị - VieJap',
     loadComponent: () =>

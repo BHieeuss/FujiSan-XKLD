@@ -117,6 +117,34 @@ function admin_database_ensure_schema(PDO $database): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
 
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS job_orders (
+            id CHAR(24) NOT NULL PRIMARY KEY,
+            order_code VARCHAR(48) NOT NULL,
+            title VARCHAR(160) NOT NULL,
+            category VARCHAR(32) NOT NULL,
+            location VARCHAR(100) NOT NULL,
+            salary VARCHAR(100) NOT NULL,
+            age_range VARCHAR(60) NOT NULL,
+            summary TEXT NOT NULL,
+            requirements TEXT NOT NULL,
+            departure_month VARCHAR(48) NOT NULL,
+            status VARCHAR(16) NOT NULL DEFAULT \'published\',
+            is_featured TINYINT(1) NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            INDEX job_orders_public_index (status, category, is_featured, updated_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS job_order_metadata (
+            metadata_key VARCHAR(64) NOT NULL PRIMARY KEY,
+            metadata_value VARCHAR(255) NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
     $statement = $database->prepare(
         'INSERT IGNORE INTO admin_accounts (username, password_hash)
          VALUES (:username, :password_hash)'

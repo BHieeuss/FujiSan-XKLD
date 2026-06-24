@@ -63,6 +63,7 @@ export const APP_ORDER_LIST = {
 // Menu chính
 export const APP_MAIN_MENU: AppMainMenuItem[] = [
   { label: 'Trang chủ', link: '/', active: true },
+  { label: 'Đơn hàng', link: '/don-hang' },
   { label: 'Giới thiệu', link: '/gioi-thieu' },
   {
     label: 'Chương trình',
@@ -113,6 +114,7 @@ export const APP_LEARNING_MENU: AppSubmenuItem[] = [
 // Menu liên kết nhanh (Footer)
 export const APP_QUICK_LINKS = [
   { label: 'Trang chủ', link: '/' },
+  { label: 'Đơn hàng', link: '/don-hang' },
   { label: 'Giới thiệu', link: '/gioi-thieu' },
   { label: 'Chương trình', link: '/chuong-trinh' },
   { label: 'Quyền lợi', link: '/quyen-loi' },

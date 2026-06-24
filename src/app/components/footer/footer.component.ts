@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   APP_COMPANY_INFO,
@@ -58,7 +58,10 @@ export class FooterComponent implements OnDestroy {
   private readonly registrationUrl =
     'https://docs.google.com/forms/d/e/1FAIpQLSeMVFx5N6YBGfgdNvDV0kRxeb768yTDlke_QVUbcAqLekfPpw/viewform';
 
-  constructor(private sanitizer: DomSanitizer) {
+  constructor(
+    private sanitizer: DomSanitizer,
+    private readonly router: Router,
+  ) {
     this.orderListEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       `https://docs.google.com/spreadsheets/d/${this.orderListSheetId}/preview?rm=minimal`,
     );
@@ -108,7 +111,8 @@ export class FooterComponent implements OnDestroy {
 
   openQuickAccessLink(link: (typeof this.quickAccessLinks)[number]): void {
     if (link.kind === 'orders') {
-      this.openOrderListViewer();
+      this.closeQuickAccess();
+      void this.router.navigate(['/don-hang']);
       return;
     }
 

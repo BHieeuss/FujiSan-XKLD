@@ -1,11 +1,12 @@
 import { Component, ElementRef, signal, ViewChild } from '@angular/core';
 import { APP_CONTACT_INFO } from '../../models/app.config';
+import { JobOrderBoard } from '../../jobs/job-order-board';
 import { About } from '../about/about';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [About],
+  imports: [About, JobOrderBoard],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

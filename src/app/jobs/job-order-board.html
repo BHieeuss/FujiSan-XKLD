@@ -1,0 +1,99 @@
+<section class="job-board" [class.job-board-home]="home" id="don-hang">
+  <div class="container">
+    <div class="job-board-heading">
+      <div>
+        <span class="job-board-kicker"><i class="fas fa-sparkles"></i> Đơn hàng đang mở</span>
+        <h2>{{ home ? 'Chọn đơn hàng phù hợp với lộ trình của bạn' : 'Danh sách đơn hàng VieJap' }}</h2>
+        <p>
+          {{ home
+            ? 'Xem nhanh các vị trí đang tuyển. Mỗi đơn đều có thông tin chính để bạn dễ đối chiếu trước khi liên hệ.'
+            : 'Lọc theo chương trình, xem điều kiện và liên hệ VieJap để được tư vấn kỹ hơn về từng đơn.' }}
+        </p>
+      </div>
+
+      @if (home) {
+        <a class="job-board-all-link" routerLink="/don-hang">
+          Xem tất cả đơn hàng <i class="fas fa-arrow-right"></i>
+        </a>
+      }
+    </div>
+
+    <div class="job-board-controls">
+      <div class="job-category-filters" aria-label="Lọc đơn hàng theo chương trình">
+        <button type="button" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">
+          Tất cả <span>{{ orders.length }}</span>
+        </button>
+        @for (category of categories; track category.key) {
+          <button
+            type="button"
+            [class.active]="activeFilter === category.key"
+            (click)="setFilter(category.key)"
+          >
+            <i [class]="category.icon"></i> {{ category.label }}
+          </button>
+        }
+      </div>
+
+      <label class="job-search">
+        <i class="fas fa-magnifying-glass"></i>
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          placeholder="Tìm theo nghề, mã đơn hoặc địa điểm"
+          aria-label="Tìm đơn hàng"
+        />
+      </label>
+    </div>
+
+    @if (loading) {
+      <div class="job-board-state"><i class="fas fa-spinner fa-spin"></i> Đang tải đơn hàng...</div>
+    } @else if (errorMessage) {
+      <div class="job-board-state error"><i class="fas fa-circle-exclamation"></i> {{ errorMessage }}</div>
+    } @else if (!visibleOrders.length) {
+      <div class="job-board-state"><i class="fas fa-filter-circle-xmark"></i> Chưa có đơn hàng phù hợp với bộ lọc này.</div>
+    } @else {
+      <div class="job-order-grid">
+        @for (order of visibleOrders; track order.id) {
+          @let category = getCategory(order);
+          <article class="job-order-card" [class.featured]="order.isFeatured">
+            <div class="job-order-visual">
+              <img [src]="category.image" [alt]="category.label + ' tại ' + order.location" loading="lazy" />
+              <span class="job-category-badge"><i [class]="category.icon"></i> {{ category.label }}</span>
+              @if (order.isFeatured) {
+                <span class="job-featured-badge"><i class="fas fa-star"></i> Nổi bật</span>
+              }
+            </div>
+
+            <div class="job-order-content">
+              <div class="job-order-meta">
+                <span>{{ order.orderCode }}</span>
+                <span><i class="fas fa-location-dot"></i> {{ order.location }}</span>
+              </div>
+              <h3>{{ order.title }}</h3>
+              <p>{{ order.summary }}</p>
+
+              <dl class="job-order-facts">
+                <div>
+                  <dt><i class="fas fa-yen-sign"></i> Thu nhập</dt>
+                  <dd>{{ order.salary }}</dd>
+                </div>
+                <div>
+                  <dt><i class="fas fa-user"></i> Độ tuổi</dt>
+                  <dd>{{ order.ageRange }}</dd>
+                </div>
+                <div>
+                  <dt><i class="fas fa-plane-departure"></i> Dự kiến</dt>
+                  <dd>{{ order.departureMonth }}</dd>
+                </div>
+              </dl>
+
+              <a class="job-order-detail-link" [routerLink]="['/don-hang', order.id]">
+                Xem thông tin chi tiết <i class="fas fa-arrow-right"></i>
+              </a>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </div>
+</section>

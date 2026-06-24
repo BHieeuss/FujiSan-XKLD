@@ -1,0 +1,153 @@
+<section class="orders-admin">
+  <div class="orders-summary">
+    <div>
+      <span>Quản lý dữ liệu</span>
+      <strong>{{ publishedCount }} đơn đang hiển thị</strong>
+    </div>
+    <button type="button" class="create-order-button" (click)="startCreate()">
+      <i class="fas fa-plus"></i> Thêm đơn hàng
+    </button>
+  </div>
+
+  <div class="orders-admin-layout">
+    <section class="orders-list-panel">
+      <div class="orders-filter-row">
+        <div class="orders-filter-tabs" aria-label="Lọc nhóm đơn hàng">
+          <button type="button" [class.active]="categoryFilter === 'all'" (click)="setCategoryFilter('all')">Tất cả</button>
+          @for (category of categories; track category.key) {
+            <button
+              type="button"
+              [class.active]="categoryFilter === category.key"
+              (click)="setCategoryFilter(category.key)"
+            >
+              {{ category.shortLabel }}
+            </button>
+          }
+        </div>
+
+        <div class="status-filter">
+          <button type="button" [class.active]="statusFilter === 'all'" (click)="setStatusFilter('all')">Tất cả</button>
+          <button type="button" [class.active]="statusFilter === 'published'" (click)="setStatusFilter('published')">Đang tuyển</button>
+          <button type="button" [class.active]="statusFilter === 'draft'" (click)="setStatusFilter('draft')">Nháp</button>
+        </div>
+      </div>
+
+      @if (loading) {
+        <div class="orders-list-state"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
+      } @else if (!visibleOrders.length) {
+        <div class="orders-list-state"><i class="fas fa-inbox"></i> Chưa có đơn hàng trong nhóm này.</div>
+      } @else {
+        <div class="orders-list">
+          @for (order of visibleOrders; track order.id) {
+            @let category = getCategory(order);
+            <article class="admin-order-card" [class.selected]="editingId === order.id">
+              <div class="admin-order-card-head">
+                <span class="admin-order-category"><i [class]="category.icon"></i> {{ category.shortLabel }}</span>
+                <span class="admin-order-status" [class.draft]="order.status === 'draft'">
+                  {{ order.status === 'published' ? 'Đang tuyển' : 'Nháp' }}
+                </span>
+              </div>
+              <h3>{{ order.title }}</h3>
+              <p>{{ order.orderCode }} · {{ order.location }}</p>
+              <div class="admin-order-card-facts">
+                <span><i class="fas fa-yen-sign"></i>{{ order.salary }}</span>
+                <span><i class="fas fa-plane-departure"></i>{{ order.departureMonth }}</span>
+              </div>
+              <div class="admin-order-card-actions">
+                <button type="button" (click)="startEdit(order)"><i class="fas fa-pen"></i> Sửa</button>
+                <button type="button" class="delete" [disabled]="deletingId === order.id" (click)="remove(order)">
+                  <i [class]="deletingId === order.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash'"></i> Xóa
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <form class="order-editor" (ngSubmit)="save()">
+      <div class="order-editor-heading">
+        <span><i [class]="editingId ? 'fas fa-pen-to-square' : 'fas fa-square-plus'"></i></span>
+        <div>
+          <h2>{{ editingId ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới' }}</h2>
+          <p>{{ editingId ? 'Cập nhật nội dung, trạng thái hiển thị hoặc nhóm chương trình.' : 'Đơn lưu nháp sẽ chưa hiện trên website.' }}</p>
+        </div>
+      </div>
+
+      <div class="order-form-grid">
+        <label>
+          <span>Mã đơn <b>*</b></span>
+          <input name="orderCode" [(ngModel)]="draft.orderCode" maxlength="48" required placeholder="Ví dụ: TTS-2606" />
+        </label>
+        <label>
+          <span>Nhóm chương trình <b>*</b></span>
+          <select name="category" [(ngModel)]="draft.category" required>
+            @for (category of categories; track category.key) {
+              <option [value]="category.key">{{ category.label }}</option>
+            }
+          </select>
+        </label>
+        <label class="field-full">
+          <span>Tên đơn hàng <b>*</b></span>
+          <input name="title" [(ngModel)]="draft.title" maxlength="160" required placeholder="Ví dụ: Lắp ráp linh kiện điện tử" />
+        </label>
+        <label>
+          <span>Địa điểm <b>*</b></span>
+          <input name="location" [(ngModel)]="draft.location" maxlength="100" required placeholder="Ví dụ: Fukushima" />
+        </label>
+        <label>
+          <span>Thu nhập <b>*</b></span>
+          <input name="salary" [(ngModel)]="draft.salary" maxlength="100" required placeholder="Ví dụ: Từ 1.049 yên/giờ" />
+        </label>
+        <label>
+          <span>Độ tuổi <b>*</b></span>
+          <input name="ageRange" [(ngModel)]="draft.ageRange" maxlength="60" required placeholder="Ví dụ: 18 - 35 tuổi" />
+        </label>
+        <label>
+          <span>Thời gian dự kiến <b>*</b></span>
+          <input name="departureMonth" [(ngModel)]="draft.departureMonth" maxlength="48" required placeholder="Ví dụ: Dự kiến 12/2026" />
+        </label>
+        <label class="field-full">
+          <span>Mô tả ngắn <b>*</b></span>
+          <textarea name="summary" [(ngModel)]="draft.summary" maxlength="420" required rows="3" placeholder="Tóm tắt công việc và điểm cần biết."></textarea>
+        </label>
+        <label class="field-full">
+          <span>Yêu cầu <b>*</b></span>
+          <textarea name="requirements" [(ngModel)]="draft.requirements" maxlength="800" required rows="5" placeholder="Mỗi dòng là một yêu cầu hoặc điều kiện."></textarea>
+          <small>Tối đa 6 dòng, mỗi dòng sẽ hiển thị thành một gạch đầu dòng ở trang chi tiết.</small>
+        </label>
+      </div>
+
+      <div class="order-editor-options">
+        <label>
+          <span>Trạng thái hiển thị</span>
+          <select name="status" [(ngModel)]="draft.status">
+            <option value="draft">Lưu nháp</option>
+            <option value="published">Đang tuyển (hiển thị công khai)</option>
+          </select>
+        </label>
+        <label class="featured-option">
+          <input type="checkbox" name="isFeatured" [(ngModel)]="draft.isFeatured" />
+          <span><strong>Đơn nổi bật</strong><small>Ưu tiên xuất hiện đầu danh sách</small></span>
+        </label>
+      </div>
+
+      @if (errorMessage) {
+        <p class="order-form-message error"><i class="fas fa-circle-exclamation"></i>{{ errorMessage }}</p>
+      }
+      @if (successMessage) {
+        <p class="order-form-message success"><i class="fas fa-circle-check"></i>{{ successMessage }}</p>
+      }
+
+      <div class="order-editor-actions">
+        <button class="save-order-button" type="submit" [disabled]="saving">
+          <i [class]="saving ? 'fas fa-spinner fa-spin' : 'fas fa-floppy-disk'"></i>
+          {{ saving ? 'Đang lưu...' : editingId ? 'Lưu thay đổi' : 'Tạo đơn hàng' }}
+        </button>
+        @if (editingId) {
+          <button class="cancel-edit-button" type="button" (click)="startCreate()">Thêm đơn khác</button>
+        }
+      </div>
+    </form>
+  </div>
+</section>

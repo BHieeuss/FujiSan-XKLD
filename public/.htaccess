@@ -10,6 +10,7 @@ Options -Indexes
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   RewriteRule ^admin-api/(.*)$ api/admin/$1 [L]
+  RewriteRule ^orders-api/(.*)$ api/$1 [L]
 
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

@@ -6,5 +6,13 @@
     "pathRewrite": {
       "^/admin-api": "/api/admin"
     }
+  },
+  "/orders-api": {
+    "target": "http://127.0.0.1:8081",
+    "secure": false,
+    "changeOrigin": false,
+    "pathRewrite": {
+      "^/orders-api": "/api"
+    }
   }
 }

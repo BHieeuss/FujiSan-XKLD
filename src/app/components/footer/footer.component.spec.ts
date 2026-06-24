@@ -1,5 +1,5 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { FooterComponent } from './footer.component';
 
 describe('FooterComponent', () => {
@@ -57,18 +57,19 @@ describe('FooterComponent', () => {
     );
   });
 
-  it('should show the order list inside the website instead of opening a new tab', () => {
+  it('should navigate to the internal order list instead of opening Google Sheet', () => {
     const fixture = TestBed.createComponent(FooterComponent);
     const component = fixture.componentInstance;
     const openSpy = spyOn(window, 'open');
+    const router = TestBed.inject(Router);
+    const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
     const orderLink = component.quickAccessLinks.find((link) => link.kind === 'orders');
 
     component.openQuickAccessLink(orderLink!);
     fixture.detectChanges();
 
     expect(openSpy).not.toHaveBeenCalled();
-    expect(component.isOrderListOpen).toBeTrue();
-    expect(document.body.style.overflow).toBe('hidden');
-    expect(fixture.nativeElement.querySelector('.order-list-viewer')).toBeTruthy();
+    expect(navigateSpy).toHaveBeenCalledWith(['/don-hang']);
+    expect(component.isOrderListOpen).toBeFalse();
   });
 });

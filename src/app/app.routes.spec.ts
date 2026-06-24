@@ -8,6 +8,8 @@ describe('Application routes', () => {
     expect(routes.find((route) => route.path === 'hoc-so-dem')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-minna-bai-1')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'form-hoc-vien')?.loadComponent).toBeDefined();
+    expect(routes.find((route) => route.path === 'don-hang')?.loadComponent).toBeDefined();
+    expect(routes.find((route) => route.path === 'don-hang/:id')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'dang-nhap-quan-tri')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'quan-tri-viejap')?.canActivate).toBeDefined();
     expect(routes.find((route) => route.path === 'quan-tri-viejap')?.canMatch).toBeDefined();

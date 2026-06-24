@@ -41,6 +41,18 @@
 
       <button
         type="button"
+        [class.active]="activeSection === 'orders'"
+        (click)="selectSection('orders')"
+      >
+        <span class="nav-icon"><i class="fas fa-list-check"></i></span>
+        <span>
+          <strong>Quản lý đơn hàng</strong>
+          <small>Thêm, sửa, xóa và xuất bản</small>
+        </span>
+      </button>
+
+      <button
+        type="button"
         [class.active]="activeSection === 'security'"
         (click)="selectSection('security')"
       >
@@ -72,6 +84,20 @@
         </div>
 
         <app-poster-maker-page [embedded]="true"></app-poster-maker-page>
+      } @else if (activeSection === 'orders') {
+        <div class="content-heading">
+          <div>
+            <span class="eyebrow">Dữ liệu tuyển dụng</span>
+            <h1>Quản lý đơn hàng</h1>
+            <p>Cập nhật đơn đang tuyển để người dùng thấy ngay trên trang chủ và trang danh sách.</p>
+          </div>
+          <span class="privacy-badge">
+            <i class="fas fa-shield-halved"></i>
+            Chỉ quản trị viên
+          </span>
+        </div>
+
+        <app-job-orders-admin></app-job-orders-admin>
       } @else {
         <div class="content-heading">
           <div>

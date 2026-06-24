@@ -2,14 +2,15 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PosterMakerPage } from '../pages/poster-maker/poster-maker-page';
+import { JobOrdersAdmin } from './job-orders-admin';
 import { AdminApiError, AdminAuthService } from './admin-auth.service';
 
-type AdminSection = 'poster' | 'security';
+type AdminSection = 'poster' | 'orders' | 'security';
 
 @Component({
   selector: 'app-admin-page',
   standalone: true,
-  imports: [FormsModule, PosterMakerPage],
+  imports: [FormsModule, PosterMakerPage, JobOrdersAdmin],
   templateUrl: './admin-page.html',
   styleUrl: './admin-page.scss',
 })
