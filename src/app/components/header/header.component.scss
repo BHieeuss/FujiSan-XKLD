@@ -139,6 +139,7 @@
     color: #3d4c61;
     font-size: 0.9rem;
     font-weight: 700;
+    white-space: nowrap;
     transition: color 0.18s ease;
 
     &::before {
@@ -170,6 +171,37 @@
   .dropdown-trigger {
     width: 100%;
     white-space: nowrap;
+  }
+}
+
+@media (min-width: 992px) {
+  .navbar > .container {
+    gap: 0.9rem;
+  }
+
+  .navbar-collapse {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .navbar-nav {
+    min-width: 0;
+    flex: 1 1 auto;
+    justify-content: space-evenly;
+    margin: 0 0.75rem !important;
+  }
+
+  .navbar-actions {
+    flex: 0 0 auto;
+    gap: 0.7rem;
+
+    .btn {
+      white-space: nowrap;
+    }
+
+    .btn-hotline {
+      margin-right: 0 !important;
+    }
   }
 }
 
@@ -403,6 +435,7 @@
   .navbar-actions .btn {
     padding-right: 0.7rem;
     padding-left: 0.7rem;
+    font-size: 0.8rem;
   }
 }
 

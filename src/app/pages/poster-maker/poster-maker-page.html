@@ -6,9 +6,9 @@
           <i class="fas fa-wand-magic-sparkles"></i>
           Công cụ nội bộ
         </span>
-        <h1>Tạo poster đơn tuyển</h1>
+        <h1>Tạo đơn hàng tuyển dụng</h1>
         <p>
-          Nhập thông tin, chọn ảnh và tải poster PNG sẵn sàng đăng Facebook hoặc Zalo.
+          Nhập thông tin, chọn ảnh và tải ảnh đơn hàng PNG sẵn sàng đăng Facebook hoặc Zalo.
           Toàn bộ dữ liệu được xử lý ngay trên thiết bị này.
         </p>
       </div>
@@ -32,7 +32,7 @@
 
         <div class="form-grid">
           <label class="field field-full">
-            <span>Tên công ty trên poster</span>
+            <span>Tên công ty trên đơn hàng</span>
             <input
               type="text"
               name="companyHeader"
@@ -218,7 +218,7 @@
       <div class="preview-heading">
         <div>
           <span>Bản xem trước</span>
-          <strong>Poster đơn tuyển</strong>
+          <strong>Đơn hàng tuyển dụng</strong>
         </div>
         <span class="render-state" [class.loading]="rendering">
           <i [class]="rendering ? 'fas fa-spinner fa-spin' : 'fas fa-circle-check'"></i>
@@ -231,7 +231,7 @@
           #posterCanvas
           [attr.width]="posterWidth"
           [attr.height]="posterHeight"
-          aria-label="Bản xem trước poster đơn tuyển"
+          aria-label="Bản xem trước đơn hàng tuyển dụng"
         ></canvas>
       </div>
 
@@ -256,7 +256,7 @@
           [disabled]="rendering"
         >
           <i class="fas fa-download"></i>
-          Tải poster PNG
+          Tải ảnh đơn hàng PNG
         </button>
       </div>
 

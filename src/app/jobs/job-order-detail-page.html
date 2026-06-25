@@ -1,67 +1,22 @@
 <main class="job-detail-page">
   @if (loading) {
-    <div class="job-detail-state"><i class="fas fa-spinner fa-spin"></i> Đang tải thông tin đơn hàng...</div>
-  } @else if (!order || !category) {
+    <div class="job-detail-state"><i class="fas fa-spinner fa-spin"></i> Đang tải đơn hàng...</div>
+  } @else if (!order) {
     <div class="job-detail-state">
       <i class="fas fa-circle-exclamation"></i>
       <p>{{ errorMessage || 'Không tìm thấy đơn hàng.' }}</p>
       <a routerLink="/don-hang">Quay lại danh sách đơn hàng</a>
     </div>
   } @else {
-    <section class="job-detail-hero">
-      <div class="container job-detail-hero-grid">
-        <div>
-          <a class="job-detail-back" routerLink="/don-hang"><i class="fas fa-arrow-left"></i> Danh sách đơn hàng</a>
-          <span class="job-detail-category"><i [class]="category.icon"></i> {{ category.label }}</span>
-          <h1>{{ order.title }}</h1>
-          <p>{{ order.summary }}</p>
-          <div class="job-detail-meta">
-            <span><i class="fas fa-hashtag"></i> {{ order.orderCode }}</span>
-            <span><i class="fas fa-location-dot"></i> {{ order.location }}</span>
-          </div>
-        </div>
+    <section class="job-detail-poster">
+      <div class="container">
+        <a class="job-detail-back" routerLink="/don-hang"><i class="fas fa-arrow-left"></i> Danh sách đơn hàng</a>
         <figure>
-          <img [src]="category.image" [alt]="order.title" />
+          <img [src]="order.imageUrl" alt="Ảnh đơn hàng VieJap" />
+          @if (order.description) {
+            <figcaption>{{ order.description }}</figcaption>
+          }
         </figure>
-      </div>
-    </section>
-
-    <section class="job-detail-content">
-      <div class="container job-detail-grid">
-        <article class="job-detail-card job-detail-main-card">
-          <span class="job-detail-kicker">Thông tin công việc</span>
-          <h2>Điều kiện và yêu cầu cơ bản</h2>
-          <ul>
-            @for (item of requirements; track item) {
-              <li><i class="fas fa-circle-check"></i>{{ item }}</li>
-            }
-          </ul>
-        </article>
-
-        <aside class="job-detail-facts">
-          <article>
-            <span><i class="fas fa-yen-sign"></i> Thu nhập</span>
-            <strong>{{ order.salary }}</strong>
-          </article>
-          <article>
-            <span><i class="fas fa-user"></i> Độ tuổi</span>
-            <strong>{{ order.ageRange }}</strong>
-          </article>
-          <article>
-            <span><i class="fas fa-plane-departure"></i> Thời gian</span>
-            <strong>{{ order.departureMonth }}</strong>
-          </article>
-        </aside>
-      </div>
-
-      <div class="container job-detail-contact">
-        <div>
-          <span>Muốn xem mình có phù hợp với đơn này?</span>
-          <strong>Gửi thông tin cơ bản, VieJap sẽ tư vấn lộ trình và điều kiện chi tiết.</strong>
-        </div>
-        <a [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
-          <i class="fas fa-comment-dots"></i> Nhắn Zalo để được tư vấn
-        </a>
       </div>
     </section>
   }

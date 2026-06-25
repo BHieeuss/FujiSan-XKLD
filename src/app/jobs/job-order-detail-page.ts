@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { APP_CONTACT_INFO } from '../models/app.config';
-import { getJobOrderCategory, JobOrder } from './job-order.model';
+import { JobOrder } from './job-order.model';
 import { JobOrdersApiService } from './job-orders-api.service';
 
 @Component({
@@ -13,7 +12,6 @@ import { JobOrdersApiService } from './job-orders-api.service';
   styleUrl: './job-order-detail-page.scss',
 })
 export class JobOrderDetailPage implements OnInit {
-  readonly contactInfo = APP_CONTACT_INFO;
   order?: JobOrder;
   loading = true;
   errorMessage = '';
@@ -28,17 +26,9 @@ export class JobOrderDetailPage implements OnInit {
     try {
       this.order = await this.ordersApi.getPublic(id);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : 'Không thể tải thông tin đơn hàng.';
+      this.errorMessage = error instanceof Error ? error.message : 'Không thể tải đơn hàng.';
     } finally {
       this.loading = false;
     }
-  }
-
-  get category() {
-    return this.order ? getJobOrderCategory(this.order.category) : undefined;
-  }
-
-  get requirements(): string[] {
-    return this.order?.requirements.split(/\r?\n/).filter(Boolean) ?? [];
   }
 }

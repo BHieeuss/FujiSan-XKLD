@@ -120,6 +120,7 @@ function admin_database_ensure_schema(PDO $database): void
     $database->exec(
         'CREATE TABLE IF NOT EXISTS job_orders (
             id CHAR(24) NOT NULL PRIMARY KEY,
+            image_url VARCHAR(255) NOT NULL DEFAULT \'\',
             order_code VARCHAR(48) NOT NULL,
             title VARCHAR(160) NOT NULL,
             category VARCHAR(32) NOT NULL,
@@ -133,9 +134,14 @@ function admin_database_ensure_schema(PDO $database): void
             is_featured TINYINT(1) NOT NULL DEFAULT 0,
             created_at DATETIME NOT NULL,
             updated_at DATETIME NOT NULL,
-            INDEX job_orders_public_index (status, category, is_featured, updated_at)
+            INDEX job_orders_public_index (status, is_featured, updated_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
+
+    $imageUrlColumn = $database->query("SHOW COLUMNS FROM job_orders LIKE 'image_url'")->fetch();
+    if (!is_array($imageUrlColumn)) {
+        $database->exec("ALTER TABLE job_orders ADD COLUMN image_url VARCHAR(255) NOT NULL DEFAULT '' AFTER id");
+    }
 
     $database->exec(
         'CREATE TABLE IF NOT EXISTS job_order_metadata (

@@ -14,7 +14,7 @@ describe('JobOrdersApiService', () => {
 
   it('loads public orders through the dedicated public API alias', async () => {
     fetchSpy.and.resolveTo(
-      new Response(JSON.stringify({ orders: [{ id: 'order-1', title: 'Kỹ sư' }] }), { status: 200 }),
+      new Response(JSON.stringify({ orders: [{ id: 'order-1', imageUrl: '/don-hang.png' }] }), { status: 200 }),
     );
 
     const orders = await service.listPublic();
@@ -32,22 +32,16 @@ describe('JobOrdersApiService', () => {
     fetchSpy.and.resolveTo(
       new Response(
         JSON.stringify({
-          order: { id: 'order-1', title: 'Kỹ sư' },
+          order: { id: 'order-1', imageUrl: '/don-hang.png' },
         }),
         { status: 201 },
       ),
     );
 
     await service.create({
-      orderCode: 'KS-01',
-      title: 'Kỹ sư',
-      category: 'ky-su',
-      location: 'Tokyo',
-      salary: '200.000 yên/tháng',
-      ageRange: '22 - 30',
-      summary: 'Mô tả',
-      requirements: 'Yêu cầu',
-      departureMonth: '12/2026',
+      category: 'thuc-tap-sinh',
+      imageUrl: '/uploads/orders/don-hang.png',
+      description: 'Mô tả',
       status: 'draft',
       isFeatured: false,
     });

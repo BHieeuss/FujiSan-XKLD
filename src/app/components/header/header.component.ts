@@ -36,7 +36,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     'Giới thiệu': 'gioi-thieu',
     'Chương trình': 'chuong-trinh',
     'Quyền lợi': 'chinh-sach',
-    'Hoạt động': 'hoat-dong',
     'Liên hệ': 'lien-he',
   };
 

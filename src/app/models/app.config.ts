@@ -72,7 +72,6 @@ export const APP_MAIN_MENU: AppMainMenuItem[] = [
     dropdownKey: 'programs',
   },
   { label: 'Quyền lợi', link: '/quyen-loi' },
-  { label: 'Hoạt động', link: '/hoat-dong' },
   {
     label: 'Bài học',
     link: '/hoc-hiragana',

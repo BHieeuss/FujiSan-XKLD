@@ -164,7 +164,7 @@ export class PosterMakerPage implements AfterViewInit, OnDestroy {
         this.renderError =
           error instanceof Error
             ? error.message
-            : 'Không thể tạo bản xem trước poster.';
+            : 'Không thể tạo bản xem trước đơn hàng.';
       }
     } finally {
       if (version === this.renderVersion) {
@@ -190,6 +190,6 @@ export class PosterMakerPage implements AfterViewInit, OnDestroy {
       .replace(/[^a-zA-Z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .toLowerCase();
-    return `poster-${safeBase || 'don-tuyen'}.png`;
+    return `don-hang-${safeBase || 'don-tuyen'}.png`;
   }
 }

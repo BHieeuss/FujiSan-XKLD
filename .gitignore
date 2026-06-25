@@ -32,6 +32,7 @@ yarn-error.log
 /.angular/cache
 /.local-data
 /private
+/public/uploads/
 /.dev-server.*.log
 .sass-cache/
 /connect.lock

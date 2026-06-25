@@ -5,7 +5,7 @@ import { AdminAuthService, AdminSession } from './admin-auth.service';
 import { AdminPage } from './admin-page';
 
 describe('AdminPage', () => {
-  it('should render the poster tool as the default admin section', async () => {
+  it('should render the order image tool as the default admin section', async () => {
     const session = signal<AdminSession | null>({
       authenticated: true,
       username: 'admin',

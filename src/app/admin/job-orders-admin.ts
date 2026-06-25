@@ -1,17 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   createEmptyJobOrder,
+  getJobOrderFallbackImage,
   getJobOrderCategory,
   JobOrder,
-  JobOrderCategory,
   JobOrderPayload,
   JOB_ORDER_CATEGORIES,
 } from '../jobs/job-order.model';
 import { JobOrdersApiError, JobOrdersApiService } from '../jobs/job-orders-api.service';
 
-type CategoryFilter = 'all' | JobOrderCategory;
 type StatusFilter = 'all' | JobOrder['status'];
 
 @Component({
@@ -21,13 +20,14 @@ type StatusFilter = 'all' | JobOrder['status'];
   templateUrl: './job-orders-admin.html',
   styleUrl: './job-orders-admin.scss',
 })
-export class JobOrdersAdmin implements OnInit {
+export class JobOrdersAdmin implements OnInit, OnDestroy {
   readonly categories = JOB_ORDER_CATEGORIES;
   orders: JobOrder[] = [];
   draft: JobOrderPayload = createEmptyJobOrder();
   editingId: string | null = null;
-  categoryFilter: CategoryFilter = 'all';
   statusFilter: StatusFilter = 'all';
+  selectedImage?: File;
+  imagePreview = '';
   loading = true;
   saving = false;
   deletingId = '';
@@ -40,11 +40,13 @@ export class JobOrdersAdmin implements OnInit {
     await this.reload();
   }
 
+  ngOnDestroy(): void {
+    this.releaseImagePreview();
+  }
+
   get visibleOrders(): JobOrder[] {
     return this.orders.filter(
-      (order) =>
-        (this.categoryFilter === 'all' || order.category === this.categoryFilter) &&
-        (this.statusFilter === 'all' || order.status === this.statusFilter),
+      (order) => this.statusFilter === 'all' || order.status === this.statusFilter,
     );
   }
 
@@ -52,31 +54,53 @@ export class JobOrdersAdmin implements OnInit {
     return this.orders.filter((order) => order.status === 'published').length;
   }
 
-  getCategory(order: JobOrder) {
-    return getJobOrderCategory(order.category);
+  get previewImage(): string {
+    return this.imagePreview || this.draft.imageUrl;
   }
 
   startCreate(): void {
     this.editingId = null;
     this.draft = createEmptyJobOrder();
+    this.selectedImage = undefined;
+    this.releaseImagePreview();
     this.clearMessages();
   }
 
   startEdit(order: JobOrder): void {
     this.editingId = order.id;
     this.draft = {
-      orderCode: order.orderCode,
-      title: order.title,
+      imageUrl: order.imageUrl,
       category: order.category,
-      location: order.location,
-      salary: order.salary,
-      ageRange: order.ageRange,
-      summary: order.summary,
-      requirements: order.requirements,
-      departureMonth: order.departureMonth,
+      description: order.description,
       status: order.status,
       isFeatured: order.isFeatured,
     };
+    this.selectedImage = undefined;
+    this.releaseImagePreview();
+    this.clearMessages();
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      this.errorMessage = 'Chỉ hỗ trợ ảnh JPG, PNG hoặc WebP.';
+      input.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      this.errorMessage = 'Ảnh đơn hàng cần nhỏ hơn 10 MB.';
+      input.value = '';
+      return;
+    }
+
+    this.releaseImagePreview();
+    this.selectedImage = file;
+    this.imagePreview = URL.createObjectURL(file);
     this.clearMessages();
   }
 
@@ -88,6 +112,16 @@ export class JobOrdersAdmin implements OnInit {
     this.clearMessages();
     this.saving = true;
     try {
+      if (this.selectedImage) {
+        const imageUrl = await this.ordersApi.uploadImage(this.selectedImage);
+        this.draft = { ...this.draft, imageUrl };
+        this.selectedImage = undefined;
+        this.releaseImagePreview();
+      }
+      if (!this.draft.imageUrl) {
+        throw new Error('Vui lòng chọn ảnh đơn hàng trước khi lưu.');
+      }
+
       const order = this.editingId
         ? await this.ordersApi.update(this.editingId, this.draft)
         : await this.ordersApi.create(this.draft);
@@ -99,7 +133,14 @@ export class JobOrdersAdmin implements OnInit {
         this.orders.unshift(order);
       }
       this.sortOrders();
-      this.successMessage = this.editingId ? 'Đã cập nhật đơn hàng.' : 'Đã thêm đơn hàng mới.';
+      this.draft = {
+        imageUrl: order.imageUrl,
+        category: order.category,
+        description: order.description,
+        status: order.status,
+        isFeatured: order.isFeatured,
+      };
+      this.successMessage = this.editingId ? 'Đã cập nhật đơn hàng.' : 'Đã thêm đơn hàng.';
       this.editingId = order.id;
     } catch (error) {
       this.errorMessage = this.messageFor(error);
@@ -109,7 +150,7 @@ export class JobOrdersAdmin implements OnInit {
   }
 
   async remove(order: JobOrder): Promise<void> {
-    if (this.deletingId || !window.confirm(`Xóa đơn “${order.title}”? Thao tác này không thể hoàn tác.`)) {
+    if (this.deletingId || !window.confirm('Xóa đơn hàng này? Thao tác này không thể hoàn tác.')) {
       return;
     }
 
@@ -129,12 +170,20 @@ export class JobOrdersAdmin implements OnInit {
     }
   }
 
-  setCategoryFilter(filter: CategoryFilter): void {
-    this.categoryFilter = filter;
-  }
-
   setStatusFilter(filter: StatusFilter): void {
     this.statusFilter = filter;
+  }
+
+  getCategory(order: JobOrder) {
+    return getJobOrderCategory(order.category);
+  }
+
+  useFallbackImage(event: Event, order: JobOrder): void {
+    const image = event.target as HTMLImageElement;
+    const fallback = getJobOrderFallbackImage(order.category);
+    if (!image.src.endsWith(fallback)) {
+      image.src = fallback;
+    }
   }
 
   private async reload(): Promise<void> {
@@ -163,9 +212,17 @@ export class JobOrdersAdmin implements OnInit {
     this.successMessage = '';
   }
 
+  private releaseImagePreview(): void {
+    if (this.imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(this.imagePreview);
+    }
+    this.imagePreview = '';
+  }
+
   private messageFor(error: unknown): string {
-    return error instanceof JobOrdersApiError
-      ? error.message
-      : 'Không thể cập nhật dữ liệu đơn hàng. Vui lòng thử lại.';
+    if (error instanceof JobOrdersApiError || error instanceof Error) {
+      return error.message;
+    }
+    return 'Không thể cập nhật đơn hàng. Vui lòng thử lại.';
   }
 }

@@ -76,7 +76,7 @@ async function ensurePosterFonts(): Promise<void> {
     );
   })().catch((error) => {
     fontLoadPromise = undefined;
-    console.warn('Không thể tải Be Vietnam Pro, poster sẽ dùng font dự phòng.', error);
+    console.warn('Không thể tải Be Vietnam Pro, đơn hàng sẽ dùng font dự phòng.', error);
   });
 
   return fontLoadPromise;

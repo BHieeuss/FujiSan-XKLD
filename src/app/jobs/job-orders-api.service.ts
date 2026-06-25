@@ -5,6 +5,7 @@ import { JobOrder, JobOrderPayload } from './job-order.model';
 interface JobOrdersResponse {
   orders?: JobOrder[];
   order?: JobOrder;
+  imageUrl?: string;
   deleted?: boolean;
   message?: string;
 }
@@ -72,6 +73,20 @@ export class JobOrdersApiService {
     );
   }
 
+  async uploadImage(file: File): Promise<string> {
+    const body = new FormData();
+    body.append('image', file, file.name);
+    const response = await this.request(
+      '/admin-api/order-image.php',
+      { method: 'POST', body },
+      true,
+    );
+    if (!response.imageUrl) {
+      throw new JobOrdersApiError('Không thể tải ảnh đơn hàng lên.', 500);
+    }
+    return response.imageUrl;
+  }
+
   private async request(
     url: string,
     init: RequestInit = {},
@@ -89,7 +104,7 @@ export class JobOrdersApiService {
         credentials: 'same-origin',
         headers: {
           Accept: 'application/json',
-          ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(init.body && !(init.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
           ...(requiresAdminSession ? { 'X-CSRF-Token': csrfToken! } : {}),
           ...init.headers,
         },
