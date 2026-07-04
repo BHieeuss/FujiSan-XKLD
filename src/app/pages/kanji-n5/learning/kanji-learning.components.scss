@@ -656,6 +656,18 @@ button:disabled {
     background: #f4f8fd;
     color: #123768;
   }
+
+  .sound-toggle {
+    border-color: #d6cdbf;
+    background: #fffaf2;
+    color: #73582f;
+
+    &.active {
+      border-color: #b8ccdf;
+      background: #edf4ff;
+      color: #123768;
+    }
+  }
 }
 
 .smart-canvas-note {

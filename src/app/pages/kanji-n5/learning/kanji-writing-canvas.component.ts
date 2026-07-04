@@ -30,6 +30,10 @@ interface KanjiWritingCheckResult {
   detail: string;
 }
 
+type BrowserWindowWithWebAudio = Window & {
+  webkitAudioContext?: new () => AudioContext;
+};
+
 @Component({
   selector: 'app-kanji-writing-canvas',
   standalone: true,
@@ -87,6 +91,10 @@ interface KanjiWritingCheckResult {
           <i class="fas fa-circle-check"></i>
           <span>Kiểm tra</span>
         </button>
+        <button type="button" class="sound-toggle" (click)="toggleSound()" [class.active]="soundEnabled" [attr.aria-pressed]="soundEnabled">
+          <i [class]="soundEnabled ? 'fas fa-volume-high' : 'fas fa-volume-xmark'"></i>
+          <span>{{ soundEnabled ? 'Âm thanh' : 'Tắt âm' }}</span>
+        </button>
         <button type="button" (click)="resetWriting()">
           <i class="fas fa-rotate-right"></i>
           <span>Viết lại</span>
@@ -136,10 +144,14 @@ export class KanjiWritingCanvasComponent implements AfterViewInit, OnChanges {
   hintStep = 0;
   drawnStrokes: DrawPoint[][] = [];
   checkResult?: KanjiWritingCheckResult;
+  soundEnabled = true;
 
   private currentStroke: DrawPoint[] = [];
   private drawing = false;
   private isTouchInput = false;
+  private audioContext?: AudioContext;
+  private lastPaperSoundAt = 0;
+  private lastPaperPoint?: DrawPoint;
 
   get strokeTotal(): number {
     return this.strokeData?.strokes.length ?? 0;
@@ -212,6 +224,15 @@ export class KanjiWritingCanvasComponent implements AfterViewInit, OnChanges {
     this.hintStep = Math.min(this.hintStep + 1, this.strokeTotal);
   }
 
+  toggleSound(): void {
+    this.soundEnabled = !this.soundEnabled;
+    if (this.soundEnabled) {
+      void this.playCheckSound(true);
+    } else if (this.audioContext?.state === 'running') {
+      void this.audioContext.suspend().catch(() => undefined);
+    }
+  }
+
   resetWriting(): void {
     this.clearAll();
     this.resetHintStep();
@@ -233,33 +254,33 @@ export class KanjiWritingCanvasComponent implements AfterViewInit, OnChanges {
 
   checkWriting(): void {
     if (!this.strokeData) {
-      this.checkResult = {
+      this.setCheckResult({
         passed: false,
         score: 0,
         message: 'Chưa có dữ liệu nét mẫu.',
         detail: 'Hãy chọn chữ khác hoặc thử tải lại trang.',
-      };
+      });
       return;
     }
 
     if (!this.drawnStrokes.length) {
-      this.checkResult = {
+      this.setCheckResult({
         passed: false,
         score: 0,
         message: 'Chưa có nét để kiểm tra.',
         detail: 'Viết chữ vào bảng rồi bấm Kiểm tra.',
-      };
+      });
       return;
     }
 
     if (this.drawnStrokes.length !== this.strokeTotal) {
       const missing = this.drawnStrokes.length < this.strokeTotal;
-      this.checkResult = {
+      this.setCheckResult({
         passed: false,
         score: Math.round((Math.min(this.drawnStrokes.length, this.strokeTotal) / this.strokeTotal) * 45),
         message: missing ? 'Còn thiếu nét.' : 'Đang thừa nét.',
         detail: `Bạn viết ${this.drawnStrokes.length}/${this.strokeTotal} nét. Viết đúng số nét rồi bấm Kiểm tra lại.`,
-      };
+      });
       return;
     }
 
@@ -278,14 +299,14 @@ export class KanjiWritingCanvasComponent implements AfterViewInit, OnChanges {
     );
     const passed = passedCount === this.strokeTotal && score >= 72;
 
-    this.checkResult = {
+    this.setCheckResult({
       passed,
       score,
       message: passed ? 'Đúng rồi.' : 'Chưa khớp.',
       detail: passed
         ? `Thứ tự và dáng nét ổn. Điểm gợi ý: ${score}/100.`
         : this.checkFailureDetail(evaluations, passedCount, score),
-    };
+    });
   }
 
   startStroke(event: PointerEvent): void {
@@ -297,7 +318,10 @@ export class KanjiWritingCanvasComponent implements AfterViewInit, OnChanges {
     this.drawing = true;
     this.isTouchInput = event.pointerType === 'touch';
     this.checkResult = undefined;
-    this.currentStroke = [this.pointFromEvent(event)];
+    const point = this.pointFromEvent(event);
+    this.currentStroke = [point];
+    this.lastPaperPoint = undefined;
+    void this.playPaperSound(point, true);
     event.preventDefault();
   }
 
@@ -305,7 +329,9 @@ export class KanjiWritingCanvasComponent implements AfterViewInit, OnChanges {
     if (!this.drawing) {
       return;
     }
-    this.currentStroke.push(this.pointFromEvent(event));
+    const point = this.pointFromEvent(event);
+    this.currentStroke.push(point);
+    void this.playPaperSound(point);
     this.redraw();
     event.preventDefault();
   }
@@ -319,12 +345,152 @@ export class KanjiWritingCanvasComponent implements AfterViewInit, OnChanges {
     }
     this.currentStroke = [];
     this.drawing = false;
+    this.lastPaperPoint = undefined;
     this.redraw();
     event.preventDefault();
   }
 
   trackStroke(_: number, stroke: KanjiStrokePath): number {
     return stroke.order;
+  }
+
+  private setCheckResult(result: KanjiWritingCheckResult): void {
+    this.checkResult = result;
+    void this.playCheckSound(result.passed);
+  }
+
+  private ensureAudioContext(): AudioContext | undefined {
+    if (!this.soundEnabled || typeof window === 'undefined') {
+      return undefined;
+    }
+
+    if (this.audioContext?.state === 'closed') {
+      this.audioContext = undefined;
+    }
+
+    if (!this.audioContext) {
+      const AudioContextClass = window.AudioContext ?? (window as BrowserWindowWithWebAudio).webkitAudioContext;
+      if (!AudioContextClass) {
+        return undefined;
+      }
+      this.audioContext = new AudioContextClass();
+    }
+
+    return this.audioContext;
+  }
+
+  private async activeAudioContext(): Promise<AudioContext | undefined> {
+    const context = this.ensureAudioContext();
+    if (!context) {
+      return undefined;
+    }
+
+    if (context.state === 'suspended') {
+      await context.resume().catch(() => undefined);
+    }
+
+    return context.state === 'running' ? context : undefined;
+  }
+
+  private async playCheckSound(passed: boolean): Promise<void> {
+    const context = await this.activeAudioContext();
+    if (!context) {
+      return;
+    }
+
+    const startAt = context.currentTime;
+    if (passed) {
+      this.playTone(context, 523.25, 0.1, 0.12, startAt, 659.25, 'sine');
+      this.playTone(context, 783.99, 0.16, 0.1, startAt + 0.09, 987.77, 'sine');
+      return;
+    }
+
+    this.playTone(context, 246.94, 0.24, 0.13, startAt, 164.81, 'triangle');
+  }
+
+  private playTone(
+    context: AudioContext,
+    frequency: number,
+    duration: number,
+    volume: number,
+    startAt: number,
+    endFrequency = frequency,
+    type: OscillatorType = 'sine',
+  ): void {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const fadeInAt = startAt + Math.min(0.012, duration * 0.35);
+    const endAt = startAt + duration;
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, startAt);
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(endFrequency, 1), endAt);
+
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(Math.max(volume, 0.0001), fadeInAt);
+    gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(startAt);
+    oscillator.stop(endAt + 0.02);
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      gain.disconnect();
+    };
+  }
+
+  private async playPaperSound(point: DrawPoint, force = false): Promise<void> {
+    const previous = this.lastPaperPoint;
+    if (!force && previous && Math.hypot(point.x - previous.x, point.y - previous.y) < 5) {
+      return;
+    }
+
+    const nowMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (!force && nowMs - this.lastPaperSoundAt < 42) {
+      return;
+    }
+
+    const context = await this.activeAudioContext();
+    if (!context) {
+      return;
+    }
+
+    this.lastPaperPoint = point;
+    this.lastPaperSoundAt = nowMs;
+
+    const duration = this.isTouchInput ? 0.045 : 0.06;
+    const frameCount = Math.max(1, Math.floor(context.sampleRate * duration));
+    const buffer = context.createBuffer(1, frameCount, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let index = 0; index < frameCount; index += 1) {
+      const fade = 1 - index / frameCount;
+      data[index] = (Math.random() * 2 - 1) * fade;
+    }
+
+    const startAt = context.currentTime;
+    const source = context.createBufferSource();
+    const filter = context.createBiquadFilter();
+    const gain = context.createGain();
+
+    source.buffer = buffer;
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(this.isTouchInput ? 760 : 1080, startAt);
+    filter.Q.setValueAtTime(0.9, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(this.isTouchInput ? 0.04 : 0.052, startAt + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(context.destination);
+    source.start(startAt);
+    source.stop(startAt + duration + 0.01);
+    source.onended = () => {
+      source.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
   }
 
   private resetHintStep(): void {
