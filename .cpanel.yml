@@ -5,3 +5,4 @@ deployment:
     - /usr/bin/test -f deployment/viejap-release-20260614.zip
     - /bin/mkdir -p "$DEPLOYPATH"
     - /usr/bin/unzip -oq deployment/viejap-release-20260614.zip -d "$DEPLOYPATH"
+    - /usr/bin/touch "$DEPLOYPATH/index.html"
