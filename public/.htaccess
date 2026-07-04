@@ -1,6 +1,21 @@
 DirectoryIndex index.html
 Options -Indexes
 
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html?)$">
+    FileETag None
+    Header unset ETag
+    Header unset Last-Modified
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  <FilesMatch "\.(css|js|mjs|png|jpe?g|gif|webp|svg|ico|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
