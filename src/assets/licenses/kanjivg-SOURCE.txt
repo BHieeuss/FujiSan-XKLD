@@ -1,0 +1,5 @@
+KanjiVG N5 stroke-order data
+Copyright Ulrich Apel and KanjiVG contributors
+Source: https://github.com/KanjiVG/kanjivg
+License: Creative Commons Attribution-Share Alike 3.0
+The generated TypeScript manifest contains SVG path data for N5 Kanji stroke order.

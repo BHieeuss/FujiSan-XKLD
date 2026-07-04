@@ -26,6 +26,17 @@ export const routes: Routes = [
       import('./pages/numbers/numbers-page').then((module) => module.NumbersPage),
   },
   {
+    path: 'hoc-kanji-n5',
+    redirectTo: 'hoc-kanji-n5/bai-1',
+    pathMatch: 'full',
+  },
+  {
+    path: 'hoc-kanji-n5/:lessonSlug',
+    title: 'Kanji N5 - VieJap',
+    loadComponent: () =>
+      import('./pages/kanji-n5/kanji-n5-page').then((module) => module.KanjiN5Page),
+  },
+  {
     path: 'hoc-minna-bai-1',
     title: 'Minna no Nihongo Bài 1 - VieJap',
     loadComponent: () =>

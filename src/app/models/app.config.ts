@@ -64,14 +64,12 @@ export const APP_ORDER_LIST = {
 export const APP_MAIN_MENU: AppMainMenuItem[] = [
   { label: 'Trang chủ', link: '/', active: true },
   { label: 'Đơn hàng', link: '/don-hang' },
-  { label: 'Giới thiệu', link: '/gioi-thieu' },
   {
     label: 'Chương trình',
     link: '/chuong-trinh',
     hasDropdown: true,
     dropdownKey: 'programs',
   },
-  { label: 'Quyền lợi', link: '/quyen-loi' },
   {
     label: 'Bài học',
     link: '/hoc-hiragana',
@@ -95,6 +93,20 @@ export const APP_LEARNING_MENU: AppSubmenuItem[] = [
   { label: 'Hiragana (Chữ mềm)', link: '/hoc-hiragana', icon: 'fas fa-language' },
   { label: 'Katakana (Chữ cứng)', link: '/hoc-katakana', icon: 'fas fa-font' },
   { label: 'Số đếm', link: '/hoc-so-dem', icon: 'fas fa-arrow-down-1-9' },
+  {
+    id: 'kanji',
+    label: 'Kanji ( Hán Tự )',
+    link: '/hoc-kanji-n5/bai-1',
+    icon: 'fas fa-pen-nib',
+    children: [
+      {
+        id: 'kanji-n5',
+        label: 'N5',
+        link: '/hoc-kanji-n5/bai-1',
+        icon: 'fas fa-layer-group',
+      },
+    ],
+  },
   {
     id: 'minna-n5',
     label: 'Minna no Nihongo N5',

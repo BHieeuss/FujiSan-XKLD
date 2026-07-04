@@ -20,7 +20,7 @@ import { Subscription } from 'rxjs';
 export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
   openDropdownKey?: string;
-  openNestedMenuId?: string;
+  openNestedMenuIds: Record<number, string | undefined> = {};
   isScrolled = false;
   isHomePage = false;
   currentPath = '';
@@ -87,7 +87,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
     this.openDropdownKey = undefined;
-    this.openNestedMenuId = undefined;
+    this.openNestedMenuIds = {};
     this.setPageScrollLocked(false);
   }
 
@@ -96,26 +96,27 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (!dropdownKey) {
       return;
     }
-    this.openNestedMenuId = undefined;
+    this.openNestedMenuIds = {};
     this.openDropdownKey =
       this.openDropdownKey === dropdownKey ? undefined : dropdownKey;
   }
 
-  toggleNestedSubmenu(event: Event, item: AppSubmenuItem): void {
+  toggleNestedSubmenu(event: Event, item: AppSubmenuItem, level = 0): void {
     event.preventDefault();
     event.stopPropagation();
     const menuId = this.nestedMenuId(item);
-    this.openNestedMenuId = this.openNestedMenuId === menuId ? undefined : menuId;
+    const nextValue = this.openNestedMenuIds[level] === menuId ? undefined : menuId;
+    this.setOpenNestedMenu(level, nextValue);
   }
 
-  openNestedSubmenu(item: AppSubmenuItem): void {
+  openNestedSubmenu(item: AppSubmenuItem, level = 0): void {
     if (typeof window !== 'undefined' && window.innerWidth >= 992 && item.children?.length) {
-      this.openNestedMenuId = this.nestedMenuId(item);
+      this.setOpenNestedMenu(level, this.nestedMenuId(item));
     }
   }
 
-  isNestedSubmenuOpen(item: AppSubmenuItem): boolean {
-    return this.openNestedMenuId === this.nestedMenuId(item);
+  isNestedSubmenuOpen(item: AppSubmenuItem, level = 0): boolean {
+    return this.openNestedMenuIds[level] === this.nestedMenuId(item);
   }
 
   isSubmenuActive(item: AppSubmenuItem): boolean {
@@ -220,5 +221,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private nestedMenuId(item: AppSubmenuItem): string {
     return item.id ?? item.label;
+  }
+
+  private setOpenNestedMenu(level: number, menuId: string | undefined): void {
+    const nextState: Record<number, string | undefined> = { ...this.openNestedMenuIds };
+    if (menuId) {
+      nextState[level] = menuId;
+    } else {
+      delete nextState[level];
+    }
+
+    Object.keys(nextState).forEach((key) => {
+      if (Number(key) > level) {
+        delete nextState[Number(key)];
+      }
+    });
+
+    this.openNestedMenuIds = nextState;
   }
 }

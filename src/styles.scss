@@ -354,3 +354,10 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media print {
+  app-header,
+  app-footer {
+    display: none !important;
+  }
+}

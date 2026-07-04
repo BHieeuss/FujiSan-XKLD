@@ -6,6 +6,10 @@ describe('Application routes', () => {
     expect(routes.find((route) => route.path === 'hoc-hiragana')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-katakana')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-so-dem')?.loadComponent).toBeDefined();
+    expect(routes.find((route) => route.path === 'hoc-kanji-n5')?.redirectTo).toBe(
+      'hoc-kanji-n5/bai-1',
+    );
+    expect(routes.find((route) => route.path === 'hoc-kanji-n5/:lessonSlug')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-minna-bai-1')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'form-hoc-vien')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'don-hang')?.loadComponent).toBeDefined();
