@@ -33,24 +33,16 @@ describe('HeaderComponent learning menu', () => {
     expect(nestedMenu).toBeTruthy();
   });
 
-  it('should show Kanji N5 as a direct lesson page link', () => {
+  it('should show Kanji tools as a direct learning page link', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     openLearningMenu(compiled);
 
-    const kanjiTrigger = Array.from(
-      compiled.querySelectorAll<HTMLButtonElement>('.nested-trigger'),
-    ).find((button) => button.textContent?.includes('Kanji ( Hán Tự )'));
-    expect(kanjiTrigger?.textContent).toContain('Kanji ( Hán Tự )');
+    const kanjiLink = Array.from(
+      compiled.querySelectorAll<HTMLAnchorElement>('.dropdown-menu.show .dropdown-item'),
+    ).find((anchor) => anchor.textContent?.includes('Kanji ( Hán Tự )'));
 
-    kanjiTrigger?.click();
-    fixture.detectChanges();
-
-    const n5Link = Array.from(
-      compiled.querySelectorAll<HTMLAnchorElement>('.nested-menu.show .dropdown-item'),
-    ).find((anchor) => anchor.textContent?.includes('N5'));
-
-    expect(n5Link?.textContent).toContain('N5');
-    expect(n5Link?.getAttribute('href')).toBe('/hoc-kanji-n5/bai-1');
+    expect(kanjiLink?.textContent).toContain('Kanji ( Hán Tự )');
+    expect(kanjiLink?.getAttribute('href')).toBe('/hoc-kanji');
     expect(compiled.querySelector('.deep-menu')).toBeFalsy();
   });
 

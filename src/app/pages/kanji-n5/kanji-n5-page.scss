@@ -239,13 +239,10 @@
     cursor: pointer;
 
     span {
-      overflow-wrap: anywhere;
-    }
-
-    span {
       color: #9f1239;
       font-size: 0.88rem;
       font-weight: 850;
+      overflow-wrap: anywhere;
     }
 
     &.active {

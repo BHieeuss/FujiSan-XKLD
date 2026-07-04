@@ -6,6 +6,7 @@ describe('Application routes', () => {
     expect(routes.find((route) => route.path === 'hoc-hiragana')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-katakana')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-so-dem')?.loadComponent).toBeDefined();
+    expect(routes.find((route) => route.path === 'hoc-kanji')?.loadComponent).toBeDefined();
     expect(routes.find((route) => route.path === 'hoc-kanji-n5')?.redirectTo).toBe(
       'hoc-kanji-n5/bai-1',
     );

@@ -49,7 +49,7 @@
       <div class="kanji-progress">
         <div>
           <span>Tiến độ N5</span>
-          <strong>{{ progress.learnedCount() }}/{{ totalKanji }} chữ</strong>
+          <strong>{{ progress.learnedCount() }}/{{ totalKanji }} chữ đã thuộc</strong>
         </div>
         <div class="progress-track" aria-hidden="true">
           <span [style.width.%]="overallProgressPercent"></span>
@@ -109,9 +109,9 @@
             <button
               type="button"
               class="kanji-tile"
-              [class.active]="item.id === activeKanji.id"
+              [class.active]="item.id === expandedKanjiId"
               [class.learned]="progress.isKanjiLearned(item.id)"
-              [attr.aria-expanded]="item.id === activeKanji.id"
+              [attr.aria-expanded]="item.id === expandedKanjiId"
               (click)="selectKanji(item)"
             >
               <span class="kanji-order">{{ kanjiOrder(item) }}</span>
@@ -122,7 +122,7 @@
             </button>
 
             <aside
-              *ngIf="item.id === activeKanji.id"
+              *ngIf="item.id === expandedKanjiId"
               class="kanji-detail"
               aria-label="Chi tiết Hán tự đang chọn"
             >
@@ -156,7 +156,7 @@
                       (click)="toggleLearned(activeKanji)"
                     >
                       <i class="fas fa-check"></i>
-                      <span>{{ progress.isKanjiLearned(activeKanji.id) ? 'Đã nhớ' : 'Đánh dấu' }}</span>
+                      <span>{{ progress.isKanjiLearned(activeKanji.id) ? 'Đã thuộc' : 'Đã nhớ' }}</span>
                     </button>
                   </div>
                 </div>

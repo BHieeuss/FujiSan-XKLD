@@ -96,16 +96,8 @@ export const APP_LEARNING_MENU: AppSubmenuItem[] = [
   {
     id: 'kanji',
     label: 'Kanji ( Hán Tự )',
-    link: '/hoc-kanji-n5/bai-1',
+    link: '/hoc-kanji',
     icon: 'fas fa-pen-nib',
-    children: [
-      {
-        id: 'kanji-n5',
-        label: 'N5',
-        link: '/hoc-kanji-n5/bai-1',
-        icon: 'fas fa-layer-group',
-      },
-    ],
   },
   {
     id: 'minna-n5',

@@ -26,6 +26,12 @@ export const routes: Routes = [
       import('./pages/numbers/numbers-page').then((module) => module.NumbersPage),
   },
   {
+    path: 'hoc-kanji',
+    title: 'Công cụ học Kanji - VieJap',
+    loadComponent: () =>
+      import('./pages/kanji-n5/kanji-tools-page').then((module) => module.KanjiToolsPage),
+  },
+  {
     path: 'hoc-kanji-n5',
     redirectTo: 'hoc-kanji-n5/bai-1',
     pathMatch: 'full',

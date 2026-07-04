@@ -1,0 +1,109 @@
+<div class="kanji-tools-page">
+  <main class="container tools-shell">
+    <section class="kanji-function-panel" aria-label="Chức năng học Kanji">
+      <section class="kanji-level-panel" aria-label="Chọn cấp độ Kanji">
+        <header>
+          <span class="kanji-kicker">Cấp độ</span>
+          <strong>JLPT Kanji</strong>
+        </header>
+
+        <div class="kanji-level-grid">
+          <ng-container *ngFor="let option of levelOptions; trackBy: trackLevel">
+            <a
+              *ngIf="option.link; else updatingLevel"
+              class="kanji-level-card active"
+              [routerLink]="option.link"
+            >
+              <span>{{ option.level }}</span>
+              <strong>{{ option.status }}</strong>
+              <small>{{ option.description }}</small>
+              <i class="fas fa-book-open" aria-hidden="true"></i>
+            </a>
+
+            <ng-template #updatingLevel>
+              <button type="button" class="kanji-level-card updating" disabled>
+                <span>{{ option.level }}</span>
+                <strong>{{ option.status }}</strong>
+                <small>{{ option.description }}</small>
+                <i class="fas fa-clock" aria-hidden="true"></i>
+              </button>
+            </ng-template>
+          </ng-container>
+        </div>
+      </section>
+
+      <header class="kanji-function-head">
+        <div>
+          <span class="kanji-kicker">Chức năng</span>
+          <h1>Công cụ học Kanji</h1>
+          <p>Chọn đúng việc cần làm rồi mở riêng phần đó: luyện viết, ôn hôm nay, nhắc hẹn hoặc xem tiến độ.</p>
+        </div>
+      </header>
+
+      <div class="kanji-function-grid">
+        <button
+          type="button"
+          class="kanji-function-card"
+          *ngFor="let feature of smartFeatures; trackBy: trackFeature"
+          [class.active]="smartScreen === feature.screen"
+          (click)="openSmartFeature(feature.screen)"
+        >
+          <span class="function-sticker" aria-hidden="true">{{ feature.sticker }}</span>
+          <span class="function-copy">
+            <strong>{{ feature.label }}</strong>
+            <small>{{ feature.description }}</small>
+          </span>
+          <i
+            [class]="smartScreen === feature.screen ? 'fas fa-chevron-up' : 'fas fa-chevron-right'"
+            aria-hidden="true"
+          ></i>
+        </button>
+      </div>
+    </section>
+
+    <section class="tools-empty" *ngIf="smartScreen === 'home'">
+      <i class="fas fa-hand-pointer" aria-hidden="true"></i>
+      <p>Bấm một chức năng ở trên để mở màn học tương ứng. Bấm lại thẻ đang mở để thu gọn.</p>
+    </section>
+
+    <section class="smart-workspace-panel" *ngIf="smartScreen !== 'home'">
+      <header class="workspace-head">
+        <button type="button" (click)="closeSmartFeature()">
+          <i class="fas fa-chevron-left" aria-hidden="true"></i>
+          <span>Chức năng</span>
+        </button>
+        <strong>{{ activeSmartFeatureLabel }}</strong>
+      </header>
+
+      <ng-container [ngSwitch]="smartScreen">
+        <app-kanji-practice-screen
+          *ngSwitchCase="'practice'"
+          [items]="practiceItems"
+          [lessons]="lessons"
+          [activeItem]="activeKanji"
+          [orderById]="kanjiOrderById"
+          [strokes]="strokeData"
+          (selected)="selectPracticeItem($event)"
+        ></app-kanji-practice-screen>
+
+        <app-kanji-review-screen
+          *ngSwitchCase="'review'"
+          [items]="allKanji"
+          [orderById]="kanjiOrderById"
+          [strokes]="strokeData"
+        ></app-kanji-review-screen>
+
+        <app-kanji-reminder-setting-screen
+          *ngSwitchCase="'reminder'"
+          [items]="allKanji"
+        ></app-kanji-reminder-setting-screen>
+
+        <app-kanji-progress-tracker
+          *ngSwitchCase="'progress'"
+          [items]="allKanji"
+          [lessons]="lessons"
+        ></app-kanji-progress-tracker>
+      </ng-container>
+    </section>
+  </main>
+</div>

@@ -30,6 +30,7 @@ export class KanjiN5Page implements OnDestroy {
   selectedLevel = 'N5';
   activeLessonSlug = this.lessons[0].slug;
   activeKanjiId = this.lessons[0].items[0].id;
+  expandedKanjiId?: string;
   quizScope: QuizScope = 'lesson';
   quizMode: QuizMode = 'flashcard';
   quizIndex = 0;
@@ -41,6 +42,7 @@ export class KanjiN5Page implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly routeSub: Subscription;
+  private reminderTimer?: number;
 
   constructor() {
     this.routeSub = this.route.paramMap.subscribe((params) => {
@@ -54,8 +56,17 @@ export class KanjiN5Page implements OnDestroy {
 
       this.activeLessonSlug = lesson.slug;
       this.activeKanjiId = lesson.items[0].id;
+      this.expandedKanjiId = undefined;
       this.resetQuizCard();
     });
+
+    if (typeof window !== 'undefined') {
+      window.setTimeout(() => this.progress.notifyReviewIfDue(this.allKanji), 1200);
+      this.reminderTimer = window.setInterval(
+        () => this.progress.notifyReviewIfDue(this.allKanji),
+        60_000,
+      );
+    }
   }
 
   get activeLesson(): KanjiN5Lesson {
@@ -123,6 +134,9 @@ export class KanjiN5Page implements OnDestroy {
 
   ngOnDestroy(): void {
     this.routeSub.unsubscribe();
+    if (this.reminderTimer) {
+      window.clearInterval(this.reminderTimer);
+    }
     this.speech.stop();
   }
 
@@ -140,7 +154,12 @@ export class KanjiN5Page implements OnDestroy {
   }
 
   selectKanji(item: KanjiN5Item): void {
+    if (this.expandedKanjiId === item.id) {
+      this.expandedKanjiId = undefined;
+      return;
+    }
     this.activeKanjiId = item.id;
+    this.expandedKanjiId = item.id;
   }
 
   lessonLearnedCount(lesson: KanjiN5Lesson): number {
