@@ -132,6 +132,7 @@
 
 .job-order-card {
   display: grid;
+  grid-template-rows: auto 1fr;
   min-width: 0;
   padding: 0;
   overflow: hidden;
@@ -156,6 +157,10 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    .job-order-more-hint {
+      color: #1c5a94;
+    }
   }
 }
 
@@ -176,7 +181,8 @@
 }
 
 .job-featured-badge,
-.job-order-expand {
+.job-order-expand,
+.job-order-category-tag {
   position: absolute;
   display: inline-flex;
   align-items: center;
@@ -195,6 +201,23 @@
   box-shadow: 0 5px 13px rgba(76, 53, 0, 0.16);
 }
 
+.job-order-category-tag {
+  top: 0.7rem;
+  right: 0.7rem;
+  padding: 0.35rem 0.58rem;
+  background: rgba(13, 48, 87, 0.82);
+  color: #fff;
+  font-size: 0.6rem;
+  letter-spacing: 0.03em;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 5px 14px rgba(8, 30, 56, 0.22);
+
+  i {
+    font-size: 0.56rem;
+    opacity: 0.85;
+  }
+}
+
 .job-order-expand {
   right: 0.7rem;
   bottom: 0.7rem;
@@ -206,18 +229,53 @@
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
+.job-order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.72rem 0.82rem 0.75rem;
+  border-top: 1px solid rgba(200, 218, 234, 0.55);
+  background: linear-gradient(180deg, rgba(247, 251, 254, 0.6) 0%, #fff 100%);
+}
+
+.job-order-title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #153a65;
+  font-size: 0.82rem;
+  font-weight: 850;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
 .job-order-description {
   display: -webkit-box;
-  min-height: 3.55rem;
   margin: 0;
-  padding: 0.78rem 0.85rem 0.9rem;
   overflow: hidden;
-  color: #526a83;
-  font-size: 0.78rem;
-  font-weight: 650;
+  color: #5e7a93;
+  font-size: 0.72rem;
+  font-weight: 600;
   line-height: 1.5;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
+}
+
+.job-order-more-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  margin-top: 0.15rem;
+  color: #8ea3b7;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  transition: color 0.18s ease;
+
+  i {
+    font-size: 0.58rem;
+  }
 }
 
 .job-board-more {
@@ -361,26 +419,58 @@
 
   img {
     width: 100%;
-    max-height: calc(100vh - 8.5rem);
-    max-height: calc(100dvh - 8.5rem);
+    max-height: calc(100vh - 11rem);
+    max-height: calc(100dvh - 11rem);
     display: block;
     object-fit: contain;
     border-radius: 17px;
     background: #edf4f9;
   }
+}
 
-  p {
-    margin: 0;
-    padding: 0.9rem 0.45rem 0.25rem;
-    color: #526a83;
-    font-size: 0.88rem;
-    line-height: 1.55;
+.poster-lightbox-info {
+  padding: 0.85rem 0.45rem 0.25rem;
+}
+
+.poster-lightbox-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  background: #e9f3fb;
+  color: #1b639f;
+  font-size: 0.68rem;
+  font-weight: 800;
+
+  i {
+    font-size: 0.62rem;
   }
+}
+
+.poster-lightbox-title {
+  margin: 0.25rem 0 0.15rem;
+  color: #153a65;
+  font-size: 1.08rem;
+  font-weight: 850;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.poster-lightbox-info p {
+  margin: 0;
+  padding: 0.2rem 0 0;
+  color: #526a83;
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 
 .poster-close-button {
   position: absolute;
   z-index: 2;
+  top: 1.1rem;
+  right: 1.1rem;
   width: 36px;
   height: 36px;
   display: grid;
@@ -390,11 +480,6 @@
   background: rgba(14, 43, 75, 0.86);
   color: #fff;
   cursor: pointer;
-}
-
-.poster-close-button {
-  top: 1.1rem;
-  right: 1.1rem;
 }
 
 @media (max-width: 1100px) {
@@ -511,12 +596,34 @@
     font-size: 0.58rem;
   }
 
+  .job-order-category-tag {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.28rem 0.44rem;
+    font-size: 0.54rem;
+
+    i { font-size: 0.5rem; }
+  }
+
+  .job-order-info {
+    gap: 0.18rem;
+    padding: 0.58rem 0.65rem 0.62rem;
+  }
+
+  .job-order-title {
+    font-size: 0.74rem;
+    line-height: 1.3;
+  }
+
   .job-order-description {
-    min-height: 2.95rem;
-    padding: 0.58rem 0.65rem 0.68rem;
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     line-height: 1.42;
     -webkit-line-clamp: 2;
+  }
+
+  .job-order-more-hint {
+    font-size: 0.56rem;
+    margin-top: 0.1rem;
   }
 
   .job-board-more {

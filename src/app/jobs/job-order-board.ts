@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import {
+  getJobOrderCategory,
   getJobOrderFallbackImage,
+  getJobOrderTitle,
   JobOrder,
   JobOrderCategory,
+  JobOrderCategoryMeta,
   JOB_ORDER_CATEGORIES,
 } from './job-order.model';
 import { JobOrdersApiService } from './job-orders-api.service';
@@ -121,5 +124,13 @@ export class JobOrderBoard implements OnInit {
 
   categoryCount(category: JobOrderCategory): number {
     return this.orders.filter((order) => order.category === category).length;
+  }
+
+  orderTitle(order: JobOrder): string {
+    return getJobOrderTitle(order);
+  }
+
+  orderCategory(order: JobOrder): JobOrderCategoryMeta {
+    return getJobOrderCategory(order.category);
   }
 }

@@ -2,6 +2,83 @@
      GIỚI THIỆU CÔNG TY - ABOUT SECTION
      ============================================================ -->
 
+<section class="featured-activity-section py-5" id="hoat-dong-noi-bat">
+  <div class="container">
+    <div class="featured-activity-layout">
+      <div class="featured-activity-media">
+        <figure class="featured-activity-main">
+          <img
+            [src]="featuredActivity.coverImage.src"
+            [alt]="featuredActivity.coverImage.alt"
+            loading="eager"
+            fetchpriority="high"
+          />
+          <figcaption>
+            <i class="fas fa-location-dot"></i>
+            {{ featuredActivity.location }}
+          </figcaption>
+        </figure>
+
+        <div class="featured-activity-strip" aria-label="Hình ảnh hội thảo nổi bật">
+          <figure *ngFor="let image of featuredActivity.gallery | slice: 1 : 4">
+            <img [src]="image.src" [alt]="image.alt" loading="lazy" />
+          </figure>
+        </div>
+      </div>
+
+      <article class="featured-activity-copy">
+        <span class="featured-activity-label">
+          <i class="fas fa-star"></i>
+          Hoạt động nổi bật
+        </span>
+        <h2>VieJap hiện diện tại hội thảo kết nối thương mại Việt Nam - Nhật Bản</h2>
+        <p>{{ featuredActivity.summary }}</p>
+
+        <div class="featured-activity-facts" aria-label="Thông tin hội thảo nổi bật">
+          <span>
+            <i class="fas fa-calendar-check"></i>
+            <small>Thời điểm</small>
+            <strong>{{ featuredActivity.metric }} {{ featuredActivity.metricLabel }}</strong>
+          </span>
+          <span>
+            <i class="fas fa-building-columns"></i>
+            <small>Tính chất</small>
+            <strong>Đối ngoại & doanh nghiệp</strong>
+          </span>
+          <span>
+            <i class="fas fa-handshake-angle"></i>
+            <small>Giá trị với học viên</small>
+            <strong>Tư vấn có bối cảnh thực tế</strong>
+          </span>
+        </div>
+
+        <ul class="featured-activity-points">
+          <li *ngFor="let highlight of featuredActivity.highlights">
+            <i class="fas fa-circle-check"></i>
+            <span>{{ highlight }}</span>
+          </li>
+        </ul>
+
+        <div class="featured-activity-actions">
+          <a href="#hoat-dong" class="featured-activity-primary">
+            Xem thêm hoạt động
+            <i class="fas fa-arrow-right"></i>
+          </a>
+          <a
+            [href]="contactInfo.consultationUrl"
+            class="featured-activity-secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Trao đổi với VieJap
+            <i class="fas fa-comment-dots"></i>
+          </a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
 <!-- Giới thiệu công ty -->
 <section class="about-section py-5 bg-gray-light" id="gioi-thieu">
   <div class="container">
@@ -770,34 +847,34 @@
         <span class="about-section-label">
           <i class="fas fa-newspaper me-2"></i>Góc hoạt động
         </span>
-        <h2 class="about-section-title">Một vài khoảnh khắc VieJap đã cùng các bạn học sinh</h2>
+        <h2 class="about-section-title">Hoạt động thực tế: từ đối ngoại, văn hóa đến đồng hành học viên</h2>
         <p class="about-section-desc">
-          Đây là những hình ảnh từ các buổi hướng nghiệp, trao quà và gặp gỡ học sinh
-          ở địa phương. VieJap lưu lại để phụ huynh và các bạn dễ hình dung hơn về
-          những hoạt động thật của đội ngũ.
+          Bộ ảnh này gom lại những lần VieJap có mặt trong các sự kiện kết nối Việt Nam - Nhật Bản,
+          sinh hoạt văn hóa và hoạt động tại địa phương. Người xem có thể nhìn thấy đội ngũ qua
+          những khoảnh khắc thật, rõ bối cảnh, thay vì chỉ đọc lời giới thiệu.
         </p>
       </div>
 
       <div class="activities-impact" aria-label="Dấu ấn hoạt động">
         <div class="impact-item">
+          <strong>05</strong>
+          <span>
+            <span class="impact-label-full">hoạt động thực tế được ghi lại</span>
+            <span class="impact-label-short">hoạt động</span>
+          </span>
+        </div>
+        <div class="impact-item">
+          <strong>Tokyo</strong>
+          <span>
+            <span class="impact-label-full">dấu ấn đối ngoại Việt Nam - Nhật Bản</span>
+            <span class="impact-label-short">đối ngoại</span>
+          </span>
+        </div>
+        <div class="impact-item">
           <strong>24</strong>
           <span>
             <span class="impact-label-full">điểm trường hướng nghiệp</span>
             <span class="impact-label-short">điểm trường</span>
-          </span>
-        </div>
-        <div class="impact-item">
-          <strong>50</strong>
-          <span>
-            <span class="impact-label-full">em học sinh nhận quà</span>
-            <span class="impact-label-short">học sinh</span>
-          </span>
-        </div>
-        <div class="impact-item">
-          <strong>02</strong>
-          <span>
-            <span class="impact-label-full">nhóm hoạt động trọng tâm</span>
-            <span class="impact-label-short">hoạt động</span>
           </span>
         </div>
       </div>
@@ -875,7 +952,7 @@
 
     <div class="activity-selector" aria-label="Danh sách hoạt động công ty">
       <button
-        *ngFor="let activity of companyActivities"
+        *ngFor="let activity of orderedCompanyActivities"
         type="button"
         class="activity-selector-card"
         [class.active]="activity.id === selectedActivity.id"

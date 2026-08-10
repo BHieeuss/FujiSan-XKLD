@@ -23,10 +23,17 @@ describe('About', () => {
   it('should render the real company activities', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
+    expect(compiled.querySelector('#hoat-dong-noi-bat')).toBeTruthy();
+    expect(compiled.querySelector('.featured-activity-copy h2')?.textContent).toContain(
+      'hội thảo kết nối thương mại',
+    );
     expect(compiled.querySelector('#hoat-dong')).toBeTruthy();
-    expect(compiled.querySelectorAll('.activity-selector-card').length).toBe(2);
+    expect(compiled.querySelectorAll('.activity-selector-card').length).toBe(5);
     expect(compiled.querySelector('.activity-story h3')?.textContent).toContain(
-      'THPT Sóc Trăng',
+      'Trung thu cho em',
+    );
+    expect(compiled.querySelector('.activity-selector-card strong')?.textContent).toContain(
+      'Trung thu cho em',
     );
   });
 

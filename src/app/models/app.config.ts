@@ -33,20 +33,20 @@ export interface AppSubmenuItem {
 
 // Thông tin công ty
 export const APP_COMPANY_INFO = {
-  name: 'CÔNG TY HỢP TÁC QUỐC TẾ VieJap',
+  name: 'CÔNG TY TNHH VIEJAP',
   shortName: 'VieJap',
   slogan: 'Đưa ước mơ bay xa - Đón tương lai về gần',
-  taxCode: 'MST: ...',
-  license: 'đang cập nhật',
-  address: ' 111/30 Đường Nguyễn Thị Minh Khai , Phường Nguyệt Hóa, Tỉnh Vĩnh Long',
-  description: `Công ty Hợp tác quốc tế VieJap được thành lập với sứ mệnh kết nối nguồn nhân lực Việt Nam với thị trường lao động quốc tế, đặc biệt là Nhật Bản, Hàn Quốc và các quốc gia phát triển khác. Chúng tôi tự hào đã và đang đồng hành cùng hàng nghìn lao động Việt trên con đường lập nghiệp, góp phần nâng cao đời sống và mang đến cơ hội phát triển bền vững cho cộng đồng.`,
-  commitment: `Chúng tôi tin rằng nguồn nhân lực Việt Nam hoàn toàn có thể vươn ra thế giới, khẳng định giá trị và vị thế trên trường quốc tế. Công ty hợp tác Quốc Tế Fujisan luôn sẵn sàng đồng hành, hỗ trợ tối đa để người lao động hiện thực hóa ước mơ, xây dựng tương lai vững chắc cho bản thân và gia đình.`,
+  taxCode: 'MST/MSDN: 2100717764',
+  license: 'ĐKKD lần đầu ngày 07/07/2026',
+  address: '111/30 Đường Nguyễn Thị Minh Khai, Phường Nguyệt Hóa, Tỉnh Vĩnh Long',
+  description: `Công ty TNHH VieJap được thành lập với sứ mệnh kết nối nguồn nhân lực Việt Nam với các cơ hội học tập, làm việc và trải nghiệm quốc tế, đặc biệt là Nhật Bản. VieJap ưu tiên tư vấn rõ ràng, đồng hành theo từng hồ sơ và khuyến khích người học chủ động đối chiếu thông tin trước khi quyết định.`,
+  commitment: `VieJap tin rằng mỗi người cần được tiếp cận thông tin minh bạch, có căn cứ và phù hợp với hoàn cảnh của mình. Chúng tôi sẵn sàng đồng hành, hỗ trợ kiểm tra điều kiện và hướng dẫn chuẩn bị hồ sơ theo đúng quy định liên quan.`,
 };
 
 // Thông tin liên hệ chính
 export const APP_CONTACT_INFO = {
   hotline: '0966966284',
-  email: 'viejap@gmail.com',
+  email: 'viejaptravinh@gmail.com',
   zalo: '0966966284',
   zaloUrl: 'https://zalo.me/0966966284',
   consultationUrl: 'https://zalo.me/0966966284',

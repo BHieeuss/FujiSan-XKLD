@@ -45,11 +45,19 @@
                 @if (order.isFeatured) {
                   <span class="job-featured-badge"><i class="fas fa-star"></i> Nổi bật</span>
                 }
+                <span class="job-order-category-tag">
+                  <i [class]="orderCategory(order).icon"></i>
+                  {{ orderCategory(order).shortLabel }}
+                </span>
                 <span class="job-order-expand"><i class="fas fa-up-right-and-down-left-from-center"></i> Xem đơn hàng</span>
               </span>
-              @if (order.description) {
-                <span class="job-order-description">{{ order.description }}</span>
-              }
+              <span class="job-order-info">
+                <span class="job-order-title">{{ orderTitle(order) }}</span>
+                @if (order.description) {
+                  <span class="job-order-description">{{ order.description }}</span>
+                  <span class="job-order-more-hint"><i class="fas fa-hand-pointer"></i> Ấn vào để xem chi tiết</span>
+                }
+              </span>
             </button>
           }
         </div>
@@ -88,9 +96,16 @@
     <section class="poster-lightbox-card" role="dialog" aria-modal="true" aria-label="Xem đơn hàng" tabindex="0" (click)="$event.stopPropagation()" (keydown.escape)="closeOrder()">
       <button type="button" class="poster-close-button" (click)="closeOrder()" aria-label="Đóng"><i class="fas fa-xmark"></i></button>
       <img [src]="selectedOrder.imageUrl" alt="Ảnh đơn hàng VieJap" (error)="useFallbackImage($event, selectedOrder)" />
-      @if (selectedOrder.description) {
-        <p>{{ selectedOrder.description }}</p>
-      }
+      <div class="poster-lightbox-info">
+        <span class="poster-lightbox-category">
+          <i [class]="orderCategory(selectedOrder).icon"></i>
+          {{ orderCategory(selectedOrder).label }}
+        </span>
+        <h3 class="poster-lightbox-title">{{ orderTitle(selectedOrder) }}</h3>
+        @if (selectedOrder.description) {
+          <p>{{ selectedOrder.description }}</p>
+        }
+      </div>
     </section>
   </div>
 }

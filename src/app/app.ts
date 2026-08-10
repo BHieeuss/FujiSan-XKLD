@@ -11,11 +11,12 @@ import { Subscription } from 'rxjs';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { LoadingComponent } from './shared/loading/loading.component';
+import { SakuraComponent } from './components/sakura/sakura.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, LoadingComponent],
+  imports: [RouterOutlet, HeaderComponent, FooterComponent, LoadingComponent, SakuraComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

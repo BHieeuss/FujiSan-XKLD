@@ -3,6 +3,7 @@ export type JobOrderCategory = 'ky-su' | 'tokutei' | 'thuc-tap-sinh' | 'du-hoc';
 
 export interface JobOrder {
   id: string;
+  title?: string;
   category: JobOrderCategory;
   imageUrl: string;
   description: string;
@@ -57,6 +58,11 @@ export function getJobOrderCategory(category: JobOrderCategory): JobOrderCategor
   return JOB_ORDER_CATEGORIES.find((item) => item.key === category) ?? JOB_ORDER_CATEGORIES[2];
 }
 
+export function getJobOrderTitle(order: Pick<JobOrder, 'title' | 'category'>): string {
+  const title = order.title?.trim();
+  return title || `Đơn ${getJobOrderCategory(order.category).label}`;
+}
+
 export function getJobOrderFallbackImage(category: JobOrderCategory): string {
   switch (category) {
     case 'ky-su':
@@ -72,6 +78,7 @@ export function getJobOrderFallbackImage(category: JobOrderCategory): string {
 
 export function createEmptyJobOrder(): JobOrderPayload {
   return {
+    title: '',
     category: 'thuc-tap-sinh',
     imageUrl: '',
     description: '',

@@ -13,6 +13,7 @@ function admin_job_order_seed_data(): array
         [
             'id' => '1a2b3c4d5e6f7081920a3b4c',
             'category' => 'ky-su',
+            'title' => 'Đơn kỹ sư Nhật Bản',
             'imageUrl' => '/assets/images/KySu/ks.png',
             'description' => 'Thông tin lộ trình kỹ sư Nhật Bản. Liên hệ VieJap để được tư vấn đơn phù hợp.',
             'status' => 'published',
@@ -23,6 +24,7 @@ function admin_job_order_seed_data(): array
         [
             'id' => '2b3c4d5e6f7081920a3b4c5d',
             'category' => 'tokutei',
+            'title' => 'Đơn Tokutei Nhật Bản',
             'imageUrl' => '/assets/images/TKT/tkt.png',
             'description' => 'Thông tin lộ trình Tokutei. VieJap hỗ trợ định hướng và chuẩn bị hồ sơ.',
             'status' => 'published',
@@ -33,6 +35,7 @@ function admin_job_order_seed_data(): array
         [
             'id' => '3c4d5e6f7081920a3b4c5d6e',
             'category' => 'thuc-tap-sinh',
+            'title' => 'Đơn thực tập sinh Nhật Bản',
             'imageUrl' => '/assets/images/TTS/tts.png',
             'description' => 'Thông tin lộ trình thực tập sinh Nhật Bản và các ngành nghề đang tuyển.',
             'status' => 'published',
@@ -43,6 +46,7 @@ function admin_job_order_seed_data(): array
         [
             'id' => '5e6f7081920a3b4c5d6e7f80',
             'category' => 'du-hoc',
+            'title' => 'Lộ trình du học Nhật Bản',
             'imageUrl' => '/assets/images/DHS/dhs.png',
             'description' => 'Thông tin lộ trình du học Nhật Bản. Liên hệ VieJap để được hỗ trợ hồ sơ.',
             'status' => 'published',
@@ -57,7 +61,7 @@ function admin_job_orders_list(bool $includeDrafts = false): array
 {
     $database = admin_job_orders_database();
     if ($database !== null) {
-        $sql = 'SELECT id, image_url, category, summary, status, is_featured, created_at, updated_at
+        $sql = 'SELECT id, image_url, title, category, summary, status, is_featured, created_at, updated_at
                 FROM job_orders';
         if (!$includeDrafts) {
             $sql .= " WHERE status = 'published'";
@@ -86,7 +90,7 @@ function admin_job_order_find(string $id, bool $includeDrafts = false): ?array
 
     $database = admin_job_orders_database();
     if ($database !== null) {
-        $sql = 'SELECT id, image_url, category, summary, status, is_featured, created_at, updated_at
+        $sql = 'SELECT id, image_url, title, category, summary, status, is_featured, created_at, updated_at
                 FROM job_orders WHERE id = :id';
         if (!$includeDrafts) {
             $sql .= " AND status = 'published'";
@@ -224,7 +228,7 @@ function admin_job_order_database_values(array $order): array
         'id' => $order['id'],
         'image_url' => $order['imageUrl'],
         'order_code' => 'DH-' . strtoupper(substr($order['id'], 0, 6)),
-        'title' => 'Đơn hàng VieJap',
+        'title' => $order['title'] ?? admin_job_order_default_title((string) ($order['category'] ?? '')),
         'category' => $order['category'],
         'location' => '',
         'salary' => '',
@@ -249,6 +253,7 @@ function admin_job_order_from_database(array $order): array
 
     return [
         'id' => (string) $order['id'],
+        'title' => trim((string) ($order['title'] ?? '')),
         'category' => admin_job_order_category((string) ($order['category'] ?? ''), $imageUrl),
         'imageUrl' => $imageUrl,
         'description' => trim((string) ($order['summary'] ?? '')),
@@ -264,6 +269,11 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
     $category = admin_job_order_text($payload, 'category', 32, $existing['category'] ?? 'thuc-tap-sinh');
     if (!in_array($category, VIEJAP_JOB_ORDER_CATEGORIES, true)) {
         admin_respond(422, ['message' => 'Nhóm đơn hàng không hợp lệ.']);
+    }
+
+    $title = admin_job_order_text($payload, 'title', 80, $existing['title'] ?? admin_job_order_default_title($category));
+    if ($title === '') {
+        $title = admin_job_order_default_title($category);
     }
 
     $imageUrl = trim((string) ($payload['imageUrl'] ?? ($existing['imageUrl'] ?? '')));
@@ -283,6 +293,7 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
 
     return [
         'category' => $category,
+        'title' => $title,
         'imageUrl' => $imageUrl,
         'description' => $description,
         'status' => $status,

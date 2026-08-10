@@ -778,22 +778,149 @@ export class About implements OnDestroy {
   // Giấy phép hoạt động
   licenses = [
     {
-      title: 'Giấy phép XKLĐ',
-      number: 'Số: XX/SLĐTBXH-GP',
-      issueDate: 'Ngày cấp: 01/01/2024',
-      issuer: 'Bộ Lao động - Thương binh và Xã hội',
-      icon: 'fas fa-certificate',
+      title: 'Giấy chứng nhận đăng ký doanh nghiệp',
+      number: 'MSDN: 2100717764',
+      issueDate: 'Đăng ký lần đầu: 07/07/2026',
+      issuer: 'Sở Tài chính tỉnh Vĩnh Long',
+      icon: 'fas fa-file-contract',
     },
     {
-      title: 'Giấy ĐKKD',
-      number: 'MST: 0123456789',
-      issueDate: 'Ngày cấp: 01/01/2024',
-      issuer: 'Sở Kế hoạch và Đầu tư Hà Nội',
-      icon: 'fas fa-file-contract',
+      title: 'Thông báo cơ quan thuế quản lý',
+      number: 'Số: 27293/26',
+      issueDate: 'Cơ quan quản lý: Thuế cơ sở 5 tỉnh Vĩnh Long',
+      issuer: 'Phòng Phát triển doanh nghiệp và Kinh tế tập thể',
+      icon: 'fas fa-file-invoice',
     },
   ];
 
   companyActivities: CompanyActivity[] = [
+    {
+      id: 'hoi-thao-ket-noi-thuong-mai-nhat-ban-viet-nam',
+      category: 'Hoạt động đối ngoại',
+      title: 'Hội thảo kết nối thương mại, đầu tư Việt Nam - Nhật Bản tại Tokyo',
+      summary:
+        'Đại diện VieJap có mặt tại chương trình kết nối thương mại, đầu tư Việt Nam - Nhật Bản tại Tokyo, lắng nghe thông tin chính sách và xu hướng hợp tác giữa doanh nghiệp hai nước. Đây là dấu ấn giúp phụ huynh và học viên thấy VieJap theo sát các hoạt động chính thống, không chỉ tư vấn trong văn phòng.',
+      location: 'Tokyo, Nhật Bản',
+      metric: '12/06',
+      metricLabel: '2026',
+      coverImage: {
+        src: 'assets/images/HoatDong/HoiThaoKetNoiThuongMaiNhatBanVietNamTokyo/z8133501619094_4779c4fedee3319d35993e9d8245e39e.jpg',
+        alt: 'Đại diện VieJap tại địa điểm hội thảo kết nối thương mại Việt Nam Nhật Bản ở Tokyo',
+      },
+      gallery: [
+        {
+          src: 'assets/images/HoatDong/HoiThaoKetNoiThuongMaiNhatBanVietNamTokyo/z8133501619094_4779c4fedee3319d35993e9d8245e39e.jpg',
+          alt: 'Đại diện VieJap tại địa điểm hội thảo kết nối thương mại Việt Nam Nhật Bản ở Tokyo',
+        },
+        {
+          src: 'assets/images/HoatDong/HoiThaoKetNoiThuongMaiNhatBanVietNamTokyo/z8133501563234_f1ada3713c353334bcfb450e7bc034dc.jpg',
+          alt: 'Không gian hội thảo kết nối thương mại đầu tư Việt Nam Nhật Bản tại Tokyo',
+        },
+        {
+          src: 'assets/images/HoatDong/HoiThaoKetNoiThuongMaiNhatBanVietNamTokyo/z8133501555441_850733ed873571cad929cd48bb4d926f.jpg',
+          alt: 'Đại diện VieJap trong không gian hội thảo thương mại Việt Nam Nhật Bản',
+        },
+        {
+          src: 'assets/images/HoatDong/HoiThaoKetNoiThuongMaiNhatBanVietNamTokyo/z8133501551421_1ca85205498f768989b213f438dddc47.jpg',
+          alt: 'Phần trình bày tại hội thảo kết nối thương mại đầu tư Việt Nam Nhật Bản',
+        },
+      ],
+      highlights: [
+        'Ghi nhận thông tin từ chương trình có sự hiện diện của các cơ quan Việt Nam tại Nhật Bản',
+        'Theo dõi nhu cầu kết nối doanh nghiệp và nguồn nhân lực giữa hai thị trường',
+        'Bổ sung góc nhìn thực tế để tư vấn lộ trình Nhật Bản có căn cứ hơn',
+      ],
+    },
+    {
+      id: 'ket-noi-van-hoa-nhat-ban',
+      category: 'Kết nối văn hóa',
+      title: 'Kết nối văn hóa Nhật Bản cùng cộng đồng quốc tế',
+      summary:
+        'Những khoảnh khắc từ chương trình giao lưu văn hóa giúp học viên thấy tiếng Nhật không chỉ là bài học trên lớp, mà còn là cách tham gia cộng đồng, hiểu nghi thức và xây dựng tác phong khi sống tại Nhật.',
+      location: 'Nhật Bản',
+      metric: 'Giao lưu',
+      metricLabel: 'văn hóa',
+      coverImage: {
+        src: 'assets/images/HoatDong/KetnoiVanHoaNHATBAN/z8133500635420_40b1f4a1ea06ef1d59b6659954ed3209.jpg',
+        alt: 'Không gian chương trình kết nối văn hóa Nhật Bản với đông đảo khách tham dự',
+      },
+      gallery: [
+        {
+          src: 'assets/images/HoatDong/KetnoiVanHoaNHATBAN/z8133500635420_40b1f4a1ea06ef1d59b6659954ed3209.jpg',
+          alt: 'Không gian chương trình kết nối văn hóa Nhật Bản với đông đảo khách tham dự',
+        },
+        {
+          src: 'assets/images/HoatDong/KetnoiVanHoaNHATBAN/z8133499906629_819c6a8040435c62a85fcec08c21ab9d.jpg',
+          alt: 'Đại diện các nước chụp ảnh trong chương trình giao lưu văn hóa Nhật Bản',
+        },
+        {
+          src: 'assets/images/HoatDong/KetnoiVanHoaNHATBAN/z8133501021884_273e0ef8e1cabf2fe2ea72ff6614cee5.jpg',
+          alt: 'Khoảnh khắc trao chứng nhận trong chương trình kết nối văn hóa Nhật Bản',
+        },
+        {
+          src: 'assets/images/HoatDong/KetnoiVanHoaNHATBAN/z8133500170124_f1204241d27bc43f961d4146ef533e37.jpg',
+          alt: 'Khách mời và đại diện tham dự chương trình kết nối văn hóa Nhật Bản',
+        },
+        {
+          src: 'assets/images/HoatDong/KetnoiVanHoaNHATBAN/z8133500233287_a7bdb8c0f6696f8f282b09c602f161d8.jpg',
+          alt: 'Đại biểu trao đổi tại chương trình kết nối văn hóa Nhật Bản',
+        },
+        {
+          src: 'assets/images/HoatDong/KetnoiVanHoaNHATBAN/z8133500449127_007e344bdfb7816c69af7440a303317d.jpg',
+          alt: 'Không khí giao lưu trong chương trình kết nối văn hóa Nhật Bản',
+        },
+      ],
+      highlights: [
+        'Đưa câu chuyện văn hóa vào quá trình chuẩn bị cho học viên',
+        'Giúp học viên hiểu thêm môi trường giao tiếp đa quốc gia tại Nhật',
+        'Tạo thêm chất liệu thực tế cho các buổi định hướng trước khi đi',
+      ],
+    },
+    {
+      id: 'le-hoi-tanabata-hoc-vien-viejap',
+      category: 'Sinh hoạt học viên',
+      title: 'Lễ hội Tanabata cùng học viên VieJap tại Trà Vinh',
+      summary:
+        'Học viên cùng viết điều ước bằng tiếng Nhật, trang trí nhánh trúc và lưu lại những khoảnh khắc sinh hoạt tập thể. Hoạt động nhỏ nhưng giúp các bạn quen văn hóa Nhật Bản trong môi trường gần gũi trước khi đi xa.',
+      location: 'Trà Vinh',
+      metric: 'Tanabata',
+      metricLabel: 'văn hóa Nhật',
+      coverImage: {
+        src: 'assets/images/HoatDong/LeHoiTanabata-HOCVIENVIEJAPTAITRAVINH/z8133505656699_7c20f3b8ec5dcbb3717ec769adbee73d.jpg',
+        alt: 'Học viên VieJap chụp ảnh cùng cây điều ước trong lễ hội Tanabata tại Trà Vinh',
+      },
+      gallery: [
+        {
+          src: 'assets/images/HoatDong/LeHoiTanabata-HOCVIENVIEJAPTAITRAVINH/z8133505656699_7c20f3b8ec5dcbb3717ec769adbee73d.jpg',
+          alt: 'Học viên VieJap chụp ảnh cùng cây điều ước trong lễ hội Tanabata tại Trà Vinh',
+        },
+        {
+          src: 'assets/images/HoatDong/LeHoiTanabata-HOCVIENVIEJAPTAITRAVINH/z8133505771132_b5be6c6d2663afaf535641f276fabcf0.jpg',
+          alt: 'Học viên VieJap treo điều ước Tanabata bằng tiếng Nhật',
+        },
+        {
+          src: 'assets/images/HoatDong/LeHoiTanabata-HOCVIENVIEJAPTAITRAVINH/z8133505738737_35ea9520f527116503dfbd356352a239.jpg',
+          alt: 'Các thẻ điều ước Tanabata được học viên VieJap viết bằng tiếng Nhật',
+        },
+        {
+          src: 'assets/images/HoatDong/LeHoiTanabata-HOCVIENVIEJAPTAITRAVINH/z8133505695509_5d85fc6c09e336a1c80fdd2c6a07e6c6.jpg',
+          alt: 'Không khí chuẩn bị lễ hội Tanabata tại VieJap',
+        },
+        {
+          src: 'assets/images/HoatDong/LeHoiTanabata-HOCVIENVIEJAPTAITRAVINH/z8133505742124_541edb51ddb2aff6522548d0843c93ef.jpg',
+          alt: 'Học viên VieJap sinh hoạt trong chương trình Tanabata',
+        },
+        {
+          src: 'assets/images/HoatDong/LeHoiTanabata-HOCVIENVIEJAPTAITRAVINH/z8133505764864_db83bbc2642141fe4c7d80ddc5c9be51.jpg',
+          alt: 'Học viên VieJap hoàn thiện trang trí điều ước Tanabata',
+        },
+      ],
+      highlights: [
+        'Rèn sự tự tin khi sử dụng tiếng Nhật qua hoạt động văn hóa',
+        'Tạo cảm giác gắn kết giữa học viên và đội ngũ phụ trách',
+        'Giúp phụ huynh nhìn thấy môi trường học tập gần gũi, có sinh hoạt thật',
+      ],
+    },
     {
       id: 'huong-nghiep-soc-trang',
       category: 'Gặp gỡ học sinh',
@@ -879,7 +1006,22 @@ export class About implements OnDestroy {
     },
   ];
 
-  selectedActivity = this.companyActivities[0];
+  readonly featuredActivity =
+    this.companyActivities.find(
+      (activity) => activity.id === 'hoi-thao-ket-noi-thuong-mai-nhat-ban-viet-nam',
+    ) ?? this.companyActivities[0];
+
+  readonly orderedCompanyActivities = [
+    'trung-thu-cho-em',
+    'hoi-thao-ket-noi-thuong-mai-nhat-ban-viet-nam',
+    'ket-noi-van-hoa-nhat-ban',
+    'le-hoi-tanabata-hoc-vien-viejap',
+    'huong-nghiep-soc-trang',
+  ]
+    .map((activityId) => this.companyActivities.find((activity) => activity.id === activityId))
+    .filter((activity): activity is CompanyActivity => Boolean(activity));
+
+  selectedActivity = this.orderedCompanyActivities[0] ?? this.companyActivities[0];
   selectedActivityImage = this.selectedActivity.coverImage;
 
   selectCompanyActivity(activity: CompanyActivity): void {
