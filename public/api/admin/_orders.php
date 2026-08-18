@@ -256,7 +256,7 @@ function admin_job_order_from_database(array $order): array
         'title' => trim((string) ($order['title'] ?? '')),
         'category' => admin_job_order_category((string) ($order['category'] ?? ''), $imageUrl),
         'imageUrl' => $imageUrl,
-        'description' => trim((string) ($order['summary'] ?? '')),
+        'description' => admin_job_order_sanitize_description((string) ($order['summary'] ?? '')),
         'status' => (string) $order['status'],
         'isFeatured' => (bool) $order['is_featured'],
         'createdAt' => (string) $order['created_at'],
@@ -266,12 +266,12 @@ function admin_job_order_from_database(array $order): array
 
 function admin_job_order_normalize_payload(array $payload, ?array $existing = null): array
 {
-    $category = admin_job_order_text($payload, 'category', 32, $existing['category'] ?? 'thuc-tap-sinh');
+    $category = admin_job_order_text($payload, 'category', $existing['category'] ?? 'thuc-tap-sinh');
     if (!in_array($category, VIEJAP_JOB_ORDER_CATEGORIES, true)) {
         admin_respond(422, ['message' => 'Nhóm đơn hàng không hợp lệ.']);
     }
 
-    $title = admin_job_order_text($payload, 'title', 80, $existing['title'] ?? admin_job_order_default_title($category));
+    $title = admin_job_order_text($payload, 'title', $existing['title'] ?? admin_job_order_default_title($category));
     if ($title === '') {
         $title = admin_job_order_default_title($category);
     }
@@ -281,12 +281,15 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
         admin_respond(422, ['message' => 'Ảnh đơn hàng không hợp lệ. Vui lòng tải ảnh từ trang quản trị.']);
     }
 
-    $description = admin_job_order_text($payload, 'description', 600, $existing['description'] ?? '');
+    $descriptionValue = array_key_exists('description', $payload)
+        ? (string) $payload['description']
+        : (string) ($existing['description'] ?? '');
+    $description = admin_job_order_sanitize_description($descriptionValue);
     if ($description === '') {
         admin_respond(422, ['message' => 'Vui lòng nhập mô tả cho đơn hàng.']);
     }
 
-    $status = admin_job_order_text($payload, 'status', 16, $existing['status'] ?? 'published');
+    $status = admin_job_order_text($payload, 'status', $existing['status'] ?? 'published');
     if (!in_array($status, ['draft', 'published'], true)) {
         admin_respond(422, ['message' => 'Trạng thái đơn hàng không hợp lệ.']);
     }
@@ -301,11 +304,127 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
     ];
 }
 
-function admin_job_order_text(array $payload, string $field, int $maxLength, string $fallback): string
+function admin_job_order_default_title(string $category): string
+{
+    return match ($category) {
+        'ky-su' => 'Đơn kỹ sư Nhật Bản',
+        'tokutei' => 'Đơn Tokutei Nhật Bản',
+        'du-hoc' => 'Lộ trình du học Nhật Bản',
+        default => 'Đơn thực tập sinh Nhật Bản',
+    };
+}
+
+function admin_job_order_text(array $payload, string $field, string $fallback): string
 {
     $value = array_key_exists($field, $payload) ? (string) $payload[$field] : $fallback;
     $value = preg_replace('/\s+/u', ' ', trim($value)) ?? '';
-    return mb_substr($value, 0, $maxLength);
+    return $value;
+}
+
+function admin_job_order_sanitize_description(string $value): string
+{
+    $value = trim(str_replace(["\r\n", "\r"], "\n", $value));
+    if ($value === '') {
+        return '';
+    }
+
+    // Plain text from older records is upgraded to safe HTML while retaining line breaks.
+    if (!preg_match('/<\s*\/?\s*[a-z][^>]*>/i', $value)) {
+        return nl2br(htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), false);
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previousErrors = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML(
+        '<?xml encoding="UTF-8"><div id="viejap-description-root">' . $value . '</div>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET
+    );
+    libxml_clear_errors();
+    libxml_use_internal_errors($previousErrors);
+
+    if (!$loaded) {
+        return nl2br(htmlspecialchars(strip_tags($value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), false);
+    }
+
+    $root = $document->getElementById('viejap-description-root');
+    if (!$root instanceof DOMElement) {
+        return nl2br(htmlspecialchars(strip_tags($value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), false);
+    }
+
+    admin_job_order_sanitize_description_node($root);
+    $result = '';
+    foreach ($root->childNodes as $child) {
+        $result .= $document->saveHTML($child);
+    }
+
+    return trim($result);
+}
+
+function admin_job_order_sanitize_description_node(DOMNode $parent): void
+{
+    $allowedTags = [
+        'a',
+        'b',
+        'blockquote',
+        'br',
+        'div',
+        'em',
+        'i',
+        'li',
+        'ol',
+        'p',
+        'strong',
+        's',
+        'u',
+        'ul',
+    ];
+    $removedTags = [
+        'applet',
+        'embed',
+        'form',
+        'iframe',
+        'input',
+        'link',
+        'meta',
+        'object',
+        'script',
+        'style',
+        'textarea',
+        'title',
+    ];
+
+    for ($child = $parent->firstChild; $child !== null;) {
+        $next = $child->nextSibling;
+
+        if ($child instanceof DOMComment) {
+            $parent->removeChild($child);
+        } elseif ($child instanceof DOMElement) {
+            $tag = strtolower($child->tagName);
+
+            if (in_array($tag, $removedTags, true)) {
+                $parent->removeChild($child);
+            } elseif (!in_array($tag, $allowedTags, true)) {
+                admin_job_order_sanitize_description_node($child);
+                while ($child->firstChild !== null) {
+                    $parent->insertBefore($child->firstChild, $child);
+                }
+                $parent->removeChild($child);
+            } else {
+                $href = $tag === 'a' ? trim((string) $child->getAttribute('href')) : '';
+                while ($child->attributes->length > 0) {
+                    $child->removeAttribute($child->attributes->item(0)->name);
+                }
+                if ($tag === 'a' && preg_match('#^(?:https?://|mailto:)#i', $href)) {
+                    $child->setAttribute('href', $href);
+                    $child->setAttribute('target', '_blank');
+                    $child->setAttribute('rel', 'noopener noreferrer');
+                }
+                admin_job_order_sanitize_description_node($child);
+            }
+        }
+
+        $child = $next;
+    }
 }
 
 function admin_job_order_file_path(): string
@@ -344,13 +463,16 @@ function admin_job_order_from_file(array $order): array
     if (!admin_job_order_is_usable_image_url($imageUrl)) {
         $imageUrl = admin_job_order_legacy_image($category);
     }
-    $description = trim((string) ($order['description'] ?? $order['summary'] ?? ''));
+    $description = admin_job_order_sanitize_description(
+        (string) ($order['description'] ?? $order['summary'] ?? '')
+    );
 
     return [
         'id' => (string) $order['id'],
+        'title' => trim((string) ($order['title'] ?? '')),
         'category' => admin_job_order_category($category, $imageUrl),
         'imageUrl' => $imageUrl,
-        'description' => mb_substr(preg_replace('/\s+/u', ' ', $description) ?? '', 0, 600),
+        'description' => $description,
         'status' => ($order['status'] ?? 'draft') === 'published' ? 'published' : 'draft',
         'isFeatured' => (bool) ($order['isFeatured'] ?? false),
         'createdAt' => (string) ($order['createdAt'] ?? gmdate('Y-m-d H:i:s')),

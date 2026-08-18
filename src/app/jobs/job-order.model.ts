@@ -76,6 +76,20 @@ export function getJobOrderFallbackImage(category: JobOrderCategory): string {
   }
 }
 
+export function stripJobOrderHtml(html: string): string {
+  if (!html) {
+    return '';
+  }
+
+  return html
+    .replace(/<br\s*\/?\s*>/gi, ' ')
+    .replace(/<\/p>|<\/div>|<\/li>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function createEmptyJobOrder(): JobOrderPayload {
   return {
     title: '',

@@ -2,9 +2,9 @@
   <div class="container">
     <div class="job-board-heading">
       <div>
-        <span class="job-board-kicker"><i class="fas fa-images"></i> Đơn hàng tuyển dụng</span>
-        <h2>{{ home ? 'Chọn đơn hàng phù hợp với lộ trình của bạn' : 'Danh sách đơn hàng VieJap' }}</h2>
-        <p>Chọn chương trình trước, sau đó chạm vào đơn hàng để xem ảnh lớn và mô tả.</p>
+        <span class="job-board-kicker"><i class="fas fa-arrow-up-right-from-square"></i> Cơ hội tại Nhật</span>
+        <h2>{{ home ? 'Một lựa chọn tốt bắt đầu từ lộ trình phù hợp' : 'Cơ hội làm việc và học tập tại Nhật' }}</h2>
+        <p>Chọn nhóm chương trình, xem thông tin từng đơn và bắt đầu cuộc trò chuyện với VieJap khi bạn đã sẵn sàng.</p>
       </div>
 
       @if (home) {
@@ -19,15 +19,15 @@
     } @else if (errorMessage) {
       <div class="job-board-state error"><i class="fas fa-circle-exclamation"></i> {{ errorMessage }}</div>
     } @else {
-      <div class="job-category-grid" aria-label="Chọn nhóm đơn hàng">
-        <button type="button" class="job-category-tile all" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">
+      <div class="job-category-grid" role="tablist" aria-label="Chọn nhóm chương trình">
+        <button type="button" role="tab" class="job-category-tile all" [attr.aria-selected]="activeFilter === 'all'" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">
           <i class="fas fa-border-all"></i>
-          <span><strong>Tất cả đơn</strong><small>{{ orders.length }} đơn đang tuyển</small></span>
+          <span><strong>Tất cả đơn</strong><small>{{ orders.length }} đang tuyển</small></span>
         </button>
         @for (category of categories; track category.key) {
-          <button type="button" class="job-category-tile" [class.active]="activeFilter === category.key" (click)="setFilter(category.key)">
+          <button type="button" role="tab" class="job-category-tile" [attr.aria-selected]="activeFilter === category.key" [class.active]="activeFilter === category.key" (click)="setFilter(category.key)">
             <i [class]="category.icon"></i>
-            <span><strong>{{ category.label }}</strong><small>{{ categoryCount(category.key) }} đơn đang tuyển</small></span>
+            <span><strong>{{ category.label }}</strong><small>{{ categoryCount(category.key) }} đang tuyển</small></span>
           </button>
         }
       </div>
@@ -41,7 +41,7 @@
           @for (order of visibleOrders; track order.id) {
             <button type="button" class="job-order-card" [class.featured]="order.isFeatured" (click)="openOrder(order)">
               <span class="job-order-visual">
-                <img [src]="order.imageUrl" alt="Ảnh đơn hàng VieJap" loading="lazy" (error)="useFallbackImage($event, order)" />
+                <img [src]="order.imageUrl" [alt]="'Ảnh ' + orderTitle(order)" loading="lazy" (error)="useFallbackImage($event, order)" />
                 @if (order.isFeatured) {
                   <span class="job-featured-badge"><i class="fas fa-star"></i> Nổi bật</span>
                 }
@@ -54,7 +54,7 @@
               <span class="job-order-info">
                 <span class="job-order-title">{{ orderTitle(order) }}</span>
                 @if (order.description) {
-                  <span class="job-order-description">{{ order.description }}</span>
+                  <span class="job-order-description">{{ stripHtml(order.description) }}</span>
                   <span class="job-order-more-hint"><i class="fas fa-hand-pointer"></i> Ấn vào để xem chi tiết</span>
                 }
               </span>
@@ -95,7 +95,9 @@
   <div class="poster-lightbox" role="presentation" (click)="closeOrder()">
     <section class="poster-lightbox-card" role="dialog" aria-modal="true" aria-label="Xem đơn hàng" tabindex="0" (click)="$event.stopPropagation()" (keydown.escape)="closeOrder()">
       <button type="button" class="poster-close-button" (click)="closeOrder()" aria-label="Đóng"><i class="fas fa-xmark"></i></button>
-      <img [src]="selectedOrder.imageUrl" alt="Ảnh đơn hàng VieJap" (error)="useFallbackImage($event, selectedOrder)" />
+      <div class="poster-lightbox-media">
+        <img [src]="selectedOrder.imageUrl" [alt]="'Ảnh ' + orderTitle(selectedOrder)" (error)="useFallbackImage($event, selectedOrder)" />
+      </div>
       <div class="poster-lightbox-info">
         <span class="poster-lightbox-category">
           <i [class]="orderCategory(selectedOrder).icon"></i>
@@ -103,8 +105,11 @@
         </span>
         <h3 class="poster-lightbox-title">{{ orderTitle(selectedOrder) }}</h3>
         @if (selectedOrder.description) {
-          <p>{{ selectedOrder.description }}</p>
+          <div class="poster-lightbox-description" [innerHTML]="selectedOrder.description"></div>
         }
+        <div class="poster-lightbox-footer">
+          <a [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer"><i class="fas fa-comment-dots"></i> Trao đổi với VieJap</a>
+        </div>
       </div>
     </section>
   </div>

@@ -12,10 +12,19 @@
       <div class="container">
         <a class="job-detail-back" routerLink="/don-hang"><i class="fas fa-arrow-left"></i> Danh sách đơn hàng</a>
         <figure>
-          <img [src]="order.imageUrl" alt="Ảnh đơn hàng VieJap" />
-          @if (order.description) {
-            <figcaption>{{ order.description }}</figcaption>
-          }
+          <div class="job-detail-media">
+            <img [src]="order.imageUrl" [alt]="'Ảnh ' + orderTitle(order)" />
+          </div>
+          <figcaption>
+            <span class="job-detail-category">
+              <i [class]="orderCategory(order).icon"></i>
+              {{ orderCategory(order).label }}
+            </span>
+            <h1>{{ orderTitle(order) }}</h1>
+            @if (order.description) {
+              <div class="job-detail-description" [innerHTML]="order.description"></div>
+            }
+          </figcaption>
         </figure>
       </div>
     </section>

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { JobOrder } from './job-order.model';
+import { getJobOrderCategory, getJobOrderTitle, JobOrder } from './job-order.model';
 import { JobOrdersApiService } from './job-orders-api.service';
 
 @Component({
@@ -30,5 +30,13 @@ export class JobOrderDetailPage implements OnInit {
     } finally {
       this.loading = false;
     }
+  }
+
+  orderTitle(order: JobOrder): string {
+    return getJobOrderTitle(order);
+  }
+
+  orderCategory(order: JobOrder) {
+    return getJobOrderCategory(order.category);
   }
 }

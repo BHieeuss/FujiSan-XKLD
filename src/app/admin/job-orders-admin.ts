@@ -1,17 +1,27 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   createEmptyJobOrder,
   getJobOrderFallbackImage,
   getJobOrderCategory,
+  getJobOrderTitle,
   JobOrder,
   JobOrderPayload,
   JOB_ORDER_CATEGORIES,
+  stripJobOrderHtml,
 } from '../jobs/job-order.model';
 import { JobOrdersApiError, JobOrdersApiService } from '../jobs/job-orders-api.service';
 
 type StatusFilter = 'all' | JobOrder['status'];
+type DescriptionCommand =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'insertUnorderedList'
+  | 'insertOrderedList'
+  | 'formatBlock'
+  | 'removeFormat';
 
 @Component({
   selector: 'app-job-orders-admin',
@@ -20,8 +30,9 @@ type StatusFilter = 'all' | JobOrder['status'];
   templateUrl: './job-orders-admin.html',
   styleUrl: './job-orders-admin.scss',
 })
-export class JobOrdersAdmin implements OnInit, OnDestroy {
+export class JobOrdersAdmin implements AfterViewInit, OnInit, OnDestroy {
   readonly categories = JOB_ORDER_CATEGORIES;
+  @ViewChild('descriptionEditor') private descriptionEditor?: ElementRef<HTMLDivElement>;
   orders: JobOrder[] = [];
   draft: JobOrderPayload = createEmptyJobOrder();
   editingId: string | null = null;
@@ -33,11 +44,16 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
   deletingId = '';
   errorMessage = '';
   successMessage = '';
+  descriptionEmpty = true;
 
   constructor(private readonly ordersApi: JobOrdersApiService) {}
 
   async ngOnInit(): Promise<void> {
     await this.reload();
+  }
+
+  ngAfterViewInit(): void {
+    this.syncDescriptionEditor();
   }
 
   ngOnDestroy(): void {
@@ -58,17 +74,27 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     return this.imagePreview || this.draft.imageUrl;
   }
 
+  get previewTitle(): string {
+    return getJobOrderTitle(this.draft);
+  }
+
+  get previewCategory() {
+    return getJobOrderCategory(this.draft.category);
+  }
+
   startCreate(): void {
     this.editingId = null;
     this.draft = createEmptyJobOrder();
     this.selectedImage = undefined;
     this.releaseImagePreview();
     this.clearMessages();
+    this.syncDescriptionEditor();
   }
 
   startEdit(order: JobOrder): void {
     this.editingId = order.id;
     this.draft = {
+      title: order.title ?? '',
       imageUrl: order.imageUrl,
       category: order.category,
       description: order.description,
@@ -78,6 +104,37 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     this.selectedImage = undefined;
     this.releaseImagePreview();
     this.clearMessages();
+    this.syncDescriptionEditor();
+  }
+
+  onEditorToolbarMouseDown(event: MouseEvent): void {
+    // Keep the current text selection while the toolbar button receives the click.
+    event.preventDefault();
+  }
+
+  formatDescription(command: DescriptionCommand, value?: string): void {
+    const editor = this.descriptionEditor?.nativeElement;
+    if (!editor) {
+      return;
+    }
+
+    editor.focus();
+    editor.ownerDocument.execCommand(command, false, value);
+    this.updateDraftFromEditor();
+  }
+
+  onDescriptionInput(event: Event): void {
+    const editor = event.target as HTMLDivElement;
+    this.draft.description = editor.innerHTML;
+    this.descriptionEmpty = this.isDescriptionEmpty(editor.innerHTML);
+  }
+
+  orderTitle(order: JobOrder): string {
+    return getJobOrderTitle(order);
+  }
+
+  stripHtml(html: string): string {
+    return stripJobOrderHtml(html);
   }
 
   onImageSelected(event: Event): void {
@@ -112,6 +169,14 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     this.clearMessages();
     this.saving = true;
     try {
+      this.updateDraftFromEditor();
+      if (!this.draft.title?.trim()) {
+        throw new Error('Vui lòng nhập tiêu đề cho đơn hàng.');
+      }
+      if (this.descriptionEmpty) {
+        throw new Error('Vui lòng nhập nội dung mô tả cho đơn hàng.');
+      }
+
       if (this.selectedImage) {
         const imageUrl = await this.ordersApi.uploadImage(this.selectedImage);
         this.draft = { ...this.draft, imageUrl };
@@ -133,14 +198,10 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
         this.orders.unshift(order);
       }
       this.sortOrders();
-      this.draft = {
-        imageUrl: order.imageUrl,
-        category: order.category,
-        description: order.description,
-        status: order.status,
-        isFeatured: order.isFeatured,
-      };
-      this.successMessage = this.editingId ? 'Đã cập nhật đơn hàng.' : 'Đã thêm đơn hàng.';
+      const wasEditing = !!this.editingId;
+      this.draft = this.payloadFromOrder(order);
+      this.syncDescriptionEditor();
+      this.successMessage = wasEditing ? 'Đã cập nhật đơn hàng.' : 'Đã thêm đơn hàng.';
       this.editingId = order.id;
     } catch (error) {
       this.errorMessage = this.messageFor(error);
@@ -178,7 +239,7 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     return getJobOrderCategory(order.category);
   }
 
-  useFallbackImage(event: Event, order: JobOrder): void {
+  useFallbackImage(event: Event, order: Pick<JobOrder, 'category'>): void {
     const image = event.target as HTMLImageElement;
     const fallback = getJobOrderFallbackImage(order.category);
     if (!image.src.endsWith(fallback)) {
@@ -217,6 +278,59 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
       URL.revokeObjectURL(this.imagePreview);
     }
     this.imagePreview = '';
+  }
+
+  private payloadFromOrder(order: JobOrder): JobOrderPayload {
+    return {
+      title: order.title ?? '',
+      imageUrl: order.imageUrl,
+      category: order.category,
+      description: order.description,
+      status: order.status,
+      isFeatured: order.isFeatured,
+    };
+  }
+
+  private updateDraftFromEditor(): void {
+    const editor = this.descriptionEditor?.nativeElement;
+    if (!editor) {
+      return;
+    }
+
+    this.draft.description = editor.innerHTML;
+    this.descriptionEmpty = this.isDescriptionEmpty(editor.innerHTML);
+  }
+
+  private syncDescriptionEditor(): void {
+    const editor = this.descriptionEditor?.nativeElement;
+    if (!editor) {
+      return;
+    }
+
+    const value = this.editorHtmlFor(this.draft.description);
+    if (editor.innerHTML !== value) {
+      editor.innerHTML = value;
+    }
+    this.descriptionEmpty = this.isDescriptionEmpty(this.draft.description);
+  }
+
+  private editorHtmlFor(value: string): string {
+    if (!value) {
+      return '';
+    }
+    if (/<\/?[a-z][^>]*>/i.test(value)) {
+      return value;
+    }
+
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\r\n|\r|\n/g, '<br>');
+  }
+
+  private isDescriptionEmpty(value: string): boolean {
+    return stripJobOrderHtml(value).length === 0;
   }
 
   private messageFor(error: unknown): string {

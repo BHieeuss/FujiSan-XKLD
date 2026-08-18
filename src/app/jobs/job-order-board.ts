@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
+import { APP_CONTACT_INFO } from '../models/app.config';
 import {
   getJobOrderCategory,
   getJobOrderFallbackImage,
@@ -8,6 +9,7 @@ import {
   JobOrderCategory,
   JobOrderCategoryMeta,
   JOB_ORDER_CATEGORIES,
+  stripJobOrderHtml,
 } from './job-order.model';
 import { JobOrdersApiService } from './job-orders-api.service';
 
@@ -21,6 +23,7 @@ type JobOrderFilter = 'all' | JobOrderCategory;
   styleUrl: './job-order-board.scss',
 })
 export class JobOrderBoard implements OnInit {
+  readonly contactInfo = APP_CONTACT_INFO;
   @Input() home = false;
   @Input() limit?: number;
   @Input() pageSize = 8;
@@ -132,5 +135,10 @@ export class JobOrderBoard implements OnInit {
 
   orderCategory(order: JobOrder): JobOrderCategoryMeta {
     return getJobOrderCategory(order.category);
+  }
+
+  /** Strip HTML tags for plain-text preview on cards */
+  stripHtml(html: string): string {
+    return stripJobOrderHtml(html);
   }
 }

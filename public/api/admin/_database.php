@@ -122,12 +122,12 @@ function admin_database_ensure_schema(PDO $database): void
             id CHAR(24) NOT NULL PRIMARY KEY,
             image_url VARCHAR(255) NOT NULL DEFAULT \'\',
             order_code VARCHAR(48) NOT NULL,
-            title VARCHAR(160) NOT NULL,
+            title TEXT NOT NULL,
             category VARCHAR(32) NOT NULL,
             location VARCHAR(100) NOT NULL,
             salary VARCHAR(100) NOT NULL,
             age_range VARCHAR(60) NOT NULL,
-            summary TEXT NOT NULL,
+            summary LONGTEXT NOT NULL,
             requirements TEXT NOT NULL,
             departure_month VARCHAR(48) NOT NULL,
             status VARCHAR(16) NOT NULL DEFAULT \'published\',
@@ -141,6 +141,17 @@ function admin_database_ensure_schema(PDO $database): void
     $imageUrlColumn = $database->query("SHOW COLUMNS FROM job_orders LIKE 'image_url'")->fetch();
     if (!is_array($imageUrlColumn)) {
         $database->exec("ALTER TABLE job_orders ADD COLUMN image_url VARCHAR(255) NOT NULL DEFAULT '' AFTER id");
+    }
+
+    // Existing installations may still have the original bounded text columns.
+    $titleColumn = $database->query("SHOW COLUMNS FROM job_orders LIKE 'title'")->fetch();
+    if (is_array($titleColumn) && strtolower((string) ($titleColumn['Type'] ?? '')) !== 'text') {
+        $database->exec('ALTER TABLE job_orders MODIFY title TEXT NOT NULL');
+    }
+
+    $summaryColumn = $database->query("SHOW COLUMNS FROM job_orders LIKE 'summary'")->fetch();
+    if (is_array($summaryColumn) && strtolower((string) ($summaryColumn['Type'] ?? '')) !== 'longtext') {
+        $database->exec('ALTER TABLE job_orders MODIFY summary LONGTEXT NOT NULL');
     }
 
     $database->exec(
