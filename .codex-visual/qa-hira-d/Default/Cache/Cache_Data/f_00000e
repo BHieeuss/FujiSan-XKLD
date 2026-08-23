@@ -1,0 +1,651 @@
+import { injectQuery as __vite__injectQuery } from "/@vite/client";import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/chunk-6OMM76OJ.js");import {
+  evaluateStroke,
+  sampleSvgPath
+} from "/chunk-YFRQGAF7.js";
+
+// src/app/pages/hiragana/quiz-engine.ts
+function shuffle(values, random = Math.random) {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const target = Math.floor(random() * (index + 1));
+    [result[index], result[target]] = [result[target], result[index]];
+  }
+  return result;
+}
+function createQuiz(pool, allItems, count = 10, random = Math.random) {
+  return shuffle(pool, random).slice(0, Math.min(count, pool.length)).map((item, index) => {
+    const direction = item.quizDirections[Math.floor(random() * item.quizDirections.length)] ?? item.quizDirections[0];
+    const isKanaPrompt = direction === "kana-to-romaji";
+    const correctAnswer = isKanaPrompt ? item.romaji : item.kana;
+    const distractors = Array.from(new Set(allItems.filter((candidate) => candidate.id !== item.id).filter((candidate) => isKanaPrompt || candidate.romaji !== item.romaji).map((candidate) => isKanaPrompt ? candidate.romaji : candidate.kana).filter((answer) => answer !== correctAnswer)));
+    const options = shuffle([correctAnswer, ...shuffle(distractors, random).slice(0, 3)], random);
+    return {
+      id: `${item.id}-${index}-${direction}`,
+      item,
+      direction,
+      prompt: isKanaPrompt ? item.kana : item.romaji,
+      correctAnswer,
+      options
+    };
+  });
+}
+
+// src/app/pages/hiragana/stroke-pad.component.ts
+import { Component, EventEmitter, Input, Output, ViewChild } from "/@fs/D:/Group_By_Hieu/Code_Space/FujiSan/FujiSan-XKLD/.angular/cache/20.2.2/fujisan-website/vite/deps/@angular_core.js?v=b8eb5e2d";
+import { CommonModule } from "/@fs/D:/Group_By_Hieu/Code_Space/FujiSan/FujiSan-XKLD/.angular/cache/20.2.2/fujisan-website/vite/deps/@angular_common.js?v=b8eb5e2d";
+import * as i0 from "/@fs/D:/Group_By_Hieu/Code_Space/FujiSan/FujiSan-XKLD/.angular/cache/20.2.2/fujisan-website/vite/deps/@angular_core.js?v=b8eb5e2d";
+import * as i1 from "/@fs/D:/Group_By_Hieu/Code_Space/FujiSan/FujiSan-XKLD/.angular/cache/20.2.2/fujisan-website/vite/deps/@angular_common.js?v=b8eb5e2d";
+var _c0 = ["drawingCanvas"];
+function StrokePadComponent__svg_path_16_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275namespaceSVG();
+    i0.\u0275\u0275element(0, "path", 28);
+  }
+  if (rf & 2) {
+    const outline_r2 = ctx.$implicit;
+    i0.\u0275\u0275attribute("d", outline_r2);
+  }
+}
+function StrokePadComponent__svg_ng_container_17__svg_path_1_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275namespaceSVG();
+    i0.\u0275\u0275element(0, "path", 30);
+  }
+  if (rf & 2) {
+    const median_r3 = ctx.$implicit;
+    const index_r4 = ctx.index;
+    i0.\u0275\u0275styleProp("animation-delay", index_r4 * 0.7, "s");
+    i0.\u0275\u0275attribute("d", median_r3);
+  }
+}
+function StrokePadComponent__svg_ng_container_17_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275namespaceSVG();
+    i0.\u0275\u0275elementContainerStart(0);
+    i0.\u0275\u0275template(1, StrokePadComponent__svg_ng_container_17__svg_path_1_Template, 1, 3, "path", 29);
+    i0.\u0275\u0275elementContainerEnd();
+  }
+  if (rf & 2) {
+    const ctx_r4 = i0.\u0275\u0275nextContext();
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275property("ngForOf", ctx_r4.data.medians);
+  }
+}
+function StrokePadComponent__svg_path_18_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275namespaceSVG();
+    i0.\u0275\u0275element(0, "path", 31);
+  }
+  if (rf & 2) {
+    const ctx_r4 = i0.\u0275\u0275nextContext();
+    i0.\u0275\u0275attribute("d", ctx_r4.currentGuidePath);
+  }
+}
+function StrokePadComponent_div_21_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "div", 32);
+    i0.\u0275\u0275element(1, "i", 33);
+    i0.\u0275\u0275elementStart(2, "span");
+    i0.\u0275\u0275text(3, "Ho\xE0n th\xE0nh \xF4 tr\u01B0\u1EDBc");
+    i0.\u0275\u0275elementEnd()();
+  }
+}
+function StrokePadComponent_div_22_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "div", 34);
+    i0.\u0275\u0275element(1, "i", 4);
+    i0.\u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r4 = i0.\u0275\u0275nextContext();
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275classProp("fa-check", ctx_r4.failedAttempts < 3)("fa-flag", ctx_r4.failedAttempts >= 3);
+  }
+}
+function StrokePadComponent_button_34_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r6 = i0.\u0275\u0275getCurrentView();
+    i0.\u0275\u0275elementStart(0, "button", 35);
+    i0.\u0275\u0275listener("click", function StrokePadComponent_button_34_Template_button_click_0_listener() {
+      i0.\u0275\u0275restoreView(_r6);
+      const ctx_r4 = i0.\u0275\u0275nextContext();
+      return i0.\u0275\u0275resetView(ctx_r4.skipCurrentStroke());
+    });
+    i0.\u0275\u0275element(1, "i", 36);
+    i0.\u0275\u0275elementEnd();
+  }
+}
+var StrokePadComponent = class _StrokePadComponent {
+  zone;
+  data;
+  active = true;
+  label = "";
+  resetToken = 0;
+  padCompleted = new EventEmitter();
+  padSkipped = new EventEmitter();
+  canvasRef;
+  currentStrokeIndex = 0;
+  failedAttempts = 0;
+  showAnimation = true;
+  showHint = false;
+  statusMessage = "Xem n\xE9t m\u1EABu r\u1ED3i vi\u1EBFt theo \u0111\xFAng th\u1EE9 t\u1EF1.";
+  isComplete = false;
+  acceptedStrokes = [];
+  currentStroke = [];
+  activePointerId;
+  isTouchInput = false;
+  resizeObserver;
+  animationTimer;
+  constructor(zone) {
+    this.zone = zone;
+  }
+  get strokeCount() {
+    return this.data?.medians.length ?? 0;
+  }
+  get currentGuidePath() {
+    return this.data?.medians[this.currentStrokeIndex];
+  }
+  get acceptedStrokeCount() {
+    return this.acceptedStrokes.length;
+  }
+  ngAfterViewInit() {
+    const canvas = this.canvasRef?.nativeElement;
+    if (!canvas) {
+      return;
+    }
+    this.resizeObserver = new ResizeObserver(() => this.resizeCanvas());
+    this.resizeObserver.observe(canvas);
+    this.resizeCanvas();
+    this.startAnimationTimer();
+  }
+  ngOnChanges(changes) {
+    if (changes["data"] || changes["resetToken"]) {
+      this.resetPad();
+    }
+  }
+  ngOnDestroy() {
+    this.resizeObserver?.disconnect();
+    clearTimeout(this.animationTimer);
+  }
+  onPointerDown(event) {
+    if (!this.active || this.isComplete || this.activePointerId !== void 0) {
+      return;
+    }
+    event.preventDefault();
+    const canvas = this.canvasRef?.nativeElement;
+    if (!canvas) {
+      return;
+    }
+    this.showAnimation = false;
+    this.isTouchInput = event.pointerType === "touch";
+    this.activePointerId = event.pointerId;
+    canvas.setPointerCapture(event.pointerId);
+    this.currentStroke = [this.toCanvasPoint(event)];
+    this.statusMessage = `\u0110ang vi\u1EBFt n\xE9t ${this.currentStrokeIndex + 1}/${this.strokeCount}`;
+    this.redraw();
+  }
+  onPointerMove(event) {
+    if (event.pointerId !== this.activePointerId) {
+      return;
+    }
+    event.preventDefault();
+    const nextPoint = this.toCanvasPoint(event);
+    const previousPoint = this.currentStroke[this.currentStroke.length - 1];
+    if (!previousPoint || Math.hypot(nextPoint.x - previousPoint.x, nextPoint.y - previousPoint.y) > 4) {
+      this.currentStroke.push(nextPoint);
+      this.redraw();
+    }
+  }
+  onPointerUp(event) {
+    if (event.pointerId !== this.activePointerId) {
+      return;
+    }
+    event.preventDefault();
+    const canvas = this.canvasRef?.nativeElement;
+    if (canvas?.hasPointerCapture(event.pointerId)) {
+      canvas.releasePointerCapture(event.pointerId);
+    }
+    this.activePointerId = void 0;
+    const referencePath = this.currentGuidePath;
+    const evaluation = referencePath ? evaluateStroke(this.currentStroke, sampleSvgPath(referencePath), this.isTouchInput) : void 0;
+    this.finishStroke(evaluation);
+  }
+  onPointerCancel(event) {
+    if (event.pointerId !== this.activePointerId) {
+      return;
+    }
+    this.activePointerId = void 0;
+    this.currentStroke = [];
+    this.statusMessage = "N\xE9t v\u1EEBa vi\u1EBFt \u0111\xE3 \u0111\u01B0\u1EE3c h\u1EE7y.";
+    this.redraw();
+  }
+  undoLastStroke() {
+    if (!this.acceptedStrokes.length || this.isComplete) {
+      return;
+    }
+    this.acceptedStrokes.pop();
+    this.currentStrokeIndex = Math.max(0, this.currentStrokeIndex - 1);
+    this.failedAttempts = 0;
+    this.showHint = false;
+    this.statusMessage = `\u0110\xE3 x\xF3a n\xE9t. Vi\u1EBFt l\u1EA1i n\xE9t ${this.currentStrokeIndex + 1}.`;
+    this.redraw();
+  }
+  resetPad() {
+    this.currentStrokeIndex = 0;
+    this.failedAttempts = 0;
+    this.acceptedStrokes = [];
+    this.currentStroke = [];
+    this.activePointerId = void 0;
+    this.isComplete = false;
+    this.showHint = false;
+    this.showAnimation = true;
+    this.statusMessage = "Xem n\xE9t m\u1EABu r\u1ED3i vi\u1EBFt theo \u0111\xFAng th\u1EE9 t\u1EF1.";
+    this.redraw();
+    this.startAnimationTimer();
+  }
+  replayAnimation() {
+    this.showAnimation = false;
+    clearTimeout(this.animationTimer);
+    requestAnimationFrame(() => {
+      this.showAnimation = true;
+      this.startAnimationTimer();
+    });
+  }
+  revealHint() {
+    this.showAnimation = false;
+    this.showHint = true;
+    this.statusMessage = `N\xE9t m\xE0u v\xE0ng l\xE0 n\xE9t ${this.currentStrokeIndex + 1} c\u1EA7n vi\u1EBFt.`;
+  }
+  skipCurrentStroke() {
+    if (this.failedAttempts < 3 || this.isComplete) {
+      return;
+    }
+    this.padSkipped.emit();
+    this.statusMessage = "\u0110\xE3 \u0111\xE1nh d\u1EA5u ch\u1EEF n\xE0y c\u1EA7n \xF4n l\u1EA1i.";
+    this.isComplete = true;
+    this.currentStroke = [];
+    this.redraw();
+  }
+  finishStroke(evaluation) {
+    if (evaluation?.passed) {
+      this.acceptedStrokes.push([...this.currentStroke]);
+      this.currentStroke = [];
+      this.currentStrokeIndex += 1;
+      this.failedAttempts = 0;
+      this.showHint = false;
+      if (this.currentStrokeIndex >= this.strokeCount) {
+        this.isComplete = true;
+        this.statusMessage = "Ho\xE0n th\xE0nh \u0111\xFAng th\u1EE9 t\u1EF1 n\xE9t.";
+        this.padCompleted.emit();
+      } else {
+        this.statusMessage = `\u0110\xFAng r\u1ED3i. Ti\u1EBFp t\u1EE5c n\xE9t ${this.currentStrokeIndex + 1}/${this.strokeCount}.`;
+      }
+    } else {
+      this.currentStroke = [];
+      this.failedAttempts += 1;
+      this.showHint = this.failedAttempts >= 2;
+      this.statusMessage = this.failureMessage(evaluation);
+    }
+    this.redraw();
+  }
+  failureMessage(evaluation) {
+    if (!evaluation || evaluation.reason === "too-short") {
+      return "N\xE9t qu\xE1 ng\u1EAFn. H\xE3y vi\u1EBFt li\u1EC1n m\u1EA1ch h\u01A1n.";
+    }
+    if (evaluation.reason === "wrong-direction") {
+      return "H\xE3y b\u1EAFt \u0111\u1EA7u v\xE0 k\u1EBFt th\xFAc theo h\u01B0\u1EDBng n\xE9t m\u1EABu.";
+    }
+    return this.failedAttempts >= 3 ? "N\xE9t ch\u01B0a kh\u1EDBp. B\u1EA1n c\xF3 th\u1EC3 xem g\u1EE3i \xFD ho\u1EB7c b\u1ECF qua \u0111\u1EC3 \xF4n l\u1EA1i sau." : "N\xE9t c\xF2n l\u1EC7ch m\u1EABu. H\xE3y th\u1EED ch\u1EADm h\u01A1n m\u1ED9t ch\xFAt.";
+  }
+  toCanvasPoint(event) {
+    const canvas = this.canvasRef.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) / rect.width * 1024,
+      y: (event.clientY - rect.top) / rect.height * 1024
+    };
+  }
+  resizeCanvas() {
+    const canvas = this.canvasRef?.nativeElement;
+    if (!canvas) {
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, Math.round(rect.width * ratio));
+    canvas.height = Math.max(1, Math.round(rect.height * ratio));
+    this.redraw();
+  }
+  redraw() {
+    const canvas = this.canvasRef?.nativeElement;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) {
+      return;
+    }
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.setTransform(canvas.width / 1024, 0, 0, canvas.height / 1024, 0, 0);
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    for (const stroke of this.acceptedStrokes) {
+      this.drawPoints(context, stroke, "#173f85", 30);
+    }
+    if (this.currentStroke.length) {
+      this.drawPoints(context, this.currentStroke, "#163a65", 30);
+    }
+  }
+  drawPoints(context, points, color, width) {
+    if (!points.length) {
+      return;
+    }
+    context.beginPath();
+    context.moveTo(points[0].x, points[0].y);
+    for (const point of points.slice(1)) {
+      context.lineTo(point.x, point.y);
+    }
+    context.strokeStyle = color;
+    context.lineWidth = width;
+    context.stroke();
+  }
+  startAnimationTimer() {
+    clearTimeout(this.animationTimer);
+    this.animationTimer = this.zone.runOutsideAngular(() => setTimeout(() => {
+      this.zone.run(() => {
+        if (!this.currentStroke.length) {
+          this.showAnimation = false;
+        }
+      });
+    }, Math.max(2400, this.strokeCount * 720 + 900)));
+  }
+  static \u0275fac = function StrokePadComponent_Factory(__ngFactoryType__) {
+    return new (__ngFactoryType__ || _StrokePadComponent)(i0.\u0275\u0275directiveInject(i0.NgZone));
+  };
+  static \u0275cmp = /* @__PURE__ */ i0.\u0275\u0275defineComponent({ type: _StrokePadComponent, selectors: [["app-stroke-pad"]], viewQuery: function StrokePadComponent_Query(rf, ctx) {
+    if (rf & 1) {
+      i0.\u0275\u0275viewQuery(_c0, 5);
+    }
+    if (rf & 2) {
+      let _t;
+      i0.\u0275\u0275queryRefresh(_t = i0.\u0275\u0275loadQuery()) && (ctx.canvasRef = _t.first);
+    }
+  }, inputs: { data: "data", active: "active", label: "label", resetToken: "resetToken" }, outputs: { padCompleted: "padCompleted", padSkipped: "padSkipped" }, features: [i0.\u0275\u0275NgOnChangesFeature], decls: 35, vars: 28, consts: [["drawingCanvas", ""], [1, "stroke-pad"], [1, "stroke-pad-header"], [1, "stroke-counter"], [1, "fas"], [1, "pad-stage"], ["aria-hidden", "true", 1, "grid-line", "grid-line-horizontal"], ["aria-hidden", "true", 1, "grid-line", "grid-line-vertical"], ["aria-hidden", "true", 1, "grid-line", "grid-line-diagonal-a"], ["aria-hidden", "true", 1, "grid-line", "grid-line-diagonal-b"], ["viewBox", "0 0 1024 1024", "role", "img", 1, "stroke-reference"], ["class", "glyph-outline", 4, "ngFor", "ngForOf"], [4, "ngIf"], ["class", "hint-median", 4, "ngIf"], [1, "drawing-canvas", 3, "pointerdown", "pointermove", "pointerup", "pointercancel"], ["class", "pad-lock", 4, "ngIf"], ["class", "pad-complete-mark", 4, "ngIf"], ["aria-live", "polite", 1, "stroke-status"], [1, "stroke-tools"], ["type", "button", "title", "X\xF3a n\xE9t v\u1EEBa \u0111\xFAng", "aria-label", "X\xF3a n\xE9t v\u1EEBa \u0111\xFAng", 3, "click", "disabled"], [1, "fas", "fa-rotate-left"], ["type", "button", "title", "L\xE0m l\u1EA1i ch\u1EEF", "aria-label", "L\xE0m l\u1EA1i ch\u1EEF", 3, "click", "disabled"], [1, "fas", "fa-eraser"], ["type", "button", "title", "Xem th\u1EE9 t\u1EF1 n\xE9t", "aria-label", "Xem th\u1EE9 t\u1EF1 n\xE9t", 3, "click", "disabled"], [1, "fas", "fa-play"], ["type", "button", "title", "G\u1EE3i \xFD n\xE9t hi\u1EC7n t\u1EA1i", "aria-label", "G\u1EE3i \xFD n\xE9t hi\u1EC7n t\u1EA1i", 3, "click", "disabled"], [1, "fas", "fa-lightbulb"], ["type", "button", "class", "skip-stroke", "title", "B\u1ECF qua v\xE0 \xF4n l\u1EA1i sau", "aria-label", "B\u1ECF qua v\xE0 \xF4n l\u1EA1i sau", 3, "click", 4, "ngIf"], [1, "glyph-outline"], ["class", "animated-median", "pathLength", "1", 3, "animation-delay", 4, "ngFor", "ngForOf"], ["pathLength", "1", 1, "animated-median"], [1, "hint-median"], [1, "pad-lock"], [1, "fas", "fa-lock"], [1, "pad-complete-mark"], ["type", "button", "title", "B\u1ECF qua v\xE0 \xF4n l\u1EA1i sau", "aria-label", "B\u1ECF qua v\xE0 \xF4n l\u1EA1i sau", 1, "skip-stroke", 3, "click"], [1, "fas", "fa-forward"]], template: function StrokePadComponent_Template(rf, ctx) {
+    if (rf & 1) {
+      const _r1 = i0.\u0275\u0275getCurrentView();
+      i0.\u0275\u0275elementStart(0, "section", 1)(1, "header", 2)(2, "div")(3, "span");
+      i0.\u0275\u0275text(4);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275elementStart(5, "strong");
+      i0.\u0275\u0275text(6);
+      i0.\u0275\u0275elementEnd()();
+      i0.\u0275\u0275elementStart(7, "span", 3);
+      i0.\u0275\u0275element(8, "i", 4);
+      i0.\u0275\u0275text(9);
+      i0.\u0275\u0275elementEnd()();
+      i0.\u0275\u0275elementStart(10, "div", 5);
+      i0.\u0275\u0275element(11, "span", 6)(12, "span", 7)(13, "span", 8)(14, "span", 9);
+      i0.\u0275\u0275namespaceSVG();
+      i0.\u0275\u0275elementStart(15, "svg", 10);
+      i0.\u0275\u0275template(16, StrokePadComponent__svg_path_16_Template, 1, 1, "path", 11)(17, StrokePadComponent__svg_ng_container_17_Template, 2, 1, "ng-container", 12)(18, StrokePadComponent__svg_path_18_Template, 1, 1, "path", 13);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275namespaceHTML();
+      i0.\u0275\u0275elementStart(19, "canvas", 14, 0);
+      i0.\u0275\u0275listener("pointerdown", function StrokePadComponent_Template_canvas_pointerdown_19_listener($event) {
+        i0.\u0275\u0275restoreView(_r1);
+        return i0.\u0275\u0275resetView(ctx.onPointerDown($event));
+      })("pointermove", function StrokePadComponent_Template_canvas_pointermove_19_listener($event) {
+        i0.\u0275\u0275restoreView(_r1);
+        return i0.\u0275\u0275resetView(ctx.onPointerMove($event));
+      })("pointerup", function StrokePadComponent_Template_canvas_pointerup_19_listener($event) {
+        i0.\u0275\u0275restoreView(_r1);
+        return i0.\u0275\u0275resetView(ctx.onPointerUp($event));
+      })("pointercancel", function StrokePadComponent_Template_canvas_pointercancel_19_listener($event) {
+        i0.\u0275\u0275restoreView(_r1);
+        return i0.\u0275\u0275resetView(ctx.onPointerCancel($event));
+      });
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275template(21, StrokePadComponent_div_21_Template, 4, 0, "div", 15)(22, StrokePadComponent_div_22_Template, 2, 4, "div", 16);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275elementStart(23, "p", 17);
+      i0.\u0275\u0275text(24);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275elementStart(25, "div", 18)(26, "button", 19);
+      i0.\u0275\u0275listener("click", function StrokePadComponent_Template_button_click_26_listener() {
+        i0.\u0275\u0275restoreView(_r1);
+        return i0.\u0275\u0275resetView(ctx.undoLastStroke());
+      });
+      i0.\u0275\u0275element(27, "i", 20);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275elementStart(28, "button", 21);
+      i0.\u0275\u0275listener("click", function StrokePadComponent_Template_button_click_28_listener() {
+        i0.\u0275\u0275restoreView(_r1);
+        return i0.\u0275\u0275resetView(ctx.resetPad());
+      });
+      i0.\u0275\u0275element(29, "i", 22);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275elementStart(30, "button", 23);
+      i0.\u0275\u0275listener("click", function StrokePadComponent_Template_button_click_30_listener() {
+        i0.\u0275\u0275restoreView(_r1);
+        return i0.\u0275\u0275resetView(ctx.replayAnimation());
+      });
+      i0.\u0275\u0275element(31, "i", 24);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275elementStart(32, "button", 25);
+      i0.\u0275\u0275listener("click", function StrokePadComponent_Template_button_click_32_listener() {
+        i0.\u0275\u0275restoreView(_r1);
+        return i0.\u0275\u0275resetView(ctx.revealHint());
+      });
+      i0.\u0275\u0275element(33, "i", 26);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275template(34, StrokePadComponent_button_34_Template, 2, 0, "button", 27);
+      i0.\u0275\u0275elementEnd()();
+    }
+    if (rf & 2) {
+      i0.\u0275\u0275classProp("is-active", ctx.active)("is-complete", ctx.isComplete)("is-disabled", !ctx.active && !ctx.isComplete);
+      i0.\u0275\u0275advance(4);
+      i0.\u0275\u0275textInterpolate(ctx.label);
+      i0.\u0275\u0275advance(2);
+      i0.\u0275\u0275textInterpolate(ctx.data.glyph);
+      i0.\u0275\u0275advance(2);
+      i0.\u0275\u0275classProp("fa-check", ctx.isComplete)("fa-pen", !ctx.isComplete);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275textInterpolate1(" ", ctx.isComplete ? "Ho\xE0n th\xE0nh" : "N\xE9t " + (ctx.currentStrokeIndex + 1) + "/" + ctx.strokeCount, " ");
+      i0.\u0275\u0275advance(6);
+      i0.\u0275\u0275attribute("aria-label", "M\u1EABu th\u1EE9 t\u1EF1 n\xE9t ch\u1EEF " + ctx.data.glyph);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275property("ngForOf", ctx.data.outlines);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275property("ngIf", ctx.showAnimation);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275property("ngIf", ctx.showHint && ctx.currentGuidePath);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275attribute("aria-label", "\xD4 luy\u1EC7n vi\u1EBFt ch\u1EEF " + ctx.data.glyph);
+      i0.\u0275\u0275advance(2);
+      i0.\u0275\u0275property("ngIf", !ctx.active && !ctx.isComplete);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275property("ngIf", ctx.isComplete);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275classProp("is-warning", ctx.failedAttempts > 0);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275textInterpolate1(" ", ctx.statusMessage, " ");
+      i0.\u0275\u0275advance(2);
+      i0.\u0275\u0275property("disabled", !ctx.acceptedStrokeCount || ctx.isComplete);
+      i0.\u0275\u0275advance(2);
+      i0.\u0275\u0275property("disabled", ctx.isComplete);
+      i0.\u0275\u0275advance(2);
+      i0.\u0275\u0275property("disabled", ctx.isComplete);
+      i0.\u0275\u0275advance(2);
+      i0.\u0275\u0275property("disabled", ctx.isComplete);
+      i0.\u0275\u0275advance(2);
+      i0.\u0275\u0275property("ngIf", ctx.failedAttempts >= 3 && !ctx.isComplete);
+    }
+  }, dependencies: [CommonModule, i1.NgClass, i1.NgComponentOutlet, i1.NgForOf, i1.NgIf, i1.NgTemplateOutlet, i1.NgStyle, i1.NgSwitch, i1.NgSwitchCase, i1.NgSwitchDefault, i1.NgPlural, i1.NgPluralCase, i1.AsyncPipe, i1.UpperCasePipe, i1.LowerCasePipe, i1.JsonPipe, i1.SlicePipe, i1.DecimalPipe, i1.PercentPipe, i1.TitleCasePipe, i1.CurrencyPipe, i1.DatePipe, i1.I18nPluralPipe, i1.I18nSelectPipe, i1.KeyValuePipe], styles: ['\n\n[_nghost-%COMP%] {\n  min-width: 0;\n  display: block;\n}\n.stroke-pad[_ngcontent-%COMP%] {\n  min-width: 0;\n  padding: 0.9rem;\n  border: 1px solid #dce5ef;\n  border-radius: 8px;\n  background: #fff;\n  transition: border-color 0.18s ease, opacity 0.18s ease;\n}\n.stroke-pad.is-active[_ngcontent-%COMP%] {\n  border-color: #8fa9ca;\n}\n.stroke-pad.is-disabled[_ngcontent-%COMP%] {\n  opacity: 0.62;\n}\n.stroke-pad.is-complete[_ngcontent-%COMP%] {\n  border-color: #8fc4b2;\n  background: #fbfffd;\n}\n.stroke-pad-header[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 0.75rem;\n  margin-bottom: 0.7rem;\n}\n.stroke-pad-header[_ngcontent-%COMP%]    > div[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  gap: 0.55rem;\n}\n.stroke-pad-header[_ngcontent-%COMP%]   span[_ngcontent-%COMP%] {\n  color: #6b7b90;\n  font-size: 0.74rem;\n  font-weight: 750;\n}\n.stroke-pad-header[_ngcontent-%COMP%]   strong[_ngcontent-%COMP%] {\n  color: #173f85;\n  font-family:\n    "Yu Gothic",\n    "Hiragino Kaku Gothic ProN",\n    sans-serif;\n  font-size: 1.35rem;\n  line-height: 1;\n}\n.stroke-counter[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.38rem;\n  white-space: nowrap;\n}\n.stroke-counter[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  color: #1c856b;\n}\n.pad-stage[_ngcontent-%COMP%] {\n  position: relative;\n  width: 100%;\n  aspect-ratio: 1;\n  overflow: hidden;\n  border: 1px solid #cbd7e5;\n  border-radius: 6px;\n  background: #fbfcfe;\n}\n.grid-line[_ngcontent-%COMP%] {\n  position: absolute;\n  z-index: 0;\n  background: #e2e8f0;\n  pointer-events: none;\n}\n.grid-line-horizontal[_ngcontent-%COMP%] {\n  top: 50%;\n  right: 0;\n  left: 0;\n  height: 1px;\n}\n.grid-line-vertical[_ngcontent-%COMP%] {\n  top: 0;\n  bottom: 0;\n  left: 50%;\n  width: 1px;\n}\n.grid-line-diagonal-a[_ngcontent-%COMP%], \n.grid-line-diagonal-b[_ngcontent-%COMP%] {\n  top: 50%;\n  left: -21%;\n  width: 142%;\n  height: 1px;\n  background: #edf1f6;\n}\n.grid-line-diagonal-a[_ngcontent-%COMP%] {\n  transform: rotate(45deg);\n}\n.grid-line-diagonal-b[_ngcontent-%COMP%] {\n  transform: rotate(-45deg);\n}\n.stroke-reference[_ngcontent-%COMP%], \n.drawing-canvas[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n}\n.stroke-reference[_ngcontent-%COMP%] {\n  z-index: 1;\n  pointer-events: none;\n}\n.drawing-canvas[_ngcontent-%COMP%] {\n  z-index: 2;\n  display: block;\n  cursor: crosshair;\n  touch-action: none;\n}\n.glyph-outline[_ngcontent-%COMP%] {\n  fill: #e9eef5;\n}\n.animated-median[_ngcontent-%COMP%] {\n  fill: none;\n  stroke: #315f9d;\n  stroke-width: 34;\n  stroke-linecap: round;\n  stroke-dasharray: 1;\n  stroke-dashoffset: 1;\n  animation: _ngcontent-%COMP%_draw-stroke 0.65s ease forwards;\n}\n.hint-median[_ngcontent-%COMP%] {\n  fill: none;\n  stroke: #e2a916;\n  stroke-width: 42;\n  stroke-linecap: round;\n  opacity: 0.82;\n  animation: _ngcontent-%COMP%_hint-pulse 1.1s ease-in-out infinite;\n}\n.pad-lock[_ngcontent-%COMP%], \n.pad-complete-mark[_ngcontent-%COMP%] {\n  position: absolute;\n  inset: 0;\n  z-index: 3;\n  display: grid;\n  place-items: center;\n  align-content: center;\n  gap: 0.4rem;\n}\n.pad-lock[_ngcontent-%COMP%] {\n  background: rgba(248, 250, 252, 0.84);\n  color: #718096;\n  font-size: 0.76rem;\n  font-weight: 750;\n}\n.pad-lock[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 1rem;\n}\n.pad-complete-mark[_ngcontent-%COMP%] {\n  pointer-events: none;\n}\n.pad-complete-mark[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  width: 48px;\n  height: 48px;\n  display: grid;\n  place-items: center;\n  border-radius: 50%;\n  background: rgba(25, 132, 103, 0.92);\n  color: #fff;\n  font-size: 1.2rem;\n  box-shadow: 0 10px 25px rgba(25, 132, 103, 0.24);\n}\n.stroke-status[_ngcontent-%COMP%] {\n  min-height: 38px;\n  margin: 0.65rem 0 0;\n  color: #68788e;\n  font-size: 0.75rem;\n  line-height: 1.45;\n}\n.stroke-status.is-warning[_ngcontent-%COMP%] {\n  color: #a05d17;\n}\n.stroke-tools[_ngcontent-%COMP%] {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.42rem;\n  margin-top: 0.35rem;\n}\n.stroke-tools[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  width: 38px;\n  height: 38px;\n  display: grid;\n  place-items: center;\n  border: 1px solid #d7e0eb;\n  border-radius: 6px;\n  background: #fff;\n  color: #31577f;\n  cursor: pointer;\n}\n.stroke-tools[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover:not(:disabled), \n.stroke-tools[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:focus-visible {\n  border-color: #8fa9ca;\n  background: #eef4fb;\n}\n.stroke-tools[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:disabled {\n  color: #adb8c5;\n  cursor: not-allowed;\n}\n.stroke-tools[_ngcontent-%COMP%]   .skip-stroke[_ngcontent-%COMP%] {\n  margin-left: auto;\n  border-color: #e8c58c;\n  color: #a05d17;\n}\n@keyframes _ngcontent-%COMP%_draw-stroke {\n  to {\n    stroke-dashoffset: 0;\n  }\n}\n@keyframes _ngcontent-%COMP%_hint-pulse {\n  50% {\n    opacity: 0.4;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .animated-median[_ngcontent-%COMP%] {\n    stroke-dashoffset: 0;\n    animation: none;\n  }\n  .hint-median[_ngcontent-%COMP%] {\n    animation: none;\n  }\n}\n/*# sourceMappingURL=stroke-pad.component.css.map */'] });
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && i0.\u0275setClassMetadata(StrokePadComponent, [{
+    type: Component,
+    args: [{ selector: "app-stroke-pad", standalone: true, imports: [CommonModule], template: `<section
+  class="stroke-pad"
+  [class.is-active]="active"
+  [class.is-complete]="isComplete"
+  [class.is-disabled]="!active && !isComplete"
+>
+  <header class="stroke-pad-header">
+    <div>
+      <span>{{ label }}</span>
+      <strong>{{ data.glyph }}</strong>
+    </div>
+    <span class="stroke-counter">
+      <i class="fas" [class.fa-check]="isComplete" [class.fa-pen]="!isComplete"></i>
+      {{ isComplete ? 'Ho\xE0n th\xE0nh' : 'N\xE9t ' + (currentStrokeIndex + 1) + '/' + strokeCount }}
+    </span>
+  </header>
+
+  <div class="pad-stage">
+    <span class="grid-line grid-line-horizontal" aria-hidden="true"></span>
+    <span class="grid-line grid-line-vertical" aria-hidden="true"></span>
+    <span class="grid-line grid-line-diagonal-a" aria-hidden="true"></span>
+    <span class="grid-line grid-line-diagonal-b" aria-hidden="true"></span>
+
+    <svg
+      class="stroke-reference"
+      viewBox="0 0 1024 1024"
+      role="img"
+      [attr.aria-label]="'M\u1EABu th\u1EE9 t\u1EF1 n\xE9t ch\u1EEF ' + data.glyph"
+    >
+      <path
+        *ngFor="let outline of data.outlines"
+        class="glyph-outline"
+        [attr.d]="outline"
+      ></path>
+
+      <ng-container *ngIf="showAnimation">
+        <path
+          *ngFor="let median of data.medians; let index = index"
+          class="animated-median"
+          pathLength="1"
+          [attr.d]="median"
+          [style.animation-delay.s]="index * 0.7"
+        ></path>
+      </ng-container>
+
+      <path
+        *ngIf="showHint && currentGuidePath"
+        class="hint-median"
+        [attr.d]="currentGuidePath"
+      ></path>
+    </svg>
+
+    <canvas
+      #drawingCanvas
+      class="drawing-canvas"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel($event)"
+      [attr.aria-label]="'\xD4 luy\u1EC7n vi\u1EBFt ch\u1EEF ' + data.glyph"
+    ></canvas>
+
+    <div class="pad-lock" *ngIf="!active && !isComplete">
+      <i class="fas fa-lock"></i>
+      <span>Ho\xE0n th\xE0nh \xF4 tr\u01B0\u1EDBc</span>
+    </div>
+
+    <div class="pad-complete-mark" *ngIf="isComplete">
+      <i class="fas" [class.fa-check]="failedAttempts < 3" [class.fa-flag]="failedAttempts >= 3"></i>
+    </div>
+  </div>
+
+  <p class="stroke-status" [class.is-warning]="failedAttempts > 0" aria-live="polite">
+    {{ statusMessage }}
+  </p>
+
+  <div class="stroke-tools">
+    <button
+      type="button"
+      title="X\xF3a n\xE9t v\u1EEBa \u0111\xFAng"
+      aria-label="X\xF3a n\xE9t v\u1EEBa \u0111\xFAng"
+      [disabled]="!acceptedStrokeCount || isComplete"
+      (click)="undoLastStroke()"
+    >
+      <i class="fas fa-rotate-left"></i>
+    </button>
+    <button
+      type="button"
+      title="L\xE0m l\u1EA1i ch\u1EEF"
+      aria-label="L\xE0m l\u1EA1i ch\u1EEF"
+      [disabled]="isComplete"
+      (click)="resetPad()"
+    >
+      <i class="fas fa-eraser"></i>
+    </button>
+    <button
+      type="button"
+      title="Xem th\u1EE9 t\u1EF1 n\xE9t"
+      aria-label="Xem th\u1EE9 t\u1EF1 n\xE9t"
+      [disabled]="isComplete"
+      (click)="replayAnimation()"
+    >
+      <i class="fas fa-play"></i>
+    </button>
+    <button
+      type="button"
+      title="G\u1EE3i \xFD n\xE9t hi\u1EC7n t\u1EA1i"
+      aria-label="G\u1EE3i \xFD n\xE9t hi\u1EC7n t\u1EA1i"
+      [disabled]="isComplete"
+      (click)="revealHint()"
+    >
+      <i class="fas fa-lightbulb"></i>
+    </button>
+    <button
+      *ngIf="failedAttempts >= 3 && !isComplete"
+      type="button"
+      class="skip-stroke"
+      title="B\u1ECF qua v\xE0 \xF4n l\u1EA1i sau"
+      aria-label="B\u1ECF qua v\xE0 \xF4n l\u1EA1i sau"
+      (click)="skipCurrentStroke()"
+    >
+      <i class="fas fa-forward"></i>
+    </button>
+  </div>
+</section>
+`, styles: ['/* src/app/pages/hiragana/stroke-pad.component.scss */\n:host {\n  min-width: 0;\n  display: block;\n}\n.stroke-pad {\n  min-width: 0;\n  padding: 0.9rem;\n  border: 1px solid #dce5ef;\n  border-radius: 8px;\n  background: #fff;\n  transition: border-color 0.18s ease, opacity 0.18s ease;\n}\n.stroke-pad.is-active {\n  border-color: #8fa9ca;\n}\n.stroke-pad.is-disabled {\n  opacity: 0.62;\n}\n.stroke-pad.is-complete {\n  border-color: #8fc4b2;\n  background: #fbfffd;\n}\n.stroke-pad-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 0.75rem;\n  margin-bottom: 0.7rem;\n}\n.stroke-pad-header > div {\n  display: flex;\n  align-items: center;\n  gap: 0.55rem;\n}\n.stroke-pad-header span {\n  color: #6b7b90;\n  font-size: 0.74rem;\n  font-weight: 750;\n}\n.stroke-pad-header strong {\n  color: #173f85;\n  font-family:\n    "Yu Gothic",\n    "Hiragino Kaku Gothic ProN",\n    sans-serif;\n  font-size: 1.35rem;\n  line-height: 1;\n}\n.stroke-counter {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.38rem;\n  white-space: nowrap;\n}\n.stroke-counter i {\n  color: #1c856b;\n}\n.pad-stage {\n  position: relative;\n  width: 100%;\n  aspect-ratio: 1;\n  overflow: hidden;\n  border: 1px solid #cbd7e5;\n  border-radius: 6px;\n  background: #fbfcfe;\n}\n.grid-line {\n  position: absolute;\n  z-index: 0;\n  background: #e2e8f0;\n  pointer-events: none;\n}\n.grid-line-horizontal {\n  top: 50%;\n  right: 0;\n  left: 0;\n  height: 1px;\n}\n.grid-line-vertical {\n  top: 0;\n  bottom: 0;\n  left: 50%;\n  width: 1px;\n}\n.grid-line-diagonal-a,\n.grid-line-diagonal-b {\n  top: 50%;\n  left: -21%;\n  width: 142%;\n  height: 1px;\n  background: #edf1f6;\n}\n.grid-line-diagonal-a {\n  transform: rotate(45deg);\n}\n.grid-line-diagonal-b {\n  transform: rotate(-45deg);\n}\n.stroke-reference,\n.drawing-canvas {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n}\n.stroke-reference {\n  z-index: 1;\n  pointer-events: none;\n}\n.drawing-canvas {\n  z-index: 2;\n  display: block;\n  cursor: crosshair;\n  touch-action: none;\n}\n.glyph-outline {\n  fill: #e9eef5;\n}\n.animated-median {\n  fill: none;\n  stroke: #315f9d;\n  stroke-width: 34;\n  stroke-linecap: round;\n  stroke-dasharray: 1;\n  stroke-dashoffset: 1;\n  animation: draw-stroke 0.65s ease forwards;\n}\n.hint-median {\n  fill: none;\n  stroke: #e2a916;\n  stroke-width: 42;\n  stroke-linecap: round;\n  opacity: 0.82;\n  animation: hint-pulse 1.1s ease-in-out infinite;\n}\n.pad-lock,\n.pad-complete-mark {\n  position: absolute;\n  inset: 0;\n  z-index: 3;\n  display: grid;\n  place-items: center;\n  align-content: center;\n  gap: 0.4rem;\n}\n.pad-lock {\n  background: rgba(248, 250, 252, 0.84);\n  color: #718096;\n  font-size: 0.76rem;\n  font-weight: 750;\n}\n.pad-lock i {\n  font-size: 1rem;\n}\n.pad-complete-mark {\n  pointer-events: none;\n}\n.pad-complete-mark i {\n  width: 48px;\n  height: 48px;\n  display: grid;\n  place-items: center;\n  border-radius: 50%;\n  background: rgba(25, 132, 103, 0.92);\n  color: #fff;\n  font-size: 1.2rem;\n  box-shadow: 0 10px 25px rgba(25, 132, 103, 0.24);\n}\n.stroke-status {\n  min-height: 38px;\n  margin: 0.65rem 0 0;\n  color: #68788e;\n  font-size: 0.75rem;\n  line-height: 1.45;\n}\n.stroke-status.is-warning {\n  color: #a05d17;\n}\n.stroke-tools {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.42rem;\n  margin-top: 0.35rem;\n}\n.stroke-tools button {\n  width: 38px;\n  height: 38px;\n  display: grid;\n  place-items: center;\n  border: 1px solid #d7e0eb;\n  border-radius: 6px;\n  background: #fff;\n  color: #31577f;\n  cursor: pointer;\n}\n.stroke-tools button:hover:not(:disabled),\n.stroke-tools button:focus-visible {\n  border-color: #8fa9ca;\n  background: #eef4fb;\n}\n.stroke-tools button:disabled {\n  color: #adb8c5;\n  cursor: not-allowed;\n}\n.stroke-tools .skip-stroke {\n  margin-left: auto;\n  border-color: #e8c58c;\n  color: #a05d17;\n}\n@keyframes draw-stroke {\n  to {\n    stroke-dashoffset: 0;\n  }\n}\n@keyframes hint-pulse {\n  50% {\n    opacity: 0.4;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .animated-median {\n    stroke-dashoffset: 0;\n    animation: none;\n  }\n  .hint-median {\n    animation: none;\n  }\n}\n/*# sourceMappingURL=stroke-pad.component.css.map */\n'] }]
+  }], () => [{ type: i0.NgZone }], { data: [{
+    type: Input,
+    args: [{ required: true }]
+  }], active: [{
+    type: Input
+  }], label: [{
+    type: Input
+  }], resetToken: [{
+    type: Input
+  }], padCompleted: [{
+    type: Output
+  }], padSkipped: [{
+    type: Output
+  }], canvasRef: [{
+    type: ViewChild,
+    args: ["drawingCanvas"]
+  }] });
+})();
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && i0.\u0275setClassDebugInfo(StrokePadComponent, { className: "StrokePadComponent", filePath: "src/app/pages/hiragana/stroke-pad.component.ts", lineNumber: 30 });
+})();
+(() => {
+  const id = "src%2Fapp%2Fpages%2Fhiragana%2Fstroke-pad.component.ts%40StrokePadComponent";
+  function StrokePadComponent_HmrLoad(t) {
+    import(
+      /* @vite-ignore */
+      __vite__injectQuery(i0.\u0275\u0275getReplaceMetadataURL(id, t, import.meta.url), 'import')
+    ).then((m) => m.default && i0.\u0275\u0275replaceMetadata(StrokePadComponent, m.default, [i0, i1], [CommonModule, Component, Input, Output, ViewChild], import.meta, id));
+  }
+  (typeof ngDevMode === "undefined" || ngDevMode) && StrokePadComponent_HmrLoad(Date.now());
+  (typeof ngDevMode === "undefined" || ngDevMode) && (import.meta.hot && import.meta.hot.on("angular:component-update", (d) => d.id === id && StrokePadComponent_HmrLoad(d.timestamp)));
+})();
+
+export {
+  createQuiz,
+  StrokePadComponent
+};
+
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInNyYy9hcHAvcGFnZXMvaGlyYWdhbmEvcXVpei1lbmdpbmUudHMiLCJzcmMvYXBwL3BhZ2VzL2hpcmFnYW5hL3N0cm9rZS1wYWQuY29tcG9uZW50LnRzIiwic3JjL2FwcC9wYWdlcy9oaXJhZ2FuYS9zdHJva2UtcGFkLmNvbXBvbmVudC5odG1sIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEhpcmFnYW5hSXRlbSwgUXVpekRpcmVjdGlvbiB9IGZyb20gJy4vaGlyYWdhbmEtZGF0YSc7XG5cbmV4cG9ydCBpbnRlcmZhY2UgSGlyYWdhbmFRdWl6UXVlc3Rpb24ge1xuICBpZDogc3RyaW5nO1xuICBpdGVtOiBIaXJhZ2FuYUl0ZW07XG4gIGRpcmVjdGlvbjogUXVpekRpcmVjdGlvbjtcbiAgcHJvbXB0OiBzdHJpbmc7XG4gIGNvcnJlY3RBbnN3ZXI6IHN0cmluZztcbiAgb3B0aW9uczogc3RyaW5nW107XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBzaHVmZmxlPFQ+KHZhbHVlczogcmVhZG9ubHkgVFtdLCByYW5kb206ICgpID0+IG51bWJlciA9IE1hdGgucmFuZG9tKTogVFtdIHtcbiAgY29uc3QgcmVzdWx0ID0gWy4uLnZhbHVlc107XG4gIGZvciAobGV0IGluZGV4ID0gcmVzdWx0Lmxlbmd0aCAtIDE7IGluZGV4ID4gMDsgaW5kZXggLT0gMSkge1xuICAgIGNvbnN0IHRhcmdldCA9IE1hdGguZmxvb3IocmFuZG9tKCkgKiAoaW5kZXggKyAxKSk7XG4gICAgW3Jlc3VsdFtpbmRleF0sIHJlc3VsdFt0YXJnZXRdXSA9IFtyZXN1bHRbdGFyZ2V0XSwgcmVzdWx0W2luZGV4XV07XG4gIH1cbiAgcmV0dXJuIHJlc3VsdDtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIGNyZWF0ZVF1aXooXG4gIHBvb2w6IHJlYWRvbmx5IEhpcmFnYW5hSXRlbVtdLFxuICBhbGxJdGVtczogcmVhZG9ubHkgSGlyYWdhbmFJdGVtW10sXG4gIGNvdW50ID0gMTAsXG4gIHJhbmRvbTogKCkgPT4gbnVtYmVyID0gTWF0aC5yYW5kb20sXG4pOiBIaXJhZ2FuYVF1aXpRdWVzdGlvbltdIHtcbiAgcmV0dXJuIHNodWZmbGUocG9vbCwgcmFuZG9tKVxuICAgIC5zbGljZSgwLCBNYXRoLm1pbihjb3VudCwgcG9vbC5sZW5ndGgpKVxuICAgIC5tYXAoKGl0ZW0sIGluZGV4KSA9PiB7XG4gICAgICBjb25zdCBkaXJlY3Rpb24gPVxuICAgICAgICBpdGVtLnF1aXpEaXJlY3Rpb25zW01hdGguZmxvb3IocmFuZG9tKCkgKiBpdGVtLnF1aXpEaXJlY3Rpb25zLmxlbmd0aCldID8/XG4gICAgICAgIGl0ZW0ucXVpekRpcmVjdGlvbnNbMF07XG4gICAgICBjb25zdCBpc0thbmFQcm9tcHQgPSBkaXJlY3Rpb24gPT09ICdrYW5hLXRvLXJvbWFqaSc7XG4gICAgICBjb25zdCBjb3JyZWN0QW5zd2VyID0gaXNLYW5hUHJvbXB0ID8gaXRlbS5yb21hamkgOiBpdGVtLmthbmE7XG4gICAgICBjb25zdCBkaXN0cmFjdG9ycyA9IEFycmF5LmZyb20oXG4gICAgICAgIG5ldyBTZXQoXG4gICAgICAgICAgYWxsSXRlbXNcbiAgICAgICAgICAgIC5maWx0ZXIoKGNhbmRpZGF0ZSkgPT4gY2FuZGlkYXRlLmlkICE9PSBpdGVtLmlkKVxuICAgICAgICAgICAgLmZpbHRlcigoY2FuZGlkYXRlKSA9PiBpc0thbmFQcm9tcHQgfHwgY2FuZGlkYXRlLnJvbWFqaSAhPT0gaXRlbS5yb21hamkpXG4gICAgICAgICAgICAubWFwKChjYW5kaWRhdGUpID0+IChpc0thbmFQcm9tcHQgPyBjYW5kaWRhdGUucm9tYWppIDogY2FuZGlkYXRlLmthbmEpKVxuICAgICAgICAgICAgLmZpbHRlcigoYW5zd2VyKSA9PiBhbnN3ZXIgIT09IGNvcnJlY3RBbnN3ZXIpLFxuICAgICAgICApLFxuICAgICAgKTtcbiAgICAgIGNvbnN0IG9wdGlvbnMgPSBzaHVmZmxlKFxuICAgICAgICBbY29ycmVjdEFuc3dlciwgLi4uc2h1ZmZsZShkaXN0cmFjdG9ycywgcmFuZG9tKS5zbGljZSgwLCAzKV0sXG4gICAgICAgIHJhbmRvbSxcbiAgICAgICk7XG5cbiAgICAgIHJldHVybiB7XG4gICAgICAgIGlkOiBgJHtpdGVtLmlkfS0ke2luZGV4fS0ke2RpcmVjdGlvbn1gLFxuICAgICAgICBpdGVtLFxuICAgICAgICBkaXJlY3Rpb24sXG4gICAgICAgIHByb21wdDogaXNLYW5hUHJvbXB0ID8gaXRlbS5rYW5hIDogaXRlbS5yb21hamksXG4gICAgICAgIGNvcnJlY3RBbnN3ZXIsXG4gICAgICAgIG9wdGlvbnMsXG4gICAgICB9O1xuICAgIH0pO1xufVxuIiwiaW1wb3J0IHtcbiAgQWZ0ZXJWaWV3SW5pdCxcbiAgQ29tcG9uZW50LFxuICBFbGVtZW50UmVmLFxuICBFdmVudEVtaXR0ZXIsXG4gIElucHV0LFxuICBOZ1pvbmUsXG4gIE9uQ2hhbmdlcyxcbiAgT25EZXN0cm95LFxuICBPdXRwdXQsXG4gIFNpbXBsZUNoYW5nZXMsXG4gIFZpZXdDaGlsZCxcbn0gZnJvbSAnQGFuZ3VsYXIvY29yZSc7XG5pbXBvcnQgeyBDb21tb25Nb2R1bGUgfSBmcm9tICdAYW5ndWxhci9jb21tb24nO1xuaW1wb3J0IHsgR2x5cGhTdHJva2VEYXRhIH0gZnJvbSAnLi9zdHJva2UtZGF0YS5nZW5lcmF0ZWQnO1xuaW1wb3J0IHtcbiAgZXZhbHVhdGVTdHJva2UsXG4gIHNhbXBsZVN2Z1BhdGgsXG4gIFN0cm9rZUV2YWx1YXRpb24sXG4gIFN0cm9rZVBvaW50LFxufSBmcm9tICcuL3N0cm9rZS1ldmFsdWF0b3InO1xuXG5AQ29tcG9uZW50KHtcbiAgc2VsZWN0b3I6ICdhcHAtc3Ryb2tlLXBhZCcsXG4gIHN0YW5kYWxvbmU6IHRydWUsXG4gIGltcG9ydHM6IFtDb21tb25Nb2R1bGVdLFxuICB0ZW1wbGF0ZVVybDogJy4vc3Ryb2tlLXBhZC5jb21wb25lbnQuaHRtbCcsXG4gIHN0eWxlVXJsOiAnLi9zdHJva2UtcGFkLmNvbXBvbmVudC5zY3NzJyxcbn0pXG5leHBvcnQgY2xhc3MgU3Ryb2tlUGFkQ29tcG9uZW50IGltcGxlbWVudHMgQWZ0ZXJWaWV3SW5pdCwgT25DaGFuZ2VzLCBPbkRlc3Ryb3kge1xuICBASW5wdXQoeyByZXF1aXJlZDogdHJ1ZSB9KSBkYXRhITogR2x5cGhTdHJva2VEYXRhO1xuICBASW5wdXQoKSBhY3RpdmUgPSB0cnVlO1xuICBASW5wdXQoKSBsYWJlbCA9ICcnO1xuICBASW5wdXQoKSByZXNldFRva2VuID0gMDtcblxuICBAT3V0cHV0KCkgcGFkQ29tcGxldGVkID0gbmV3IEV2ZW50RW1pdHRlcjx2b2lkPigpO1xuICBAT3V0cHV0KCkgcGFkU2tpcHBlZCA9IG5ldyBFdmVudEVtaXR0ZXI8dm9pZD4oKTtcblxuICBAVmlld0NoaWxkKCdkcmF3aW5nQ2FudmFzJykgY2FudmFzUmVmPzogRWxlbWVudFJlZjxIVE1MQ2FudmFzRWxlbWVudD47XG5cbiAgY3VycmVudFN0cm9rZUluZGV4ID0gMDtcbiAgZmFpbGVkQXR0ZW1wdHMgPSAwO1xuICBzaG93QW5pbWF0aW9uID0gdHJ1ZTtcbiAgc2hvd0hpbnQgPSBmYWxzZTtcbiAgc3RhdHVzTWVzc2FnZSA9ICdYZW0gbsOpdCBt4bqrdSBy4buTaSB2aeG6v3QgdGhlbyDEkcO6bmcgdGjhu6kgdOG7sS4nO1xuICBpc0NvbXBsZXRlID0gZmFsc2U7XG5cbiAgcHJpdmF0ZSBhY2NlcHRlZFN0cm9rZXM6IFN0cm9rZVBvaW50W11bXSA9IFtdO1xuICBwcml2YXRlIGN1cnJlbnRTdHJva2U6IFN0cm9rZVBvaW50W10gPSBbXTtcbiAgcHJpdmF0ZSBhY3RpdmVQb2ludGVySWQ/OiBudW1iZXI7XG4gIHByaXZhdGUgaXNUb3VjaElucHV0ID0gZmFsc2U7XG4gIHByaXZhdGUgcmVzaXplT2JzZXJ2ZXI/OiBSZXNpemVPYnNlcnZlcjtcbiAgcHJpdmF0ZSBhbmltYXRpb25UaW1lcj86IFJldHVyblR5cGU8dHlwZW9mIHNldFRpbWVvdXQ+O1xuXG4gIGNvbnN0cnVjdG9yKHByaXZhdGUgem9uZTogTmdab25lKSB7fVxuXG4gIGdldCBzdHJva2VDb3VudCgpOiBudW1iZXIge1xuICAgIHJldHVybiB0aGlzLmRhdGE/Lm1lZGlhbnMubGVuZ3RoID8/IDA7XG4gIH1cblxuICBnZXQgY3VycmVudEd1aWRlUGF0aCgpOiBzdHJpbmcgfCB1bmRlZmluZWQge1xuICAgIHJldHVybiB0aGlzLmRhdGE/Lm1lZGlhbnNbdGhpcy5jdXJyZW50U3Ryb2tlSW5kZXhdO1xuICB9XG5cbiAgZ2V0IGFjY2VwdGVkU3Ryb2tlQ291bnQoKTogbnVtYmVyIHtcbiAgICByZXR1cm4gdGhpcy5hY2NlcHRlZFN0cm9rZXMubGVuZ3RoO1xuICB9XG5cbiAgbmdBZnRlclZpZXdJbml0KCk6IHZvaWQge1xuICAgIGNvbnN0IGNhbnZhcyA9IHRoaXMuY2FudmFzUmVmPy5uYXRpdmVFbGVtZW50O1xuICAgIGlmICghY2FudmFzKSB7XG4gICAgICByZXR1cm47XG4gICAgfVxuXG4gICAgdGhpcy5yZXNpemVPYnNlcnZlciA9IG5ldyBSZXNpemVPYnNlcnZlcigoKSA9PiB0aGlzLnJlc2l6ZUNhbnZhcygpKTtcbiAgICB0aGlzLnJlc2l6ZU9ic2VydmVyLm9ic2VydmUoY2FudmFzKTtcbiAgICB0aGlzLnJlc2l6ZUNhbnZhcygpO1xuICAgIHRoaXMuc3RhcnRBbmltYXRpb25UaW1lcigpO1xuICB9XG5cbiAgbmdPbkNoYW5nZXMoY2hhbmdlczogU2ltcGxlQ2hhbmdlcyk6IHZvaWQge1xuICAgIGlmIChjaGFuZ2VzWydkYXRhJ10gfHwgY2hhbmdlc1sncmVzZXRUb2tlbiddKSB7XG4gICAgICB0aGlzLnJlc2V0UGFkKCk7XG4gICAgfVxuICB9XG5cbiAgbmdPbkRlc3Ryb3koKTogdm9pZCB7XG4gICAgdGhpcy5yZXNpemVPYnNlcnZlcj8uZGlzY29ubmVjdCgpO1xuICAgIGNsZWFyVGltZW91dCh0aGlzLmFuaW1hdGlvblRpbWVyKTtcbiAgfVxuXG4gIG9uUG9pbnRlckRvd24oZXZlbnQ6IFBvaW50ZXJFdmVudCk6IHZvaWQge1xuICAgIGlmICghdGhpcy5hY3RpdmUgfHwgdGhpcy5pc0NvbXBsZXRlIHx8IHRoaXMuYWN0aXZlUG9pbnRlcklkICE9PSB1bmRlZmluZWQpIHtcbiAgICAgIHJldHVybjtcbiAgICB9XG5cbiAgICBldmVudC5wcmV2ZW50RGVmYXVsdCgpO1xuICAgIGNvbnN0IGNhbnZhcyA9IHRoaXMuY2FudmFzUmVmPy5uYXRpdmVFbGVtZW50O1xuICAgIGlmICghY2FudmFzKSB7XG4gICAgICByZXR1cm47XG4gICAgfVxuXG4gICAgdGhpcy5zaG93QW5pbWF0aW9uID0gZmFsc2U7XG4gICAgdGhpcy5pc1RvdWNoSW5wdXQgPSBldmVudC5wb2ludGVyVHlwZSA9PT0gJ3RvdWNoJztcbiAgICB0aGlzLmFjdGl2ZVBvaW50ZXJJZCA9IGV2ZW50LnBvaW50ZXJJZDtcbiAgICBjYW52YXMuc2V0UG9pbnRlckNhcHR1cmUoZXZlbnQucG9pbnRlcklkKTtcbiAgICB0aGlzLmN1cnJlbnRTdHJva2UgPSBbdGhpcy50b0NhbnZhc1BvaW50KGV2ZW50KV07XG4gICAgdGhpcy5zdGF0dXNNZXNzYWdlID0gYMSQYW5nIHZp4bq/dCBuw6l0ICR7dGhpcy5jdXJyZW50U3Ryb2tlSW5kZXggKyAxfS8ke3RoaXMuc3Ryb2tlQ291bnR9YDtcbiAgICB0aGlzLnJlZHJhdygpO1xuICB9XG5cbiAgb25Qb2ludGVyTW92ZShldmVudDogUG9pbnRlckV2ZW50KTogdm9pZCB7XG4gICAgaWYgKGV2ZW50LnBvaW50ZXJJZCAhPT0gdGhpcy5hY3RpdmVQb2ludGVySWQpIHtcbiAgICAgIHJldHVybjtcbiAgICB9XG5cbiAgICBldmVudC5wcmV2ZW50RGVmYXVsdCgpO1xuICAgIGNvbnN0IG5leHRQb2ludCA9IHRoaXMudG9DYW52YXNQb2ludChldmVudCk7XG4gICAgY29uc3QgcHJldmlvdXNQb2ludCA9IHRoaXMuY3VycmVudFN0cm9rZVt0aGlzLmN1cnJlbnRTdHJva2UubGVuZ3RoIC0gMV07XG4gICAgaWYgKCFwcmV2aW91c1BvaW50IHx8IE1hdGguaHlwb3QobmV4dFBvaW50LnggLSBwcmV2aW91c1BvaW50LngsIG5leHRQb2ludC55IC0gcHJldmlvdXNQb2ludC55KSA+IDQpIHtcbiAgICAgIHRoaXMuY3VycmVudFN0cm9rZS5wdXNoKG5leHRQb2ludCk7XG4gICAgICB0aGlzLnJlZHJhdygpO1xuICAgIH1cbiAgfVxuXG4gIG9uUG9pbnRlclVwKGV2ZW50OiBQb2ludGVyRXZlbnQpOiB2b2lkIHtcbiAgICBpZiAoZXZlbnQucG9pbnRlcklkICE9PSB0aGlzLmFjdGl2ZVBvaW50ZXJJZCkge1xuICAgICAgcmV0dXJuO1xuICAgIH1cblxuICAgIGV2ZW50LnByZXZlbnREZWZhdWx0KCk7XG4gICAgY29uc3QgY2FudmFzID0gdGhpcy5jYW52YXNSZWY/Lm5hdGl2ZUVsZW1lbnQ7XG4gICAgaWYgKGNhbnZhcz8uaGFzUG9pbnRlckNhcHR1cmUoZXZlbnQucG9pbnRlcklkKSkge1xuICAgICAgY2FudmFzLnJlbGVhc2VQb2ludGVyQ2FwdHVyZShldmVudC5wb2ludGVySWQpO1xuICAgIH1cbiAgICB0aGlzLmFjdGl2ZVBvaW50ZXJJZCA9IHVuZGVmaW5lZDtcblxuICAgIGNvbnN0IHJlZmVyZW5jZVBhdGggPSB0aGlzLmN1cnJlbnRHdWlkZVBhdGg7XG4gICAgY29uc3QgZXZhbHVhdGlvbiA9IHJlZmVyZW5jZVBhdGhcbiAgICAgID8gZXZhbHVhdGVTdHJva2UodGhpcy5jdXJyZW50U3Ryb2tlLCBzYW1wbGVTdmdQYXRoKHJlZmVyZW5jZVBhdGgpLCB0aGlzLmlzVG91Y2hJbnB1dClcbiAgICAgIDogdW5kZWZpbmVkO1xuICAgIHRoaXMuZmluaXNoU3Ryb2tlKGV2YWx1YXRpb24pO1xuICB9XG5cbiAgb25Qb2ludGVyQ2FuY2VsKGV2ZW50OiBQb2ludGVyRXZlbnQpOiB2b2lkIHtcbiAgICBpZiAoZXZlbnQucG9pbnRlcklkICE9PSB0aGlzLmFjdGl2ZVBvaW50ZXJJZCkge1xuICAgICAgcmV0dXJuO1xuICAgIH1cbiAgICB0aGlzLmFjdGl2ZVBvaW50ZXJJZCA9IHVuZGVmaW5lZDtcbiAgICB0aGlzLmN1cnJlbnRTdHJva2UgPSBbXTtcbiAgICB0aGlzLnN0YXR1c01lc3NhZ2UgPSAnTsOpdCB24burYSB2aeG6v3QgxJHDoyDEkcaw4bujYyBo4buneS4nO1xuICAgIHRoaXMucmVkcmF3KCk7XG4gIH1cblxuICB1bmRvTGFzdFN0cm9rZSgpOiB2b2lkIHtcbiAgICBpZiAoIXRoaXMuYWNjZXB0ZWRTdHJva2VzLmxlbmd0aCB8fCB0aGlzLmlzQ29tcGxldGUpIHtcbiAgICAgIHJldHVybjtcbiAgICB9XG4gICAgdGhpcy5hY2NlcHRlZFN0cm9rZXMucG9wKCk7XG4gICAgdGhpcy5jdXJyZW50U3Ryb2tlSW5kZXggPSBNYXRoLm1heCgwLCB0aGlzLmN1cnJlbnRTdHJva2VJbmRleCAtIDEpO1xuICAgIHRoaXMuZmFpbGVkQXR0ZW1wdHMgPSAwO1xuICAgIHRoaXMuc2hvd0hpbnQgPSBmYWxzZTtcbiAgICB0aGlzLnN0YXR1c01lc3NhZ2UgPSBgxJDDoyB4w7NhIG7DqXQuIFZp4bq/dCBs4bqhaSBuw6l0ICR7dGhpcy5jdXJyZW50U3Ryb2tlSW5kZXggKyAxfS5gO1xuICAgIHRoaXMucmVkcmF3KCk7XG4gIH1cblxuICByZXNldFBhZCgpOiB2b2lkIHtcbiAgICB0aGlzLmN1cnJlbnRTdHJva2VJbmRleCA9IDA7XG4gICAgdGhpcy5mYWlsZWRBdHRlbXB0cyA9IDA7XG4gICAgdGhpcy5hY2NlcHRlZFN0cm9rZXMgPSBbXTtcbiAgICB0aGlzLmN1cnJlbnRTdHJva2UgPSBbXTtcbiAgICB0aGlzLmFjdGl2ZVBvaW50ZXJJZCA9IHVuZGVmaW5lZDtcbiAgICB0aGlzLmlzQ29tcGxldGUgPSBmYWxzZTtcbiAgICB0aGlzLnNob3dIaW50ID0gZmFsc2U7XG4gICAgdGhpcy5zaG93QW5pbWF0aW9uID0gdHJ1ZTtcbiAgICB0aGlzLnN0YXR1c01lc3NhZ2UgPSAnWGVtIG7DqXQgbeG6q3UgcuG7k2kgdmnhur90IHRoZW8gxJHDum5nIHRo4bupIHThu7EuJztcbiAgICB0aGlzLnJlZHJhdygpO1xuICAgIHRoaXMuc3RhcnRBbmltYXRpb25UaW1lcigpO1xuICB9XG5cbiAgcmVwbGF5QW5pbWF0aW9uKCk6IHZvaWQge1xuICAgIHRoaXMuc2hvd0FuaW1hdGlvbiA9IGZhbHNlO1xuICAgIGNsZWFyVGltZW91dCh0aGlzLmFuaW1hdGlvblRpbWVyKTtcbiAgICByZXF1ZXN0QW5pbWF0aW9uRnJhbWUoKCkgPT4ge1xuICAgICAgdGhpcy5zaG93QW5pbWF0aW9uID0gdHJ1ZTtcbiAgICAgIHRoaXMuc3RhcnRBbmltYXRpb25UaW1lcigpO1xuICAgIH0pO1xuICB9XG5cbiAgcmV2ZWFsSGludCgpOiB2b2lkIHtcbiAgICB0aGlzLnNob3dBbmltYXRpb24gPSBmYWxzZTtcbiAgICB0aGlzLnNob3dIaW50ID0gdHJ1ZTtcbiAgICB0aGlzLnN0YXR1c01lc3NhZ2UgPSBgTsOpdCBtw6B1IHbDoG5nIGzDoCBuw6l0ICR7dGhpcy5jdXJyZW50U3Ryb2tlSW5kZXggKyAxfSBj4bqnbiB2aeG6v3QuYDtcbiAgfVxuXG4gIHNraXBDdXJyZW50U3Ryb2tlKCk6IHZvaWQge1xuICAgIGlmICh0aGlzLmZhaWxlZEF0dGVtcHRzIDwgMyB8fCB0aGlzLmlzQ29tcGxldGUpIHtcbiAgICAgIHJldHVybjtcbiAgICB9XG4gICAgdGhpcy5wYWRTa2lwcGVkLmVtaXQoKTtcbiAgICB0aGlzLnN0YXR1c01lc3NhZ2UgPSAnxJDDoyDEkcOhbmggZOG6pXUgY2jhu68gbsOgeSBj4bqnbiDDtG4gbOG6oWkuJztcbiAgICB0aGlzLmlzQ29tcGxldGUgPSB0cnVlO1xuICAgIHRoaXMuY3VycmVudFN0cm9rZSA9IFtdO1xuICAgIHRoaXMucmVkcmF3KCk7XG4gIH1cblxuICBwcml2YXRlIGZpbmlzaFN0cm9rZShldmFsdWF0aW9uPzogU3Ryb2tlRXZhbHVhdGlvbik6IHZvaWQge1xuICAgIGlmIChldmFsdWF0aW9uPy5wYXNzZWQpIHtcbiAgICAgIHRoaXMuYWNjZXB0ZWRTdHJva2VzLnB1c2goWy4uLnRoaXMuY3VycmVudFN0cm9rZV0pO1xuICAgICAgdGhpcy5jdXJyZW50U3Ryb2tlID0gW107XG4gICAgICB0aGlzLmN1cnJlbnRTdHJva2VJbmRleCArPSAxO1xuICAgICAgdGhpcy5mYWlsZWRBdHRlbXB0cyA9IDA7XG4gICAgICB0aGlzLnNob3dIaW50ID0gZmFsc2U7XG5cbiAgICAgIGlmICh0aGlzLmN1cnJlbnRTdHJva2VJbmRleCA+PSB0aGlzLnN0cm9rZUNvdW50KSB7XG4gICAgICAgIHRoaXMuaXNDb21wbGV0ZSA9IHRydWU7XG4gICAgICAgIHRoaXMuc3RhdHVzTWVzc2FnZSA9ICdIb8OgbiB0aMOgbmggxJHDum5nIHRo4bupIHThu7EgbsOpdC4nO1xuICAgICAgICB0aGlzLnBhZENvbXBsZXRlZC5lbWl0KCk7XG4gICAgICB9IGVsc2Uge1xuICAgICAgICB0aGlzLnN0YXR1c01lc3NhZ2UgPSBgxJDDum5nIHLhu5NpLiBUaeG6v3AgdOG7pWMgbsOpdCAke3RoaXMuY3VycmVudFN0cm9rZUluZGV4ICsgMX0vJHt0aGlzLnN0cm9rZUNvdW50fS5gO1xuICAgICAgfVxuICAgIH0gZWxzZSB7XG4gICAgICB0aGlzLmN1cnJlbnRTdHJva2UgPSBbXTtcbiAgICAgIHRoaXMuZmFpbGVkQXR0ZW1wdHMgKz0gMTtcbiAgICAgIHRoaXMuc2hvd0hpbnQgPSB0aGlzLmZhaWxlZEF0dGVtcHRzID49IDI7XG4gICAgICB0aGlzLnN0YXR1c01lc3NhZ2UgPSB0aGlzLmZhaWx1cmVNZXNzYWdlKGV2YWx1YXRpb24pO1xuICAgIH1cbiAgICB0aGlzLnJlZHJhdygpO1xuICB9XG5cbiAgcHJpdmF0ZSBmYWlsdXJlTWVzc2FnZShldmFsdWF0aW9uPzogU3Ryb2tlRXZhbHVhdGlvbik6IHN0cmluZyB7XG4gICAgaWYgKCFldmFsdWF0aW9uIHx8IGV2YWx1YXRpb24ucmVhc29uID09PSAndG9vLXNob3J0Jykge1xuICAgICAgcmV0dXJuICdOw6l0IHF1w6Egbmfhuq9uLiBIw6N5IHZp4bq/dCBsaeG7gW4gbeG6oWNoIGjGoW4uJztcbiAgICB9XG4gICAgaWYgKGV2YWx1YXRpb24ucmVhc29uID09PSAnd3JvbmctZGlyZWN0aW9uJykge1xuICAgICAgcmV0dXJuICdIw6N5IGLhuq90IMSR4bqndSB2w6Aga+G6v3QgdGjDumMgdGhlbyBoxrDhu5tuZyBuw6l0IG3huqt1Lic7XG4gICAgfVxuICAgIHJldHVybiB0aGlzLmZhaWxlZEF0dGVtcHRzID49IDNcbiAgICAgID8gJ07DqXQgY2jGsGEga2jhu5twLiBC4bqhbiBjw7MgdGjhu4MgeGVtIGfhu6NpIMO9IGhv4bq3YyBi4buPIHF1YSDEkeG7gyDDtG4gbOG6oWkgc2F1LidcbiAgICAgIDogJ07DqXQgY8OybiBs4buHY2ggbeG6q3UuIEjDo3kgdGjhu60gY2jhuq1tIGjGoW4gbeG7mXQgY2jDunQuJztcbiAgfVxuXG4gIHByaXZhdGUgdG9DYW52YXNQb2ludChldmVudDogUG9pbnRlckV2ZW50KTogU3Ryb2tlUG9pbnQge1xuICAgIGNvbnN0IGNhbnZhcyA9IHRoaXMuY2FudmFzUmVmIS5uYXRpdmVFbGVtZW50O1xuICAgIGNvbnN0IHJlY3QgPSBjYW52YXMuZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCk7XG4gICAgcmV0dXJuIHtcbiAgICAgIHg6ICgoZXZlbnQuY2xpZW50WCAtIHJlY3QubGVmdCkgLyByZWN0LndpZHRoKSAqIDEwMjQsXG4gICAgICB5OiAoKGV2ZW50LmNsaWVudFkgLSByZWN0LnRvcCkgLyByZWN0LmhlaWdodCkgKiAxMDI0LFxuICAgIH07XG4gIH1cblxuICBwcml2YXRlIHJlc2l6ZUNhbnZhcygpOiB2b2lkIHtcbiAgICBjb25zdCBjYW52YXMgPSB0aGlzLmNhbnZhc1JlZj8ubmF0aXZlRWxlbWVudDtcbiAgICBpZiAoIWNhbnZhcykge1xuICAgICAgcmV0dXJuO1xuICAgIH1cbiAgICBjb25zdCByZWN0ID0gY2FudmFzLmdldEJvdW5kaW5nQ2xpZW50UmVjdCgpO1xuICAgIGNvbnN0IHJhdGlvID0gTWF0aC5taW4od2luZG93LmRldmljZVBpeGVsUmF0aW8gfHwgMSwgMik7XG4gICAgY2FudmFzLndpZHRoID0gTWF0aC5tYXgoMSwgTWF0aC5yb3VuZChyZWN0LndpZHRoICogcmF0aW8pKTtcbiAgICBjYW52YXMuaGVpZ2h0ID0gTWF0aC5tYXgoMSwgTWF0aC5yb3VuZChyZWN0LmhlaWdodCAqIHJhdGlvKSk7XG4gICAgdGhpcy5yZWRyYXcoKTtcbiAgfVxuXG4gIHByaXZhdGUgcmVkcmF3KCk6IHZvaWQge1xuICAgIGNvbnN0IGNhbnZhcyA9IHRoaXMuY2FudmFzUmVmPy5uYXRpdmVFbGVtZW50O1xuICAgIGNvbnN0IGNvbnRleHQgPSBjYW52YXM/LmdldENvbnRleHQoJzJkJyk7XG4gICAgaWYgKCFjYW52YXMgfHwgIWNvbnRleHQpIHtcbiAgICAgIHJldHVybjtcbiAgICB9XG5cbiAgICBjb250ZXh0LnNldFRyYW5zZm9ybSgxLCAwLCAwLCAxLCAwLCAwKTtcbiAgICBjb250ZXh0LmNsZWFyUmVjdCgwLCAwLCBjYW52YXMud2lkdGgsIGNhbnZhcy5oZWlnaHQpO1xuICAgIGNvbnRleHQuc2V0VHJhbnNmb3JtKGNhbnZhcy53aWR0aCAvIDEwMjQsIDAsIDAsIGNhbnZhcy5oZWlnaHQgLyAxMDI0LCAwLCAwKTtcbiAgICBjb250ZXh0LmxpbmVDYXAgPSAncm91bmQnO1xuICAgIGNvbnRleHQubGluZUpvaW4gPSAncm91bmQnO1xuXG4gICAgZm9yIChjb25zdCBzdHJva2Ugb2YgdGhpcy5hY2NlcHRlZFN0cm9rZXMpIHtcbiAgICAgIHRoaXMuZHJhd1BvaW50cyhjb250ZXh0LCBzdHJva2UsICcjMTczZjg1JywgMzApO1xuICAgIH1cbiAgICBpZiAodGhpcy5jdXJyZW50U3Ryb2tlLmxlbmd0aCkge1xuICAgICAgdGhpcy5kcmF3UG9pbnRzKGNvbnRleHQsIHRoaXMuY3VycmVudFN0cm9rZSwgJyMxNjNhNjUnLCAzMCk7XG4gICAgfVxuICB9XG5cbiAgcHJpdmF0ZSBkcmF3UG9pbnRzKFxuICAgIGNvbnRleHQ6IENhbnZhc1JlbmRlcmluZ0NvbnRleHQyRCxcbiAgICBwb2ludHM6IHJlYWRvbmx5IFN0cm9rZVBvaW50W10sXG4gICAgY29sb3I6IHN0cmluZyxcbiAgICB3aWR0aDogbnVtYmVyLFxuICApOiB2b2lkIHtcbiAgICBpZiAoIXBvaW50cy5sZW5ndGgpIHtcbiAgICAgIHJldHVybjtcbiAgICB9XG4gICAgY29udGV4dC5iZWdpblBhdGgoKTtcbiAgICBjb250ZXh0Lm1vdmVUbyhwb2ludHNbMF0ueCwgcG9pbnRzWzBdLnkpO1xuICAgIGZvciAoY29uc3QgcG9pbnQgb2YgcG9pbnRzLnNsaWNlKDEpKSB7XG4gICAgICBjb250ZXh0LmxpbmVUbyhwb2ludC54LCBwb2ludC55KTtcbiAgICB9XG4gICAgY29udGV4dC5zdHJva2VTdHlsZSA9IGNvbG9yO1xuICAgIGNvbnRleHQubGluZVdpZHRoID0gd2lkdGg7XG4gICAgY29udGV4dC5zdHJva2UoKTtcbiAgfVxuXG4gIHByaXZhdGUgc3RhcnRBbmltYXRpb25UaW1lcigpOiB2b2lkIHtcbiAgICBjbGVhclRpbWVvdXQodGhpcy5hbmltYXRpb25UaW1lcik7XG4gICAgdGhpcy5hbmltYXRpb25UaW1lciA9IHRoaXMuem9uZS5ydW5PdXRzaWRlQW5ndWxhcigoKSA9PlxuICAgICAgc2V0VGltZW91dCgoKSA9PiB7XG4gICAgICAgIHRoaXMuem9uZS5ydW4oKCkgPT4ge1xuICAgICAgICAgIGlmICghdGhpcy5jdXJyZW50U3Ryb2tlLmxlbmd0aCkge1xuICAgICAgICAgICAgdGhpcy5zaG93QW5pbWF0aW9uID0gZmFsc2U7XG4gICAgICAgICAgfVxuICAgICAgICB9KTtcbiAgICAgIH0sIE1hdGgubWF4KDI0MDAsIHRoaXMuc3Ryb2tlQ291bnQgKiA3MjAgKyA5MDApKSxcbiAgICApO1xuICB9XG59XG4iLCI8c2VjdGlvblxuICBjbGFzcz1cInN0cm9rZS1wYWRcIlxuICBbY2xhc3MuaXMtYWN0aXZlXT1cImFjdGl2ZVwiXG4gIFtjbGFzcy5pcy1jb21wbGV0ZV09XCJpc0NvbXBsZXRlXCJcbiAgW2NsYXNzLmlzLWRpc2FibGVkXT1cIiFhY3RpdmUgJiYgIWlzQ29tcGxldGVcIlxuPlxuICA8aGVhZGVyIGNsYXNzPVwic3Ryb2tlLXBhZC1oZWFkZXJcIj5cbiAgICA8ZGl2PlxuICAgICAgPHNwYW4+e3sgbGFiZWwgfX08L3NwYW4+XG4gICAgICA8c3Ryb25nPnt7IGRhdGEuZ2x5cGggfX08L3N0cm9uZz5cbiAgICA8L2Rpdj5cbiAgICA8c3BhbiBjbGFzcz1cInN0cm9rZS1jb3VudGVyXCI+XG4gICAgICA8aSBjbGFzcz1cImZhc1wiIFtjbGFzcy5mYS1jaGVja109XCJpc0NvbXBsZXRlXCIgW2NsYXNzLmZhLXBlbl09XCIhaXNDb21wbGV0ZVwiPjwvaT5cbiAgICAgIHt7IGlzQ29tcGxldGUgPyAnSG/DoG4gdGjDoG5oJyA6ICdOw6l0ICcgKyAoY3VycmVudFN0cm9rZUluZGV4ICsgMSkgKyAnLycgKyBzdHJva2VDb3VudCB9fVxuICAgIDwvc3Bhbj5cbiAgPC9oZWFkZXI+XG5cbiAgPGRpdiBjbGFzcz1cInBhZC1zdGFnZVwiPlxuICAgIDxzcGFuIGNsYXNzPVwiZ3JpZC1saW5lIGdyaWQtbGluZS1ob3Jpem9udGFsXCIgYXJpYS1oaWRkZW49XCJ0cnVlXCI+PC9zcGFuPlxuICAgIDxzcGFuIGNsYXNzPVwiZ3JpZC1saW5lIGdyaWQtbGluZS12ZXJ0aWNhbFwiIGFyaWEtaGlkZGVuPVwidHJ1ZVwiPjwvc3Bhbj5cbiAgICA8c3BhbiBjbGFzcz1cImdyaWQtbGluZSBncmlkLWxpbmUtZGlhZ29uYWwtYVwiIGFyaWEtaGlkZGVuPVwidHJ1ZVwiPjwvc3Bhbj5cbiAgICA8c3BhbiBjbGFzcz1cImdyaWQtbGluZSBncmlkLWxpbmUtZGlhZ29uYWwtYlwiIGFyaWEtaGlkZGVuPVwidHJ1ZVwiPjwvc3Bhbj5cblxuICAgIDxzdmdcbiAgICAgIGNsYXNzPVwic3Ryb2tlLXJlZmVyZW5jZVwiXG4gICAgICB2aWV3Qm94PVwiMCAwIDEwMjQgMTAyNFwiXG4gICAgICByb2xlPVwiaW1nXCJcbiAgICAgIFthdHRyLmFyaWEtbGFiZWxdPVwiJ03huqt1IHRo4bupIHThu7EgbsOpdCBjaOG7ryAnICsgZGF0YS5nbHlwaFwiXG4gICAgPlxuICAgICAgPHBhdGhcbiAgICAgICAgKm5nRm9yPVwibGV0IG91dGxpbmUgb2YgZGF0YS5vdXRsaW5lc1wiXG4gICAgICAgIGNsYXNzPVwiZ2x5cGgtb3V0bGluZVwiXG4gICAgICAgIFthdHRyLmRdPVwib3V0bGluZVwiXG4gICAgICA+PC9wYXRoPlxuXG4gICAgICA8bmctY29udGFpbmVyICpuZ0lmPVwic2hvd0FuaW1hdGlvblwiPlxuICAgICAgICA8cGF0aFxuICAgICAgICAgICpuZ0Zvcj1cImxldCBtZWRpYW4gb2YgZGF0YS5tZWRpYW5zOyBsZXQgaW5kZXggPSBpbmRleFwiXG4gICAgICAgICAgY2xhc3M9XCJhbmltYXRlZC1tZWRpYW5cIlxuICAgICAgICAgIHBhdGhMZW5ndGg9XCIxXCJcbiAgICAgICAgICBbYXR0ci5kXT1cIm1lZGlhblwiXG4gICAgICAgICAgW3N0eWxlLmFuaW1hdGlvbi1kZWxheS5zXT1cImluZGV4ICogMC43XCJcbiAgICAgICAgPjwvcGF0aD5cbiAgICAgIDwvbmctY29udGFpbmVyPlxuXG4gICAgICA8cGF0aFxuICAgICAgICAqbmdJZj1cInNob3dIaW50ICYmIGN1cnJlbnRHdWlkZVBhdGhcIlxuICAgICAgICBjbGFzcz1cImhpbnQtbWVkaWFuXCJcbiAgICAgICAgW2F0dHIuZF09XCJjdXJyZW50R3VpZGVQYXRoXCJcbiAgICAgID48L3BhdGg+XG4gICAgPC9zdmc+XG5cbiAgICA8Y2FudmFzXG4gICAgICAjZHJhd2luZ0NhbnZhc1xuICAgICAgY2xhc3M9XCJkcmF3aW5nLWNhbnZhc1wiXG4gICAgICAocG9pbnRlcmRvd24pPVwib25Qb2ludGVyRG93bigkZXZlbnQpXCJcbiAgICAgIChwb2ludGVybW92ZSk9XCJvblBvaW50ZXJNb3ZlKCRldmVudClcIlxuICAgICAgKHBvaW50ZXJ1cCk9XCJvblBvaW50ZXJVcCgkZXZlbnQpXCJcbiAgICAgIChwb2ludGVyY2FuY2VsKT1cIm9uUG9pbnRlckNhbmNlbCgkZXZlbnQpXCJcbiAgICAgIFthdHRyLmFyaWEtbGFiZWxdPVwiJ8OUIGx1eeG7h24gdmnhur90IGNo4buvICcgKyBkYXRhLmdseXBoXCJcbiAgICA+PC9jYW52YXM+XG5cbiAgICA8ZGl2IGNsYXNzPVwicGFkLWxvY2tcIiAqbmdJZj1cIiFhY3RpdmUgJiYgIWlzQ29tcGxldGVcIj5cbiAgICAgIDxpIGNsYXNzPVwiZmFzIGZhLWxvY2tcIj48L2k+XG4gICAgICA8c3Bhbj5Ib8OgbiB0aMOgbmggw7QgdHLGsOG7m2M8L3NwYW4+XG4gICAgPC9kaXY+XG5cbiAgICA8ZGl2IGNsYXNzPVwicGFkLWNvbXBsZXRlLW1hcmtcIiAqbmdJZj1cImlzQ29tcGxldGVcIj5cbiAgICAgIDxpIGNsYXNzPVwiZmFzXCIgW2NsYXNzLmZhLWNoZWNrXT1cImZhaWxlZEF0dGVtcHRzIDwgM1wiIFtjbGFzcy5mYS1mbGFnXT1cImZhaWxlZEF0dGVtcHRzID49IDNcIj48L2k+XG4gICAgPC9kaXY+XG4gIDwvZGl2PlxuXG4gIDxwIGNsYXNzPVwic3Ryb2tlLXN0YXR1c1wiIFtjbGFzcy5pcy13YXJuaW5nXT1cImZhaWxlZEF0dGVtcHRzID4gMFwiIGFyaWEtbGl2ZT1cInBvbGl0ZVwiPlxuICAgIHt7IHN0YXR1c01lc3NhZ2UgfX1cbiAgPC9wPlxuXG4gIDxkaXYgY2xhc3M9XCJzdHJva2UtdG9vbHNcIj5cbiAgICA8YnV0dG9uXG4gICAgICB0eXBlPVwiYnV0dG9uXCJcbiAgICAgIHRpdGxlPVwiWMOzYSBuw6l0IHbhu6thIMSRw7puZ1wiXG4gICAgICBhcmlhLWxhYmVsPVwiWMOzYSBuw6l0IHbhu6thIMSRw7puZ1wiXG4gICAgICBbZGlzYWJsZWRdPVwiIWFjY2VwdGVkU3Ryb2tlQ291bnQgfHwgaXNDb21wbGV0ZVwiXG4gICAgICAoY2xpY2spPVwidW5kb0xhc3RTdHJva2UoKVwiXG4gICAgPlxuICAgICAgPGkgY2xhc3M9XCJmYXMgZmEtcm90YXRlLWxlZnRcIj48L2k+XG4gICAgPC9idXR0b24+XG4gICAgPGJ1dHRvblxuICAgICAgdHlwZT1cImJ1dHRvblwiXG4gICAgICB0aXRsZT1cIkzDoG0gbOG6oWkgY2jhu69cIlxuICAgICAgYXJpYS1sYWJlbD1cIkzDoG0gbOG6oWkgY2jhu69cIlxuICAgICAgW2Rpc2FibGVkXT1cImlzQ29tcGxldGVcIlxuICAgICAgKGNsaWNrKT1cInJlc2V0UGFkKClcIlxuICAgID5cbiAgICAgIDxpIGNsYXNzPVwiZmFzIGZhLWVyYXNlclwiPjwvaT5cbiAgICA8L2J1dHRvbj5cbiAgICA8YnV0dG9uXG4gICAgICB0eXBlPVwiYnV0dG9uXCJcbiAgICAgIHRpdGxlPVwiWGVtIHRo4bupIHThu7EgbsOpdFwiXG4gICAgICBhcmlhLWxhYmVsPVwiWGVtIHRo4bupIHThu7EgbsOpdFwiXG4gICAgICBbZGlzYWJsZWRdPVwiaXNDb21wbGV0ZVwiXG4gICAgICAoY2xpY2spPVwicmVwbGF5QW5pbWF0aW9uKClcIlxuICAgID5cbiAgICAgIDxpIGNsYXNzPVwiZmFzIGZhLXBsYXlcIj48L2k+XG4gICAgPC9idXR0b24+XG4gICAgPGJ1dHRvblxuICAgICAgdHlwZT1cImJ1dHRvblwiXG4gICAgICB0aXRsZT1cIkfhu6NpIMO9IG7DqXQgaGnhu4duIHThuqFpXCJcbiAgICAgIGFyaWEtbGFiZWw9XCJH4bujaSDDvSBuw6l0IGhp4buHbiB04bqhaVwiXG4gICAgICBbZGlzYWJsZWRdPVwiaXNDb21wbGV0ZVwiXG4gICAgICAoY2xpY2spPVwicmV2ZWFsSGludCgpXCJcbiAgICA+XG4gICAgICA8aSBjbGFzcz1cImZhcyBmYS1saWdodGJ1bGJcIj48L2k+XG4gICAgPC9idXR0b24+XG4gICAgPGJ1dHRvblxuICAgICAgKm5nSWY9XCJmYWlsZWRBdHRlbXB0cyA+PSAzICYmICFpc0NvbXBsZXRlXCJcbiAgICAgIHR5cGU9XCJidXR0b25cIlxuICAgICAgY2xhc3M9XCJza2lwLXN0cm9rZVwiXG4gICAgICB0aXRsZT1cIkLhu48gcXVhIHbDoCDDtG4gbOG6oWkgc2F1XCJcbiAgICAgIGFyaWEtbGFiZWw9XCJC4buPIHF1YSB2w6Agw7RuIGzhuqFpIHNhdVwiXG4gICAgICAoY2xpY2spPVwic2tpcEN1cnJlbnRTdHJva2UoKVwiXG4gICAgPlxuICAgICAgPGkgY2xhc3M9XCJmYXMgZmEtZm9yd2FyZFwiPjwvaT5cbiAgICA8L2J1dHRvbj5cbiAgPC9kaXY+XG48L3NlY3Rpb24+XG4iXSwibWFwcGluZ3MiOiI7Ozs7OztBQVdNLFNBQVUsUUFBVyxRQUFzQixTQUF1QixLQUFLLFFBQU07QUFDakYsUUFBTSxTQUFTLENBQUMsR0FBRyxNQUFNO0FBQ3pCLFdBQVMsUUFBUSxPQUFPLFNBQVMsR0FBRyxRQUFRLEdBQUcsU0FBUyxHQUFHO0FBQ3pELFVBQU0sU0FBUyxLQUFLLE1BQU0sT0FBTSxLQUFNLFFBQVEsRUFBRTtBQUNoRCxLQUFDLE9BQU8sS0FBSyxHQUFHLE9BQU8sTUFBTSxDQUFDLElBQUksQ0FBQyxPQUFPLE1BQU0sR0FBRyxPQUFPLEtBQUssQ0FBQztFQUNsRTtBQUNBLFNBQU87QUFDVDtBQUVNLFNBQVUsV0FDZCxNQUNBLFVBQ0EsUUFBUSxJQUNSLFNBQXVCLEtBQUssUUFBTTtBQUVsQyxTQUFPLFFBQVEsTUFBTSxNQUFNLEVBQ3hCLE1BQU0sR0FBRyxLQUFLLElBQUksT0FBTyxLQUFLLE1BQU0sQ0FBQyxFQUNyQyxJQUFJLENBQUMsTUFBTSxVQUFTO0FBQ25CLFVBQU0sWUFDSixLQUFLLGVBQWUsS0FBSyxNQUFNLE9BQU0sSUFBSyxLQUFLLGVBQWUsTUFBTSxDQUFDLEtBQ3JFLEtBQUssZUFBZSxDQUFDO0FBQ3ZCLFVBQU0sZUFBZSxjQUFjO0FBQ25DLFVBQU0sZ0JBQWdCLGVBQWUsS0FBSyxTQUFTLEtBQUs7QUFDeEQsVUFBTSxjQUFjLE1BQU0sS0FDeEIsSUFBSSxJQUNGLFNBQ0csT0FBTyxDQUFDLGNBQWMsVUFBVSxPQUFPLEtBQUssRUFBRSxFQUM5QyxPQUFPLENBQUMsY0FBYyxnQkFBZ0IsVUFBVSxXQUFXLEtBQUssTUFBTSxFQUN0RSxJQUFJ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QSxNQUFBLCtCQUFBLElBQUEsS0FBQTtBQUNFLE1BQUEsdUJBQUEsQ0FBQTtBQUFBLE1BQUEsK0JBQUEsSUFBQSxLQUFBLEtBQUE7QUFHTyxNQUFBLHVCQUFBLENBQUE7QUFBQSxNQUFBLHlCQUFBLFlBQUEsSUFBQSxVQUFBLEVBQTZCLFVBQUEsQ0FBQSxJQUFBLFVBQUE7QUFDNUMsTUFBQSx1QkFBQTtBQUFBLE1BQUEsZ0NBQUEsS0FBQSxJQUFBLGFBQUEscUJBQUEsYUFBQSxJQUFBLHFCQUFBLEtBQUEsTUFBQSxJQUFBLGFBQUEsR0FBQTtBQWNBLE1BQUEsdUJBQUEsQ0FBQTs7QUFHc0IsTUFBQSx1QkFBQTtBQUFBLE1BQUEsd0JBQUEsV0FBQSxJQUFBLEtBQUEsUUFBQTtBQUtQLE1BQUEsdUJBQUE7QUFBQSxNQUFBLHdCQUFBLFFBQUEsSUFBQSxhQUFBO0FBV1osTUFBQSx1QkFBQTtBQUFBLE1BQUEsd0JBQUEsUUFBQSxJQUFBLFlBQUEsSUFBQSxnQkFBQTtBQWFILE1BQUEsdUJBQUE7O0FBR3FCLE1BQUEsdUJBQUEsQ0FBQTtBQUFBLE1BQUEsd0JBQUEsUUFBQSxDQUFBLElBQUEsVUFBQSxDQUFBLElBQUEsVUFBQTtBQUtTLE1BQUEsdUJBQUE7QUFBQSxNQUFBLHdCQUFBLFFBQUEsSUFBQSxVQUFBO0FBS1QsTUFBQSx1QkFBQTtBQUFBLE1BQUEseUJBQUEsY0FBQSxJQUFBLGlCQUFBLENBQUE7QUFDdkIsTUFBQSx1QkFBQTtBQUFBLE1BQUEsZ0NBQUEsS0FBQSxJQUFBLGVBQUEsR0FBQTtBQVFFLE1BQUEsdUJBQUEsQ0FBQTtBQUFBLE1BQUEsd0JBQUEsWUFBQSxDQUFBLElBQUEsdUJBQUEsSUFBQSxVQUFBO0FBU0EsTUFBQSx1QkFBQSxDQUFBO0FBQUEsTUFBQSx3QkFBQSxZQUFBLElBQUEsVUFBQTtBQVNBLE1BQUEsdUJBQUEsQ0FBQTtBQUFBLE1BQUEsd0JBQUEsWUFBQSxJQUFBLFVBQUE7QUFTQSxNQUFBLHVCQUFBLENBQUE7QUFBQSxNQUFBLHdCQUFBLFlBQUEsSUFBQSxVQUFBO0FBTUMsTUFBQSx1QkFBQSxDQUFBO0FBQUEsTUFBQSx3QkFBQSxRQUFBLElBQUEsa0JBQUEsS0FBQSxDQUFBLElBQUEsVUFBQTs7b0JEekZLLGNBQVksWUFBQSxzQkFBQSxZQUFBLFNBQUEscUJBQUEsWUFBQSxhQUFBLGlCQUFBLG9CQUFBLGFBQUEsaUJBQUEsY0FBQSxrQkFBQSxrQkFBQSxhQUFBLGNBQUEsZ0JBQUEsZ0JBQUEsa0JBQUEsaUJBQUEsYUFBQSxtQkFBQSxtQkFBQSxlQUFBLEdBQUEsUUFBQSxDQUFBLDh1S0FBQSxFQUFBLENBQUE7OzsrRUFJWCxvQkFBa0IsQ0FBQTtVQVA5Qjt1QkFDVyxrQkFBZ0IsWUFDZCxNQUFJLFNBQ1AsQ0FBQyxZQUFZLEdBQUMsVUFBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7R0FBQSxRQUFBLENBQUEsMHRJQUFBLEVBQUEsQ0FBQTtxQ0FLSSxNQUFJLENBQUE7VUFBOUI7V0FBTSxFQUFFLFVBQVUsS0FBSSxDQUFFO01BQ2hCLFFBQU0sQ0FBQTtVQUFkO01BQ1EsT0FBSyxDQUFBO1VBQWI7TUFDUSxZQUFVLENBQUE7VUFBbEI7TUFFUyxjQUFZLENBQUE7VUFBckI7TUFDUyxZQUFVLENBQUE7VUFBbkI7TUFFMkIsV0FBUyxDQUFBO1VBQXBDO1dBQVUsZUFBZTs7OztnRkFUZixvQkFBa0IsRUFBQSxXQUFBLHNCQUFBLFVBQUEsa0RBQUEsWUFBQSxHQUFBLENBQUE7QUFBQSxHQUFBOzs7Ozs7OzhEQUFsQixvQkFBa0IsRUFBQSxTQUFBLENBQUEsSUFBQSxFQUFBLEdBQUEsQ0FBQSxjQUFBLFdBQUEsT0FBQSxRQUFBLFNBQUEsR0FBQSxhQUFBLEVBQUEsQ0FBQTtFQUFBO0FBQUEsR0FBQSxPQUFBLGNBQUEsZUFBQSxjQUFBLDJCQUFBLEtBQUEsSUFBQSxDQUFBO0FBQUEsR0FBQSxPQUFBLGNBQUEsZUFBQSxlQUFBLFlBQUEsT0FBQSxZQUFBLElBQUEsR0FBQSw0QkFBQSxPQUFBLEVBQUEsT0FBQSxNQUFBLDJCQUFBLEVBQUEsU0FBQSxDQUFBO0FBQUEsR0FBQTsiLCJuYW1lcyI6W119

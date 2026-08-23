@@ -1,14 +1,18 @@
 <app-loading [isVisible]="isLoading()"></app-loading>
 
-@if (!isAdminArea()) {
+@if (!isAdminArea() && !isPracticeMode()) {
   <app-sakura></app-sakura>
   <app-header></app-header>
 }
 
-<main class="app-route-content">
+<main
+  class="app-route-content"
+  [class.app-route-content--refined]="!isPracticeMode()"
+  [class.app-route-content--practice]="isPracticeMode()"
+>
   <router-outlet></router-outlet>
 </main>
 
-@if (!isAdminArea()) {
+@if (!isAdminArea() && !isPracticeMode()) {
   <app-footer></app-footer>
 }

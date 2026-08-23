@@ -23,6 +23,7 @@ import { SakuraComponent } from './components/sakura/sakura.component';
 export class App implements OnInit, OnDestroy {
   isLoading = signal(true);
   isAdminArea = signal(false);
+  isPracticeMode = signal(false);
 
   private routerSub?: Subscription;
   private loadingTimer?: ReturnType<typeof setTimeout>;
@@ -90,5 +91,6 @@ export class App implements OnInit, OnDestroy {
     this.isAdminArea.set(
       path === '/dang-nhap-quan-tri' || path.startsWith('/quan-tri-viejap'),
     );
+    this.isPracticeMode.set(path === '/luyen-the-te');
   }
 }

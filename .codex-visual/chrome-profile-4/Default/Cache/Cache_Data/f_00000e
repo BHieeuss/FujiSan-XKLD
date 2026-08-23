@@ -1,0 +1,639 @@
+import { injectQuery as __vite__injectQuery } from "/@vite/client";import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/chunk-KGGLRT7C.js");import {
+  JOB_ORDER_CATEGORIES,
+  JobOrdersApiService,
+  getJobOrderCategory,
+  getJobOrderFallbackImage,
+  getJobOrderTitle,
+  job_orders_api_service_exports,
+  stripJobOrderHtml
+} from "/chunk-2YHISM6P.js";
+import {
+  APP_CONTACT_INFO
+} from "/chunk-4BN7NRYA.js";
+import {
+  __async
+} from "/chunk-XWLXMCJQ.js";
+
+// src/app/jobs/job-order-board.ts
+import { CommonModule } from "/@fs/D:/Group_By_Hieu/Code_Space/FujiSan/FujiSan-XKLD/.angular/cache/20.2.2/fujisan-website/vite/deps/@angular_common.js?v=b8eb5e2d";
+import { Component, Input } from "/@fs/D:/Group_By_Hieu/Code_Space/FujiSan/FujiSan-XKLD/.angular/cache/20.2.2/fujisan-website/vite/deps/@angular_core.js?v=b8eb5e2d";
+import * as i0 from "/@fs/D:/Group_By_Hieu/Code_Space/FujiSan/FujiSan-XKLD/.angular/cache/20.2.2/fujisan-website/vite/deps/@angular_core.js?v=b8eb5e2d";
+import * as i2 from "/@fs/D:/Group_By_Hieu/Code_Space/FujiSan/FujiSan-XKLD/.angular/cache/20.2.2/fujisan-website/vite/deps/@angular_common.js?v=b8eb5e2d";
+var _forTrack0 = ($index, $item) => $item.key;
+var _forTrack1 = ($index, $item) => $item.id;
+function JobOrderBoard_Conditional_11_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "a", 5);
+    i0.\u0275\u0275text(1, " Xem ti\u1EBFp ");
+    i0.\u0275\u0275element(2, "i", 9);
+    i0.\u0275\u0275elementEnd();
+  }
+}
+function JobOrderBoard_Conditional_12_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "div", 6);
+    i0.\u0275\u0275element(1, "i", 10);
+    i0.\u0275\u0275text(2, " \u0110ang t\u1EA3i \u0111\u01A1n h\xE0ng...");
+    i0.\u0275\u0275elementEnd();
+  }
+}
+function JobOrderBoard_Conditional_13_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "div", 7);
+    i0.\u0275\u0275element(1, "i", 11);
+    i0.\u0275\u0275text(2);
+    i0.\u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r0 = i0.\u0275\u0275nextContext();
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275textInterpolate1(" ", ctx_r0.errorMessage);
+  }
+}
+function JobOrderBoard_Conditional_14_For_9_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r3 = i0.\u0275\u0275getCurrentView();
+    i0.\u0275\u0275elementStart(0, "button", 16);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_14_For_9_Template_button_click_0_listener() {
+      const category_r4 = i0.\u0275\u0275restoreView(_r3).$implicit;
+      const ctx_r0 = i0.\u0275\u0275nextContext(2);
+      return i0.\u0275\u0275resetView(ctx_r0.setFilter(category_r4.key));
+    });
+    i0.\u0275\u0275element(1, "i");
+    i0.\u0275\u0275elementStart(2, "span")(3, "strong");
+    i0.\u0275\u0275text(4);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275elementStart(5, "small");
+    i0.\u0275\u0275text(6);
+    i0.\u0275\u0275elementEnd()()();
+  }
+  if (rf & 2) {
+    const category_r4 = ctx.$implicit;
+    const ctx_r0 = i0.\u0275\u0275nextContext(2);
+    i0.\u0275\u0275classProp("active", ctx_r0.activeFilter === category_r4.key);
+    i0.\u0275\u0275attribute("aria-selected", ctx_r0.activeFilter === category_r4.key);
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275classMap(category_r4.icon);
+    i0.\u0275\u0275advance(3);
+    i0.\u0275\u0275textInterpolate(category_r4.label);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275textInterpolate1("", ctx_r0.categoryCount(category_r4.key), " \u0111ang tuy\u1EC3n");
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_10_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "div", 6);
+    i0.\u0275\u0275element(1, "i", 17);
+    i0.\u0275\u0275text(2, " Ch\u01B0a c\xF3 \u0111\u01A1n tuy\u1EC3n.");
+    i0.\u0275\u0275elementEnd();
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_11_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "div", 6);
+    i0.\u0275\u0275element(1, "i", 18);
+    i0.\u0275\u0275text(2, " Ch\u01B0a c\xF3 \u0111\u01A1n tuy\u1EC3n thu\u1ED9c ch\u01B0\u01A1ng tr\xECnh n\xE0y.");
+    i0.\u0275\u0275elementEnd();
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_12_For_2_Conditional_3_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "span", 26);
+    i0.\u0275\u0275element(1, "i", 32);
+    i0.\u0275\u0275text(2, " N\u1ED5i b\u1EADt");
+    i0.\u0275\u0275elementEnd();
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_12_For_2_Conditional_13_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "span", 33);
+    i0.\u0275\u0275text(1);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275elementStart(2, "span", 34);
+    i0.\u0275\u0275element(3, "i", 35);
+    i0.\u0275\u0275text(4, " \u1EA4n v\xE0o \u0111\u1EC3 xem chi ti\u1EBFt");
+    i0.\u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const order_r6 = i0.\u0275\u0275nextContext().$implicit;
+    const ctx_r0 = i0.\u0275\u0275nextContext(3);
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275textInterpolate(ctx_r0.stripHtml(order_r6.description));
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_12_For_2_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r5 = i0.\u0275\u0275getCurrentView();
+    i0.\u0275\u0275elementStart(0, "button", 23);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_14_Conditional_12_For_2_Template_button_click_0_listener() {
+      const order_r6 = i0.\u0275\u0275restoreView(_r5).$implicit;
+      const ctx_r0 = i0.\u0275\u0275nextContext(3);
+      return i0.\u0275\u0275resetView(ctx_r0.openOrder(order_r6));
+    });
+    i0.\u0275\u0275elementStart(1, "span", 24)(2, "img", 25);
+    i0.\u0275\u0275listener("error", function JobOrderBoard_Conditional_14_Conditional_12_For_2_Template_img_error_2_listener($event) {
+      const order_r6 = i0.\u0275\u0275restoreView(_r5).$implicit;
+      const ctx_r0 = i0.\u0275\u0275nextContext(3);
+      return i0.\u0275\u0275resetView(ctx_r0.useFallbackImage($event, order_r6));
+    });
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275conditionalCreate(3, JobOrderBoard_Conditional_14_Conditional_12_For_2_Conditional_3_Template, 3, 0, "span", 26);
+    i0.\u0275\u0275elementStart(4, "span", 27);
+    i0.\u0275\u0275element(5, "i");
+    i0.\u0275\u0275text(6);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275elementStart(7, "span", 28);
+    i0.\u0275\u0275element(8, "i", 29);
+    i0.\u0275\u0275text(9, " Xem \u0111\u01A1n h\xE0ng");
+    i0.\u0275\u0275elementEnd()();
+    i0.\u0275\u0275elementStart(10, "span", 30)(11, "span", 31);
+    i0.\u0275\u0275text(12);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275conditionalCreate(13, JobOrderBoard_Conditional_14_Conditional_12_For_2_Conditional_13_Template, 5, 1);
+    i0.\u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const order_r6 = ctx.$implicit;
+    const ctx_r0 = i0.\u0275\u0275nextContext(3);
+    i0.\u0275\u0275classProp("featured", order_r6.isFeatured);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275property("src", order_r6.imageUrl, i0.\u0275\u0275sanitizeUrl)("alt", "\u1EA2nh " + ctx_r0.orderTitle(order_r6));
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275conditional(order_r6.isFeatured ? 3 : -1);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275classMap(ctx_r0.orderCategory(order_r6).icon);
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275textInterpolate1(" ", ctx_r0.orderCategory(order_r6).shortLabel, " ");
+    i0.\u0275\u0275advance(6);
+    i0.\u0275\u0275textInterpolate(ctx_r0.orderTitle(order_r6));
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275conditional(order_r6.description ? 13 : -1);
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_12_Conditional_3_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "div", 21)(1, "a", 36);
+    i0.\u0275\u0275text(2, "Xem ti\u1EBFp c\xE1c \u0111\u01A1n \u0111ang tuy\u1EC3n ");
+    i0.\u0275\u0275element(3, "i", 9);
+    i0.\u0275\u0275elementEnd()();
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_12_Conditional_4_For_7_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r8 = i0.\u0275\u0275getCurrentView();
+    i0.\u0275\u0275elementStart(0, "button", 42);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_14_Conditional_12_Conditional_4_For_7_Template_button_click_0_listener() {
+      const page_r9 = i0.\u0275\u0275restoreView(_r8).$implicit;
+      const ctx_r0 = i0.\u0275\u0275nextContext(4);
+      return i0.\u0275\u0275resetView(ctx_r0.setPage(page_r9));
+    });
+    i0.\u0275\u0275text(1);
+    i0.\u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const page_r9 = ctx.$implicit;
+    const ctx_r0 = i0.\u0275\u0275nextContext(4);
+    i0.\u0275\u0275classProp("active", page_r9 === ctx_r0.currentPage);
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275textInterpolate1(" ", page_r9, " ");
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_12_Conditional_4_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r7 = i0.\u0275\u0275getCurrentView();
+    i0.\u0275\u0275elementStart(0, "div", 22)(1, "span");
+    i0.\u0275\u0275text(2);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275elementStart(3, "nav", 37)(4, "button", 38);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_14_Conditional_12_Conditional_4_Template_button_click_4_listener() {
+      i0.\u0275\u0275restoreView(_r7);
+      const ctx_r0 = i0.\u0275\u0275nextContext(3);
+      return i0.\u0275\u0275resetView(ctx_r0.previousPage());
+    });
+    i0.\u0275\u0275element(5, "i", 39);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275repeaterCreate(6, JobOrderBoard_Conditional_14_Conditional_12_Conditional_4_For_7_Template, 2, 3, "button", 40, i0.\u0275\u0275repeaterTrackByIdentity);
+    i0.\u0275\u0275elementStart(8, "button", 38);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_14_Conditional_12_Conditional_4_Template_button_click_8_listener() {
+      i0.\u0275\u0275restoreView(_r7);
+      const ctx_r0 = i0.\u0275\u0275nextContext(3);
+      return i0.\u0275\u0275resetView(ctx_r0.nextPage());
+    });
+    i0.\u0275\u0275element(9, "i", 41);
+    i0.\u0275\u0275elementEnd()()();
+  }
+  if (rf & 2) {
+    const ctx_r0 = i0.\u0275\u0275nextContext(3);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275textInterpolate(ctx_r0.paginationSummary);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275property("disabled", ctx_r0.currentPage === 1);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275repeater(ctx_r0.paginationPages);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275property("disabled", ctx_r0.currentPage === ctx_r0.totalPages);
+  }
+}
+function JobOrderBoard_Conditional_14_Conditional_12_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275elementStart(0, "div", 19);
+    i0.\u0275\u0275repeaterCreate(1, JobOrderBoard_Conditional_14_Conditional_12_For_2_Template, 14, 10, "button", 20, _forTrack1);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275conditionalCreate(3, JobOrderBoard_Conditional_14_Conditional_12_Conditional_3_Template, 4, 0, "div", 21);
+    i0.\u0275\u0275conditionalCreate(4, JobOrderBoard_Conditional_14_Conditional_12_Conditional_4_Template, 10, 3, "div", 22);
+  }
+  if (rf & 2) {
+    const ctx_r0 = i0.\u0275\u0275nextContext(2);
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275repeater(ctx_r0.visibleOrders);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275conditional(ctx_r0.hasHiddenOrders ? 3 : -1);
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275conditional(ctx_r0.showPagination ? 4 : -1);
+  }
+}
+function JobOrderBoard_Conditional_14_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r2 = i0.\u0275\u0275getCurrentView();
+    i0.\u0275\u0275elementStart(0, "div", 12)(1, "button", 13);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_14_Template_button_click_1_listener() {
+      i0.\u0275\u0275restoreView(_r2);
+      const ctx_r0 = i0.\u0275\u0275nextContext();
+      return i0.\u0275\u0275resetView(ctx_r0.setFilter("all"));
+    });
+    i0.\u0275\u0275element(2, "i", 14);
+    i0.\u0275\u0275elementStart(3, "span")(4, "strong");
+    i0.\u0275\u0275text(5, "T\u1EA5t c\u1EA3 \u0111\u01A1n");
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275elementStart(6, "small");
+    i0.\u0275\u0275text(7);
+    i0.\u0275\u0275elementEnd()()();
+    i0.\u0275\u0275repeaterCreate(8, JobOrderBoard_Conditional_14_For_9_Template, 7, 7, "button", 15, _forTrack0);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275conditionalCreate(10, JobOrderBoard_Conditional_14_Conditional_10_Template, 3, 0, "div", 6)(11, JobOrderBoard_Conditional_14_Conditional_11_Template, 3, 0, "div", 6)(12, JobOrderBoard_Conditional_14_Conditional_12_Template, 5, 2);
+  }
+  if (rf & 2) {
+    const ctx_r0 = i0.\u0275\u0275nextContext();
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275classProp("active", ctx_r0.activeFilter === "all");
+    i0.\u0275\u0275attribute("aria-selected", ctx_r0.activeFilter === "all");
+    i0.\u0275\u0275advance(6);
+    i0.\u0275\u0275textInterpolate1("", ctx_r0.orders.length, " \u0111ang tuy\u1EC3n");
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275repeater(ctx_r0.categories);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275conditional(!ctx_r0.orders.length ? 10 : !ctx_r0.visibleOrders.length ? 11 : 12);
+  }
+}
+function JobOrderBoard_Conditional_15_Conditional_12_Template(rf, ctx) {
+  if (rf & 1) {
+    i0.\u0275\u0275element(0, "div", 52);
+  }
+  if (rf & 2) {
+    const ctx_r0 = i0.\u0275\u0275nextContext(2);
+    i0.\u0275\u0275property("innerHTML", ctx_r0.selectedOrder.description, i0.\u0275\u0275sanitizeHtml);
+  }
+}
+function JobOrderBoard_Conditional_15_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r10 = i0.\u0275\u0275getCurrentView();
+    i0.\u0275\u0275elementStart(0, "div", 43);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_15_Template_div_click_0_listener() {
+      i0.\u0275\u0275restoreView(_r10);
+      const ctx_r0 = i0.\u0275\u0275nextContext();
+      return i0.\u0275\u0275resetView(ctx_r0.closeOrder());
+    });
+    i0.\u0275\u0275elementStart(1, "section", 44);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_15_Template_section_click_1_listener($event) {
+      i0.\u0275\u0275restoreView(_r10);
+      return i0.\u0275\u0275resetView($event.stopPropagation());
+    })("keydown.escape", function JobOrderBoard_Conditional_15_Template_section_keydown_escape_1_listener() {
+      i0.\u0275\u0275restoreView(_r10);
+      const ctx_r0 = i0.\u0275\u0275nextContext();
+      return i0.\u0275\u0275resetView(ctx_r0.closeOrder());
+    });
+    i0.\u0275\u0275elementStart(2, "button", 45);
+    i0.\u0275\u0275listener("click", function JobOrderBoard_Conditional_15_Template_button_click_2_listener() {
+      i0.\u0275\u0275restoreView(_r10);
+      const ctx_r0 = i0.\u0275\u0275nextContext();
+      return i0.\u0275\u0275resetView(ctx_r0.closeOrder());
+    });
+    i0.\u0275\u0275element(3, "i", 46);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275elementStart(4, "div", 47)(5, "img", 48);
+    i0.\u0275\u0275listener("error", function JobOrderBoard_Conditional_15_Template_img_error_5_listener($event) {
+      i0.\u0275\u0275restoreView(_r10);
+      const ctx_r0 = i0.\u0275\u0275nextContext();
+      return i0.\u0275\u0275resetView(ctx_r0.useFallbackImage($event, ctx_r0.selectedOrder));
+    });
+    i0.\u0275\u0275elementEnd()();
+    i0.\u0275\u0275elementStart(6, "div", 49)(7, "span", 50);
+    i0.\u0275\u0275element(8, "i");
+    i0.\u0275\u0275text(9);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275elementStart(10, "h3", 51);
+    i0.\u0275\u0275text(11);
+    i0.\u0275\u0275elementEnd();
+    i0.\u0275\u0275conditionalCreate(12, JobOrderBoard_Conditional_15_Conditional_12_Template, 1, 1, "div", 52);
+    i0.\u0275\u0275elementStart(13, "div", 53)(14, "a", 54);
+    i0.\u0275\u0275element(15, "i", 55);
+    i0.\u0275\u0275text(16, " Trao \u0111\u1ED5i v\u1EDBi VieJap");
+    i0.\u0275\u0275elementEnd()()()()();
+  }
+  if (rf & 2) {
+    const ctx_r0 = i0.\u0275\u0275nextContext();
+    i0.\u0275\u0275advance(5);
+    i0.\u0275\u0275property("src", ctx_r0.selectedOrder.imageUrl, i0.\u0275\u0275sanitizeUrl)("alt", "\u1EA2nh " + ctx_r0.orderTitle(ctx_r0.selectedOrder));
+    i0.\u0275\u0275advance(3);
+    i0.\u0275\u0275classMap(ctx_r0.orderCategory(ctx_r0.selectedOrder).icon);
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275textInterpolate1(" ", ctx_r0.orderCategory(ctx_r0.selectedOrder).label, " ");
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275textInterpolate(ctx_r0.orderTitle(ctx_r0.selectedOrder));
+    i0.\u0275\u0275advance();
+    i0.\u0275\u0275conditional(ctx_r0.selectedOrder.description ? 12 : -1);
+    i0.\u0275\u0275advance(2);
+    i0.\u0275\u0275property("href", ctx_r0.contactInfo.consultationUrl, i0.\u0275\u0275sanitizeUrl);
+  }
+}
+var JobOrderBoard = class _JobOrderBoard {
+  ordersApi;
+  contactInfo = APP_CONTACT_INFO;
+  home = false;
+  limit;
+  pageSize = 8;
+  categories = JOB_ORDER_CATEGORIES;
+  activeFilter = "all";
+  currentPage = 1;
+  orders = [];
+  selectedOrder;
+  loading = true;
+  errorMessage = "";
+  constructor(ordersApi) {
+    this.ordersApi = ordersApi;
+  }
+  ngOnInit() {
+    return __async(this, null, function* () {
+      try {
+        this.orders = yield this.ordersApi.listPublic();
+      } catch (error) {
+        this.errorMessage = error instanceof Error ? error.message : "Kh\xF4ng th\u1EC3 t\u1EA3i danh s\xE1ch \u0111\u01A1n h\xE0ng.";
+      } finally {
+        this.loading = false;
+      }
+    });
+  }
+  get filteredOrders() {
+    return this.orders.filter((order) => this.activeFilter === "all" || order.category === this.activeFilter);
+  }
+  get visibleOrders() {
+    const filtered = this.filteredOrders;
+    if (this.home) {
+      return this.limit ? filtered.slice(0, this.limit) : filtered;
+    }
+    const start = (this.currentPage - 1) * this.safePageSize;
+    return filtered.slice(start, start + this.safePageSize);
+  }
+  get hasHiddenOrders() {
+    return this.home && !!this.limit && this.filteredOrders.length > this.limit;
+  }
+  get showPagination() {
+    return !this.home && this.filteredOrders.length > this.safePageSize;
+  }
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.filteredOrders.length / this.safePageSize));
+  }
+  get paginationPages() {
+    return Array.from({ length: this.totalPages }, (_, index) => index + 1);
+  }
+  get paginationSummary() {
+    const total = this.filteredOrders.length;
+    const start = total ? (this.currentPage - 1) * this.safePageSize + 1 : 0;
+    const end = Math.min(this.currentPage * this.safePageSize, total);
+    return `Hi\u1EC3n th\u1ECB ${start}-${end} trong ${total} \u0111\u01A1n`;
+  }
+  get safePageSize() {
+    return Math.max(1, this.pageSize || 8);
+  }
+  openOrder(order) {
+    this.selectedOrder = order;
+  }
+  closeOrder() {
+    this.selectedOrder = void 0;
+  }
+  setFilter(filter) {
+    this.activeFilter = filter;
+    this.currentPage = 1;
+  }
+  setPage(page) {
+    this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
+  }
+  previousPage() {
+    this.setPage(this.currentPage - 1);
+  }
+  nextPage() {
+    this.setPage(this.currentPage + 1);
+  }
+  useFallbackImage(event, order) {
+    const image = event.target;
+    const fallback = getJobOrderFallbackImage(order.category);
+    if (!image.src.endsWith(fallback)) {
+      image.src = fallback;
+    }
+  }
+  categoryCount(category) {
+    return this.orders.filter((order) => order.category === category).length;
+  }
+  orderTitle(order) {
+    return getJobOrderTitle(order);
+  }
+  orderCategory(order) {
+    return getJobOrderCategory(order.category);
+  }
+  /** Strip HTML tags for plain-text preview on cards */
+  stripHtml(html) {
+    return stripJobOrderHtml(html);
+  }
+  static \u0275fac = function JobOrderBoard_Factory(__ngFactoryType__) {
+    return new (__ngFactoryType__ || _JobOrderBoard)(i0.\u0275\u0275directiveInject(JobOrdersApiService));
+  };
+  static \u0275cmp = /* @__PURE__ */ i0.\u0275\u0275defineComponent({ type: _JobOrderBoard, selectors: [["app-job-order-board"]], inputs: { home: "home", limit: "limit", pageSize: "pageSize" }, decls: 16, vars: 6, consts: [["id", "don-hang", 1, "job-board"], [1, "container"], [1, "job-board-heading"], [1, "job-board-kicker"], [1, "fas", "fa-arrow-up-right-from-square"], ["href", "/don-hang", 1, "job-board-all-link"], [1, "job-board-state"], [1, "job-board-state", "error"], ["role", "presentation", 1, "poster-lightbox"], [1, "fas", "fa-arrow-right"], [1, "fas", "fa-spinner", "fa-spin"], [1, "fas", "fa-circle-exclamation"], ["role", "tablist", "aria-label", "Ch\u1ECDn nh\xF3m ch\u01B0\u01A1ng tr\xECnh", 1, "job-category-grid"], ["type", "button", "role", "tab", 1, "job-category-tile", "all", 3, "click"], [1, "fas", "fa-border-all"], ["type", "button", "role", "tab", 1, "job-category-tile", 3, "active"], ["type", "button", "role", "tab", 1, "job-category-tile", 3, "click"], [1, "fas", "fa-image"], [1, "fas", "fa-filter-circle-xmark"], [1, "job-order-grid"], ["type", "button", 1, "job-order-card", 3, "featured"], [1, "job-board-more"], [1, "job-pagination-wrap"], ["type", "button", 1, "job-order-card", 3, "click"], [1, "job-order-visual"], ["loading", "lazy", 3, "error", "src", "alt"], [1, "job-featured-badge"], [1, "job-order-category-tag"], [1, "job-order-expand"], [1, "fas", "fa-up-right-and-down-left-from-center"], [1, "job-order-info"], [1, "job-order-title"], [1, "fas", "fa-star"], [1, "job-order-description"], [1, "job-order-more-hint"], [1, "fas", "fa-hand-pointer"], ["href", "/don-hang"], ["aria-label", "Ph\xE2n trang \u0111\u01A1n h\xE0ng", 1, "job-pagination"], ["type", "button", 3, "click", "disabled"], [1, "fas", "fa-chevron-left"], ["type", "button", 3, "active"], [1, "fas", "fa-chevron-right"], ["type", "button", 3, "click"], ["role", "presentation", 1, "poster-lightbox", 3, "click"], ["role", "dialog", "aria-modal", "true", "aria-label", "Xem \u0111\u01A1n h\xE0ng", "tabindex", "0", 1, "poster-lightbox-card", 3, "click", "keydown.escape"], ["type", "button", "aria-label", "\u0110\xF3ng", 1, "poster-close-button", 3, "click"], [1, "fas", "fa-xmark"], [1, "poster-lightbox-media"], [3, "error", "src", "alt"], [1, "poster-lightbox-info"], [1, "poster-lightbox-category"], [1, "poster-lightbox-title"], [1, "poster-lightbox-description", 3, "innerHTML"], [1, "poster-lightbox-footer"], ["target", "_blank", "rel", "noopener noreferrer", 3, "href"], [1, "fas", "fa-comment-dots"]], template: function JobOrderBoard_Template(rf, ctx) {
+    if (rf & 1) {
+      i0.\u0275\u0275elementStart(0, "section", 0)(1, "div", 1)(2, "div", 2)(3, "div")(4, "span", 3);
+      i0.\u0275\u0275element(5, "i", 4);
+      i0.\u0275\u0275text(6, " C\u01A1 h\u1ED9i t\u1EA1i Nh\u1EADt");
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275elementStart(7, "h2");
+      i0.\u0275\u0275text(8);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275elementStart(9, "p");
+      i0.\u0275\u0275text(10, "Ch\u1ECDn nh\xF3m ch\u01B0\u01A1ng tr\xECnh, xem th\xF4ng tin t\u1EEBng \u0111\u01A1n v\xE0 b\u1EAFt \u0111\u1EA7u cu\u1ED9c tr\xF2 chuy\u1EC7n v\u1EDBi VieJap khi b\u1EA1n \u0111\xE3 s\u1EB5n s\xE0ng.");
+      i0.\u0275\u0275elementEnd()();
+      i0.\u0275\u0275conditionalCreate(11, JobOrderBoard_Conditional_11_Template, 3, 0, "a", 5);
+      i0.\u0275\u0275elementEnd();
+      i0.\u0275\u0275conditionalCreate(12, JobOrderBoard_Conditional_12_Template, 3, 0, "div", 6)(13, JobOrderBoard_Conditional_13_Template, 3, 1, "div", 7)(14, JobOrderBoard_Conditional_14_Template, 13, 5);
+      i0.\u0275\u0275elementEnd()();
+      i0.\u0275\u0275conditionalCreate(15, JobOrderBoard_Conditional_15_Template, 17, 8, "div", 8);
+    }
+    if (rf & 2) {
+      i0.\u0275\u0275classProp("job-board-home", ctx.home);
+      i0.\u0275\u0275advance(8);
+      i0.\u0275\u0275textInterpolate(ctx.home ? "M\u1ED9t l\u1EF1a ch\u1ECDn t\u1ED1t b\u1EAFt \u0111\u1EA7u t\u1EEB l\u1ED9 tr\xECnh ph\xF9 h\u1EE3p" : "C\u01A1 h\u1ED9i l\xE0m vi\u1EC7c v\xE0 h\u1ECDc t\u1EADp t\u1EA1i Nh\u1EADt");
+      i0.\u0275\u0275advance(3);
+      i0.\u0275\u0275conditional(ctx.home ? 11 : -1);
+      i0.\u0275\u0275advance();
+      i0.\u0275\u0275conditional(ctx.loading ? 12 : ctx.errorMessage ? 13 : 14);
+      i0.\u0275\u0275advance(3);
+      i0.\u0275\u0275conditional(ctx.selectedOrder ? 15 : -1);
+    }
+  }, dependencies: [CommonModule, i2.NgClass, i2.NgComponentOutlet, i2.NgForOf, i2.NgIf, i2.NgTemplateOutlet, i2.NgStyle, i2.NgSwitch, i2.NgSwitchCase, i2.NgSwitchDefault, i2.NgPlural, i2.NgPluralCase, i2.AsyncPipe, i2.UpperCasePipe, i2.LowerCasePipe, i2.JsonPipe, i2.SlicePipe, i2.DecimalPipe, i2.PercentPipe, i2.TitleCasePipe, i2.CurrencyPipe, i2.DatePipe, i2.I18nPluralPipe, i2.I18nSelectPipe, i2.KeyValuePipe], styles: ['\n\n[_nghost-%COMP%] {\n  display: block;\n}\n.job-board[_ngcontent-%COMP%] {\n  position: relative;\n  overflow: hidden;\n  padding: clamp(3.75rem, 7vw, 6rem) 0;\n  border-top: 1px solid #e8ecf0;\n  border-bottom: 1px solid #e8ecf0;\n  background-color: #ffffff;\n  background-image:\n    radial-gradient(\n      ellipse 80% 50% at 50% -10%,\n      rgba(30, 58, 138, 0.04) 0%,\n      transparent 70%);\n  scroll-margin-top: 72px;\n}\n.job-board[_ngcontent-%COMP%]    > .container[_ngcontent-%COMP%] {\n  position: relative;\n  z-index: 1;\n}\n.job-board-home[_ngcontent-%COMP%] {\n  border-top-color: #e8ecf0;\n}\n.job-board-heading[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: end;\n  justify-content: space-between;\n  gap: 1.5rem;\n  margin-bottom: 1.75rem;\n}\n.job-board-heading[_ngcontent-%COMP%]    > div[_ngcontent-%COMP%] {\n  max-width: 720px;\n}\n.job-board-heading[_ngcontent-%COMP%]   h2[_ngcontent-%COMP%] {\n  margin: 0.62rem 0 0.55rem;\n  color: #253b4a;\n  font-size: clamp(1.85rem, 3.5vw, 2.7rem);\n  font-weight: 850;\n  line-height: 1.18;\n  letter-spacing: 0;\n}\n.job-board-heading[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\n  max-width: 650px;\n  margin: 0;\n  color: #687671;\n  font-size: 0.96rem;\n  line-height: 1.7;\n}\n.job-board-kicker[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.65rem;\n  color: #1e3a8a;\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n.job-board-kicker[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  color: #3b82f6;\n}\n.job-board-all-link[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.5rem;\n  min-height: 42px;\n  padding: 0.75rem 0.95rem;\n  border: 1px solid #1e3a8a;\n  border-radius: 6px;\n  background: #1e3a8a;\n  color: #fff;\n  font-size: 0.82rem;\n  font-weight: 700;\n  text-decoration: none;\n  box-shadow: 0 6px 18px rgba(30, 58, 138, 0.18);\n}\n.job-board-all-link[_ngcontent-%COMP%]:hover, \n.job-board-all-link[_ngcontent-%COMP%]:focus-visible {\n  border-color: #1e40af;\n  background: #1e40af;\n  color: #fff;\n  outline: none;\n  transform: translateY(-2px);\n}\n.job-category-grid[_ngcontent-%COMP%] {\n  display: grid;\n  grid-template-columns: repeat(5, minmax(0, 1fr));\n  gap: 0;\n  margin-bottom: 1.35rem;\n  border: 1px solid #e2e8f0;\n  border-radius: 14px;\n  background: #ffffff;\n  box-shadow: 0 2px 12px rgba(30, 58, 138, 0.06);\n  overflow: hidden;\n}\n.job-category-tile[_ngcontent-%COMP%] {\n  position: relative;\n  min-width: 0;\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n  align-items: center;\n  gap: 0.55rem;\n  min-height: 72px;\n  padding: 0.72rem 0.75rem;\n  border: 0;\n  border-right: 1px solid #e2e8f0;\n  background: transparent;\n  color: #475569;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n  transition: background-color 0.18s ease, color 0.18s ease;\n}\n.job-category-tile[_ngcontent-%COMP%]:last-child {\n  border-right: 0;\n}\n.job-category-tile[_ngcontent-%COMP%]    > i[_ngcontent-%COMP%] {\n  width: 34px;\n  height: 34px;\n  display: grid;\n  flex: 0 0 34px;\n  place-items: center;\n  border: 1px solid #dbeafe;\n  border-radius: 10px;\n  background: #eff6ff;\n  color: #1e3a8a;\n  font-size: 0.9rem;\n}\n.job-category-tile[_ngcontent-%COMP%]    > span[_ngcontent-%COMP%] {\n  display: grid;\n  min-width: 0;\n  gap: 0.12rem;\n}\n.job-category-tile[_ngcontent-%COMP%]   strong[_ngcontent-%COMP%] {\n  overflow: hidden;\n  color: #1e293b;\n  font-size: 0.76rem;\n  line-height: 1.25;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.job-category-tile[_ngcontent-%COMP%]   span[_ngcontent-%COMP%]   small[_ngcontent-%COMP%] {\n  color: #94a3b8;\n  font-size: 0.6rem;\n  font-weight: 700;\n  line-height: 1.25;\n}\n.job-category-tile[_ngcontent-%COMP%]:hover, \n.job-category-tile[_ngcontent-%COMP%]:focus-visible, \n.job-category-tile.active[_ngcontent-%COMP%] {\n  background: #1e3a8a;\n  color: #fff;\n  outline: none;\n}\n.job-category-tile[_ngcontent-%COMP%]:hover    > i[_ngcontent-%COMP%], \n.job-category-tile[_ngcontent-%COMP%]:focus-visible    > i[_ngcontent-%COMP%], \n.job-category-tile.active[_ngcontent-%COMP%]    > i[_ngcontent-%COMP%] {\n  border-color: rgba(255, 255, 255, 0.2);\n  background: rgba(255, 255, 255, 0.15);\n  color: #fff;\n}\n.job-category-tile[_ngcontent-%COMP%]:hover   strong[_ngcontent-%COMP%], \n.job-category-tile[_ngcontent-%COMP%]:hover   span[_ngcontent-%COMP%]   small[_ngcontent-%COMP%], \n.job-category-tile[_ngcontent-%COMP%]:focus-visible   strong[_ngcontent-%COMP%], \n.job-category-tile[_ngcontent-%COMP%]:focus-visible   span[_ngcontent-%COMP%]   small[_ngcontent-%COMP%], \n.job-category-tile.active[_ngcontent-%COMP%]   strong[_ngcontent-%COMP%], \n.job-category-tile.active[_ngcontent-%COMP%]   span[_ngcontent-%COMP%]   small[_ngcontent-%COMP%] {\n  color: #fff;\n}\n.job-category-tile.all[_ngcontent-%COMP%]    > i[_ngcontent-%COMP%] {\n  border-color: #fef9c3;\n  background: #fefce8;\n  color: #854d0e;\n}\n.job-order-grid[_ngcontent-%COMP%] {\n  display: grid;\n  grid-template-columns: repeat(4, minmax(0, 1fr));\n  gap: clamp(0.9rem, 1.8vw, 1.25rem);\n}\n.job-order-card[_ngcontent-%COMP%] {\n  display: grid;\n  grid-template-rows: auto 1fr;\n  min-width: 0;\n  padding: 0;\n  overflow: hidden;\n  border: 1px solid #e2e8f0;\n  border-radius: 16px;\n  background: #ffffff;\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  box-shadow: 0 2px 12px rgba(30, 58, 138, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);\n  cursor: pointer;\n  transition:\n    transform 0.2s ease,\n    box-shadow 0.2s ease,\n    border-color 0.2s ease;\n}\n.job-order-card[_ngcontent-%COMP%]:hover, \n.job-order-card[_ngcontent-%COMP%]:focus-visible {\n  border-color: #93c5fd;\n  outline: none;\n  box-shadow: 0 12px 32px rgba(30, 58, 138, 0.14), 0 4px 8px rgba(0, 0, 0, 0.06);\n  transform: translateY(-5px);\n}\n.job-order-card[_ngcontent-%COMP%]:hover   .job-order-expand[_ngcontent-%COMP%], \n.job-order-card[_ngcontent-%COMP%]:focus-visible   .job-order-expand[_ngcontent-%COMP%] {\n  opacity: 1;\n  transform: translateY(0);\n}\n.job-order-card[_ngcontent-%COMP%]:hover   .job-order-more-hint[_ngcontent-%COMP%], \n.job-order-card[_ngcontent-%COMP%]:focus-visible   .job-order-more-hint[_ngcontent-%COMP%] {\n  color: #1e3a8a;\n}\n.job-order-visual[_ngcontent-%COMP%] {\n  position: relative;\n  aspect-ratio: 3/4;\n  display: grid;\n  place-items: center;\n  overflow: hidden;\n  background: #eee6da;\n}\n.job-order-visual[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  width: 100%;\n  height: 100%;\n  display: block;\n  object-fit: contain;\n}\n.job-featured-badge[_ngcontent-%COMP%], \n.job-order-expand[_ngcontent-%COMP%], \n.job-order-category-tag[_ngcontent-%COMP%] {\n  position: absolute;\n  display: inline-flex;\n  align-items: center;\n  gap: 0.32rem;\n  border-radius: 4px;\n  font-size: 0.62rem;\n  font-weight: 850;\n}\n.job-featured-badge[_ngcontent-%COMP%] {\n  top: 0.65rem;\n  left: 0.65rem;\n  padding: 0.35rem 0.5rem;\n  background: #b24c3f;\n  color: #fff;\n  box-shadow: 0 5px 13px rgba(91, 42, 35, 0.2);\n}\n.job-order-category-tag[_ngcontent-%COMP%] {\n  top: 0.65rem;\n  right: 0.65rem;\n  padding: 0.34rem 0.5rem;\n  background: rgba(35, 61, 75, 0.9);\n  color: #fff;\n  -webkit-backdrop-filter: blur(6px);\n  backdrop-filter: blur(6px);\n  box-shadow: 0 5px 14px rgba(28, 43, 50, 0.22);\n}\n.job-order-category-tag[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 0.55rem;\n  opacity: 0.9;\n}\n.job-order-expand[_ngcontent-%COMP%] {\n  right: 0.65rem;\n  bottom: 0.65rem;\n  padding: 0.38rem 0.52rem;\n  background: rgba(35, 61, 75, 0.9);\n  color: #fff;\n  opacity: 0;\n  transform: translateY(5px);\n  transition: opacity 0.18s ease, transform 0.18s ease;\n}\n.job-order-info[_ngcontent-%COMP%] {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  gap: 0.28rem;\n  min-height: 120px;\n  padding: 0.78rem 0.82rem 0.82rem;\n  border-top: 3px solid #bd6b5c;\n  background: #fffdf9;\n}\n.job-order-info[_ngcontent-%COMP%]::after {\n  position: absolute;\n  right: 0.82rem;\n  bottom: 0.8rem;\n  width: 22px;\n  height: 2px;\n  background: #d5ad66;\n  content: "";\n}\n.job-order-title[_ngcontent-%COMP%] {\n  display: -webkit-box;\n  overflow: hidden;\n  color: #293f4d;\n  font-size: 0.84rem;\n  font-weight: 850;\n  line-height: 1.38;\n  letter-spacing: 0;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 2;\n}\n.job-order-description[_ngcontent-%COMP%] {\n  display: -webkit-box;\n  margin: 0;\n  overflow: hidden;\n  color: #6b7a77;\n  font-size: 0.72rem;\n  font-weight: 600;\n  line-height: 1.52;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 2;\n}\n.job-order-more-hint[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.32rem;\n  margin-top: auto;\n  color: #a18e7f;\n  font-size: 0.61rem;\n  font-weight: 750;\n  transition: color 0.18s ease;\n}\n.job-order-more-hint[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 0.56rem;\n}\n.job-board-more[_ngcontent-%COMP%] {\n  display: flex;\n  justify-content: center;\n  margin-top: 1.35rem;\n}\n.job-board-more[_ngcontent-%COMP%]   a[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 0.48rem;\n  padding: 0.8rem 1.05rem;\n  border: 1px solid #b24c3f;\n  border-radius: 5px;\n  background: transparent;\n  color: #a74437;\n  font-size: 0.82rem;\n  font-weight: 850;\n  text-decoration: none;\n}\n.job-board-more[_ngcontent-%COMP%]   a[_ngcontent-%COMP%]:hover, \n.job-board-more[_ngcontent-%COMP%]   a[_ngcontent-%COMP%]:focus-visible {\n  background: #b24c3f;\n  color: #fff;\n  outline: none;\n  transform: translateY(-2px);\n}\n.job-pagination-wrap[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  margin-top: 1.45rem;\n  padding: 0.9rem 1rem;\n  border: 1px solid #e1d5c7;\n  border-radius: 6px;\n  background: rgba(255, 253, 248, 0.84);\n  box-shadow: 0 10px 25px rgba(74, 53, 35, 0.05);\n}\n.job-pagination-wrap[_ngcontent-%COMP%]    > span[_ngcontent-%COMP%] {\n  color: #71807b;\n  font-size: 0.78rem;\n  font-weight: 750;\n}\n.job-pagination[_ngcontent-%COMP%] {\n  display: flex;\n  flex-wrap: wrap;\n  justify-content: flex-end;\n  gap: 0.42rem;\n}\n.job-pagination[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n  min-width: 36px;\n  height: 36px;\n  display: inline-grid;\n  place-items: center;\n  border: 1px solid #dccfc1;\n  border-radius: 5px;\n  background: #fffdf9;\n  color: #526b6d;\n  font: inherit;\n  font-size: 0.78rem;\n  font-weight: 850;\n  cursor: pointer;\n}\n.job-pagination[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover:not(:disabled), \n.job-pagination[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:focus-visible {\n  border-color: #b24c3f;\n  color: #a74437;\n  outline: none;\n  transform: translateY(-1px);\n}\n.job-pagination[_ngcontent-%COMP%]   button.active[_ngcontent-%COMP%] {\n  border-color: #243f4f;\n  background: #243f4f;\n  color: #fff;\n}\n.job-pagination[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:disabled {\n  cursor: not-allowed;\n  opacity: 0.45;\n}\n.job-board-state[_ngcontent-%COMP%] {\n  min-height: 170px;\n  display: grid;\n  place-content: center;\n  gap: 0.55rem;\n  border: 1px dashed #d8c9ba;\n  border-radius: 6px;\n  background: rgba(255, 253, 248, 0.72);\n  color: #71807b;\n  font-size: 0.9rem;\n  text-align: center;\n}\n.job-board-state[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  color: #b24c3f;\n  font-size: 1.3rem;\n}\n.job-board-state.error[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  color: #c54956;\n}\n.poster-lightbox[_ngcontent-%COMP%] {\n  position: fixed;\n  z-index: 5000;\n  inset: 0;\n  display: flex;\n  justify-content: center;\n  align-items: flex-start;\n  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));\n  overflow-y: auto;\n  overscroll-behavior: contain;\n  background: rgba(27, 39, 44, 0.72);\n  -webkit-backdrop-filter: blur(5px);\n  backdrop-filter: blur(5px);\n}\n.poster-lightbox-card[_ngcontent-%COMP%] {\n  position: relative;\n  width: min(100%, 980px);\n  display: grid;\n  grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);\n  overflow: hidden;\n  border: 1px solid #e5d6c5;\n  border-radius: 8px;\n  background: #fffaf3;\n  box-shadow: 0 30px 90px rgba(18, 28, 33, 0.38);\n  outline: none;\n}\n.poster-lightbox-media[_ngcontent-%COMP%] {\n  min-height: 540px;\n  display: grid;\n  place-items: center;\n  padding: 1rem;\n  background: #eee6da;\n}\n.poster-lightbox-media[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  width: 100%;\n  max-height: min(78vh, 760px);\n  display: block;\n  object-fit: contain;\n}\n.poster-lightbox-info[_ngcontent-%COMP%] {\n  display: flex;\n  flex-direction: column;\n  min-width: 0;\n  padding: clamp(1.35rem, 3vw, 2.3rem);\n  background: #fffaf3;\n}\n.poster-lightbox-category[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  align-self: flex-start;\n  gap: 0.38rem;\n  margin-bottom: 0.5rem;\n  padding: 0.32rem 0.56rem;\n  border: 1px solid #e3cfc0;\n  border-radius: 4px;\n  background: #fff1eb;\n  color: #a74437;\n  font-size: 0.67rem;\n  font-weight: 800;\n}\n.poster-lightbox-category[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\n  font-size: 0.6rem;\n}\n.poster-lightbox-title[_ngcontent-%COMP%] {\n  margin: 0.25rem 0 0.8rem;\n  color: #263e4d;\n  font-size: clamp(1.35rem, 2.4vw, 1.9rem);\n  font-weight: 850;\n  line-height: 1.28;\n  letter-spacing: 0;\n}\n.poster-lightbox-description[_ngcontent-%COMP%] {\n  overflow-y: auto;\n  max-height: min(48vh, 480px);\n  padding-right: 0.35rem;\n  color: #5e706e;\n  font-size: 0.9rem;\n  line-height: 1.72;\n  word-break: break-word;\n}\n.poster-lightbox-description[_ngcontent-%COMP%]   p[_ngcontent-%COMP%], \n.poster-lightbox-description[_ngcontent-%COMP%]   div[_ngcontent-%COMP%] {\n  margin: 0 0 0.62rem;\n}\n.poster-lightbox-description[_ngcontent-%COMP%]   b[_ngcontent-%COMP%], \n.poster-lightbox-description[_ngcontent-%COMP%]   strong[_ngcontent-%COMP%] {\n  color: #304d56;\n  font-weight: 800;\n}\n.poster-lightbox-description[_ngcontent-%COMP%]   i[_ngcontent-%COMP%], \n.poster-lightbox-description[_ngcontent-%COMP%]   em[_ngcontent-%COMP%] {\n  font-style: italic;\n}\n.poster-lightbox-description[_ngcontent-%COMP%]   u[_ngcontent-%COMP%] {\n  text-decoration: underline;\n  text-underline-offset: 2px;\n}\n.poster-lightbox-description[_ngcontent-%COMP%]   ul[_ngcontent-%COMP%], \n.poster-lightbox-description[_ngcontent-%COMP%]   ol[_ngcontent-%COMP%] {\n  margin: 0.35rem 0 0.7rem;\n  padding-left: 1.3rem;\n}\n.poster-lightbox-description[_ngcontent-%COMP%]   li[_ngcontent-%COMP%] {\n  margin-bottom: 0.25rem;\n}\n.poster-lightbox-description[_ngcontent-%COMP%]   blockquote[_ngcontent-%COMP%] {\n  margin: 0.7rem 0;\n  padding: 0.65rem 0.75rem;\n  border-left: 3px solid #bd6b5c;\n  background: #fff2ec;\n  color: #6a706b;\n}\n.poster-lightbox-description[_ngcontent-%COMP%]   a[_ngcontent-%COMP%] {\n  color: #a74437;\n  text-decoration: underline;\n  text-underline-offset: 2px;\n}\n.poster-lightbox-footer[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 0.8rem;\n  margin-top: auto;\n  padding-top: 1.25rem;\n  border-top: 1px solid #eadfd1;\n}\n.poster-lightbox-footer[_ngcontent-%COMP%]   a[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.42rem;\n  color: #a74437;\n  font-size: 0.76rem;\n  font-weight: 850;\n  text-decoration: none;\n}\n.poster-lightbox-footer[_ngcontent-%COMP%]   a[_ngcontent-%COMP%]:hover, \n.poster-lightbox-footer[_ngcontent-%COMP%]   a[_ngcontent-%COMP%]:focus-visible {\n  color: #7f302b;\n  outline: none;\n}\n.poster-close-button[_ngcontent-%COMP%] {\n  position: absolute;\n  z-index: 2;\n  top: 0.85rem;\n  right: 0.85rem;\n  width: 36px;\n  height: 36px;\n  display: grid;\n  place-items: center;\n  border: 1px solid rgba(255, 255, 255, 0.35);\n  border-radius: 50%;\n  background: rgba(35, 61, 75, 0.9);\n  color: #fff;\n  cursor: pointer;\n}\n.poster-close-button[_ngcontent-%COMP%]:hover, \n.poster-close-button[_ngcontent-%COMP%]:focus-visible {\n  background: #b24c3f;\n  outline: none;\n}\n@media (max-width: 1100px) {\n  .job-category-grid[_ngcontent-%COMP%] {\n    grid-template-columns: repeat(3, minmax(0, 1fr));\n  }\n  .job-category-tile[_ngcontent-%COMP%] {\n    border-bottom: 1px solid #e7ddd2;\n  }\n  .job-category-tile[_ngcontent-%COMP%]:nth-child(3n) {\n    border-right: 0;\n  }\n  .job-order-grid[_ngcontent-%COMP%] {\n    grid-template-columns: repeat(3, minmax(0, 1fr));\n  }\n}\n@media (max-width: 767.98px) {\n  .job-board[_ngcontent-%COMP%] {\n    padding: 2.75rem 0;\n  }\n  .job-board-heading[_ngcontent-%COMP%] {\n    align-items: stretch;\n    flex-direction: column;\n    gap: 0.95rem;\n    margin-bottom: 1rem;\n  }\n  .job-board-heading[_ngcontent-%COMP%]   h2[_ngcontent-%COMP%] {\n    margin-top: 0.45rem;\n    font-size: clamp(1.55rem, 8vw, 2.05rem);\n    line-height: 1.18;\n  }\n  .job-board-heading[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\n    font-size: 0.88rem;\n    line-height: 1.58;\n  }\n  .job-board-all-link[_ngcontent-%COMP%] {\n    width: fit-content;\n    min-height: 40px;\n    padding: 0.66rem 0.86rem;\n    font-size: 0.76rem;\n  }\n  .job-category-grid[_ngcontent-%COMP%] {\n    display: flex;\n    gap: 0;\n    margin-right: -1rem;\n    margin-bottom: 0.95rem;\n    overflow-x: auto;\n    border: 0;\n    border-radius: 0;\n    box-shadow: none;\n    scrollbar-width: none;\n  }\n  .job-category-grid[_ngcontent-%COMP%]::-webkit-scrollbar {\n    display: none;\n  }\n  .job-category-tile[_ngcontent-%COMP%] {\n    flex: 0 0 168px;\n    grid-template-columns: auto minmax(0, 1fr);\n    min-height: 66px;\n    padding: 0.62rem;\n    border: 1px solid #e1d5c7;\n    border-right: 0;\n    background: rgba(255, 253, 248, 0.92);\n  }\n  .job-category-tile[_ngcontent-%COMP%]:first-child {\n    border-radius: 6px 0 0 6px;\n  }\n  .job-category-tile[_ngcontent-%COMP%]:last-child {\n    border-right: 1px solid #e1d5c7;\n    border-radius: 0 6px 6px 0;\n  }\n  .job-category-tile[_ngcontent-%COMP%]    > i[_ngcontent-%COMP%] {\n    width: 32px;\n    height: 32px;\n    flex-basis: 32px;\n    font-size: 0.84rem;\n  }\n  .job-category-tile[_ngcontent-%COMP%]   strong[_ngcontent-%COMP%] {\n    font-size: 0.7rem;\n  }\n  .job-order-grid[_ngcontent-%COMP%] {\n    display: flex;\n    gap: 0.85rem;\n    margin-right: -1rem;\n    padding: 0 1rem 0.4rem 0;\n    overflow-x: auto;\n    overscroll-behavior-x: contain;\n    scroll-padding-left: 0;\n    scroll-snap-type: x mandatory;\n    scrollbar-width: none;\n  }\n  .job-order-grid[_ngcontent-%COMP%]::-webkit-scrollbar {\n    display: none;\n  }\n  .job-order-card[_ngcontent-%COMP%] {\n    flex: 0 0 calc(100% - 0.15rem);\n    border-radius: 7px;\n    box-shadow: 0 10px 24px rgba(74, 53, 35, 0.09);\n    scroll-snap-align: start;\n  }\n  .job-order-info[_ngcontent-%COMP%] {\n    min-height: 112px;\n    padding: 0.65rem 0.7rem 0.72rem;\n  }\n  .job-order-title[_ngcontent-%COMP%] {\n    font-size: 0.76rem;\n  }\n  .job-order-description[_ngcontent-%COMP%] {\n    font-size: 0.67rem;\n    line-height: 1.45;\n  }\n  .job-order-more-hint[_ngcontent-%COMP%] {\n    font-size: 0.57rem;\n  }\n  .job-featured-badge[_ngcontent-%COMP%], \n   .job-order-category-tag[_ngcontent-%COMP%] {\n    top: 0.5rem;\n  }\n  .job-featured-badge[_ngcontent-%COMP%] {\n    left: 0.5rem;\n    padding: 0.3rem 0.42rem;\n    font-size: 0.57rem;\n  }\n  .job-order-category-tag[_ngcontent-%COMP%] {\n    right: 0.5rem;\n    padding: 0.28rem 0.42rem;\n    font-size: 0.54rem;\n  }\n  .job-order-category-tag[_ngcontent-%COMP%]   small[_ngcontent-%COMP%] {\n    font-size: 0.6rem;\n  }\n  .job-board-more[_ngcontent-%COMP%] {\n    margin-top: 1rem;\n  }\n  .job-board-more[_ngcontent-%COMP%]   a[_ngcontent-%COMP%] {\n    width: 100%;\n    min-height: 46px;\n    padding: 0.78rem 0.9rem;\n    font-size: 0.78rem;\n  }\n  .job-pagination-wrap[_ngcontent-%COMP%] {\n    align-items: stretch;\n    flex-direction: column;\n    gap: 0.7rem;\n    margin-top: 1rem;\n    padding: 0.82rem;\n  }\n  .job-pagination-wrap[_ngcontent-%COMP%]    > span[_ngcontent-%COMP%] {\n    text-align: center;\n  }\n  .job-pagination[_ngcontent-%COMP%] {\n    justify-content: center;\n    gap: 0.35rem;\n  }\n  .job-pagination[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\n    min-width: 34px;\n    height: 34px;\n    font-size: 0.72rem;\n  }\n  .job-order-expand[_ngcontent-%COMP%] {\n    display: none;\n  }\n  .poster-lightbox-card[_ngcontent-%COMP%] {\n    grid-template-columns: minmax(0, 1fr);\n    border-radius: 7px;\n  }\n  .poster-lightbox-media[_ngcontent-%COMP%] {\n    min-height: 0;\n    padding: 0.65rem;\n  }\n  .poster-lightbox-media[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n    max-height: 58vh;\n    max-height: 58dvh;\n  }\n  .poster-lightbox-info[_ngcontent-%COMP%] {\n    padding: 1rem 1rem 1.1rem;\n  }\n  .poster-lightbox-title[_ngcontent-%COMP%] {\n    font-size: 1.2rem;\n  }\n  .poster-lightbox-description[_ngcontent-%COMP%] {\n    max-height: none;\n    font-size: 0.84rem;\n  }\n  .poster-lightbox-footer[_ngcontent-%COMP%] {\n    margin-top: 1rem;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .job-category-tile[_ngcontent-%COMP%], \n   .job-order-card[_ngcontent-%COMP%], \n   .job-board-all-link[_ngcontent-%COMP%], \n   .job-board-more[_ngcontent-%COMP%]   a[_ngcontent-%COMP%], \n   .job-pagination[_ngcontent-%COMP%]   button[_ngcontent-%COMP%], \n   .poster-close-button[_ngcontent-%COMP%] {\n    transition: none;\n  }\n}\n/*# sourceMappingURL=job-order-board.css.map */'] });
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && i0.\u0275setClassMetadata(JobOrderBoard, [{
+    type: Component,
+    args: [{ selector: "app-job-order-board", standalone: true, imports: [CommonModule], template: `<section class="job-board" [class.job-board-home]="home" id="don-hang">
+  <div class="container">
+    <div class="job-board-heading">
+      <div>
+        <span class="job-board-kicker"><i class="fas fa-arrow-up-right-from-square"></i> C\u01A1 h\u1ED9i t\u1EA1i Nh\u1EADt</span>
+        <h2>{{ home ? 'M\u1ED9t l\u1EF1a ch\u1ECDn t\u1ED1t b\u1EAFt \u0111\u1EA7u t\u1EEB l\u1ED9 tr\xECnh ph\xF9 h\u1EE3p' : 'C\u01A1 h\u1ED9i l\xE0m vi\u1EC7c v\xE0 h\u1ECDc t\u1EADp t\u1EA1i Nh\u1EADt' }}</h2>
+        <p>Ch\u1ECDn nh\xF3m ch\u01B0\u01A1ng tr\xECnh, xem th\xF4ng tin t\u1EEBng \u0111\u01A1n v\xE0 b\u1EAFt \u0111\u1EA7u cu\u1ED9c tr\xF2 chuy\u1EC7n v\u1EDBi VieJap khi b\u1EA1n \u0111\xE3 s\u1EB5n s\xE0ng.</p>
+      </div>
+
+      @if (home) {
+        <a class="job-board-all-link" href="/don-hang">
+          Xem ti\u1EBFp <i class="fas fa-arrow-right"></i>
+        </a>
+      }
+    </div>
+
+    @if (loading) {
+      <div class="job-board-state"><i class="fas fa-spinner fa-spin"></i> \u0110ang t\u1EA3i \u0111\u01A1n h\xE0ng...</div>
+    } @else if (errorMessage) {
+      <div class="job-board-state error"><i class="fas fa-circle-exclamation"></i> {{ errorMessage }}</div>
+    } @else {
+      <div class="job-category-grid" role="tablist" aria-label="Ch\u1ECDn nh\xF3m ch\u01B0\u01A1ng tr\xECnh">
+        <button type="button" role="tab" class="job-category-tile all" [attr.aria-selected]="activeFilter === 'all'" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">
+          <i class="fas fa-border-all"></i>
+          <span><strong>T\u1EA5t c\u1EA3 \u0111\u01A1n</strong><small>{{ orders.length }} \u0111ang tuy\u1EC3n</small></span>
+        </button>
+        @for (category of categories; track category.key) {
+          <button type="button" role="tab" class="job-category-tile" [attr.aria-selected]="activeFilter === category.key" [class.active]="activeFilter === category.key" (click)="setFilter(category.key)">
+            <i [class]="category.icon"></i>
+            <span><strong>{{ category.label }}</strong><small>{{ categoryCount(category.key) }} \u0111ang tuy\u1EC3n</small></span>
+          </button>
+        }
+      </div>
+
+      @if (!orders.length) {
+        <div class="job-board-state"><i class="fas fa-image"></i> Ch\u01B0a c\xF3 \u0111\u01A1n tuy\u1EC3n.</div>
+      } @else if (!visibleOrders.length) {
+        <div class="job-board-state"><i class="fas fa-filter-circle-xmark"></i> Ch\u01B0a c\xF3 \u0111\u01A1n tuy\u1EC3n thu\u1ED9c ch\u01B0\u01A1ng tr\xECnh n\xE0y.</div>
+      } @else {
+        <div class="job-order-grid">
+          @for (order of visibleOrders; track order.id) {
+            <button type="button" class="job-order-card" [class.featured]="order.isFeatured" (click)="openOrder(order)">
+              <span class="job-order-visual">
+                <img [src]="order.imageUrl" [alt]="'\u1EA2nh ' + orderTitle(order)" loading="lazy" (error)="useFallbackImage($event, order)" />
+                @if (order.isFeatured) {
+                  <span class="job-featured-badge"><i class="fas fa-star"></i> N\u1ED5i b\u1EADt</span>
+                }
+                <span class="job-order-category-tag">
+                  <i [class]="orderCategory(order).icon"></i>
+                  {{ orderCategory(order).shortLabel }}
+                </span>
+                <span class="job-order-expand"><i class="fas fa-up-right-and-down-left-from-center"></i> Xem \u0111\u01A1n h\xE0ng</span>
+              </span>
+              <span class="job-order-info">
+                <span class="job-order-title">{{ orderTitle(order) }}</span>
+                @if (order.description) {
+                  <span class="job-order-description">{{ stripHtml(order.description) }}</span>
+                  <span class="job-order-more-hint"><i class="fas fa-hand-pointer"></i> \u1EA4n v\xE0o \u0111\u1EC3 xem chi ti\u1EBFt</span>
+                }
+              </span>
+            </button>
+          }
+        </div>
+
+        @if (hasHiddenOrders) {
+          <div class="job-board-more">
+            <a href="/don-hang">Xem ti\u1EBFp c\xE1c \u0111\u01A1n \u0111ang tuy\u1EC3n <i class="fas fa-arrow-right"></i></a>
+          </div>
+        }
+
+        @if (showPagination) {
+          <div class="job-pagination-wrap">
+            <span>{{ paginationSummary }}</span>
+            <nav class="job-pagination" aria-label="Ph\xE2n trang \u0111\u01A1n h\xE0ng">
+              <button type="button" (click)="previousPage()" [disabled]="currentPage === 1">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              @for (page of paginationPages; track page) {
+                <button type="button" [class.active]="page === currentPage" (click)="setPage(page)">
+                  {{ page }}
+                </button>
+              }
+              <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </nav>
+          </div>
+        }
+      }
+    }
+  </div>
+</section>
+
+@if (selectedOrder) {
+  <div class="poster-lightbox" role="presentation" (click)="closeOrder()">
+    <section class="poster-lightbox-card" role="dialog" aria-modal="true" aria-label="Xem \u0111\u01A1n h\xE0ng" tabindex="0" (click)="$event.stopPropagation()" (keydown.escape)="closeOrder()">
+      <button type="button" class="poster-close-button" (click)="closeOrder()" aria-label="\u0110\xF3ng"><i class="fas fa-xmark"></i></button>
+      <div class="poster-lightbox-media">
+        <img [src]="selectedOrder.imageUrl" [alt]="'\u1EA2nh ' + orderTitle(selectedOrder)" (error)="useFallbackImage($event, selectedOrder)" />
+      </div>
+      <div class="poster-lightbox-info">
+        <span class="poster-lightbox-category">
+          <i [class]="orderCategory(selectedOrder).icon"></i>
+          {{ orderCategory(selectedOrder).label }}
+        </span>
+        <h3 class="poster-lightbox-title">{{ orderTitle(selectedOrder) }}</h3>
+        @if (selectedOrder.description) {
+          <div class="poster-lightbox-description" [innerHTML]="selectedOrder.description"></div>
+        }
+        <div class="poster-lightbox-footer">
+          <a [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer"><i class="fas fa-comment-dots"></i> Trao \u0111\u1ED5i v\u1EDBi VieJap</a>
+        </div>
+      </div>
+    </section>
+  </div>
+}
+`, styles: ['/* src/app/jobs/job-order-board.scss */\n:host {\n  display: block;\n}\n.job-board {\n  position: relative;\n  overflow: hidden;\n  padding: clamp(3.75rem, 7vw, 6rem) 0;\n  border-top: 1px solid #e8ecf0;\n  border-bottom: 1px solid #e8ecf0;\n  background-color: #ffffff;\n  background-image:\n    radial-gradient(\n      ellipse 80% 50% at 50% -10%,\n      rgba(30, 58, 138, 0.04) 0%,\n      transparent 70%);\n  scroll-margin-top: 72px;\n}\n.job-board > .container {\n  position: relative;\n  z-index: 1;\n}\n.job-board-home {\n  border-top-color: #e8ecf0;\n}\n.job-board-heading {\n  display: flex;\n  align-items: end;\n  justify-content: space-between;\n  gap: 1.5rem;\n  margin-bottom: 1.75rem;\n}\n.job-board-heading > div {\n  max-width: 720px;\n}\n.job-board-heading h2 {\n  margin: 0.62rem 0 0.55rem;\n  color: #253b4a;\n  font-size: clamp(1.85rem, 3.5vw, 2.7rem);\n  font-weight: 850;\n  line-height: 1.18;\n  letter-spacing: 0;\n}\n.job-board-heading p {\n  max-width: 650px;\n  margin: 0;\n  color: #687671;\n  font-size: 0.96rem;\n  line-height: 1.7;\n}\n.job-board-kicker {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.65rem;\n  color: #1e3a8a;\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n.job-board-kicker i {\n  color: #3b82f6;\n}\n.job-board-all-link {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.5rem;\n  min-height: 42px;\n  padding: 0.75rem 0.95rem;\n  border: 1px solid #1e3a8a;\n  border-radius: 6px;\n  background: #1e3a8a;\n  color: #fff;\n  font-size: 0.82rem;\n  font-weight: 700;\n  text-decoration: none;\n  box-shadow: 0 6px 18px rgba(30, 58, 138, 0.18);\n}\n.job-board-all-link:hover,\n.job-board-all-link:focus-visible {\n  border-color: #1e40af;\n  background: #1e40af;\n  color: #fff;\n  outline: none;\n  transform: translateY(-2px);\n}\n.job-category-grid {\n  display: grid;\n  grid-template-columns: repeat(5, minmax(0, 1fr));\n  gap: 0;\n  margin-bottom: 1.35rem;\n  border: 1px solid #e2e8f0;\n  border-radius: 14px;\n  background: #ffffff;\n  box-shadow: 0 2px 12px rgba(30, 58, 138, 0.06);\n  overflow: hidden;\n}\n.job-category-tile {\n  position: relative;\n  min-width: 0;\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n  align-items: center;\n  gap: 0.55rem;\n  min-height: 72px;\n  padding: 0.72rem 0.75rem;\n  border: 0;\n  border-right: 1px solid #e2e8f0;\n  background: transparent;\n  color: #475569;\n  font: inherit;\n  text-align: left;\n  cursor: pointer;\n  transition: background-color 0.18s ease, color 0.18s ease;\n}\n.job-category-tile:last-child {\n  border-right: 0;\n}\n.job-category-tile > i {\n  width: 34px;\n  height: 34px;\n  display: grid;\n  flex: 0 0 34px;\n  place-items: center;\n  border: 1px solid #dbeafe;\n  border-radius: 10px;\n  background: #eff6ff;\n  color: #1e3a8a;\n  font-size: 0.9rem;\n}\n.job-category-tile > span {\n  display: grid;\n  min-width: 0;\n  gap: 0.12rem;\n}\n.job-category-tile strong {\n  overflow: hidden;\n  color: #1e293b;\n  font-size: 0.76rem;\n  line-height: 1.25;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.job-category-tile span small {\n  color: #94a3b8;\n  font-size: 0.6rem;\n  font-weight: 700;\n  line-height: 1.25;\n}\n.job-category-tile:hover,\n.job-category-tile:focus-visible,\n.job-category-tile.active {\n  background: #1e3a8a;\n  color: #fff;\n  outline: none;\n}\n.job-category-tile:hover > i,\n.job-category-tile:focus-visible > i,\n.job-category-tile.active > i {\n  border-color: rgba(255, 255, 255, 0.2);\n  background: rgba(255, 255, 255, 0.15);\n  color: #fff;\n}\n.job-category-tile:hover strong,\n.job-category-tile:hover span small,\n.job-category-tile:focus-visible strong,\n.job-category-tile:focus-visible span small,\n.job-category-tile.active strong,\n.job-category-tile.active span small {\n  color: #fff;\n}\n.job-category-tile.all > i {\n  border-color: #fef9c3;\n  background: #fefce8;\n  color: #854d0e;\n}\n.job-order-grid {\n  display: grid;\n  grid-template-columns: repeat(4, minmax(0, 1fr));\n  gap: clamp(0.9rem, 1.8vw, 1.25rem);\n}\n.job-order-card {\n  display: grid;\n  grid-template-rows: auto 1fr;\n  min-width: 0;\n  padding: 0;\n  overflow: hidden;\n  border: 1px solid #e2e8f0;\n  border-radius: 16px;\n  background: #ffffff;\n  color: inherit;\n  font: inherit;\n  text-align: left;\n  box-shadow: 0 2px 12px rgba(30, 58, 138, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);\n  cursor: pointer;\n  transition:\n    transform 0.2s ease,\n    box-shadow 0.2s ease,\n    border-color 0.2s ease;\n}\n.job-order-card:hover,\n.job-order-card:focus-visible {\n  border-color: #93c5fd;\n  outline: none;\n  box-shadow: 0 12px 32px rgba(30, 58, 138, 0.14), 0 4px 8px rgba(0, 0, 0, 0.06);\n  transform: translateY(-5px);\n}\n.job-order-card:hover .job-order-expand,\n.job-order-card:focus-visible .job-order-expand {\n  opacity: 1;\n  transform: translateY(0);\n}\n.job-order-card:hover .job-order-more-hint,\n.job-order-card:focus-visible .job-order-more-hint {\n  color: #1e3a8a;\n}\n.job-order-visual {\n  position: relative;\n  aspect-ratio: 3/4;\n  display: grid;\n  place-items: center;\n  overflow: hidden;\n  background: #eee6da;\n}\n.job-order-visual img {\n  width: 100%;\n  height: 100%;\n  display: block;\n  object-fit: contain;\n}\n.job-featured-badge,\n.job-order-expand,\n.job-order-category-tag {\n  position: absolute;\n  display: inline-flex;\n  align-items: center;\n  gap: 0.32rem;\n  border-radius: 4px;\n  font-size: 0.62rem;\n  font-weight: 850;\n}\n.job-featured-badge {\n  top: 0.65rem;\n  left: 0.65rem;\n  padding: 0.35rem 0.5rem;\n  background: #b24c3f;\n  color: #fff;\n  box-shadow: 0 5px 13px rgba(91, 42, 35, 0.2);\n}\n.job-order-category-tag {\n  top: 0.65rem;\n  right: 0.65rem;\n  padding: 0.34rem 0.5rem;\n  background: rgba(35, 61, 75, 0.9);\n  color: #fff;\n  -webkit-backdrop-filter: blur(6px);\n  backdrop-filter: blur(6px);\n  box-shadow: 0 5px 14px rgba(28, 43, 50, 0.22);\n}\n.job-order-category-tag i {\n  font-size: 0.55rem;\n  opacity: 0.9;\n}\n.job-order-expand {\n  right: 0.65rem;\n  bottom: 0.65rem;\n  padding: 0.38rem 0.52rem;\n  background: rgba(35, 61, 75, 0.9);\n  color: #fff;\n  opacity: 0;\n  transform: translateY(5px);\n  transition: opacity 0.18s ease, transform 0.18s ease;\n}\n.job-order-info {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  gap: 0.28rem;\n  min-height: 120px;\n  padding: 0.78rem 0.82rem 0.82rem;\n  border-top: 3px solid #bd6b5c;\n  background: #fffdf9;\n}\n.job-order-info::after {\n  position: absolute;\n  right: 0.82rem;\n  bottom: 0.8rem;\n  width: 22px;\n  height: 2px;\n  background: #d5ad66;\n  content: "";\n}\n.job-order-title {\n  display: -webkit-box;\n  overflow: hidden;\n  color: #293f4d;\n  font-size: 0.84rem;\n  font-weight: 850;\n  line-height: 1.38;\n  letter-spacing: 0;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 2;\n}\n.job-order-description {\n  display: -webkit-box;\n  margin: 0;\n  overflow: hidden;\n  color: #6b7a77;\n  font-size: 0.72rem;\n  font-weight: 600;\n  line-height: 1.52;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 2;\n}\n.job-order-more-hint {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.32rem;\n  margin-top: auto;\n  color: #a18e7f;\n  font-size: 0.61rem;\n  font-weight: 750;\n  transition: color 0.18s ease;\n}\n.job-order-more-hint i {\n  font-size: 0.56rem;\n}\n.job-board-more {\n  display: flex;\n  justify-content: center;\n  margin-top: 1.35rem;\n}\n.job-board-more a {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 0.48rem;\n  padding: 0.8rem 1.05rem;\n  border: 1px solid #b24c3f;\n  border-radius: 5px;\n  background: transparent;\n  color: #a74437;\n  font-size: 0.82rem;\n  font-weight: 850;\n  text-decoration: none;\n}\n.job-board-more a:hover,\n.job-board-more a:focus-visible {\n  background: #b24c3f;\n  color: #fff;\n  outline: none;\n  transform: translateY(-2px);\n}\n.job-pagination-wrap {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  margin-top: 1.45rem;\n  padding: 0.9rem 1rem;\n  border: 1px solid #e1d5c7;\n  border-radius: 6px;\n  background: rgba(255, 253, 248, 0.84);\n  box-shadow: 0 10px 25px rgba(74, 53, 35, 0.05);\n}\n.job-pagination-wrap > span {\n  color: #71807b;\n  font-size: 0.78rem;\n  font-weight: 750;\n}\n.job-pagination {\n  display: flex;\n  flex-wrap: wrap;\n  justify-content: flex-end;\n  gap: 0.42rem;\n}\n.job-pagination button {\n  min-width: 36px;\n  height: 36px;\n  display: inline-grid;\n  place-items: center;\n  border: 1px solid #dccfc1;\n  border-radius: 5px;\n  background: #fffdf9;\n  color: #526b6d;\n  font: inherit;\n  font-size: 0.78rem;\n  font-weight: 850;\n  cursor: pointer;\n}\n.job-pagination button:hover:not(:disabled),\n.job-pagination button:focus-visible {\n  border-color: #b24c3f;\n  color: #a74437;\n  outline: none;\n  transform: translateY(-1px);\n}\n.job-pagination button.active {\n  border-color: #243f4f;\n  background: #243f4f;\n  color: #fff;\n}\n.job-pagination button:disabled {\n  cursor: not-allowed;\n  opacity: 0.45;\n}\n.job-board-state {\n  min-height: 170px;\n  display: grid;\n  place-content: center;\n  gap: 0.55rem;\n  border: 1px dashed #d8c9ba;\n  border-radius: 6px;\n  background: rgba(255, 253, 248, 0.72);\n  color: #71807b;\n  font-size: 0.9rem;\n  text-align: center;\n}\n.job-board-state i {\n  color: #b24c3f;\n  font-size: 1.3rem;\n}\n.job-board-state.error i {\n  color: #c54956;\n}\n.poster-lightbox {\n  position: fixed;\n  z-index: 5000;\n  inset: 0;\n  display: flex;\n  justify-content: center;\n  align-items: flex-start;\n  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));\n  overflow-y: auto;\n  overscroll-behavior: contain;\n  background: rgba(27, 39, 44, 0.72);\n  -webkit-backdrop-filter: blur(5px);\n  backdrop-filter: blur(5px);\n}\n.poster-lightbox-card {\n  position: relative;\n  width: min(100%, 980px);\n  display: grid;\n  grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);\n  overflow: hidden;\n  border: 1px solid #e5d6c5;\n  border-radius: 8px;\n  background: #fffaf3;\n  box-shadow: 0 30px 90px rgba(18, 28, 33, 0.38);\n  outline: none;\n}\n.poster-lightbox-media {\n  min-height: 540px;\n  display: grid;\n  place-items: center;\n  padding: 1rem;\n  background: #eee6da;\n}\n.poster-lightbox-media img {\n  width: 100%;\n  max-height: min(78vh, 760px);\n  display: block;\n  object-fit: contain;\n}\n.poster-lightbox-info {\n  display: flex;\n  flex-direction: column;\n  min-width: 0;\n  padding: clamp(1.35rem, 3vw, 2.3rem);\n  background: #fffaf3;\n}\n.poster-lightbox-category {\n  display: inline-flex;\n  align-items: center;\n  align-self: flex-start;\n  gap: 0.38rem;\n  margin-bottom: 0.5rem;\n  padding: 0.32rem 0.56rem;\n  border: 1px solid #e3cfc0;\n  border-radius: 4px;\n  background: #fff1eb;\n  color: #a74437;\n  font-size: 0.67rem;\n  font-weight: 800;\n}\n.poster-lightbox-category i {\n  font-size: 0.6rem;\n}\n.poster-lightbox-title {\n  margin: 0.25rem 0 0.8rem;\n  color: #263e4d;\n  font-size: clamp(1.35rem, 2.4vw, 1.9rem);\n  font-weight: 850;\n  line-height: 1.28;\n  letter-spacing: 0;\n}\n.poster-lightbox-description {\n  overflow-y: auto;\n  max-height: min(48vh, 480px);\n  padding-right: 0.35rem;\n  color: #5e706e;\n  font-size: 0.9rem;\n  line-height: 1.72;\n  word-break: break-word;\n}\n.poster-lightbox-description p,\n.poster-lightbox-description div {\n  margin: 0 0 0.62rem;\n}\n.poster-lightbox-description b,\n.poster-lightbox-description strong {\n  color: #304d56;\n  font-weight: 800;\n}\n.poster-lightbox-description i,\n.poster-lightbox-description em {\n  font-style: italic;\n}\n.poster-lightbox-description u {\n  text-decoration: underline;\n  text-underline-offset: 2px;\n}\n.poster-lightbox-description ul,\n.poster-lightbox-description ol {\n  margin: 0.35rem 0 0.7rem;\n  padding-left: 1.3rem;\n}\n.poster-lightbox-description li {\n  margin-bottom: 0.25rem;\n}\n.poster-lightbox-description blockquote {\n  margin: 0.7rem 0;\n  padding: 0.65rem 0.75rem;\n  border-left: 3px solid #bd6b5c;\n  background: #fff2ec;\n  color: #6a706b;\n}\n.poster-lightbox-description a {\n  color: #a74437;\n  text-decoration: underline;\n  text-underline-offset: 2px;\n}\n.poster-lightbox-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 0.8rem;\n  margin-top: auto;\n  padding-top: 1.25rem;\n  border-top: 1px solid #eadfd1;\n}\n.poster-lightbox-footer a {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.42rem;\n  color: #a74437;\n  font-size: 0.76rem;\n  font-weight: 850;\n  text-decoration: none;\n}\n.poster-lightbox-footer a:hover,\n.poster-lightbox-footer a:focus-visible {\n  color: #7f302b;\n  outline: none;\n}\n.poster-close-button {\n  position: absolute;\n  z-index: 2;\n  top: 0.85rem;\n  right: 0.85rem;\n  width: 36px;\n  height: 36px;\n  display: grid;\n  place-items: center;\n  border: 1px solid rgba(255, 255, 255, 0.35);\n  border-radius: 50%;\n  background: rgba(35, 61, 75, 0.9);\n  color: #fff;\n  cursor: pointer;\n}\n.poster-close-button:hover,\n.poster-close-button:focus-visible {\n  background: #b24c3f;\n  outline: none;\n}\n@media (max-width: 1100px) {\n  .job-category-grid {\n    grid-template-columns: repeat(3, minmax(0, 1fr));\n  }\n  .job-category-tile {\n    border-bottom: 1px solid #e7ddd2;\n  }\n  .job-category-tile:nth-child(3n) {\n    border-right: 0;\n  }\n  .job-order-grid {\n    grid-template-columns: repeat(3, minmax(0, 1fr));\n  }\n}\n@media (max-width: 767.98px) {\n  .job-board {\n    padding: 2.75rem 0;\n  }\n  .job-board-heading {\n    align-items: stretch;\n    flex-direction: column;\n    gap: 0.95rem;\n    margin-bottom: 1rem;\n  }\n  .job-board-heading h2 {\n    margin-top: 0.45rem;\n    font-size: clamp(1.55rem, 8vw, 2.05rem);\n    line-height: 1.18;\n  }\n  .job-board-heading p {\n    font-size: 0.88rem;\n    line-height: 1.58;\n  }\n  .job-board-all-link {\n    width: fit-content;\n    min-height: 40px;\n    padding: 0.66rem 0.86rem;\n    font-size: 0.76rem;\n  }\n  .job-category-grid {\n    display: flex;\n    gap: 0;\n    margin-right: -1rem;\n    margin-bottom: 0.95rem;\n    overflow-x: auto;\n    border: 0;\n    border-radius: 0;\n    box-shadow: none;\n    scrollbar-width: none;\n  }\n  .job-category-grid::-webkit-scrollbar {\n    display: none;\n  }\n  .job-category-tile {\n    flex: 0 0 168px;\n    grid-template-columns: auto minmax(0, 1fr);\n    min-height: 66px;\n    padding: 0.62rem;\n    border: 1px solid #e1d5c7;\n    border-right: 0;\n    background: rgba(255, 253, 248, 0.92);\n  }\n  .job-category-tile:first-child {\n    border-radius: 6px 0 0 6px;\n  }\n  .job-category-tile:last-child {\n    border-right: 1px solid #e1d5c7;\n    border-radius: 0 6px 6px 0;\n  }\n  .job-category-tile > i {\n    width: 32px;\n    height: 32px;\n    flex-basis: 32px;\n    font-size: 0.84rem;\n  }\n  .job-category-tile strong {\n    font-size: 0.7rem;\n  }\n  .job-order-grid {\n    display: flex;\n    gap: 0.85rem;\n    margin-right: -1rem;\n    padding: 0 1rem 0.4rem 0;\n    overflow-x: auto;\n    overscroll-behavior-x: contain;\n    scroll-padding-left: 0;\n    scroll-snap-type: x mandatory;\n    scrollbar-width: none;\n  }\n  .job-order-grid::-webkit-scrollbar {\n    display: none;\n  }\n  .job-order-card {\n    flex: 0 0 calc(100% - 0.15rem);\n    border-radius: 7px;\n    box-shadow: 0 10px 24px rgba(74, 53, 35, 0.09);\n    scroll-snap-align: start;\n  }\n  .job-order-info {\n    min-height: 112px;\n    padding: 0.65rem 0.7rem 0.72rem;\n  }\n  .job-order-title {\n    font-size: 0.76rem;\n  }\n  .job-order-description {\n    font-size: 0.67rem;\n    line-height: 1.45;\n  }\n  .job-order-more-hint {\n    font-size: 0.57rem;\n  }\n  .job-featured-badge,\n  .job-order-category-tag {\n    top: 0.5rem;\n  }\n  .job-featured-badge {\n    left: 0.5rem;\n    padding: 0.3rem 0.42rem;\n    font-size: 0.57rem;\n  }\n  .job-order-category-tag {\n    right: 0.5rem;\n    padding: 0.28rem 0.42rem;\n    font-size: 0.54rem;\n  }\n  .job-order-category-tag small {\n    font-size: 0.6rem;\n  }\n  .job-board-more {\n    margin-top: 1rem;\n  }\n  .job-board-more a {\n    width: 100%;\n    min-height: 46px;\n    padding: 0.78rem 0.9rem;\n    font-size: 0.78rem;\n  }\n  .job-pagination-wrap {\n    align-items: stretch;\n    flex-direction: column;\n    gap: 0.7rem;\n    margin-top: 1rem;\n    padding: 0.82rem;\n  }\n  .job-pagination-wrap > span {\n    text-align: center;\n  }\n  .job-pagination {\n    justify-content: center;\n    gap: 0.35rem;\n  }\n  .job-pagination button {\n    min-width: 34px;\n    height: 34px;\n    font-size: 0.72rem;\n  }\n  .job-order-expand {\n    display: none;\n  }\n  .poster-lightbox-card {\n    grid-template-columns: minmax(0, 1fr);\n    border-radius: 7px;\n  }\n  .poster-lightbox-media {\n    min-height: 0;\n    padding: 0.65rem;\n  }\n  .poster-lightbox-media img {\n    max-height: 58vh;\n    max-height: 58dvh;\n  }\n  .poster-lightbox-info {\n    padding: 1rem 1rem 1.1rem;\n  }\n  .poster-lightbox-title {\n    font-size: 1.2rem;\n  }\n  .poster-lightbox-description {\n    max-height: none;\n    font-size: 0.84rem;\n  }\n  .poster-lightbox-footer {\n    margin-top: 1rem;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .job-category-tile,\n  .job-order-card,\n  .job-board-all-link,\n  .job-board-more a,\n  .job-pagination button,\n  .poster-close-button {\n    transition: none;\n  }\n}\n/*# sourceMappingURL=job-order-board.css.map */\n'] }]
+  }], () => [{ type: JobOrdersApiService }], { home: [{
+    type: Input
+  }], limit: [{
+    type: Input
+  }], pageSize: [{
+    type: Input
+  }] });
+})();
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && i0.\u0275setClassDebugInfo(JobOrderBoard, { className: "JobOrderBoard", filePath: "src/app/jobs/job-order-board.ts", lineNumber: 25 });
+})();
+(() => {
+  const id = "src%2Fapp%2Fjobs%2Fjob-order-board.ts%40JobOrderBoard";
+  function JobOrderBoard_HmrLoad(t) {
+    import(
+      /* @vite-ignore */
+      __vite__injectQuery(i0.\u0275\u0275getReplaceMetadataURL(id, t, import.meta.url), 'import')
+    ).then((m) => m.default && i0.\u0275\u0275replaceMetadata(JobOrderBoard, m.default, [i0, i2, job_orders_api_service_exports], [CommonModule, Component, Input], import.meta, id));
+  }
+  (typeof ngDevMode === "undefined" || ngDevMode) && JobOrderBoard_HmrLoad(Date.now());
+  (typeof ngDevMode === "undefined" || ngDevMode) && (import.meta.hot && import.meta.hot.on("angular:component-update", (d) => d.id === id && JobOrderBoard_HmrLoad(d.timestamp)));
+})();
+
+export {
+  JobOrderBoard
+};
+
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInNyYy9hcHAvam9icy9qb2Itb3JkZXItYm9hcmQudHMiLCJzcmMvYXBwL2pvYnMvam9iLW9yZGVyLWJvYXJkLmh0bWwiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgQ29tbW9uTW9kdWxlIH0gZnJvbSAnQGFuZ3VsYXIvY29tbW9uJztcbmltcG9ydCB7IENvbXBvbmVudCwgSW5wdXQsIE9uSW5pdCB9IGZyb20gJ0Bhbmd1bGFyL2NvcmUnO1xuaW1wb3J0IHsgQVBQX0NPTlRBQ1RfSU5GTyB9IGZyb20gJy4uL21vZGVscy9hcHAuY29uZmlnJztcbmltcG9ydCB7XG4gIGdldEpvYk9yZGVyQ2F0ZWdvcnksXG4gIGdldEpvYk9yZGVyRmFsbGJhY2tJbWFnZSxcbiAgZ2V0Sm9iT3JkZXJUaXRsZSxcbiAgSm9iT3JkZXIsXG4gIEpvYk9yZGVyQ2F0ZWdvcnksXG4gIEpvYk9yZGVyQ2F0ZWdvcnlNZXRhLFxuICBKT0JfT1JERVJfQ0FURUdPUklFUyxcbiAgc3RyaXBKb2JPcmRlckh0bWwsXG59IGZyb20gJy4vam9iLW9yZGVyLm1vZGVsJztcbmltcG9ydCB7IEpvYk9yZGVyc0FwaVNlcnZpY2UgfSBmcm9tICcuL2pvYi1vcmRlcnMtYXBpLnNlcnZpY2UnO1xuXG50eXBlIEpvYk9yZGVyRmlsdGVyID0gJ2FsbCcgfCBKb2JPcmRlckNhdGVnb3J5O1xuXG5AQ29tcG9uZW50KHtcbiAgc2VsZWN0b3I6ICdhcHAtam9iLW9yZGVyLWJvYXJkJyxcbiAgc3RhbmRhbG9uZTogdHJ1ZSxcbiAgaW1wb3J0czogW0NvbW1vbk1vZHVsZV0sXG4gIHRlbXBsYXRlVXJsOiAnLi9qb2Itb3JkZXItYm9hcmQuaHRtbCcsXG4gIHN0eWxlVXJsOiAnLi9qb2Itb3JkZXItYm9hcmQuc2NzcycsXG59KVxuZXhwb3J0IGNsYXNzIEpvYk9yZGVyQm9hcmQgaW1wbGVtZW50cyBPbkluaXQge1xuICByZWFkb25seSBjb250YWN0SW5mbyA9IEFQUF9DT05UQUNUX0lORk87XG4gIEBJbnB1dCgpIGhvbWUgPSBmYWxzZTtcbiAgQElucHV0KCkgbGltaXQ/OiBudW1iZXI7XG4gIEBJbnB1dCgpIHBhZ2VTaXplID0gODtcblxuICByZWFkb25seSBjYXRlZ29yaWVzID0gSk9CX09SREVSX0NBVEVHT1JJRVM7XG4gIGFjdGl2ZUZpbHRlcjogSm9iT3JkZXJGaWx0ZXIgPSAnYWxsJztcbiAgY3VycmVudFBhZ2UgPSAxO1xuICBvcmRlcnM6IEpvYk9yZGVyW10gPSBbXTtcbiAgc2VsZWN0ZWRPcmRlcj86IEpvYk9yZGVyO1xuICBsb2FkaW5nID0gdHJ1ZTtcbiAgZXJyb3JNZXNzYWdlID0gJyc7XG5cbiAgY29uc3RydWN0b3IocHJpdmF0ZSByZWFkb25seSBvcmRlcnNBcGk6IEpvYk9yZGVyc0FwaVNlcnZpY2UpIHt9XG5cbiAgYXN5bmMgbmdPbkluaXQoKTogUHJvbWlzZTx2b2lkPiB7XG4gICAgdHJ5IHtcbiAgICAgIHRoaXMub3JkZXJzID0gYXdhaXQgdGhpcy5vcmRlcnNBcGkubGlzdFB1YmxpYygpO1xuICAgIH0gY2F0Y2ggKGVycm9yKSB7XG4gICAgICB0aGlzLmVycm9yTWVzc2FnZSA9IGVycm9yIGluc3RhbmNlb2YgRXJyb3IgPyBlcnJvci5tZXNzYWdlIDogJ0tow7RuZyB0aOG7gyB04bqjaSBkYW5oIHPDoWNoIMSRxqFuIGjDoG5nLic7XG4gICAgfSBmaW5hbGx5IHtcbiAgICAgIHRoaXMubG9hZGluZyA9IGZhbHNlO1xuICAgIH1cbiAgfVxuXG4gIGdldCBmaWx0ZXJlZE9yZGVycygpOiBKb2JPcmRlcltdIHtcbiAgICByZXR1cm4gdGhpcy5vcmRlcnMuZmlsdGVyKFxuICAgICAgKG9yZGVyKSA9PiB0aGlzLmFjdGl2ZUZpbHRlciA9PT0gJ2FsbCcgfHwgb3JkZXIuY2F0ZWdvcnkgPT09IHRoaXMuYWN0aXZlRmlsdGVyLFxuICAgICk7XG4gIH1cblxuICBnZXQgdmlzaWJsZU9yZGVycygpOiBKb2JPcmRlcltdIHtcbiAgICBjb25zdCBmaWx0ZXJlZCA9IHRoaXMuZmlsdGVyZWRPcmRlcnM7XG5cbiAgICBpZiAodGhpcy5ob21lKSB7XG4gICAgICByZXR1cm4gdGhpcy5saW1pdCA/IGZpbHRlcmVkLnNsaWNlKDAsIHRoaXMubGltaXQpIDogZmlsdGVyZWQ7XG4gICAgfVxuXG4gICAgY29uc3Qgc3RhcnQgPSAodGhpcy5jdXJyZW50UGFnZSAtIDEpICogdGhpcy5zYWZlUGFnZVNpemU7XG4gICAgcmV0dXJuIGZpbHRlcmVkLnNsaWNlKHN0YXJ0LCBzdGFydCArIHRoaXMuc2FmZVBhZ2VTaXplKTtcbiAgfVxuXG4gIGdldCBoYXNIaWRkZW5PcmRlcnMoKTogYm9vbGVhbiB7XG4gICAgcmV0dXJuIHRoaXMuaG9tZSAmJiAhIXRoaXMubGltaXQgJiYgdGhpcy5maWx0ZXJlZE9yZGVycy5sZW5ndGggPiB0aGlzLmxpbWl0O1xuICB9XG5cbiAgZ2V0IHNob3dQYWdpbmF0aW9uKCk6IGJvb2xlYW4ge1xuICAgIHJldHVybiAhdGhpcy5ob21lICYmIHRoaXMuZmlsdGVyZWRPcmRlcnMubGVuZ3RoID4gdGhpcy5zYWZlUGFnZVNpemU7XG4gIH1cblxuICBnZXQgdG90YWxQYWdlcygpOiBudW1iZXIge1xuICAgIHJldHVybiBNYXRoLm1heCgxLCBNYXRoLmNlaWwodGhpcy5maWx0ZXJlZE9yZGVycy5sZW5ndGggLyB0aGlzLnNhZmVQYWdlU2l6ZSkpO1xuICB9XG5cbiAgZ2V0IHBhZ2luYXRpb25QYWdlcygpOiBudW1iZXJbXSB7XG4gICAgcmV0dXJuIEFycmF5LmZyb20oeyBsZW5ndGg6IHRoaXMudG90YWxQYWdlcyB9LCAoXywgaW5kZXgpID0+IGluZGV4ICsgMSk7XG4gIH1cblxuICBnZXQgcGFnaW5hdGlvblN1bW1hcnkoKTogc3RyaW5nIHtcbiAgICBjb25zdCB0b3RhbCA9IHRoaXMuZmlsdGVyZWRPcmRlcnMubGVuZ3RoO1xuICAgIGNvbnN0IHN0YXJ0ID0gdG90YWwgPyAodGhpcy5jdXJyZW50UGFnZSAtIDEpICogdGhpcy5zYWZlUGFnZVNpemUgKyAxIDogMDtcbiAgICBjb25zdCBlbmQgPSBNYXRoLm1pbih0aGlzLmN1cnJlbnRQYWdlICogdGhpcy5zYWZlUGFnZVNpemUsIHRvdGFsKTtcbiAgICByZXR1cm4gYEhp4buDbiB0aOG7iyAke3N0YXJ0fS0ke2VuZH0gdHJvbmcgJHt0b3RhbH0gxJHGoW5gO1xuICB9XG5cbiAgcHJpdmF0ZSBnZXQgc2FmZVBhZ2VTaXplKCk6IG51bWJlciB7XG4gICAgcmV0dXJuIE1hdGgubWF4KDEsIHRoaXMucGFnZVNpemUgfHwgOCk7XG4gIH1cblxuICBvcGVuT3JkZXIob3JkZXI6IEpvYk9yZGVyKTogdm9pZCB7XG4gICAgdGhpcy5zZWxlY3RlZE9yZGVyID0gb3JkZXI7XG4gIH1cblxuICBjbG9zZU9yZGVyKCk6IHZvaWQge1xuICAgIHRoaXMuc2VsZWN0ZWRPcmRlciA9IHVuZGVmaW5lZDtcbiAgfVxuXG4gIHNldEZpbHRlcihmaWx0ZXI6IEpvYk9yZGVyRmlsdGVyKTogdm9pZCB7XG4gICAgdGhpcy5hY3RpdmVGaWx0ZXIgPSBmaWx0ZXI7XG4gICAgdGhpcy5jdXJyZW50UGFnZSA9IDE7XG4gIH1cblxuICBzZXRQYWdlKHBhZ2U6IG51bWJlcik6IHZvaWQge1xuICAgIHRoaXMuY3VycmVudFBhZ2UgPSBNYXRoLm1pbihNYXRoLm1heChwYWdlLCAxKSwgdGhpcy50b3RhbFBhZ2VzKTtcbiAgfVxuXG4gIHByZXZpb3VzUGFnZSgpOiB2b2lkIHtcbiAgICB0aGlzLnNldFBhZ2UodGhpcy5jdXJyZW50UGFnZSAtIDEpO1xuICB9XG5cbiAgbmV4dFBhZ2UoKTogdm9pZCB7XG4gICAgdGhpcy5zZXRQYWdlKHRoaXMuY3VycmVudFBhZ2UgKyAxKTtcbiAgfVxuXG4gIHVzZUZhbGxiYWNrSW1hZ2UoZXZlbnQ6IEV2ZW50LCBvcmRlcjogSm9iT3JkZXIpOiB2b2lkIHtcbiAgICBjb25zdCBpbWFnZSA9IGV2ZW50LnRhcmdldCBhcyBIVE1MSW1hZ2VFbGVtZW50O1xuICAgIGNvbnN0IGZhbGxiYWNrID0gZ2V0Sm9iT3JkZXJGYWxsYmFja0ltYWdlKG9yZGVyLmNhdGVnb3J5KTtcbiAgICBpZiAoIWltYWdlLnNyYy5lbmRzV2l0aChmYWxsYmFjaykpIHtcbiAgICAgIGltYWdlLnNyYyA9IGZhbGxiYWNrO1xuICAgIH1cbiAgfVxuXG4gIGNhdGVnb3J5Q291bnQoY2F0ZWdvcnk6IEpvYk9yZGVyQ2F0ZWdvcnkpOiBudW1iZXIge1xuICAgIHJldHVybiB0aGlzLm9yZGVycy5maWx0ZXIoKG9yZGVyKSA9PiBvcmRlci5jYXRlZ29yeSA9PT0gY2F0ZWdvcnkpLmxlbmd0aDtcbiAgfVxuXG4gIG9yZGVyVGl0bGUob3JkZXI6IEpvYk9yZGVyKTogc3RyaW5nIHtcbiAgICByZXR1cm4gZ2V0Sm9iT3JkZXJUaXRsZShvcmRlcik7XG4gIH1cblxuICBvcmRlckNhdGVnb3J5KG9yZGVyOiBKb2JPcmRlcik6IEpvYk9yZGVyQ2F0ZWdvcnlNZXRhIHtcbiAgICByZXR1cm4gZ2V0Sm9iT3JkZXJDYXRlZ29yeShvcmRlci5jYXRlZ29yeSk7XG4gIH1cblxuICAvKiogU3RyaXAgSFRNTCB0YWdzIGZvciBwbGFpbi10ZXh0IHByZXZpZXcgb24gY2FyZHMgKi9cbiAgc3RyaXBIdG1sKGh0bWw6IHN0cmluZyk6IHN0cmluZyB7XG4gICAgcmV0dXJuIHN0cmlwSm9iT3JkZXJIdG1sKGh0bWwpO1xuICB9XG59XG4iLCI8c2VjdGlvbiBjbGFzcz1cImpvYi1ib2FyZFwiIFtjbGFzcy5qb2ItYm9hcmQtaG9tZV09XCJob21lXCIgaWQ9XCJkb24taGFuZ1wiPlxuICA8ZGl2IGNsYXNzPVwiY29udGFpbmVyXCI+XG4gICAgPGRpdiBjbGFzcz1cImpvYi1ib2FyZC1oZWFkaW5nXCI+XG4gICAgICA8ZGl2PlxuICAgICAgICA8c3BhbiBjbGFzcz1cImpvYi1ib2FyZC1raWNrZXJcIj48aSBjbGFzcz1cImZhcyBmYS1hcnJvdy11cC1yaWdodC1mcm9tLXNxdWFyZVwiPjwvaT4gQ8ahIGjhu5lpIHThuqFpIE5o4bqtdDwvc3Bhbj5cbiAgICAgICAgPGgyPnt7IGhvbWUgPyAnTeG7mXQgbOG7sWEgY2jhu41uIHThu5F0IGLhuq90IMSR4bqndSB04burIGzhu5kgdHLDrG5oIHBow7kgaOG7o3AnIDogJ0PGoSBo4buZaSBsw6BtIHZp4buHYyB2w6AgaOG7jWMgdOG6rXAgdOG6oWkgTmjhuq10JyB9fTwvaDI+XG4gICAgICAgIDxwPkNo4buNbiBuaMOzbSBjaMawxqFuZyB0csOsbmgsIHhlbSB0aMO0bmcgdGluIHThu6tuZyDEkcahbiB2w6AgYuG6r3QgxJHhuqd1IGN14buZYyB0csOyIGNodXnhu4duIHbhu5tpIFZpZUphcCBraGkgYuG6oW4gxJHDoyBz4bq1biBzw6BuZy48L3A+XG4gICAgICA8L2Rpdj5cblxuICAgICAgQGlmIChob21lKSB7XG4gICAgICAgIDxhIGNsYXNzPVwiam9iLWJvYXJkLWFsbC1saW5rXCIgaHJlZj1cIi9kb24taGFuZ1wiPlxuICAgICAgICAgIFhlbSB0aeG6v3AgPGkgY2xhc3M9XCJmYXMgZmEtYXJyb3ctcmlnaHRcIj48L2k+XG4gICAgICAgIDwvYT5cbiAgICAgIH1cbiAgICA8L2Rpdj5cblxuICAgIEBpZiAobG9hZGluZykge1xuICAgICAgPGRpdiBjbGFzcz1cImpvYi1ib2FyZC1zdGF0ZVwiPjxpIGNsYXNzPVwiZmFzIGZhLXNwaW5uZXIgZmEtc3BpblwiPjwvaT4gxJBhbmcgdOG6o2kgxJHGoW4gaMOgbmcuLi48L2Rpdj5cbiAgICB9IEBlbHNlIGlmIChlcnJvck1lc3NhZ2UpIHtcbiAgICAgIDxkaXYgY2xhc3M9XCJqb2ItYm9hcmQtc3RhdGUgZXJyb3JcIj48aSBjbGFzcz1cImZhcyBmYS1jaXJjbGUtZXhjbGFtYXRpb25cIj48L2k+IHt7IGVycm9yTWVzc2FnZSB9fTwvZGl2PlxuICAgIH0gQGVsc2Uge1xuICAgICAgPGRpdiBjbGFzcz1cImpvYi1jYXRlZ29yeS1ncmlkXCIgcm9sZT1cInRhYmxpc3RcIiBhcmlhLWxhYmVsPVwiQ2jhu41uIG5ow7NtIGNoxrDGoW5nIHRyw6xuaFwiPlxuICAgICAgICA8YnV0dG9uIHR5cGU9XCJidXR0b25cIiByb2xlPVwidGFiXCIgY2xhc3M9XCJqb2ItY2F0ZWdvcnktdGlsZSBhbGxcIiBbYXR0ci5hcmlhLXNlbGVjdGVkXT1cImFjdGl2ZUZpbHRlciA9PT0gJ2FsbCdcIiBbY2xhc3MuYWN0aXZlXT1cImFjdGl2ZUZpbHRlciA9PT0gJ2FsbCdcIiAoY2xpY2spPVwic2V0RmlsdGVyKCdhbGwnKVwiPlxuICAgICAgICAgIDxpIGNsYXNzPVwiZmFzIGZhLWJvcmRlci1hbGxcIj48L2k+XG4gICAgICAgICAgPHNwYW4+PHN0cm9uZz5U4bqldCBj4bqjIMSRxqFuPC9zdHJvbmc+PHNtYWxsPnt7IG9yZGVycy5sZW5ndGggfX0gxJFhbmcgdHV54buDbjwvc21hbGw+PC9zcGFuPlxuICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgQGZvciAoY2F0ZWdvcnkgb2YgY2F0ZWdvcmllczsgdHJhY2sgY2F0ZWdvcnkua2V5KSB7XG4gICAgICAgICAgPGJ1dHRvbiB0eXBlPVwiYnV0dG9uXCIgcm9sZT1cInRhYlwiIGNsYXNzPVwiam9iLWNhdGVnb3J5LXRpbGVcIiBbYXR0ci5hcmlhLXNlbGVjdGVkXT1cImFjdGl2ZUZpbHRlciA9PT0gY2F0ZWdvcnkua2V5XCIgW2NsYXNzLmFjdGl2ZV09XCJhY3RpdmVGaWx0ZXIgPT09IGNhdGVnb3J5LmtleVwiIChjbGljayk9XCJzZXRGaWx0ZXIoY2F0ZWdvcnkua2V5KVwiPlxuICAgICAgICAgICAgPGkgW2NsYXNzXT1cImNhdGVnb3J5Lmljb25cIj48L2k+XG4gICAgICAgICAgICA8c3Bhbj48c3Ryb25nPnt7IGNhdGVnb3J5LmxhYmVsIH19PC9zdHJvbmc+PHNtYWxsPnt7IGNhdGVnb3J5Q291bnQoY2F0ZWdvcnkua2V5KSB9fSDEkWFuZyB0dXnhu4NuPC9zbWFsbD48L3NwYW4+XG4gICAgICAgICAgPC9idXR0b24+XG4gICAgICAgIH1cbiAgICAgIDwvZGl2PlxuXG4gICAgICBAaWYgKCFvcmRlcnMubGVuZ3RoKSB7XG4gICAgICAgIDxkaXYgY2xhc3M9XCJqb2ItYm9hcmQtc3RhdGVcIj48aSBjbGFzcz1cImZhcyBmYS1pbWFnZVwiPjwvaT4gQ2jGsGEgY8OzIMSRxqFuIHR1eeG7g24uPC9kaXY+XG4gICAgICB9IEBlbHNlIGlmICghdmlzaWJsZU9yZGVycy5sZW5ndGgpIHtcbiAgICAgICAgPGRpdiBjbGFzcz1cImpvYi1ib2FyZC1zdGF0ZVwiPjxpIGNsYXNzPVwiZmFzIGZhLWZpbHRlci1jaXJjbGUteG1hcmtcIj48L2k+IENoxrBhIGPDsyDEkcahbiB0dXnhu4NuIHRodeG7mWMgY2jGsMahbmcgdHLDrG5oIG7DoHkuPC9kaXY+XG4gICAgICB9IEBlbHNlIHtcbiAgICAgICAgPGRpdiBjbGFzcz1cImpvYi1vcmRlci1ncmlkXCI+XG4gICAgICAgICAgQGZvciAob3JkZXIgb2YgdmlzaWJsZU9yZGVyczsgdHJhY2sgb3JkZXIuaWQpIHtcbiAgICAgICAgICAgIDxidXR0b24gdHlwZT1cImJ1dHRvblwiIGNsYXNzPVwiam9iLW9yZGVyLWNhcmRcIiBbY2xhc3MuZmVhdHVyZWRdPVwib3JkZXIuaXNGZWF0dXJlZFwiIChjbGljayk9XCJvcGVuT3JkZXIob3JkZXIpXCI+XG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzPVwiam9iLW9yZGVyLXZpc3VhbFwiPlxuICAgICAgICAgICAgICAgIDxpbWcgW3NyY109XCJvcmRlci5pbWFnZVVybFwiIFthbHRdPVwiJ+G6om5oICcgKyBvcmRlclRpdGxlKG9yZGVyKVwiIGxvYWRpbmc9XCJsYXp5XCIgKGVycm9yKT1cInVzZUZhbGxiYWNrSW1hZ2UoJGV2ZW50LCBvcmRlcilcIiAvPlxuICAgICAgICAgICAgICAgIEBpZiAob3JkZXIuaXNGZWF0dXJlZCkge1xuICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3M9XCJqb2ItZmVhdHVyZWQtYmFkZ2VcIj48aSBjbGFzcz1cImZhcyBmYS1zdGFyXCI+PC9pPiBO4buVaSBi4bqtdDwvc3Bhbj5cbiAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICAgICAgPHNwYW4gY2xhc3M9XCJqb2Itb3JkZXItY2F0ZWdvcnktdGFnXCI+XG4gICAgICAgICAgICAgICAgICA8aSBbY2xhc3NdPVwib3JkZXJDYXRlZ29yeShvcmRlcikuaWNvblwiPjwvaT5cbiAgICAgICAgICAgICAgICAgIHt7IG9yZGVyQ2F0ZWdvcnkob3JkZXIpLnNob3J0TGFiZWwgfX1cbiAgICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICAgICAgPHNwYW4gY2xhc3M9XCJqb2Itb3JkZXItZXhwYW5kXCI+PGkgY2xhc3M9XCJmYXMgZmEtdXAtcmlnaHQtYW5kLWRvd24tbGVmdC1mcm9tLWNlbnRlclwiPjwvaT4gWGVtIMSRxqFuIGjDoG5nPC9zcGFuPlxuICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzPVwiam9iLW9yZGVyLWluZm9cIj5cbiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzcz1cImpvYi1vcmRlci10aXRsZVwiPnt7IG9yZGVyVGl0bGUob3JkZXIpIH19PC9zcGFuPlxuICAgICAgICAgICAgICAgIEBpZiAob3JkZXIuZGVzY3JpcHRpb24pIHtcbiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzPVwiam9iLW9yZGVyLWRlc2NyaXB0aW9uXCI+e3sgc3RyaXBIdG1sKG9yZGVyLmRlc2NyaXB0aW9uKSB9fTwvc3Bhbj5cbiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzPVwiam9iLW9yZGVyLW1vcmUtaGludFwiPjxpIGNsYXNzPVwiZmFzIGZhLWhhbmQtcG9pbnRlclwiPjwvaT4g4bqkbiB2w6BvIMSR4buDIHhlbSBjaGkgdGnhur90PC9zcGFuPlxuICAgICAgICAgICAgICAgIH1cbiAgICAgICAgICAgICAgPC9zcGFuPlxuICAgICAgICAgICAgPC9idXR0b24+XG4gICAgICAgICAgfVxuICAgICAgICA8L2Rpdj5cblxuICAgICAgICBAaWYgKGhhc0hpZGRlbk9yZGVycykge1xuICAgICAgICAgIDxkaXYgY2xhc3M9XCJqb2ItYm9hcmQtbW9yZVwiPlxuICAgICAgICAgICAgPGEgaHJlZj1cIi9kb24taGFuZ1wiPlhlbSB0aeG6v3AgY8OhYyDEkcahbiDEkWFuZyB0dXnhu4NuIDxpIGNsYXNzPVwiZmFzIGZhLWFycm93LXJpZ2h0XCI+PC9pPjwvYT5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgfVxuXG4gICAgICAgIEBpZiAoc2hvd1BhZ2luYXRpb24pIHtcbiAgICAgICAgICA8ZGl2IGNsYXNzPVwiam9iLXBhZ2luYXRpb24td3JhcFwiPlxuICAgICAgICAgICAgPHNwYW4+e3sgcGFnaW5hdGlvblN1bW1hcnkgfX08L3NwYW4+XG4gICAgICAgICAgICA8bmF2IGNsYXNzPVwiam9iLXBhZ2luYXRpb25cIiBhcmlhLWxhYmVsPVwiUGjDom4gdHJhbmcgxJHGoW4gaMOgbmdcIj5cbiAgICAgICAgICAgICAgPGJ1dHRvbiB0eXBlPVwiYnV0dG9uXCIgKGNsaWNrKT1cInByZXZpb3VzUGFnZSgpXCIgW2Rpc2FibGVkXT1cImN1cnJlbnRQYWdlID09PSAxXCI+XG4gICAgICAgICAgICAgICAgPGkgY2xhc3M9XCJmYXMgZmEtY2hldnJvbi1sZWZ0XCI+PC9pPlxuICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgICAgQGZvciAocGFnZSBvZiBwYWdpbmF0aW9uUGFnZXM7IHRyYWNrIHBhZ2UpIHtcbiAgICAgICAgICAgICAgICA8YnV0dG9uIHR5cGU9XCJidXR0b25cIiBbY2xhc3MuYWN0aXZlXT1cInBhZ2UgPT09IGN1cnJlbnRQYWdlXCIgKGNsaWNrKT1cInNldFBhZ2UocGFnZSlcIj5cbiAgICAgICAgICAgICAgICAgIHt7IHBhZ2UgfX1cbiAgICAgICAgICAgICAgICA8L2J1dHRvbj5cbiAgICAgICAgICAgICAgfVxuICAgICAgICAgICAgICA8YnV0dG9uIHR5cGU9XCJidXR0b25cIiAoY2xpY2spPVwibmV4dFBhZ2UoKVwiIFtkaXNhYmxlZF09XCJjdXJyZW50UGFnZSA9PT0gdG90YWxQYWdlc1wiPlxuICAgICAgICAgICAgICAgIDxpIGNsYXNzPVwiZmFzIGZhLWNoZXZyb24tcmlnaHRcIj48L2k+XG4gICAgICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICAgICAgPC9uYXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIH1cbiAgICAgIH1cbiAgICB9XG4gIDwvZGl2PlxuPC9zZWN0aW9uPlxuXG5AaWYgKHNlbGVjdGVkT3JkZXIpIHtcbiAgPGRpdiBjbGFzcz1cInBvc3Rlci1saWdodGJveFwiIHJvbGU9XCJwcmVzZW50YXRpb25cIiAoY2xpY2spPVwiY2xvc2VPcmRlcigpXCI+XG4gICAgPHNlY3Rpb24gY2xhc3M9XCJwb3N0ZXItbGlnaHRib3gtY2FyZFwiIHJvbGU9XCJkaWFsb2dcIiBhcmlhLW1vZGFsPVwidHJ1ZVwiIGFyaWEtbGFiZWw9XCJYZW0gxJHGoW4gaMOgbmdcIiB0YWJpbmRleD1cIjBcIiAoY2xpY2spPVwiJGV2ZW50LnN0b3BQcm9wYWdhdGlvbigpXCIgKGtleWRvd24uZXNjYXBlKT1cImNsb3NlT3JkZXIoKVwiPlxuICAgICAgPGJ1dHRvbiB0eXBlPVwiYnV0dG9uXCIgY2xhc3M9XCJwb3N0ZXItY2xvc2UtYnV0dG9uXCIgKGNsaWNrKT1cImNsb3NlT3JkZXIoKVwiIGFyaWEtbGFiZWw9XCLEkMOzbmdcIj48aSBjbGFzcz1cImZhcyBmYS14bWFya1wiPjwvaT48L2J1dHRvbj5cbiAgICAgIDxkaXYgY2xhc3M9XCJwb3N0ZXItbGlnaHRib3gtbWVkaWFcIj5cbiAgICAgICAgPGltZyBbc3JjXT1cInNlbGVjdGVkT3JkZXIuaW1hZ2VVcmxcIiBbYWx0XT1cIifhuqJuaCAnICsgb3JkZXJUaXRsZShzZWxlY3RlZE9yZGVyKVwiIChlcnJvcik9XCJ1c2VGYWxsYmFja0ltYWdlKCRldmVudCwgc2VsZWN0ZWRPcmRlcilcIiAvPlxuICAgICAgPC9kaXY+XG4gICAgICA8ZGl2IGNsYXNzPVwicG9zdGVyLWxpZ2h0Ym94LWluZm9cIj5cbiAgICAgICAgPHNwYW4gY2xhc3M9XCJwb3N0ZXItbGlnaHRib3gtY2F0ZWdvcnlcIj5cbiAgICAgICAgICA8aSBbY2xhc3NdPVwib3JkZXJDYXRlZ29yeShzZWxlY3RlZE9yZGVyKS5pY29uXCI+PC9pPlxuICAgICAgICAgIHt7IG9yZGVyQ2F0ZWdvcnkoc2VsZWN0ZWRPcmRlcikubGFiZWwgfX1cbiAgICAgICAgPC9zcGFuPlxuICAgICAgICA8aDMgY2xhc3M9XCJwb3N0ZXItbGlnaHRib3gtdGl0bGVcIj57eyBvcmRlclRpdGxlKHNlbGVjdGVkT3JkZXIpIH19PC9oMz5cbiAgICAgICAgQGlmIChzZWxlY3RlZE9yZGVyLmRlc2NyaXB0aW9uKSB7XG4gICAgICAgICAgPGRpdiBjbGFzcz1cInBvc3Rlci1saWdodGJveC1kZXNjcmlwdGlvblwiIFtpbm5lckhUTUxdPVwic2VsZWN0ZWRPcmRlci5kZXNjcmlwdGlvblwiPjwvZGl2PlxuICAgICAgICB9XG4gICAgICAgIDxkaXYgY2xhc3M9XCJwb3N0ZXItbGlnaHRib3gtZm9vdGVyXCI+XG4gICAgICAgICAgPGEgW2hyZWZdPVwiY29udGFjdEluZm8uY29uc3VsdGF0aW9uVXJsXCIgdGFyZ2V0PVwiX2JsYW5rXCIgcmVsPVwibm9vcGVuZXIgbm9yZWZlcnJlclwiPjxpIGNsYXNzPVwiZmFzIGZhLWNvbW1lbnQtZG90c1wiPjwvaT4gVHJhbyDEkeG7lWkgduG7m2kgVmllSmFwPC9hPlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuICAgIDwvc2VjdGlvbj5cbiAgPC9kaXY+XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQUEsU0FBUyxvQkFBb0I7QUFDN0IsU0FBUyxXQUFXLGFBQXFCO0E7Ozs7OztBQ1NqQyxJQUFBLDRCQUFBLEdBQUEsS0FBQSxDQUFBO0FBQ0UsSUFBQSxvQkFBQSxHQUFBLGlCQUFBO0FBQVMsSUFBQSx1QkFBQSxHQUFBLEtBQUEsQ0FBQTtBQUNYLElBQUEsMEJBQUE7Ozs7O0FBS0YsSUFBQSw0QkFBQSxHQUFBLE9BQUEsQ0FBQTtBQUE2QixJQUFBLHVCQUFBLEdBQUEsS0FBQSxFQUFBO0FBQXVDLElB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LENBQUEsUUFBQSxXQUFBLGNBQUEsK0NBQUEsR0FBQSxtQkFBQSxHQUFBLENBQUEsUUFBQSxVQUFBLFFBQUEsT0FBQSxHQUFBLHFCQUFBLE9BQUEsR0FBQSxPQUFBLEdBQUEsQ0FBQSxHQUFBLE9BQUEsZUFBQSxHQUFBLENBQUEsUUFBQSxVQUFBLFFBQUEsT0FBQSxHQUFBLHFCQUFBLEdBQUEsUUFBQSxHQUFBLENBQUEsUUFBQSxVQUFBLFFBQUEsT0FBQSxHQUFBLHFCQUFBLEdBQUEsT0FBQSxHQUFBLENBQUEsR0FBQSxPQUFBLFVBQUEsR0FBQSxDQUFBLEdBQUEsT0FBQSx3QkFBQSxHQUFBLENBQUEsR0FBQSxnQkFBQSxHQUFBLENBQUEsUUFBQSxVQUFBLEdBQUEsa0JBQUEsR0FBQSxVQUFBLEdBQUEsQ0FBQSxHQUFBLGdCQUFBLEdBQUEsQ0FBQSxHQUFBLHFCQUFBLEdBQUEsQ0FBQSxRQUFBLFVBQUEsR0FBQSxrQkFBQSxHQUFBLE9BQUEsR0FBQSxDQUFBLEdBQUEsa0JBQUEsR0FBQSxDQUFBLFdBQUEsUUFBQSxHQUFBLFNBQUEsT0FBQSxLQUFBLEdBQUEsQ0FBQSxHQUFBLG9CQUFBLEdBQUEsQ0FBQSxHQUFBLHdCQUFBLEdBQUEsQ0FBQSxHQUFBLGtCQUFBLEdBQUEsQ0FBQSxHQUFBLE9BQUEsdUNBQUEsR0FBQSxDQUFBLEdBQUEsZ0JBQUEsR0FBQSxDQUFBLEdBQUEsaUJBQUEsR0FBQSxDQUFBLEdBQUEsT0FBQSxTQUFBLEdBQUEsQ0FBQSxHQUFBLHVCQUFBLEdBQUEsQ0FBQSxHQUFBLHFCQUFBLEdBQUEsQ0FBQSxHQUFBLE9BQUEsaUJBQUEsR0FBQSxDQUFBLFFBQUEsV0FBQSxHQUFBLENBQUEsY0FBQSx1Q0FBQSxHQUFBLGdCQUFBLEdBQUEsQ0FBQSxRQUFBLFVBQUEsR0FBQSxTQUFBLFVBQUEsR0FBQSxDQUFBLEdBQUEsT0FBQSxpQkFBQSxHQUFBLENBQUEsUUFBQSxVQUFBLEdBQUEsUUFBQSxHQUFBLENBQUEsR0FBQSxPQUFBLGtCQUFBLEdBQUEsQ0FBQSxRQUFBLFVBQUEsR0FBQSxPQUFB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

@@ -147,6 +147,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     if (
       link.startsWith('/hoc-') ||
+      link.startsWith('/luyen-') ||
       link === '/form-hoc-vien'
     ) {
       void this.router.navigate([link]);

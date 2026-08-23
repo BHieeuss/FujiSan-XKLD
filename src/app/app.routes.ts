@@ -111,6 +111,12 @@ export const routes: Routes = [
       import('./pages/support/support-page').then((module) => module.SupportPage),
   },
   {
+    path: 'luyen-the-te',
+    title: 'Luyện chia thể て - VieJap',
+    loadComponent: () =>
+      import('./pages/te-form/te-form-page').then((module) => module.TeFormPage),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

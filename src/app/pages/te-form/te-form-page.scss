@@ -1,0 +1,2217 @@
+@use 'sass:color';
+/* ============================================================
+   TE-FORM PRACTICE PAGE — Light Theme, Soft & Learner-Friendly
+   ============================================================ */
+
+/* Fonts loaded via index.html <link> tag */
+
+// ── Variables ────────────────────────────────────────────────────
+$te-primary: #4a7cdb;
+$te-primary-soft: #6b9ced;
+$te-primary-bg: #eef4fc;
+$te-accent: #e8913a;
+$te-accent-soft: #f5c882;
+$te-accent-bg: #fef6ec;
+$te-success: #3dba7a;
+$te-success-bg: #eaf8f0;
+$te-error: #e25c5c;
+$te-error-bg: #fceded;
+$te-bg: #fafbfd;
+$te-bg-card: #ffffff;
+$te-bg-subtle: #f3f5f9;
+$te-border: #e2e8f0;
+$te-border-light: #edf1f7;
+$te-text: #2d3748;
+$te-text-sub: #718096;
+$te-text-hint: #a0aec0;
+$te-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+$te-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04);
+$te-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.04);
+$te-font-vn: 'Nunito', 'Inter', sans-serif;
+$te-font-jp: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Yu Gothic', sans-serif;
+$te-radius: 18px;
+$te-radius-sm: 12px;
+$te-radius-xs: 8px;
+
+// ── Semantic colors for verb groups (dễ ghi nhớ) ────────────────
+$color-group1: #4a7cdb;   // Xanh dương — Nhóm 1 (nhiều quy tắc, cần tập trung)
+$color-group2: #3dba7a;   // Xanh lá — Nhóm 2 (đơn giản, dễ thở)
+$color-group3: #e8913a;   // Cam — Nhóm 3 (đặc biệt, cần ghi nhớ)
+
+// ── Animations ──────────────────────────────────────────────────
+@keyframes te-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes te-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes te-shake {
+  0%, 100% { transform: translateX(0); }
+  15%, 45%, 75% { transform: translateX(-5px); }
+  30%, 60%, 90% { transform: translateX(5px); }
+}
+
+@keyframes te-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+
+@keyframes te-bounce-in {
+  0%   { transform: scale(0); opacity: 0; }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes te-streak-glow {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+
+@keyframes te-correct-shine {
+  0%   { box-shadow: 0 0 0 0 rgba(61, 186, 122, 0.3); }
+  70%  { box-shadow: 0 0 0 12px rgba(61, 186, 122, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(61, 186, 122, 0); }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  WRAPPER
+// ══════════════════════════════════════════════════════════════════
+
+.te-form-wrapper {
+  min-height: 100vh;
+  background: $te-bg;
+  color: $te-text;
+  font-family: $te-font-vn;
+  padding-bottom: 4rem;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  HEADER
+// ══════════════════════════════════════════════════════════════════
+
+.te-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid $te-border-light;
+  box-shadow: $te-shadow-sm;
+}
+
+// Always-visible strip: back + toggle button
+.te-header-bar {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0.45rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// Toggle button (expands across remaining space)
+.te-header-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius-xs;
+  background: $te-bg-subtle;
+  color: $te-text-sub;
+  cursor: pointer;
+  font-family: $te-font-vn;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 0.72rem;
+    color: $te-text-hint;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    background: $te-primary-bg;
+    border-color: rgba(74, 124, 219, 0.25);
+    color: $te-primary;
+    i { color: $te-primary; }
+  }
+
+  .te-header-toggle-title {
+    font-family: $te-font-jp;
+    font-size: 0.82rem;
+    &.collapsed-hint { color: $te-accent; font-weight: 900; }
+  }
+}
+
+// Collapsible section (slides up/down)
+.te-header-collapsible {
+  overflow: hidden;
+  max-height: 120px;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease,
+              padding 0.3s ease;
+  opacity: 1;
+}
+
+// Collapsed state
+.te-header.collapsed {
+  .te-header-collapsible {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  .te-header-toggle i {
+    transform: rotate(0deg);
+  }
+}
+
+.te-header-content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 1.25rem 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.te-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid $te-border;
+  border-radius: $te-radius-xs;
+  background: #fff;
+  color: $te-text-sub;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: $te-bg-subtle;
+    color: $te-primary;
+    border-color: $te-primary;
+    transform: translateX(-2px);
+  }
+}
+
+
+.te-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+
+  .te-logo-jp {
+    font-family: $te-font-jp;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: $te-accent;
+    line-height: 1;
+  }
+
+  h1 {
+    font-family: $te-font-vn;
+    font-size: 0.95rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+    color: $te-text;
+  }
+
+  p {
+    font-family: $te-font-vn;
+    font-size: 0.7rem;
+    color: $te-text-hint;
+    margin: 0;
+    letter-spacing: 0.03em;
+  }
+}
+
+.te-tabs {
+  display: flex;
+  gap: 3px;
+  background: $te-bg-subtle;
+  border-radius: $te-radius-sm;
+  padding: 3px;
+}
+
+.te-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 1.1rem;
+  border: none;
+  border-radius: $te-radius-xs;
+  background: transparent;
+  color: $te-text-sub;
+  font-family: $te-font-vn;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  i { font-size: 0.82rem; }
+
+  &:hover {
+    color: $te-text;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  &.active {
+    background: #fff;
+    color: $te-primary;
+    box-shadow: $te-shadow-sm;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PRACTICE VIEW
+// ══════════════════════════════════════════════════════════════════
+
+.te-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  animation: te-fade-in 0.4s ease;
+}
+
+// ── Score Bar ────────────────────────────────────────────────────
+.te-score-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.te-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid $te-border-light;
+  border-radius: 16px;
+  padding: 0.6rem 1rem;
+  min-width: 72px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.25s ease;
+
+  i {
+    font-size: 0.85rem;
+    color: $te-text-hint;
+  }
+
+  span {
+    font-family: $te-font-vn;
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: $te-text;
+  }
+
+  small {
+    font-family: $te-font-vn;
+    font-size: 0.6rem;
+    color: $te-text-hint;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &.te-streak {
+    i { color: $te-accent; }
+    span { color: $te-accent; }
+  }
+
+  &.on-fire {
+    background: $te-accent-bg;
+    border-color: $te-accent-soft;
+
+    i {
+      color: $te-accent;
+      animation: te-streak-glow 0.7s ease infinite;
+    }
+    span { color: $te-accent; }
+  }
+}
+
+// ── Exercise Card ───────────────────────────────────────────────
+.te-exercise-card {
+  background: #fff;
+  border: 1px solid $te-border-light;
+  border-radius: 24px;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  transition: all 0.4s ease;
+  animation: te-scale-in 0.35s ease;
+
+  &.answered-correct {
+    border-color: $te-success;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 0 0 3px rgba(61, 186, 122, 0.12);
+    animation: te-correct-shine 0.8s ease 1;
+  }
+
+  &.answered-wrong {
+    border-color: $te-error;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 0 0 3px rgba(226, 92, 92, 0.08);
+    animation: te-shake 0.45s ease 1;
+  }
+}
+
+// ── Exercise Badge ──────────────────────────────────────────────
+.te-exercise-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.28rem 0.75rem;
+  background: $te-primary-bg;
+  border: 1px solid rgba(74, 124, 219, 0.15);
+  border-radius: 20px;
+  font-family: $te-font-vn;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: $te-primary;
+  letter-spacing: 0.03em;
+  margin-bottom: 1.2rem;
+
+  i { font-size: 0.68rem; }
+}
+
+// ── Verb Display ────────────────────────────────────────────────
+.te-verb-display {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.te-verb-prompt {
+  font-family: $te-font-vn;
+  font-size: 0.85rem;
+  color: $te-text-sub;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+
+  strong {
+    font-family: $te-font-jp;
+    color: $te-accent;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+}
+
+.te-verb-hiragana {
+  font-family: $te-font-jp;
+  font-size: clamp(2.4rem, 9vw, 3.4rem);
+  font-weight: 700;
+  color: $te-text;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.te-verb-sub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.te-verb-kanji {
+  font-family: $te-font-jp;
+  color: $te-text-sub;
+  font-weight: 500;
+}
+
+.te-verb-divider {
+  color: $te-border;
+}
+
+.te-verb-meaning {
+  font-family: $te-font-vn;
+  color: $te-accent;
+  font-weight: 700;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  DẠNG 1: TRẮC NGHIỆM
+// ══════════════════════════════════════════════════════════════════
+
+.te-mc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.te-mc-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.1rem;
+  border: 2px solid $te-border;
+  border-radius: 16px;
+  background: #fafbfd;
+  color: $te-text;
+  font-family: $te-font-jp;
+  font-size: 1.35rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:hover:not(:disabled) {
+    border-color: $te-primary-soft;
+    background: $te-primary-bg;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(74, 124, 219, 0.14);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &.correct {
+    border-color: $te-success;
+    background: $te-success-bg;
+    color: color.adjust($te-success, $lightness: -8%);
+    box-shadow: 0 0 0 3px rgba(61, 186, 122, 0.12);
+  }
+
+  &.wrong {
+    border-color: $te-error;
+    background: $te-error-bg;
+    color: color.adjust($te-error, $lightness: -5%);
+    animation: te-shake 0.4s ease;
+  }
+
+  &.dimmed {
+    opacity: 0.4;
+  }
+
+  .te-mc-label {
+    flex: 1;
+    text-align: center;
+  }
+
+  .te-mc-icon {
+    font-size: 1rem;
+
+    .fa-check-circle { color: $te-success; }
+    .fa-times-circle { color: $te-error; }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  DẠNG 2: GHÉP TỪ
+// ══════════════════════════════════════════════════════════════════
+
+.te-wb-area {
+  text-align: center;
+}
+
+.te-wb-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0.75rem;
+  background: $te-primary-bg;
+  border: 1px solid rgba(74, 124, 219, 0.14);
+  border-radius: $te-radius-xs;
+  font-family: $te-font-vn;
+  font-size: 0.78rem;
+  color: $te-text-sub;
+
+  strong { color: $te-primary; font-weight: 800; }
+}
+
+.te-wb-counter {
+  font-family: $te-font-vn;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: $te-primary;
+  background: rgba(74, 124, 219, 0.1);
+  padding: 1px 8px;
+  border-radius: 10px;
+  min-width: 36px;
+  text-align: center;
+}
+
+.te-wb-answer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 64px;
+  margin-bottom: 1.2rem;
+  padding: 0.8rem;
+  border: 2px dashed $te-border;
+  border-radius: $te-radius-sm;
+  background: $te-bg-subtle;
+  transition: all 0.3s ease;
+
+  &.complete {
+    border-style: solid;
+    border-color: $te-primary-soft;
+    background: $te-primary-bg;
+  }
+}
+
+.te-wb-cursor {
+  font-family: $te-font-jp;
+  font-size: 1.6rem;
+  color: $te-primary;
+  animation: te-blink 0.8s ease infinite;
+}
+
+.te-wb-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  font-family: $te-font-jp;
+  font-size: 1.4rem;
+  font-weight: 700;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &.available {
+    background: #fff;
+    color: $te-primary;
+    border: 2px solid $te-border;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(74,124,219,0.18);
+      border-color: $te-primary-soft;
+      background: $te-primary-bg;
+    }
+
+    // Distractor tiles: subtle warm tint
+    &.distractor {
+      color: $te-text-sub;
+      border-color: rgba(232, 145, 58, 0.3);
+      background: #fffdf9;
+
+      &:hover:not(:disabled) {
+        border-color: $te-accent;
+        color: $te-accent;
+        background: $te-accent-bg;
+      }
+    }
+  }
+
+  &.selected {
+    background: $te-primary;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(74,124,219,0.3);
+    animation: te-scale-in 0.2s ease;
+  }
+}
+
+
+.te-wb-tiles {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.te-wb-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid $te-border;
+  border-radius: 20px;
+  background: #fff;
+  color: $te-text-sub;
+  font-family: $te-font-vn;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $te-text;
+    border-color: color.adjust($te-border, $lightness: -8%);
+    box-shadow: $te-shadow-sm;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  DẠNG 3: BÀN PHÍM ẢO
+// ══════════════════════════════════════════════════════════════════
+
+.te-vk-area {
+  animation: te-fade-in 0.35s ease;
+}
+
+.te-vk-input-wrap {
+  margin-bottom: 1rem;
+}
+
+.te-vk-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 58px;
+  padding: 0.6rem 1rem;
+  border: 2px solid $te-border;
+  border-radius: $te-radius-sm;
+  background: $te-bg-subtle;
+  font-family: $te-font-jp;
+  transition: all 0.3s ease;
+
+  &.has-text {
+    border-color: $te-primary-soft;
+    background: #fff;
+  }
+}
+
+.te-vk-placeholder {
+  color: $te-text-hint;
+  font-family: $te-font-vn;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.te-vk-text {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: $te-text;
+  letter-spacing: 0.1em;
+}
+
+.te-vk-blink {
+  font-size: 1.6rem;
+  color: $te-primary;
+  animation: te-blink 0.8s ease infinite;
+  margin-left: 2px;
+}
+
+.te-vk-input-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 0.6rem;
+}
+
+.te-vk-btn-clear,
+.te-vk-btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: $te-radius-xs;
+  font-family: $te-font-vn;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.te-vk-btn-clear {
+  background: $te-bg-subtle;
+  color: $te-text-sub;
+  border: 1px solid $te-border;
+
+  &:hover:not(:disabled) {
+    background: color.adjust($te-bg-subtle, $lightness: -2%);
+    color: $te-text;
+  }
+}
+
+.te-vk-btn-submit {
+  background: $te-primary;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: color.adjust($te-primary, $lightness: -5%);
+    transform: translateY(-1px);
+    box-shadow: $te-shadow;
+  }
+}
+
+// ── Keyboard ────────────────────────────────────────────────────
+.te-vk-keyboard {
+  background: #fff;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius;
+  padding: 0.75rem;
+  box-shadow: $te-shadow-sm;
+  animation: te-fade-in 0.3s ease;
+}
+
+.te-vk-mode-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  margin-bottom: 0.5rem;
+  background: $te-bg-subtle;
+  border-radius: $te-radius-xs;
+  padding: 3px;
+
+  button {
+    padding: 0.3rem 1rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: $te-text-sub;
+    font-family: $te-font-jp;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+      background: #fff;
+      color: $te-primary;
+      box-shadow: $te-shadow-sm;
+    }
+
+    &:hover:not(.active) {
+      color: $te-text;
+    }
+  }
+}
+
+.te-vk-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.te-vk-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.te-vk-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid $te-border;
+  border-radius: 12px;
+  background: $te-bg-subtle;
+  color: $te-text;
+  font-family: $te-font-jp;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover:not(:disabled):not(.empty) {
+    background: $te-primary-bg;
+    border-color: $te-primary-soft;
+    color: $te-primary;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74,124,219,0.15);
+  }
+
+  &:active:not(:disabled):not(.empty) {
+    transform: translateY(1px);
+    background: color.adjust($te-primary-bg, $lightness: -2%);
+  }
+
+  &.empty {
+    visibility: hidden;
+  }
+
+  &.te-vk-key-wide {
+    width: 72px;
+    font-size: 0.9rem;
+    background: $te-accent-bg;
+    border-color: rgba(232, 145, 58, 0.2);
+    color: $te-accent;
+    font-weight: 800;
+  }
+
+  &.te-vk-key-backspace {
+    width: 72px;
+    background: $te-error-bg;
+    border-color: rgba(226, 92, 92, 0.15);
+    color: $te-error;
+    font-size: 1rem;
+  }
+}
+
+.te-vk-bottom-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CORRECT / WRONG FEEDBACK
+// ══════════════════════════════════════════════════════════════════
+
+.te-correct-display {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $te-border-light;
+  animation: te-fade-in 0.4s ease;
+}
+
+.te-correct-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.4rem 1.1rem;
+  background: $te-success-bg;
+  border: 1px solid rgba(61, 186, 122, 0.2);
+  border-radius: 24px;
+  color: color.adjust($te-success, $lightness: -8%);
+  font-family: $te-font-vn;
+  font-weight: 800;
+  font-size: 0.92rem;
+  margin-bottom: 0.8rem;
+  animation: te-bounce-in 0.5s ease;
+
+  i { font-size: 1rem; }
+}
+
+.te-correct-answer {
+  margin-bottom: 0.6rem;
+
+  .te-correct-te {
+    font-family: $te-font-jp;
+    font-size: 2rem;
+    font-weight: 800;
+    color: $te-success;
+    display: block;
+  }
+
+  .te-correct-kanji-small {
+    font-family: $te-font-jp;
+    font-size: 0.82rem;
+    color: $te-text-hint;
+    font-weight: 500;
+    display: block;
+    margin-top: 2px;
+  }
+}
+
+.te-correct-speak {
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid rgba(61, 186, 122, 0.25);
+    border-radius: 20px;
+    background: $te-success-bg;
+    color: color.adjust($te-success, $lightness: -8%);
+    font-family: $te-font-vn;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: color.adjust($te-success-bg, $lightness: -3%);
+      box-shadow: $te-shadow-sm;
+    }
+  }
+}
+
+.te-wrong-inline {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $te-border-light;
+  animation: te-fade-in 0.4s ease;
+}
+
+.te-wrong-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.4rem 1.1rem;
+  background: $te-error-bg;
+  border: 1px solid rgba(226, 92, 92, 0.15);
+  border-radius: 24px;
+  color: color.adjust($te-error, $lightness: -5%);
+  font-family: $te-font-vn;
+  font-weight: 800;
+  font-size: 0.92rem;
+  margin-bottom: 0.6rem;
+
+  i { font-size: 1rem; }
+}
+
+.te-wrong-correct {
+  font-family: $te-font-vn;
+  color: $te-text-sub;
+  margin-bottom: 0.8rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+
+  strong {
+    font-family: $te-font-jp;
+    color: $te-accent;
+    font-size: 1.2rem;
+    margin-left: 4px;
+    font-weight: 800;
+  }
+}
+
+.te-wrong-explain-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid rgba(232, 145, 58, 0.3);
+  border-radius: 24px;
+  background: $te-accent-bg;
+  color: $te-accent;
+  font-family: $te-font-vn;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: color.adjust($te-accent-bg, $lightness: -3%);
+    transform: translateY(-1px);
+    box-shadow: $te-shadow-sm;
+  }
+}
+
+// ── Next button ─────────────────────────────────────────────────
+.te-next-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.85rem;
+  border: none;
+  border-radius: $te-radius-sm;
+  background: $te-primary;
+  color: #fff;
+  font-family: $te-font-vn;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: color.adjust($te-primary, $lightness: -5%);
+    transform: translateY(-2px);
+    box-shadow: $te-shadow-lg;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  EXPLANATION POPUP
+// ══════════════════════════════════════════════════════════════════
+
+.te-explain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(45, 55, 72, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: te-fade-in 0.2s ease;
+}
+
+.te-explain-popup {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius;
+  box-shadow: $te-shadow-lg, 0 0 0 1px rgba(0, 0, 0, 0.03);
+  animation: te-scale-in 0.3s ease;
+}
+
+.te-explain-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: $te-bg-subtle;
+  color: $te-text-sub;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 1;
+
+  &:hover {
+    background: color.adjust($te-bg-subtle, $lightness: -4%);
+    color: $te-text;
+  }
+}
+
+.te-explain-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 1.2rem 1.5rem 0.6rem;
+  font-family: $te-font-vn;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: $te-accent;
+  letter-spacing: 0.03em;
+
+  i { font-size: 0.88rem; }
+}
+
+.te-explain-body {
+  padding: 0 1.5rem;
+}
+
+.te-explain-verb-card {
+  text-align: center;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  background: $te-bg-subtle;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius-sm;
+}
+
+.te-explain-main-reading {
+  font-family: $te-font-jp;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: $te-accent;
+  line-height: 1.2;
+}
+
+.te-explain-kanji-hint {
+  font-family: $te-font-jp;
+  font-size: 0.82rem;
+  color: $te-text-hint;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.te-explain-kanji-sub {
+  font-family: $te-font-jp;
+  font-size: 0.85rem !important;
+  color: $te-text-hint !important;
+  font-weight: 500 !important;
+}
+
+.te-explain-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 1rem;
+}
+
+.te-explain-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: $te-radius-xs;
+
+  &:nth-child(odd) {
+    background: $te-bg-subtle;
+  }
+}
+
+.te-explain-label {
+  font-family: $te-font-vn;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: $te-text-hint;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.te-explain-value {
+  font-family: $te-font-jp;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $te-text;
+
+  &.te-explain-hanviet {
+    color: $te-accent;
+    font-family: $te-font-vn;
+    font-weight: 800;
+  }
+
+  &.te-explain-answer {
+    color: $te-success;
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+}
+
+.te-explain-group {
+  margin-bottom: 0.8rem;
+  padding: 0.85rem;
+  background: $te-primary-bg;
+  border: 1px solid rgba(74, 124, 219, 0.12);
+  border-radius: $te-radius-sm;
+}
+
+.te-explain-group-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.25rem 0.7rem;
+  background: $te-primary;
+  border-radius: $te-radius-xs;
+  font-family: $te-font-vn;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.te-explain-group-desc {
+  font-family: $te-font-vn;
+  font-size: 0.8rem;
+  color: $te-text-sub;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.te-explain-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0.85rem;
+  background: $te-accent-bg;
+  border: 1px solid rgba(232, 145, 58, 0.12);
+  border-radius: $te-radius-sm;
+
+  i {
+    color: $te-accent;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  span {
+    font-family: $te-font-vn;
+    font-size: 0.82rem;
+    color: color.adjust($te-accent, $lightness: -12%);
+    font-weight: 700;
+    line-height: 1.55;
+  }
+}
+
+.te-explain-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 1rem 1.5rem 1.2rem;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.5rem 1rem;
+    border: 1px solid $te-border;
+    border-radius: $te-radius-xs;
+    background: #fff;
+    color: $te-text-sub;
+    font-family: $te-font-vn;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $te-bg-subtle;
+      color: $te-text;
+    }
+  }
+
+  .te-explain-got-it {
+    background: $te-primary;
+    color: #fff;
+    border: none;
+
+    &:hover {
+      background: color.adjust($te-primary, $lightness: -5%);
+      transform: translateY(-1px);
+      box-shadow: $te-shadow;
+    }
+  }
+}
+
+// ── New structured explanation components ────────────────────────
+
+.te-expl-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  background: $te-primary-bg;
+  border: 1px solid rgba(74, 124, 219, 0.14);
+  border-radius: $te-radius-sm;
+  font-family: $te-font-vn;
+  font-size: 0.85rem;
+  color: $te-text;
+  line-height: 1.6;
+  font-weight: 600;
+
+  i {
+    color: $te-primary;
+    font-size: 0.85rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+}
+
+.te-expl-formula {
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+  background: $te-accent-bg;
+  border: 1px solid rgba(232, 145, 58, 0.18);
+  border-radius: $te-radius-sm;
+
+  .te-expl-formula-label {
+    font-family: $te-font-vn;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: $te-accent;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.3rem;
+  }
+
+  .te-expl-formula-text {
+    font-family: $te-font-jp;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: color.adjust($te-accent, $lightness: -10%);
+    line-height: 1.5;
+  }
+}
+
+.te-expl-steps {
+  margin-bottom: 0.75rem;
+
+  .te-expl-steps-label {
+    font-family: $te-font-vn;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: $te-text-hint;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.te-expl-steps-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.te-expl-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.85rem;
+  background: $te-bg-subtle;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius-xs;
+  min-width: 72px;
+  text-align: center;
+
+  small {
+    font-family: $te-font-vn;
+    font-size: 0.6rem;
+    color: $te-text-hint;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+
+  span {
+    font-family: $te-font-jp;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $te-text;
+  }
+
+  &.highlight {
+    background: $te-success-bg;
+    border-color: rgba(61, 186, 122, 0.25);
+
+    span {
+      color: $te-success;
+      font-size: 1.15rem;
+    }
+  }
+}
+
+.te-expl-arrow {
+  color: $te-accent;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.te-expl-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.75rem;
+  background: #fff9ed;
+  border: 1px solid rgba(232, 145, 58, 0.25);
+  border-radius: $te-radius-xs;
+  font-family: $te-font-vn;
+  font-size: 0.8rem;
+  color: color.adjust($te-accent, $lightness: -15%);
+  font-weight: 600;
+  line-height: 1.5;
+
+  i {
+    color: $te-accent;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.te-expl-quickref {
+  margin-top: 0.25rem;
+
+  .te-expl-quickref-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: $te-font-vn;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: $te-text-hint;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.45rem;
+
+    i { font-size: 0.7rem; color: $te-primary; }
+  }
+}
+
+.te-expl-quickref-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.te-expl-quickref-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.4rem 0.65rem;
+  border-radius: $te-radius-xs;
+  font-family: $te-font-jp;
+  font-size: 0.82rem;
+  color: $te-text-sub;
+  transition: background 0.15s ease;
+
+  &:nth-child(odd) { background: $te-bg-subtle; }
+
+  &.active {
+    background: $te-primary-bg;
+    border: 1px solid rgba(74, 124, 219, 0.18);
+
+    .te-expl-ref-pattern,
+    .te-expl-ref-result { color: $te-primary; font-weight: 800; }
+  }
+}
+
+.te-expl-ref-pattern {
+  font-weight: 700;
+  min-width: 60px;
+  color: $te-text;
+}
+
+.te-expl-ref-arrow {
+  color: $te-text-hint;
+  font-size: 0.72rem;
+}
+
+.te-expl-ref-result {
+  font-weight: 700;
+  color: $te-accent;
+  min-width: 32px;
+}
+
+.te-expl-ref-example {
+  font-size: 0.75rem;
+  color: $te-text-hint;
+  margin-left: auto;
+  font-weight: 400;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  THEORY VIEW
+// ══════════════════════════════════════════════════════════════════
+
+
+.te-theory {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  animation: te-fade-in 0.4s ease;
+}
+
+.te-theory-header {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  h2 {
+    font-family: $te-font-jp;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.6rem;
+    color: $te-text;
+  }
+
+  p {
+    font-family: $te-font-vn;
+    color: $te-text-sub;
+    font-size: 0.88rem;
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.65;
+    font-weight: 600;
+  }
+}
+
+// ── Theory Tabs ─────────────────────────────────────────────────
+.te-theory-tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 1.5rem;
+  padding: 4px;
+  background: $te-bg-subtle;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius-sm;
+
+  button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.6rem 0.8rem;
+    border: none;
+    border-radius: $te-radius-xs;
+    background: transparent;
+    color: $te-text-sub;
+    font-family: $te-font-vn;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    &:hover {
+      color: $te-text;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    &.active {
+      background: #fff;
+      color: $te-primary;
+      box-shadow: $te-shadow-sm;
+    }
+  }
+}
+
+.te-theory-tab-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: $te-primary-bg;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: $te-primary;
+
+  .active & {
+    background: $te-primary;
+    color: #fff;
+  }
+}
+
+// ── Theory Content ──────────────────────────────────────────────
+.te-theory-content {
+  animation: te-fade-in 0.35s ease;
+}
+
+.te-theory-intro {
+  margin-bottom: 1.5rem;
+  padding: 1.2rem;
+  background: #fff;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius-sm;
+  box-shadow: $te-shadow-sm;
+
+  h3 {
+    font-family: $te-font-jp;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: $te-text;
+    margin: 0 0 0.4rem;
+  }
+
+  p {
+    font-family: $te-font-vn;
+    font-size: 0.85rem;
+    color: $te-text-sub;
+    margin: 0;
+    line-height: 1.65;
+    font-weight: 600;
+  }
+}
+
+// ── Rule Cards ──────────────────────────────────────────────────
+.te-theory-rule {
+  margin-bottom: 1rem;
+  padding: 1.2rem;
+  background: #fff;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius-sm;
+  box-shadow: $te-shadow-sm;
+
+  p {
+    font-family: $te-font-vn;
+    font-size: 0.85rem;
+    color: $te-text-sub;
+    margin: 0.5rem 0 0.8rem;
+    line-height: 1.55;
+    font-weight: 600;
+  }
+}
+
+.te-theory-rule-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.te-theory-rule-badge {
+  padding: 0.3rem 0.75rem;
+  background: $te-primary;
+  border-radius: $te-radius-xs;
+  font-family: $te-font-jp;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.te-theory-rule-arrow {
+  color: $te-text-hint;
+  font-size: 1.1rem;
+}
+
+.te-theory-rule-result {
+  font-family: $te-font-jp;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: $te-accent;
+}
+
+// ── Theory Examples ─────────────────────────────────────────────
+.te-theory-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.te-theory-example {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: $te-radius-xs;
+  font-family: $te-font-jp;
+  font-size: 0.88rem;
+
+  &:nth-child(odd) {
+    background: $te-bg-subtle;
+  }
+
+  .te-theory-ex-from {
+    color: $te-text-sub;
+    min-width: 0;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+
+  i {
+    color: $te-border;
+    font-size: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  .te-theory-ex-to {
+    color: $te-accent;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  small {
+    font-family: $te-font-vn;
+    color: $te-text-hint;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: auto;
+  }
+
+  .te-kanji-tiny {
+    font-family: $te-font-jp;
+    font-size: 0.7rem;
+    color: $te-text-hint;
+    font-weight: 400;
+    margin-left: 3px;
+    opacity: 0.7;
+  }
+}
+
+// ── Exception card ──────────────────────────────────────────────
+.te-theory-exception {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: $te-accent-bg;
+  border: 1px solid rgba(232, 145, 58, 0.15);
+  border-radius: $te-radius-sm;
+}
+
+.te-theory-exception-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+
+  i {
+    color: $te-accent;
+    font-size: 0.88rem;
+  }
+
+  strong {
+    font-family: $te-font-vn;
+    color: color.adjust($te-accent, $lightness: -10%);
+    font-size: 0.86rem;
+  }
+}
+
+.te-theory-exception-note {
+  font-family: $te-font-jp;
+  font-size: 0.82rem;
+  color: $te-text-sub;
+  line-height: 1.65;
+  margin: 0.4rem 0 0;
+  font-weight: 500;
+}
+
+// ── Theory CTA ──────────────────────────────────────────────────
+.te-theory-cta {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $te-border-light;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: $te-radius-sm;
+    background: $te-primary;
+    color: #fff;
+    font-family: $te-font-vn;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    &:hover {
+      background: color.adjust($te-primary, $lightness: -5%);
+      transform: translateY(-2px);
+      box-shadow: $te-shadow-lg;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  RESPONSIVE
+// ══════════════════════════════════════════════════════════════════
+
+@media (max-width: 640px) {
+  .te-form-wrapper {
+    padding-bottom: 2rem;
+  }
+
+  // ── Header: không sticky riêng vì đã có global header ─────────
+  .te-header {
+    position: relative;
+    top: auto;
+    z-index: 10;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: #fff;
+    border-bottom: 1px solid $te-border-light;
+  }
+
+  .te-header-content {
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .te-logo {
+    gap: 0.5rem;
+
+    .te-logo-jp { font-size: 1.2rem; }
+    h1 { font-size: 0.82rem; }
+    p { font-size: 0.65rem; }
+  }
+
+  .te-tabs {
+    width: 100%;
+    padding: 2px;
+  }
+
+  .te-tab {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.76rem;
+    padding: 0.4rem 0.5rem;
+    gap: 5px;
+
+    i { font-size: 0.75rem; }
+  }
+
+  // ── Practice area: compact ────────────────────────────────────
+  .te-main {
+    padding: 0.8rem 0.75rem;
+  }
+
+  .te-score-bar {
+    gap: 0.25rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .te-score-item {
+    padding: 0.35rem 0.45rem;
+    min-width: 52px;
+    border-radius: $te-radius-xs;
+
+    i { font-size: 0.72rem; }
+    span { font-size: 0.88rem; }
+    small { font-size: 0.55rem; }
+  }
+
+  // ── Exercise card ─────────────────────────────────────────────
+  .te-exercise-card {
+    padding: 1.1rem 0.9rem;
+    border-radius: 14px;
+  }
+
+  .te-exercise-badge {
+    margin-bottom: 0.7rem;
+    padding: 0.22rem 0.6rem;
+    font-size: 0.68rem;
+  }
+
+  .te-verb-display {
+    margin-bottom: 1.2rem;
+  }
+
+  .te-verb-prompt {
+    font-size: 0.78rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .te-verb-hiragana {
+    font-size: 2rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .te-verb-sub {
+    font-size: 0.82rem;
+  }
+
+  // ── Multiple choice mobile ────────────────────────────────────
+  .te-mc-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+
+  .te-mc-option {
+    font-size: 1.15rem;
+    padding: 0.7rem 0.5rem;
+    border-width: 1.5px;
+    border-radius: $te-radius-xs;
+  }
+
+  // ── Word builder mobile ───────────────────────────────────────
+  .te-wb-answer {
+    min-height: 50px;
+    margin-bottom: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  .te-wb-tile {
+    width: 42px;
+    height: 42px;
+    font-size: 1.2rem;
+    border-radius: 6px;
+  }
+
+  .te-wb-tiles {
+    margin-bottom: 0.6rem;
+    gap: 6px;
+  }
+
+  .te-wb-cursor { font-size: 1.3rem; }
+
+  // ── Virtual keyboard mobile ───────────────────────────────────
+  .te-vk-input-wrap {
+    margin-bottom: 0.6rem;
+  }
+
+  .te-vk-input {
+    min-height: 48px;
+    padding: 0.4rem 0.6rem;
+    border-radius: $te-radius-xs;
+  }
+
+  .te-vk-text { font-size: 1.4rem; }
+  .te-vk-blink { font-size: 1.3rem; }
+  .te-vk-placeholder { font-size: 0.78rem; }
+
+  .te-vk-input-actions {
+    margin-top: 0.4rem;
+    gap: 6px;
+  }
+
+  .te-vk-btn-clear,
+  .te-vk-btn-submit {
+    padding: 0.38rem 0.8rem;
+    font-size: 0.78rem;
+    border-radius: 6px;
+  }
+
+  .te-vk-keyboard {
+    padding: 0.5rem;
+    border-radius: 14px;
+  }
+
+  .te-vk-mode-toggle {
+    margin-bottom: 0.4rem;
+
+    button {
+      padding: 0.25rem 0.7rem;
+      font-size: 0.78rem;
+    }
+  }
+
+  .te-vk-rows { gap: 3px; }
+  .te-vk-row { gap: 3px; }
+
+  .te-vk-key {
+    width: calc((100% - 12px) / 5);
+    max-width: 56px;
+    height: 40px;
+    font-size: 1rem;
+    border-radius: 6px;
+
+    &.te-vk-key-wide,
+    &.te-vk-key-backspace {
+      width: calc((100% - 3px) / 2);
+      max-width: 120px;
+      height: 38px;
+      font-size: 0.85rem;
+    }
+  }
+
+  .te-vk-bottom-row { gap: 3px; margin-top: 3px; }
+
+  // ── Feedback compact ──────────────────────────────────────────
+  .te-correct-display,
+  .te-wrong-inline {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .te-correct-badge,
+  .te-wrong-badge {
+    font-size: 0.82rem;
+    padding: 0.3rem 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .te-correct-answer {
+    .te-correct-te { font-size: 1.6rem; }
+    .te-correct-reading { font-size: 0.82rem; }
+  }
+
+  .te-next-btn {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    font-size: 0.88rem;
+    border-radius: $te-radius-xs;
+  }
+
+  // ── Explanation popup mobile ──────────────────────────────────
+  .te-explain-overlay {
+    padding: 1rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .te-explain-popup {
+    max-height: 88vh;
+    border-radius: $te-radius;
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .te-explain-header {
+    padding: 1rem 1rem 0.4rem;
+    font-size: 0.78rem;
+  }
+
+  .te-explain-body {
+    padding: 0 1rem;
+  }
+
+  .te-explain-verb-card {
+    padding: 0.8rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .te-explain-main-reading {
+    font-size: 1.7rem;
+  }
+
+  .te-explain-furigana {
+    font-size: 0.85rem;
+  }
+
+  .te-explain-row {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .te-explain-label {
+    font-size: 0.7rem;
+  }
+
+  .te-explain-value {
+    font-size: 0.88rem;
+  }
+
+  .te-explain-group {
+    padding: 0.65rem;
+  }
+
+  .te-explain-group-badge {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
+  }
+
+  .te-explain-group-desc {
+    font-size: 0.75rem;
+  }
+
+  .te-explain-rule {
+    padding: 0.65rem;
+
+    span { font-size: 0.78rem; }
+  }
+
+  .te-explain-footer {
+    padding: 0.7rem 1rem 1rem;
+
+    button {
+      padding: 0.45rem 0.8rem;
+      font-size: 0.78rem;
+    }
+  }
+
+  // ── Theory mobile ─────────────────────────────────────────────
+  .te-theory {
+    padding: 0.8rem 0.75rem;
+  }
+
+  .te-theory-header {
+    margin-bottom: 1.2rem;
+
+    h2 { font-size: 1.15rem; }
+    p { font-size: 0.82rem; }
+  }
+
+  .te-theory-tabs {
+    margin-bottom: 1rem;
+    padding: 3px;
+
+    button {
+      padding: 0.5rem 0.4rem;
+      font-size: 0.72rem;
+      gap: 5px;
+    }
+  }
+
+  .te-theory-tab-num {
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+  }
+
+  .te-theory-intro {
+    padding: 0.85rem;
+    margin-bottom: 1rem;
+
+    h3 { font-size: 0.95rem; }
+    p { font-size: 0.8rem; }
+  }
+
+  .te-theory-rule {
+    padding: 0.85rem;
+    margin-bottom: 0.7rem;
+
+    p { font-size: 0.8rem; margin: 0.3rem 0 0.6rem; }
+  }
+
+  .te-theory-rule-badge {
+    padding: 0.22rem 0.55rem;
+    font-size: 0.85rem;
+  }
+
+  .te-theory-rule-result {
+    font-size: 1rem;
+  }
+
+  .te-theory-example {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.78rem;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+
+    .te-theory-ex-from { font-size: 0.78rem; }
+    .te-theory-ex-to { font-size: 0.78rem; }
+    i { font-size: 0.5rem; }
+    small { font-size: 0.68rem; margin-left: 0; width: 100%; }
+  }
+
+  .te-theory-exception {
+    padding: 0.75rem;
+
+    .te-theory-exception-note { font-size: 0.76rem; }
+  }
+
+  .te-theory-cta {
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+
+    button {
+      padding: 0.7rem 1.5rem;
+      font-size: 0.88rem;
+    }
+  }
+}
+
+// ── Extra small (iPhone SE, etc.) ───────────────────────────────
+@media (max-width: 380px) {
+  .te-verb-hiragana {
+    font-size: 1.7rem;
+  }
+
+  .te-mc-grid {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .te-mc-option {
+    font-size: 1.1rem;
+    padding: 0.65rem;
+  }
+
+  .te-score-item {
+    min-width: 46px;
+    padding: 0.3rem 0.35rem;
+
+    i { font-size: 0.65rem; }
+    span { font-size: 0.8rem; }
+    small { font-size: 0.5rem; }
+  }
+
+  .te-vk-key {
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .te-wb-tile {
+    width: 36px;
+    height: 36px;
+    font-size: 1.05rem;
+  }
+
+  .te-explain-main-reading {
+    font-size: 1.4rem;
+  }
+
+  .te-theory-example {
+    font-size: 0.72rem;
+    .te-theory-ex-from,
+    .te-theory-ex-to { font-size: 0.72rem; }
+  }
+}
+

@@ -90,25 +90,36 @@ export const APP_PROGRAM_MENU: AppSubmenuItem[] = [
 
 // Bài học - thêm bài mới vào danh sách này khi cần mở rộng
 export const APP_LEARNING_MENU: AppSubmenuItem[] = [
-  { label: 'Hiragana (Chữ mềm)', link: '/hoc-hiragana', icon: 'fas fa-language' },
-  { label: 'Katakana (Chữ cứng)', link: '/hoc-katakana', icon: 'fas fa-font' },
-  { label: 'Số đếm', link: '/hoc-so-dem', icon: 'fas fa-arrow-down-1-9' },
+  { label: 'Hiragana (Chữ mềm)', link: '/hoc-hiragana', icon: 'fas fa-spell-check' },
+  { label: 'Katakana (Chữ cứng)', link: '/hoc-katakana', icon: 'fas fa-subscript' },
+  { label: 'Số đếm', link: '/hoc-so-dem', icon: 'fas fa-list-ol' },
   {
     id: 'kanji',
     label: 'Kanji ( Hán Tự )',
     link: '/hoc-kanji',
-    icon: 'fas fa-pen-nib',
+    icon: 'fas fa-stamp',
   },
   {
     id: 'minna-n5',
     label: 'Minna no Nihongo N5',
     link: '/hoc-minna-bai-1',
-    icon: 'fas fa-book-open',
+    icon: 'fas fa-graduation-cap',
     children: [
       {
         label: 'Bài 1 · はじめまして',
         link: '/hoc-minna-bai-1',
-        icon: 'fas fa-book',
+        icon: 'fas fa-star',
+      },
+    ],
+  },
+  {
+    id: 'luyen-tap',
+    label: 'Luyện tập',
+    link: '/luyen-the-te',
+    children: [
+      {
+        label: 'Chia động từ — Thể て',
+        link: '/luyen-the-te',
       },
     ],
   },
