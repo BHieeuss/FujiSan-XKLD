@@ -1,19 +1,26 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import {
+  BASIC_KATAKANA,
   KATAKANA_GROUP_LABELS,
   KATAKANA_ITEMS,
   KatakanaGroup,
   KatakanaItem,
+  VOICED_KATAKANA,
+  YOON_KATAKANA,
 } from './katakana-data';
 import { KatakanaProgressService } from './katakana-progress.service';
-import { KATAKANA_STROKES } from './stroke-data.generated';
 import { createQuiz, HiraganaQuizQuestion } from '../hiragana/quiz-engine';
+import { KATAKANA_STROKES } from './stroke-data.generated';
 import { StrokePadComponent } from '../hiragana/stroke-pad.component';
+import { JapaneseAudioService } from '../../services/japanese-audio.service';
 
 type LearningGroup = 'all' | KatakanaGroup | 'weak';
 type LearningTab = 'quiz' | 'writing';
 type PracticeMode = 'guided' | 'continuous';
+type ViewMode = 'practice' | 'theory';
+type TheoryTab = 'basic' | 'voiced' | 'yoon' | 'rules';
 
 interface GroupOption {
   id: LearningGroup;
@@ -21,18 +28,47 @@ interface GroupOption {
   count: number;
 }
 
+interface ChartCell {
+  kana: string;
+  romaji: string;
+  id?: string;
+  empty?: boolean;
+}
+
+interface ChartRow {
+  rowLabel: string;
+  consonant: string;
+  cells: ChartCell[];
+}
+
 @Component({
   selector: 'app-katakana-page',
   standalone: true,
   imports: [CommonModule, StrokePadComponent],
   templateUrl: './katakana-page.html',
-  styleUrl: '../hiragana/hiragana-page.scss',
+  styleUrl: './katakana-page.scss',
 })
-export class KatakanaPage {
+export class KatakanaPage implements OnDestroy {
+  private readonly router = inject(Router);
+  private readonly audioService = inject(JapaneseAudioService);
   readonly progress = inject(KatakanaProgressService);
   readonly allItems = KATAKANA_ITEMS;
   readonly strokeData = KATAKANA_STROKES;
 
+  // View state (Practice vs Theory) - Defaults to Theory!
+  currentView: ViewMode = 'theory';
+  theoryTab: TheoryTab = 'basic';
+  headerCollapsed = false;
+
+  // Audio system
+  audioUnlocked = false;
+  showAudioPrompt = false;
+  audioPromptError = '';
+  private readonly AUDIO_KEY = 'viejap.audio-unlocked';
+  private audioCtx?: AudioContext;
+  private speechSynth?: SpeechSynthesis;
+
+  // Practice state
   activeTab: LearningTab = 'quiz';
   selectedGroup: LearningGroup = 'all';
   quizMode: PracticeMode = 'guided';
@@ -47,7 +83,10 @@ export class KatakanaPage {
   quizComplete = false;
   quizWrongIds = new Set<string>();
   lastQuizItemId?: string;
+  streak = 0;
+  bestStreak = 0;
 
+  // Writing state
   writingItem?: KatakanaItem;
   activeGlyphIndex = 0;
   writingComplete = false;
@@ -55,9 +94,285 @@ export class KatakanaPage {
   writingResetToken = 0;
   writingSessionCompleted = 0;
 
+  // Basic Gojuon matrix (46 Seion Katakana)
+  readonly basicChartRows: ChartRow[] = [
+    {
+      rowLabel: 'Hàng A (Nguyên âm)',
+      consonant: 'Ø',
+      cells: [
+        { kana: 'ア', romaji: 'a', id: 'a' },
+        { kana: 'イ', romaji: 'i', id: 'i' },
+        { kana: 'ウ', romaji: 'u', id: 'u' },
+        { kana: 'エ', romaji: 'e', id: 'e' },
+        { kana: 'オ', romaji: 'o', id: 'o' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Ka',
+      consonant: 'K',
+      cells: [
+        { kana: 'カ', romaji: 'ka', id: 'ka' },
+        { kana: 'キ', romaji: 'ki', id: 'ki' },
+        { kana: 'ク', romaji: 'ku', id: 'ku' },
+        { kana: 'ケ', romaji: 'ke', id: 'ke' },
+        { kana: 'コ', romaji: 'ko', id: 'ko' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Sa',
+      consonant: 'S',
+      cells: [
+        { kana: 'サ', romaji: 'sa', id: 'sa' },
+        { kana: 'シ', romaji: 'shi', id: 'shi' },
+        { kana: 'ス', romaji: 'su', id: 'su' },
+        { kana: 'セ', romaji: 'se', id: 'se' },
+        { kana: 'ソ', romaji: 'so', id: 'so' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Ta',
+      consonant: 'T',
+      cells: [
+        { kana: 'タ', romaji: 'ta', id: 'ta' },
+        { kana: 'チ', romaji: 'chi', id: 'chi' },
+        { kana: 'ツ', romaji: 'tsu', id: 'tsu' },
+        { kana: 'テ', romaji: 'te', id: 'te' },
+        { kana: 'ト', romaji: 'to', id: 'to' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Na',
+      consonant: 'N',
+      cells: [
+        { kana: 'ナ', romaji: 'na', id: 'na' },
+        { kana: 'ニ', romaji: 'ni', id: 'ni' },
+        { kana: 'ヌ', romaji: 'nu', id: 'nu' },
+        { kana: 'ネ', romaji: 'ne', id: 'ne' },
+        { kana: 'ノ', romaji: 'no', id: 'no' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Ha',
+      consonant: 'H',
+      cells: [
+        { kana: 'ハ', romaji: 'ha', id: 'ha' },
+        { kana: 'ヒ', romaji: 'hi', id: 'hi' },
+        { kana: 'フ', romaji: 'fu', id: 'fu' },
+        { kana: 'ヘ', romaji: 'he', id: 'he' },
+        { kana: 'ホ', romaji: 'ho', id: 'ho' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Ma',
+      consonant: 'M',
+      cells: [
+        { kana: 'マ', romaji: 'ma', id: 'ma' },
+        { kana: 'ミ', romaji: 'mi', id: 'mi' },
+        { kana: 'ム', romaji: 'mu', id: 'mu' },
+        { kana: 'メ', romaji: 'me', id: 'me' },
+        { kana: 'モ', romaji: 'mo', id: 'mo' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Ya',
+      consonant: 'Y',
+      cells: [
+        { kana: 'ヤ', romaji: 'ya', id: 'ya' },
+        { kana: '', romaji: '', empty: true },
+        { kana: 'ユ', romaji: 'yu', id: 'yu' },
+        { kana: '', romaji: '', empty: true },
+        { kana: 'ヨ', romaji: 'yo', id: 'yo' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Ra',
+      consonant: 'R',
+      cells: [
+        { kana: 'ラ', romaji: 'ra', id: 'ra' },
+        { kana: 'リ', romaji: 'ri', id: 'ri' },
+        { kana: 'ル', romaji: 'ru', id: 'ru' },
+        { kana: 'レ', romaji: 're', id: 're' },
+        { kana: 'ロ', romaji: 'ro', id: 'ro' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Wa & Âm mũi N',
+      consonant: 'W / N',
+      cells: [
+        { kana: 'ワ', romaji: 'wa', id: 'wa' },
+        { kana: '', romaji: '', empty: true },
+        { kana: '', romaji: '', empty: true },
+        { kana: '', romaji: '', empty: true },
+        { kana: 'ヲ', romaji: 'wo', id: 'wo' },
+      ],
+    },
+    {
+      rowLabel: 'Âm mũi đặc biệt',
+      consonant: 'N',
+      cells: [
+        { kana: 'ン', romaji: 'n', id: 'n' },
+        { kana: '', romaji: '', empty: true },
+        { kana: '', romaji: '', empty: true },
+        { kana: '', romaji: '', empty: true },
+        { kana: '', romaji: '', empty: true },
+      ],
+    },
+  ];
+
+  // Voiced Dakuon & Handakuon matrix (25 Katakana)
+  readonly voicedChartRows: ChartRow[] = [
+    {
+      rowLabel: 'Hàng Ga (Âm đục Ka)',
+      consonant: 'G',
+      cells: [
+        { kana: 'ガ', romaji: 'ga', id: 'ga' },
+        { kana: 'ギ', romaji: 'gi', id: 'gi' },
+        { kana: 'グ', romaji: 'gu', id: 'gu' },
+        { kana: 'ゲ', romaji: 'ge', id: 'ge' },
+        { kana: 'ゴ', romaji: 'go', id: 'go' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Za (Âm đục Sa)',
+      consonant: 'Z',
+      cells: [
+        { kana: 'ザ', romaji: 'za', id: 'za' },
+        { kana: 'ジ', romaji: 'ji', id: 'ji' },
+        { kana: 'ズ', romaji: 'zu', id: 'zu' },
+        { kana: 'ゼ', romaji: 'ze', id: 'ze' },
+        { kana: 'ゾ', romaji: 'zo', id: 'zo' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Da (Âm đục Ta)',
+      consonant: 'D',
+      cells: [
+        { kana: 'ダ', romaji: 'da', id: 'da' },
+        { kana: 'ヂ', romaji: 'ji', id: 'di' },
+        { kana: 'ヅ', romaji: 'zu', id: 'du' },
+        { kana: 'デ', romaji: 'de', id: 'de' },
+        { kana: 'ド', romaji: 'do', id: 'do' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Ba (Âm đục Ha)',
+      consonant: 'B',
+      cells: [
+        { kana: 'バ', romaji: 'ba', id: 'ba' },
+        { kana: 'ビ', romaji: 'bi', id: 'bi' },
+        { kana: 'ブ', romaji: 'bu', id: 'bu' },
+        { kana: 'ベ', romaji: 'be', id: 'be' },
+        { kana: 'ボ', romaji: 'bo', id: 'bo' },
+      ],
+    },
+    {
+      rowLabel: 'Hàng Pa (Bán đục Ha)',
+      consonant: 'P',
+      cells: [
+        { kana: 'パ', romaji: 'pa', id: 'pa' },
+        { kana: 'ピ', romaji: 'pi', id: 'pi' },
+        { kana: 'プ', romaji: 'pu', id: 'pu' },
+        { kana: 'ペ', romaji: 'pe', id: 'pe' },
+        { kana: 'ポ', romaji: 'po', id: 'po' },
+      ],
+    },
+  ];
+
+  // Yoon items
+  readonly yoonItems = YOON_KATAKANA;
+
   constructor() {
     this.startQuiz();
     this.writingItem = KATAKANA_ITEMS[0];
+    this.initAudio();
+  }
+
+  ngOnDestroy(): void {
+    this.speechSynth?.cancel();
+    this.audioCtx?.close();
+  }
+
+  goHome(): void {
+    this.router.navigate(['/']);
+  }
+
+  toggleHeader(): void {
+    this.headerCollapsed = !this.headerCollapsed;
+  }
+
+  switchView(view: ViewMode): void {
+    this.currentView = view;
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  setTheoryTab(tab: TheoryTab): void {
+    this.theoryTab = tab;
+  }
+
+  // Audio system
+  private initAudio(): void {
+    if (typeof window !== 'undefined') {
+      if ('speechSynthesis' in window) {
+        this.speechSynth = window.speechSynthesis;
+      }
+      const saved = window.localStorage.getItem(this.AUDIO_KEY);
+      if (saved === '1') {
+        this.audioUnlocked = true;
+      }
+    }
+  }
+
+  private getAudioContext(): AudioContext {
+    if (!this.audioCtx && typeof window !== 'undefined') {
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.audioCtx = new AudioContextClass();
+    }
+    return this.audioCtx!;
+  }
+
+  openAudioPrompt(): void {
+    this.audioPromptError = '';
+    this.showAudioPrompt = true;
+  }
+
+  closeAudioPrompt(): void {
+    this.showAudioPrompt = false;
+  }
+
+  async enableAudioSupport(): Promise<void> {
+    this.audioPromptError = '';
+    const success = await this.audioService.unlockAudio();
+    if (success) {
+      this.audioUnlocked = true;
+      this.showAudioPrompt = false;
+      this.playCorrectSound();
+      this.speakJapanese('ア');
+    } else {
+      this.audioPromptError = 'Không thể bật âm thanh tự động. Hãy mở tiếng trên thiết bị rồi thử lại.';
+    }
+  }
+
+  speakJapanese(text: string): void {
+    void this.audioService.speak(text);
+  }
+
+  playKanaAudio(kana: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.speakJapanese(kana);
+  }
+
+  playCorrectSound(): void {
+    this.audioService.playCorrectSound();
+  }
+
+  playWrongSound(): void {
+    this.audioService.playWrongSound();
   }
 
   get groupOptions(): GroupOption[] {
@@ -189,11 +504,21 @@ export class KatakanaPage {
     const isCorrect = answer === question.correctAnswer;
     if (isCorrect) {
       this.quizScore += 1;
+      this.streak += 1;
+      if (this.streak > this.bestStreak) {
+        this.bestStreak = this.streak;
+      }
+      this.playCorrectSound();
     } else {
       this.quizWrongIds.add(question.item.id);
+      this.streak = 0;
+      this.playWrongSound();
     }
     this.quizAnsweredCount += 1;
     this.progress.recordQuiz(question.item.id, isCorrect);
+
+    // Speak pronunciation on answer
+    this.speakJapanese(question.item.kana);
   }
 
   nextQuestion(): void {
@@ -236,6 +561,7 @@ export class KatakanaPage {
   selectWritingItem(item: KatakanaItem): void {
     this.writingItem = item;
     this.restartWriting();
+    this.speakJapanese(item.kana);
   }
 
   selectRandomWritingItem(): void {
@@ -278,6 +604,8 @@ export class KatakanaPage {
     this.writingSkipped = false;
     this.writingSessionCompleted += 1;
     this.progress.recordWriting(this.writingItem.id, true);
+    this.playCorrectSound();
+    this.speakJapanese(this.writingItem.kana);
   }
 
   onGlyphSkipped(index: number): void {
@@ -322,6 +650,8 @@ export class KatakanaPage {
       window.confirm('Xóa toàn bộ tiến độ học Katakana trên thiết bị này?');
     if (confirmed) {
       this.progress.reset();
+      this.streak = 0;
+      this.bestStreak = 0;
       this.startQuiz('all');
       this.startWritingSession();
     }

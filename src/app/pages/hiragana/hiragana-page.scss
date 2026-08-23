@@ -1,1124 +1,2249 @@
-:host {
-  display: block;
-  background: #f5f7fa;
+@use 'sass:color';
+/* ============================================================
+   HIRAGANA LEARNING & PRACTICE PAGE
+   Design System perfectly aligned with Te-Form Practice
+   ============================================================ */
+
+// ── Variables ────────────────────────────────────────────────────
+$hira-primary: #4a7cdb;
+$hira-primary-soft: #6b9ced;
+$hira-primary-bg: #eef4fc;
+$hira-accent: #e8913a;
+$hira-accent-soft: #f5c882;
+$hira-accent-bg: #fef6ec;
+$hira-success: #3dba7a;
+$hira-success-bg: #eaf8f0;
+$hira-error: #e25c5c;
+$hira-error-bg: #fceded;
+$hira-warning: #f59e0b;
+$hira-warning-bg: #fffbeb;
+$hira-bg: #fafbfd;
+$hira-bg-card: #ffffff;
+$hira-bg-subtle: #f3f5f9;
+$hira-border: #e2e8f0;
+$hira-border-light: #edf1f7;
+$hira-text: #2d3748;
+$hira-text-sub: #718096;
+$hira-text-hint: #a0aec0;
+
+$hira-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+$hira-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04);
+$hira-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.04);
+
+$hira-font-vn: 'Be Vietnam Pro', 'Nunito', 'Inter', sans-serif;
+$hira-font-jp: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Yu Gothic', sans-serif;
+$hira-radius: 18px;
+$hira-radius-sm: 12px;
+$hira-radius-xs: 8px;
+
+// ── Animations ──────────────────────────────────────────────────
+@keyframes hira-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.hiragana-page,
-.hiragana-page * {
+@keyframes hira-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes hira-shake {
+  0%, 100% { transform: translateX(0); }
+  15%, 45%, 75% { transform: translateX(-5px); }
+  30%, 60%, 90% { transform: translateX(5px); }
+}
+
+@keyframes hira-streak-glow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+// ── Root Wrapper ────────────────────────────────────────────────
+.hira-wrapper {
+  min-height: 100vh;
+  background: $hira-bg;
+  color: $hira-text;
+  font-family: $hira-font-vn;
+  padding-bottom: 5rem;
   box-sizing: border-box;
+
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
 }
 
-.learning-header {
-  border-bottom: 1px solid #dfe6ef;
-  background: #fff;
+// ══════════════════════════════════════════════════════════════════
+//  HEADER / COLLAPSIBLE BAR
+// ══════════════════════════════════════════════════════════════════
+
+.hira-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid $hira-border;
+  transition: all 0.3s ease;
+
+  &.collapsed {
+    .hira-header-collapsible {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
 }
 
-.learning-header-inner {
-  min-height: 158px;
+.hira-header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding: 0.45rem 1.25rem;
+  background: $hira-bg-subtle;
+  border-bottom: 1px solid $hira-border-light;
 }
 
-.learning-title {
-  min-width: 0;
-
-  h1 {
-    margin: 0.25rem 0 0.35rem;
-    color: #163a65;
-    font-size: clamp(2rem, 4vw, 2.8rem);
-    line-height: 1.12;
-    letter-spacing: 0;
-  }
-
-  p {
-    margin: 0;
-    color: #627188;
-    font-size: 0.98rem;
-  }
-}
-
-.learning-kicker {
-  color: #a76b04;
-  font-size: 0.72rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.reset-progress {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #d9e1eb;
-  border-radius: 7px;
-  background: #fff;
-  color: #64748a;
+.hira-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-xs;
+  background: $hira-bg-card;
+  color: $hira-text-sub;
   cursor: pointer;
+  transition: all 0.2s ease;
 
   &:hover {
-    border-color: #d69a92;
-    background: #fff6f4;
-    color: #b34e42;
+    background: $hira-primary-bg;
+    color: $hira-primary;
+    border-color: $hira-primary-soft;
+    transform: translateX(-2px);
   }
 }
 
-.learning-stats {
-  border-bottom: 1px solid #dfe6ef;
-  background: #fff;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.stat-item {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 1rem 1.25rem;
-  border-right: 1px solid #e6ebf1;
-
-  &:first-child {
-    padding-left: 0;
-  }
-
-  &:last-child {
-    border-right: 0;
-  }
-
-  > span:last-child {
-    min-width: 0;
-    display: grid;
-  }
-
-  small {
-    color: #748196;
-    font-size: 0.72rem;
-  }
-
-  strong {
-    color: #203d61;
-    font-size: 1.02rem;
-  }
-}
-
-.stat-icon {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 7px;
-}
-
-.stat-icon-blue {
-  background: #e9f1fb;
-  color: #285c9d;
-}
-
-.stat-icon-green {
-  background: #e9f7f1;
-  color: #1d8468;
-}
-
-.stat-icon-yellow {
-  background: #fff4da;
-  color: #a76b04;
-}
-
-.stat-icon-red {
-  background: #fff0ec;
-  color: #c15a49;
-}
-
-.learning-workspace {
-  min-height: 720px;
-  padding: 1.5rem 0 4rem;
-}
-
-.mode-tabs {
-  display: flex;
-  gap: 0.25rem;
-  border-bottom: 1px solid #d7e0eb;
-
-  button {
-    min-height: 46px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.48rem;
-    padding: 0.7rem 1rem;
-    border: 0;
-    border-bottom: 3px solid transparent;
-    background: transparent;
-    color: #68778b;
-    font: inherit;
-    font-size: 0.9rem;
-    font-weight: 750;
-    cursor: pointer;
-
-    &.active {
-      border-bottom-color: #173f85;
-      color: #173f85;
-    }
-  }
-}
-
-.group-toolbar {
-  display: flex;
-  gap: 0.5rem;
-  margin: 1rem 0 1.25rem;
-  overflow-x: auto;
-  scrollbar-width: thin;
-
-  button {
-    min-height: 38px;
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.48rem 0.7rem;
-    border: 1px solid #d5dee9;
-    border-radius: 6px;
-    background: #fff;
-    color: #56677e;
-    font: inherit;
-    font-size: 0.78rem;
-    font-weight: 750;
-    cursor: pointer;
-
-    small {
-      min-width: 22px;
-      padding: 0.08rem 0.28rem;
-      border-radius: 4px;
-      background: #edf1f6;
-      color: #758397;
-      text-align: center;
-    }
-
-    &.active {
-      border-color: #173f85;
-      background: #173f85;
-      color: #fff;
-
-      small {
-        background: rgba(255, 255, 255, 0.16);
-        color: #fff;
-      }
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-}
-
-.practice-mode-bar {
-  min-width: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: -0.25rem 0 1rem;
-  padding: 0.8rem;
-  border: 1px solid #d9e2ed;
-  border-radius: 8px;
-  background: #fff;
-
-  > div {
-    min-width: 0;
-    display: grid;
-    gap: 0.4rem;
-
-    > span {
-      color: #6f7f93;
-      font-size: 0.7rem;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-  }
-
-  > p {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    margin: 0;
-    color: #67768a;
-    font-size: 0.75rem;
-    line-height: 1.45;
-
-    i {
-      color: #a76b04;
-    }
-  }
-}
-
-.practice-mode-control {
+.hira-header-toggle {
   display: inline-flex;
-  width: fit-content;
-  padding: 3px;
-  border: 1px solid #d7e0eb;
-  border-radius: 7px;
-  background: #f3f6f9;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: $hira-radius-xs;
+  background: transparent;
+  color: $hira-text-sub;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-  button {
-    min-height: 36px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.42rem;
-    padding: 0.45rem 0.7rem;
-    border: 0;
-    border-radius: 5px;
-    background: transparent;
-    color: #65758a;
-    font: inherit;
-    font-size: 0.76rem;
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: $hira-text;
+  }
+
+  .collapsed-hint {
+    color: $hira-accent;
     font-weight: 800;
-    white-space: nowrap;
-    cursor: pointer;
-
-    &.active {
-      background: #173f85;
-      color: #fff;
-      box-shadow: 0 3px 10px rgba(23, 63, 133, 0.18);
-    }
   }
 }
 
-.quiz-tool {
-  width: min(820px, 100%);
-  margin: 0 auto;
-  overflow: hidden;
-  border: 1px solid #d9e2ed;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 14px 36px rgba(18, 47, 83, 0.07);
+.hira-header-collapsible {
+  max-height: 140px;
+  opacity: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.quiz-progress {
+.hira-header-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.25rem 0.85rem;
-
-  > div {
-    display: grid;
-  }
-
-  span {
-    color: #7a8799;
-    font-size: 0.72rem;
-  }
-
-  strong {
-    color: #294867;
-    font-size: 0.9rem;
-
-    small {
-      color: #a76b04;
-      font-size: 0.68rem;
-      font-weight: 800;
-    }
-  }
-
-  .quiz-score {
-    padding: 0.35rem 0.55rem;
-    border-radius: 5px;
-    background: #eaf6f1;
-    color: #19785f;
-    font-weight: 800;
-  }
 }
 
-.progress-track {
-  height: 5px;
-  background: #e9eef4;
-
-  span {
-    height: 100%;
-    display: block;
-    background: #e1ad24;
-    transition: width 0.22s ease;
-  }
-
-  &.is-continuous {
-    overflow: hidden;
-
-    span {
-      width: 38% !important;
-      animation: continuous-progress 1.3s ease-in-out infinite;
-    }
-  }
-}
-
-.question-area {
-  padding: clamp(1.3rem, 4vw, 2.25rem);
-
-  > p {
-    margin: 0;
-    color: #748196;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-align: center;
-  }
-}
-
-.question-prompt {
-  min-height: 110px;
-  display: grid;
-  place-items: center;
-  color: #173f85;
-  font-size: 2.6rem;
-  font-weight: 800;
-  line-height: 1;
-  text-align: center;
-
-  &.is-kana {
-    font-family: 'Yu Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
-    font-size: clamp(4.5rem, 11vw, 7rem);
-    font-weight: 600;
-  }
-}
-
-.answer-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
-  margin-top: 1.15rem;
-
-  button {
-    position: relative;
-    min-width: 0;
-    min-height: 64px;
-    display: grid;
-    grid-template-columns: 30px minmax(0, 1fr) 22px;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.75rem 0.9rem;
-    border: 1px solid #d7e0ea;
-    border-radius: 7px;
-    background: #fff;
-    color: #294867;
-    font: inherit;
-    cursor: pointer;
-    transition:
-      border-color 0.16s ease,
-      background-color 0.16s ease;
-
-    > span {
-      width: 30px;
-      height: 30px;
-      display: grid;
-      place-items: center;
-      border-radius: 5px;
-      background: #eef2f7;
-      color: #627188;
-      font-size: 0.75rem;
-      font-weight: 850;
-    }
-
-    strong {
-      min-width: 0;
-      font-size: 1rem;
-      text-align: left;
-      overflow-wrap: anywhere;
-    }
-
-    .kana-answer {
-      font-family: 'Yu Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
-      font-size: 1.5rem;
-    }
-
-    > i {
-      color: #1d8468;
-    }
-
-    &:hover:not(:disabled) {
-      border-color: #8da7c7;
-      background: #f7faff;
-    }
-
-    &.is-selected {
-      border-color: #6387b5;
-      background: #f0f5fb;
-    }
-
-    &.is-correct {
-      border-color: #75b59f;
-      background: #f0faf6;
-    }
-
-    &.is-wrong {
-      border-color: #d9978c;
-      background: #fff5f3;
-
-      > i {
-        color: #bf5849;
-      }
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 1;
-    }
-  }
-}
-
-.answer-feedback {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding: 0.8rem;
-  border: 1px solid #edc9c2;
-  border-radius: 7px;
-  background: #fff7f5;
-
-  > span {
-    width: 40px;
-    height: 40px;
-    display: grid;
-    place-items: center;
-    border-radius: 6px;
-    background: #fff;
-    color: #bf5849;
-  }
-
-  > div {
-    min-width: 0;
-    display: grid;
-  }
-
-  strong {
-    color: #773a34;
-    font-size: 0.86rem;
-  }
-
-  small {
-    color: #8c625d;
-    font-size: 0.72rem;
-  }
-
-  > button {
-    min-height: 40px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.55rem 0.75rem;
-    border: 0;
-    border-radius: 6px;
-    background: #173f85;
-    color: #fff;
-    font: inherit;
-    font-size: 0.78rem;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  &.is-correct {
-    border-color: #a8d3c4;
-    background: #f1faf6;
-
-    > span {
-      color: #1d8468;
-    }
-
-    strong {
-      color: #17634f;
-    }
-
-    small {
-      color: #4c786b;
-    }
-  }
-}
-
-.quiz-result {
-  width: min(820px, 100%);
-  display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
-  align-items: center;
-  gap: 2rem;
-  margin: 0 auto;
-  padding: 2rem;
-  border: 1px solid #d9e2ed;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 14px 36px rgba(18, 47, 83, 0.07);
-}
-
-.result-score {
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  border: 10px solid #e5ad21;
-  border-radius: 50%;
-  background: #fffaf0;
-
-  span {
-    color: #173f85;
-    font-size: 2.6rem;
-    font-weight: 850;
-    line-height: 1;
-  }
-
-  small {
-    margin-top: 0.35rem;
-    color: #748196;
-  }
-}
-
-.result-copy {
-  h2 {
-    margin: 0.35rem 0 0.55rem;
-    color: #173f85;
-    font-size: 1.65rem;
-    letter-spacing: 0;
-  }
-
-  p {
-    margin: 0;
-    color: #627188;
-    line-height: 1.65;
-  }
-}
-
-.result-actions {
+.hira-logo {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 1rem;
+  align-items: center;
+  gap: 0.85rem;
 
-  button {
-    min-height: 42px;
+  .hira-logo-jp {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.45rem;
-    padding: 0.6rem 0.8rem;
-    border-radius: 6px;
-    font: inherit;
-    font-size: 0.8rem;
+    width: 44px;
+    height: 44px;
+    border-radius: $hira-radius-sm;
+    background: linear-gradient(135deg, #ff8c42, #e85d04);
+    color: #fff;
+    font-family: $hira-font-jp;
+    font-size: 1.45rem;
+    font-weight: 900;
+    box-shadow: 0 4px 12px rgba(232, 93, 4, 0.25);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.2rem;
     font-weight: 800;
-    cursor: pointer;
-  }
-}
-
-.primary-action {
-  border: 1px solid #173f85;
-  background: #173f85;
-  color: #fff;
-}
-
-.secondary-action {
-  border: 1px solid #cdd8e6;
-  background: #fff;
-  color: #173f85;
-}
-
-.empty-state {
-  width: min(620px, 100%);
-  margin: 2rem auto 0;
-  padding: 2.5rem 1rem;
-  color: #68778b;
-  text-align: center;
-
-  > i {
-    color: #1d8468;
-    font-size: 2rem;
-  }
-
-  h2 {
-    margin: 0.8rem 0 0.4rem;
-    color: #294867;
-    font-size: 1.35rem;
+    color: $hira-text;
+    letter-spacing: -0.02em;
   }
 
   p {
-    margin: 0;
-  }
-
-  button {
-    min-height: 42px;
-    margin-top: 1rem;
-    padding: 0.55rem 0.8rem;
-    border: 0;
-    border-radius: 6px;
-    background: #173f85;
-    color: #fff;
-    font: inherit;
-    font-weight: 750;
-    cursor: pointer;
+    margin: 0.1rem 0 0;
+    font-size: 0.8rem;
+    color: $hira-text-sub;
+    font-weight: 500;
   }
 }
 
-.writing-layout {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
-  align-items: start;
-  gap: 1rem;
+.hira-tabs {
+  display: flex;
+  gap: 0.35rem;
+  background: $hira-bg-subtle;
+  padding: 0.3rem;
+  border-radius: $hira-radius-sm;
+  border: 1px solid $hira-border-light;
 }
 
-.kana-browser,
-.writing-tool {
-  min-width: 0;
-  border: 1px solid #d9e2ed;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 12px 30px rgba(18, 47, 83, 0.05);
-}
-
-.kana-browser {
-  overflow: hidden;
-
-  > header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 1rem;
-    border-bottom: 1px solid #e5ebf2;
-
-    h2 {
-      margin: 0.22rem 0 0;
-      color: #294867;
-      font-size: 1.05rem;
-      letter-spacing: 0;
-    }
-
-    > span {
-      color: #748196;
-      font-size: 0.72rem;
-    }
-  }
-}
-
-.kana-picker {
-  max-height: 310px;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.4rem;
-  padding: 0.75rem;
-  overflow-y: auto;
-
-  button {
-    min-width: 0;
-    aspect-ratio: 1;
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: 0.05rem;
-    border: 1px solid #dfe6ee;
-    border-radius: 6px;
-    background: #fff;
-    color: #294867;
-    cursor: pointer;
-
-    strong {
-      font-family: 'Yu Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
-      font-size: 1.2rem;
-      line-height: 1.05;
-    }
-
-    small {
-      color: #7a8799;
-      font-size: 0.62rem;
-    }
-
-    &.active {
-      border-color: #173f85;
-      background: #173f85;
-      color: #fff;
-
-      small {
-        color: rgba(255, 255, 255, 0.78);
-      }
-    }
-
-    &.is-weak:not(.active) {
-      border-color: #e2b9b0;
-      background: #fff8f6;
-    }
-
-    &.is-mastered:not(.active) {
-      border-color: #a8d3c4;
-      background: #f4fbf8;
-    }
-  }
-}
-
-.writing-item-summary {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 42px;
+.hira-tab {
+  display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.8rem;
-  border-top: 1px solid #e5ebf2;
-  background: #f8fafc;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border: none;
+  border-radius: $hira-radius-xs;
+  background: transparent;
+  color: $hira-text-sub;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: $hira-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-  > button {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border: 1px solid #d8e1eb;
-    border-radius: 6px;
-    background: #fff;
-    color: #31577f;
-    cursor: pointer;
-
-    &:disabled {
-      color: #aab5c2;
-      cursor: not-allowed;
-      opacity: 0.65;
-    }
+  &:hover {
+    color: $hira-text;
   }
 
-  > div {
-    min-width: 0;
-    display: grid;
-    grid-template-columns: auto auto;
-    align-items: baseline;
-    justify-content: center;
-    column-gap: 0.5rem;
-    text-align: center;
-
-    strong {
-      color: #173f85;
-      font-family: 'Yu Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
-      font-size: 1.8rem;
-    }
-
-    span {
-      color: #a76b04;
-      font-weight: 800;
-    }
-
-    small {
-      grid-column: 1 / -1;
-      color: #748196;
-      font-size: 0.66rem;
-    }
+  &.active {
+    background: $hira-bg-card;
+    color: $hira-primary;
+    box-shadow: $hira-shadow-sm;
   }
 }
 
-.writing-tool {
-  padding: 1rem;
+// ══════════════════════════════════════════════════════════════════
+//  MAIN CONTENT CONTAINER
+// ══════════════════════════════════════════════════════════════════
+
+.hira-main {
+  max-width: 900px;
+  margin: 1.5rem auto 0;
+  padding: 0 1.25rem;
+  animation: hira-fade-in 0.3s ease;
 }
 
-.writing-tool-header {
+// ── Audio Reminder Banner ─────────────────────────────────────────
+.hira-audio-reminder {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid #e5ebf2;
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: $hira-primary-bg;
+  border: 1px solid rgba($hira-primary, 0.2);
+  border-radius: $hira-radius-sm;
+  color: $hira-text;
 
-  h2 {
-    display: flex;
-    align-items: baseline;
-    gap: 0.65rem;
-    margin: 0.2rem 0 0;
-    color: #173f85;
-    font-family: 'Yu Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
-    font-size: 2rem;
-    letter-spacing: 0;
-
-    small {
-      color: #a76b04;
-      font-family: var(--font-primary);
-      font-size: 0.9rem;
-    }
-  }
-
-  > button {
-    width: 40px;
-    height: 40px;
+  .hira-audio-reminder-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba($hira-primary, 0.15);
+    color: $hira-primary;
     display: grid;
     place-items: center;
-    border: 1px solid #d8e1eb;
-    border-radius: 6px;
-    background: #fff;
-    color: #31577f;
-    cursor: pointer;
-  }
-}
-
-@keyframes continuous-progress {
-  from {
-    transform: translateX(-110%);
+    font-size: 1.1rem;
+    flex-shrink: 0;
   }
 
-  to {
-    transform: translateX(285%);
-  }
-}
-
-.writing-note {
-  margin: 0.8rem 0;
-  padding: 0.65rem 0.75rem;
-  border-left: 3px solid #e1ad24;
-  background: #fffaf0;
-  color: #6f6250;
-  font-size: 0.75rem;
-  line-height: 1.55;
-}
-
-.stroke-pad-grid {
-  width: min(440px, 100%);
-  margin: 0 auto;
-
-  &.is-compound {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-}
-
-.writing-complete {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.85rem;
-  padding: 0.75rem;
-  border: 1px solid #a8d3c4;
-  border-radius: 7px;
-  background: #f1faf6;
-
-  > span {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 6px;
-    background: #1d8468;
-    color: #fff;
-  }
-
-  > div {
+  .hira-audio-reminder-content {
+    flex: 1;
     min-width: 0;
-    display: grid;
-  }
-
-  strong {
-    color: #17634f;
-    font-size: 0.86rem;
-  }
-
-  small {
-    color: #4c786b;
-    font-size: 0.72rem;
-  }
-
-  > button {
-    min-height: 40px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.55rem 0.75rem;
-    border: 0;
-    border-radius: 6px;
-    background: #173f85;
-    color: #fff;
-    font: inherit;
-    font-size: 0.78rem;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  &.is-skipped {
-    border-color: #e8c58c;
-    background: #fff9ed;
-
-    > span {
-      background: #b87a13;
-    }
 
     strong {
-      color: #7f5410;
-    }
-
-    small {
-      color: #816b48;
-    }
-  }
-}
-
-@media (max-width: 991.98px) {
-  .writing-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .kana-picker {
-    max-height: 210px;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 767.98px) {
-  .learning-header-inner {
-    min-height: 132px;
-    padding-top: 1.4rem;
-    padding-bottom: 1.4rem;
-  }
-
-  .learning-title {
-    h1 {
-      font-size: 1.85rem;
+      display: block;
+      font-size: 0.92rem;
+      color: $hira-primary;
+      font-weight: 800;
     }
 
     p {
-      max-width: 310px;
-      font-size: 0.86rem;
-      line-height: 1.55;
+      margin: 0.15rem 0 0;
+      font-size: 0.82rem;
+      color: $hira-text-sub;
     }
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .hira-audio-reminder-btn {
+    padding: 0.45rem 1rem;
+    border: none;
+    border-radius: $hira-radius-xs;
+    background: $hira-primary;
+    color: #fff;
+    font-size: 0.84rem;
+    font-weight: 700;
+    font-family: $hira-font-vn;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 
-  .stat-item {
-    padding: 0.75rem;
-    border-bottom: 1px solid #e6ebf1;
-
-    &:first-child {
-      padding-left: 0.75rem;
-    }
-
-    &:nth-child(2) {
-      border-right: 0;
-    }
-
-    &:nth-child(n + 3) {
-      border-bottom: 0;
-    }
-  }
-
-  .learning-workspace {
-    padding-top: 1rem;
-    padding-bottom: 2.5rem;
-  }
-
-  .mode-tabs {
-    button {
-      flex: 1 1 50%;
-      justify-content: center;
-    }
-  }
-
-  .practice-mode-bar {
-    display: grid;
-    align-items: stretch;
-    gap: 0.65rem;
-
-    > p {
-      padding-top: 0.6rem;
-      border-top: 1px solid #e4eaf1;
-    }
-  }
-
-  .practice-mode-control {
-    width: 100%;
-
-    button {
-      min-width: 0;
-      flex: 1 1 50%;
-      justify-content: center;
-      white-space: normal;
-      text-align: center;
-    }
-  }
-
-  .answer-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .answer-feedback {
-    grid-template-columns: 38px minmax(0, 1fr);
-
-    > button {
-      grid-column: 1 / -1;
-      justify-content: center;
-    }
-  }
-
-  .quiz-result {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.25rem;
-    padding: 1.25rem;
-  }
-
-  .result-score {
-    width: 170px;
-    margin: 0 auto;
-  }
-
-  .result-copy {
-    text-align: center;
-  }
-
-  .result-actions {
-    display: grid;
-  }
-
-  .kana-picker {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
-  .stroke-pad-grid.is-compound {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .writing-complete {
-    grid-template-columns: 40px minmax(0, 1fr);
-
-    > button {
-      grid-column: 1 / -1;
-      justify-content: center;
+    &:hover {
+      background: color.adjust($hira-primary, $lightness: -8%);
+      transform: translateY(-1px);
     }
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .progress-track.is-continuous span {
-    width: 100% !important;
-    animation: none;
-    opacity: 0.7;
+// ── Score Bar (4 Metric Cards) ──────────────────────────────────
+.hira-score-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.hira-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 0.5rem;
+  background: $hira-bg-card;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-sm;
+  box-shadow: $hira-shadow-sm;
+  text-align: center;
+  transition: transform 0.2s ease;
+
+  i {
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+  }
+
+  span {
+    font-size: 1.15rem;
+    font-weight: 850;
+    color: $hira-text;
+    line-height: 1.15;
+  }
+
+  small {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: $hira-text-sub;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+  }
+
+  &.hira-streak.on-fire {
+    background: linear-gradient(135deg, #fff9f0, #fff2e0);
+    border-color: rgba($hira-accent, 0.4);
+
+    i {
+      animation: hira-streak-glow 1.2s ease-in-out infinite;
+    }
   }
 }
 
-@media (max-width: 389.98px) {
-  .stat-item {
+// ── Toolbar Container (Pills & Chips) ───────────────────────────
+.hira-toolbar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.hira-mode-pills {
+  display: flex;
+  gap: 0.4rem;
+  background: $hira-bg-subtle;
+  padding: 0.35rem;
+  border-radius: $hira-radius-sm;
+  border: 1px solid $hira-border-light;
+  width: fit-content;
+}
+
+.hira-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1.1rem;
+  border: none;
+  border-radius: $hira-radius-xs;
+  background: transparent;
+  color: $hira-text-sub;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: $hira-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.active {
+    background: $hira-bg-card;
+    color: $hira-primary;
+    box-shadow: $hira-shadow-sm;
+  }
+}
+
+.hira-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.hira-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid $hira-border;
+  border-radius: 999px;
+  background: $hira-bg-card;
+  color: $hira-text-sub;
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-family: $hira-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  .chip-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: $hira-bg-subtle;
+    font-size: 0.74rem;
+    font-weight: 800;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $hira-primary-soft;
+    color: $hira-primary;
+  }
+
+  &.active {
+    background: $hira-primary;
+    border-color: $hira-primary;
+    color: #fff;
+
+    .chip-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.hira-sub-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mode-toggle-group {
+  display: flex;
+  gap: 0.35rem;
+  background: $hira-bg-card;
+  padding: 0.25rem;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-xs;
+
+  .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: $hira-text-sub;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: $hira-font-vn;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+      background: $hira-primary-bg;
+      color: $hira-primary;
+    }
+  }
+}
+
+.hira-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: $hira-radius-xs;
+  background: transparent;
+  color: $hira-text-hint;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: $hira-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $hira-error;
+    background: $hira-error-bg;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  EXERCISE CARD (TRẮC NGHIỆM)
+// ══════════════════════════════════════════════════════════════════
+
+.hira-exercise-card {
+  background: $hira-bg-card;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius;
+  box-shadow: $hira-shadow;
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &.answered-correct {
+    border-color: rgba($hira-success, 0.6);
+    box-shadow: 0 8px 24px rgba($hira-success, 0.12);
+  }
+
+  &.answered-wrong {
+    border-color: rgba($hira-error, 0.6);
+    box-shadow: 0 8px 24px rgba($hira-error, 0.12);
+    animation: hira-shake 0.4s ease;
+  }
+}
+
+.card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.hira-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: $hira-primary-bg;
+  color: $hira-primary;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.score-badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: $hira-text-sub;
+}
+
+.hira-progress-track {
+  height: 6px;
+  background: $hira-bg-subtle;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.hira-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, $hira-primary, $hira-primary-soft);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.hira-prompt-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hira-prompt-label {
+  font-size: 0.95rem;
+  color: $hira-text-sub;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.hira-char-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin: 0.5rem 0 1.75rem;
+
+  .hira-char-main {
+    font-family: $hira-font-jp;
+    font-size: clamp(4rem, 10vw, 5.5rem);
+    font-weight: 900;
+    color: #1e3a8a;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
+  }
+
+  .hira-audio-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid $hira-border;
+    background: $hira-bg-subtle;
+    color: $hira-primary;
+    display: grid;
+    place-items: center;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $hira-primary;
+      color: #fff;
+      transform: scale(1.08);
+    }
+  }
+}
+
+// ── 2x2 MC Options Grid ─────────────────────────────────────────
+.hira-mc-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.hira-mc-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  background: $hira-bg-subtle;
+  border: 2px solid $hira-border;
+  border-radius: $hira-radius-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+
+  .option-key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.05);
+    color: $hira-text-sub;
+    font-size: 0.8rem;
+    font-weight: 850;
+    margin-right: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .option-text {
+    flex: 1;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: $hira-text;
+
+    &.kana-font {
+      font-family: $hira-font-jp;
+      font-size: 1.7rem;
+    }
+  }
+
+  .option-icon {
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+  }
+
+  &:hover:not(:disabled) {
+    background: #fff;
+    border-color: $hira-primary-soft;
+    transform: translateY(-2px);
+    box-shadow: $hira-shadow;
+  }
+
+  &.is-selected {
+    border-color: $hira-primary;
+    background: $hira-primary-bg;
+  }
+
+  &.is-correct {
+    border-color: $hira-success !important;
+    background: $hira-success-bg !important;
+    color: $hira-success;
+
+    .option-key {
+      background: $hira-success;
+      color: #fff;
+    }
+
+    .option-text {
+      color: #1b663e;
+    }
+
+    .option-icon {
+      color: $hira-success;
+    }
+  }
+
+  &.is-wrong {
+    border-color: $hira-error !important;
+    background: $hira-error-bg !important;
+    color: $hira-error;
+
+    .option-key {
+      background: $hira-error;
+      color: #fff;
+    }
+
+    .option-text {
+      color: #991b1b;
+    }
+
+    .option-icon {
+      color: $hira-error;
+    }
+  }
+}
+
+// ── Feedback Banner ─────────────────────────────────────────────
+.hira-feedback-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: $hira-radius-sm;
+  background: $hira-error-bg;
+  border: 1px solid rgba($hira-error, 0.3);
+  animation: hira-scale-in 0.2s ease;
+
+  &.is-correct {
+    background: $hira-success-bg;
+    border-color: rgba($hira-success, 0.3);
+
+    .feedback-icon {
+      color: $hira-success;
+    }
+
+    .feedback-text strong {
+      color: #1b663e;
+    }
+  }
+
+  .feedback-icon {
+    font-size: 1.6rem;
+    color: $hira-error;
+    flex-shrink: 0;
+  }
+
+  .feedback-text {
+    flex: 1;
+    text-align: left;
+
+    strong {
+      display: block;
+      font-size: 0.95rem;
+      color: #991b1b;
+      font-weight: 800;
+    }
+
+    small {
+      display: block;
+      font-size: 0.84rem;
+      color: $hira-text-sub;
+      margin-top: 0.15rem;
+    }
+  }
+
+  .feedback-next-btn {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
-    padding-right: 0.45rem;
-    padding-left: 0.45rem;
+    padding: 0.65rem 1.25rem;
+    border: none;
+    border-radius: $hira-radius-xs;
+    background: $hira-text;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 800;
+    font-family: $hira-font-vn;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 
-    &:first-child {
-      padding-left: 0.45rem;
+    &:hover {
+      background: #000;
+      transform: translateY(-2px);
+      box-shadow: $hira-shadow;
+    }
+  }
+}
+
+// ── Complete Victory Card ───────────────────────────────────────
+.hira-complete-card {
+  background: $hira-bg-card;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius;
+  box-shadow: $hira-shadow-lg;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  animation: hira-fade-in 0.4s ease;
+
+  .complete-trophy-icon {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .complete-score-ring {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.25rem;
+
+    .score-percent {
+      font-size: 2.75rem;
+      font-weight: 900;
+      color: $hira-primary;
+      line-height: 1;
+    }
+
+    .score-text {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: $hira-text-sub;
+      margin-top: 0.35rem;
     }
   }
 
-  .stat-icon {
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 850;
+    color: $hira-text;
+    margin: 0 0 0.5rem;
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: $hira-text-sub;
+    max-width: 500px;
+    margin: 0 auto 1.75rem;
+    line-height: 1.6;
+  }
+
+  .complete-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
+
+.btn-action-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: $hira-radius-sm;
+  background: $hira-primary;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: $hira-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: color.adjust($hira-primary, $lightness: -8%);
+    transform: translateY(-2px);
+    box-shadow: $hira-shadow;
+  }
+}
+
+.btn-action-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-sm;
+  background: $hira-bg-card;
+  color: $hira-text;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: $hira-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $hira-bg-subtle;
+    border-color: $hira-text-hint;
+    transform: translateY(-2px);
+  }
+}
+
+.hira-empty-state {
+  background: $hira-bg-card;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius;
+  padding: 3rem 1.5rem;
+  text-align: center;
+
+  .empty-icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: $hira-success-bg;
+    color: $hira-success;
+    display: grid;
+    place-items: center;
+    font-size: 1.75rem;
+    margin: 0 auto 1rem;
+  }
+
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    color: $hira-text-sub;
+    font-size: 0.92rem;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  WRITING MODE (LUYỆN VIẾT NÉT)
+// ══════════════════════════════════════════════════════════════════
+
+.hira-writing-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.hira-picker-card {
+  background: $hira-bg-card;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius;
+  box-shadow: $hira-shadow;
+  padding: 1.25rem;
+}
+
+.picker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+
+  .picker-group-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: $hira-accent;
+    text-transform: uppercase;
+  }
+
+  h4 {
+    margin: 0.15rem 0 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+
+  .picker-total {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: $hira-text-sub;
+    background: $hira-bg-subtle;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+  }
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.picker-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.25rem;
+  border: 1px solid $hira-border-light;
+  border-radius: $hira-radius-xs;
+  background: $hira-bg-subtle;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  strong {
+    font-family: $hira-font-jp;
+    font-size: 1.25rem;
+    color: $hira-text;
+  }
+
+  small {
+    font-size: 0.72rem;
+    color: $hira-text-sub;
+  }
+
+  &:hover {
+    background: #fff;
+    border-color: $hira-primary-soft;
+  }
+
+  &.active {
+    background: $hira-primary;
+    border-color: $hira-primary;
+
+    strong, small {
+      color: #fff;
+    }
+  }
+
+  &.is-weak {
+    border-color: rgba($hira-error, 0.5);
+  }
+
+  &.is-mastered {
+    border-color: rgba($hira-success, 0.5);
+  }
+}
+
+.picker-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid $hira-border-light;
+
+  .nav-arrow-btn {
     width: 34px;
     height: 34px;
-    flex-basis: 34px;
+    border: 1px solid $hira-border;
+    border-radius: $hira-radius-xs;
+    background: $hira-bg-card;
+    display: grid;
+    place-items: center;
+    color: $hira-text-sub;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: $hira-primary-bg;
+      color: $hira-primary;
+      border-color: $hira-primary-soft;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
   }
 
-  .kana-picker {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .picker-current-info {
+    text-align: center;
+
+    strong {
+      font-family: $hira-font-jp;
+      font-size: 1.4rem;
+      color: $hira-primary;
+      display: block;
+      line-height: 1;
+    }
+
+    span {
+      font-size: 0.8rem;
+      color: $hira-text-sub;
+      font-weight: 700;
+    }
   }
 }
+
+.hira-canvas-card {
+  background: $hira-bg-card;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius;
+  box-shadow: $hira-shadow;
+  padding: 1.75rem;
+}
+
+.canvas-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.canvas-title-group {
+  .canvas-kicker {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: $hira-primary;
+    text-transform: uppercase;
+  }
+
+  h3 {
+    margin: 0.2rem 0 0;
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: $hira-text;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    small {
+      font-size: 1.1rem;
+      color: $hira-text-sub;
+      font-weight: 600;
+    }
+  }
+}
+
+.btn-inline-sound {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid $hira-border;
+  background: $hira-bg-subtle;
+  color: $hira-primary;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $hira-primary;
+    color: #fff;
+  }
+}
+
+.canvas-action-buttons {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.btn-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-xs;
+  background: $hira-bg-card;
+  color: $hira-text;
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-family: $hira-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $hira-bg-subtle;
+    border-color: $hira-primary-soft;
+    color: $hira-primary;
+  }
+}
+
+.canvas-hint {
+  font-size: 0.85rem;
+  color: $hira-text-sub;
+  margin: 0 0 1.25rem;
+}
+
+.hira-stroke-pads-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  justify-items: center;
+  margin-bottom: 1.25rem;
+
+  &.is-compound {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.writing-complete-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: $hira-radius-sm;
+  background: $hira-success-bg;
+  border: 1px solid rgba($hira-success, 0.4);
+  animation: hira-scale-in 0.3s ease;
+
+  &.is-skipped {
+    background: $hira-warning-bg;
+    border-color: rgba($hira-warning, 0.4);
+
+    .complete-box-icon {
+      color: $hira-warning;
+    }
+
+    .complete-box-copy strong {
+      color: #92400e;
+    }
+  }
+
+  .complete-box-icon {
+    font-size: 1.5rem;
+    color: $hira-success;
+    flex-shrink: 0;
+  }
+
+  .complete-box-copy {
+    flex: 1;
+
+    strong {
+      display: block;
+      font-size: 0.95rem;
+      color: #166534;
+      font-weight: 800;
+    }
+
+    small {
+      display: block;
+      font-size: 0.82rem;
+      color: $hira-text-sub;
+      margin-top: 0.15rem;
+    }
+  }
+
+  .btn-continue-writing {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1.15rem;
+    border: none;
+    border-radius: $hira-radius-xs;
+    background: $hira-text;
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 800;
+    font-family: $hira-font-vn;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #000;
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  THEORY VIEW (BẢNG CHỮ CÁI & MẸO GHI NHỚ)
+// ══════════════════════════════════════════════════════════════════
+
+.theory-nav-container {
+  margin-bottom: 1.5rem;
+}
+
+.theory-segmented-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background: $hira-bg-card;
+  padding: 0.4rem;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius;
+  box-shadow: $hira-shadow-sm;
+}
+
+.theory-pill {
+  flex: 1;
+  min-width: 160px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: $hira-radius-sm;
+  background: transparent;
+  color: $hira-text-sub;
+  font-size: 0.9rem;
+  font-weight: 750;
+  font-family: $hira-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  .pill-badge {
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: $hira-bg-subtle;
+    font-size: 0.74rem;
+    font-weight: 850;
+  }
+
+  &:hover {
+    color: $hira-text;
+    background: $hira-bg-subtle;
+  }
+
+  &.active {
+    background: $hira-primary;
+    color: #fff;
+
+    .pill-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+  }
+}
+
+.theory-content-card {
+  background: $hira-bg-card;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius;
+  box-shadow: $hira-shadow;
+  padding: 2rem;
+  animation: hira-fade-in 0.3s ease;
+}
+
+.card-header-banner {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid $hira-border-light;
+
+  .banner-tag {
+    font-size: 0.78rem;
+    font-weight: 850;
+    color: $hira-accent;
+    letter-spacing: 0.06em;
+  }
+
+  h3 {
+    margin: 0.3rem 0 0.35rem;
+    font-size: 1.45rem;
+    font-weight: 850;
+    color: $hira-text;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: $hira-text-sub;
+  }
+}
+
+// ── Interactive Kana Table ──────────────────────────────────────
+.chart-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.chart-header-row {
+  display: grid;
+  grid-template-columns: 160px repeat(5, 1fr);
+  gap: 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid $hira-border-light;
+
+  .chart-col-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: $hira-text-sub;
+    text-align: center;
+
+    &:first-child {
+      text-align: left;
+      padding-left: 0.5rem;
+    }
+  }
+}
+
+.chart-data-row {
+  display: grid;
+  grid-template-columns: 160px repeat(5, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+
+  .chart-row-label {
+    padding-left: 0.5rem;
+
+    strong {
+      display: block;
+      font-size: 0.92rem;
+      color: $hira-text;
+      font-weight: 800;
+    }
+
+    small {
+      display: block;
+      font-size: 0.74rem;
+      color: $hira-text-sub;
+    }
+  }
+
+  .chart-cells-group {
+    display: contents;
+  }
+}
+
+.kana-cell-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.35rem;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-xs;
+  background: $hira-bg-subtle;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .cell-kana {
+    font-family: $hira-font-jp;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1e3a8a;
+    line-height: 1.1;
+  }
+
+  .cell-romaji {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: $hira-text-sub;
+    margin-top: 0.2rem;
+  }
+
+  .cell-sound-hint {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 0.65rem;
+    color: $hira-text-hint;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover {
+    background: #fff;
+    border-color: $hira-primary;
+    transform: translateY(-2px);
+    box-shadow: $hira-shadow;
+
+    .cell-kana {
+      color: $hira-primary;
+    }
+
+    .cell-sound-hint {
+      opacity: 1;
+      color: $hira-primary;
+    }
+  }
+
+  &.theme-voiced {
+    .cell-kana {
+      color: #047857;
+    }
+
+    &:hover {
+      border-color: $hira-success;
+
+      .cell-kana, .cell-sound-hint {
+        color: $hira-success;
+      }
+    }
+  }
+}
+
+.kana-cell-empty {
+  background: transparent;
+  border: 1px dashed $hira-border-light;
+  border-radius: $hira-radius-xs;
+  min-height: 60px;
+}
+
+// ── Yoon Grid ───────────────────────────────────────────────────
+.yoon-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.65rem;
+}
+
+.yoon-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 0.5rem;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-sm;
+  background: $hira-bg-subtle;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  .yoon-kana-display {
+    font-family: $hira-font-jp;
+    font-size: 1.45rem;
+    font-weight: 850;
+    color: #7c2d12;
+  }
+
+  .yoon-romaji-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $hira-text-sub;
+    margin-top: 0.2rem;
+  }
+
+  .yoon-sound-icon {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 0.65rem;
+    color: $hira-text-hint;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover {
+    background: #fff;
+    border-color: $hira-accent;
+    transform: translateY(-2px);
+    box-shadow: $hira-shadow;
+
+    .yoon-sound-icon {
+      opacity: 1;
+      color: $hira-accent;
+    }
+  }
+}
+
+// ── Rules & Tips ────────────────────────────────────────────────
+.rules-section-block {
+  margin-bottom: 2rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .rules-block-title {
+    font-size: 1.15rem;
+    font-weight: 850;
+    color: $hira-text;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.confusion-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+
+.confusion-card {
+  padding: 1.1rem;
+  background: $hira-bg-subtle;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-sm;
+
+  .pair-display {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.5rem;
+
+    .char-a, .char-b {
+      font-family: $hira-font-jp;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: $hira-primary;
+      cursor: pointer;
+      padding: 0.1rem 0.4rem;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid $hira-border;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: $hira-primary-bg;
+        border-color: $hira-primary;
+      }
+    }
+
+    .divider-vs {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: $hira-text-hint;
+    }
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.86rem;
+    color: $hira-text-sub;
+    line-height: 1.55;
+
+    strong {
+      color: $hira-text;
+    }
+  }
+}
+
+.rule-box-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+
+.rule-box {
+  display: flex;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid $hira-border;
+  border-radius: $hira-radius-sm;
+  box-shadow: $hira-shadow-sm;
+
+  .rule-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+
+    &.bg-blue {
+      background: $hira-primary-bg;
+      color: $hira-primary;
+    }
+
+    &.bg-green {
+      background: $hira-success-bg;
+      color: $hira-success;
+    }
+  }
+
+  .rule-box-body {
+    flex: 1;
+
+    h5 {
+      margin: 0 0 0.35rem;
+      font-size: 0.98rem;
+      font-weight: 850;
+      color: $hira-text;
+    }
+
+    p {
+      margin: 0 0 0.5rem;
+      font-size: 0.86rem;
+      color: $hira-text-sub;
+      line-height: 1.5;
+    }
+
+    .rule-example {
+      padding: 0.45rem 0.65rem;
+      background: $hira-bg-subtle;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: $hira-text;
+      line-height: 1.45;
+    }
+  }
+}
+
+// ── Theory Bottom CTA ───────────────────────────────────────────
+.hira-theory-bottom-cta {
+  margin-top: 1.75rem;
+
+  .theory-cta-card {
+    background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+    border-radius: $hira-radius;
+    padding: 2.2rem 1.5rem;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(30, 58, 138, 0.2);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent 70%);
+      pointer-events: none;
+    }
+  }
+
+  .theory-cta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fef08a;
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.65rem;
+  }
+
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.45rem;
+    font-weight: 850;
+    color: #fff;
+  }
+
+  p {
+    margin: 0 auto 1.35rem;
+    max-width: 480px;
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.55;
+  }
+
+  .btn-theory-start-practice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.75rem;
+    border: none;
+    border-radius: $hira-radius-sm;
+    background: #fff;
+    color: #1e3a8a;
+    font-size: 1rem;
+    font-weight: 850;
+    font-family: $hira-font-vn;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      background: #f8fafc;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MODAL / OVERLAY
+// ══════════════════════════════════════════════════════════════════
+
+.hira-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  animation: hira-fade-in 0.2s ease;
+}
+
+.hira-modal-card {
+  max-width: 420px;
+  width: 100%;
+  background: $hira-bg-card;
+  border-radius: $hira-radius;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  animation: hira-scale-in 0.25s ease;
+
+  .modal-icon-glow {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.3rem;
+    font-weight: 850;
+    color: $hira-text;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    font-size: 0.9rem;
+    color: $hira-text-sub;
+    line-height: 1.55;
+  }
+
+  .modal-alert-error {
+    padding: 0.65rem;
+    border-radius: 8px;
+    background: $hira-error-bg;
+    color: #991b1b;
+    font-size: 0.82rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-modal-enable {
+    padding: 0.8rem;
+    border: none;
+    border-radius: $hira-radius-xs;
+    background: $hira-primary;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    font-family: $hira-font-vn;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: color.adjust($hira-primary, $lightness: -8%);
+    }
+  }
+
+  .btn-modal-cancel {
+    padding: 0.6rem;
+    border: none;
+    background: transparent;
+    color: $hira-text-sub;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+      color: $hira-text;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  RESPONSIVE RULES
+// ══════════════════════════════════════════════════════════════════
+
+@media (max-width: 768px) {
+  .hira-main {
+    margin-top: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .hira-header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .hira-tabs {
+    width: 100%;
+
+    .hira-tab {
+      flex: 1;
+      justify-content: center;
+      padding: 0.45rem 0.5rem;
+      font-size: 0.82rem;
+    }
+  }
+
+  .hira-audio-reminder {
+    padding: 0.75rem 0.85rem;
+    gap: 0.65rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    .hira-audio-reminder-icon {
+      width: 34px;
+      height: 34px;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .hira-audio-reminder-content {
+      flex: 1;
+      min-width: 0;
+
+      strong {
+        font-size: 0.84rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      p {
+        font-size: 0.74rem;
+        margin: 0;
+      }
+    }
+
+    .hira-audio-reminder-btn {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.78rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .hira-score-bar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .hira-score-item {
+    padding: 0.65rem 0.35rem;
+
+    i {
+      font-size: 1.05rem;
+      margin-bottom: 0.15rem;
+    }
+
+    span {
+      font-size: 1rem;
+    }
+
+    small {
+      font-size: 0.68rem;
+    }
+  }
+
+  .hira-exercise-card {
+    padding: 1.25rem 0.85rem;
+    border-radius: 16px;
+  }
+
+  .hira-mc-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .hira-mc-option {
+    padding: 0.85rem 1rem;
+
+    .option-text {
+      font-size: 1.15rem;
+
+      &.kana-font {
+        font-size: 1.45rem;
+      }
+    }
+  }
+
+  .hira-writing-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .hira-picker-card,
+  .hira-canvas-card {
+    padding: 1.15rem 0.85rem;
+    border-radius: 16px;
+  }
+
+  .picker-grid {
+    grid-template-columns: repeat(5, 1fr);
+    max-height: 220px;
+    gap: 0.3rem;
+  }
+
+  .picker-tile {
+    padding: 0.4rem 0.15rem;
+
+    strong {
+      font-size: 1.15rem;
+    }
+
+    small {
+      font-size: 0.68rem;
+    }
+  }
+
+  // ── Theory Segmented Navigation (2x2 Grid) ──
+  .theory-nav-container {
+    margin-bottom: 1rem;
+  }
+
+  .theory-segmented-pills {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.35rem;
+    padding: 0.3rem;
+    border-radius: 14px;
+  }
+
+  .theory-pill {
+    min-width: 0;
+    width: 100%;
+    padding: 0.55rem 0.35rem;
+    font-size: 0.78rem;
+    gap: 0.35rem;
+    border-radius: 10px;
+
+    .pill-badge {
+      font-size: 0.68rem;
+      padding: 0.05rem 0.35rem;
+    }
+  }
+
+  .theory-content-card {
+    padding: 1.15rem 0.6rem;
+    border-radius: 16px;
+  }
+
+  .card-header-banner {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+
+    .banner-tag {
+      font-size: 0.72rem;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+    }
+
+    p {
+      font-size: 0.82rem;
+    }
+  }
+
+  .col-kana-hint {
+    display: none;
+  }
+
+  // ── Perfectly fitted Kana Table on Mobile ──
+  .chart-table-wrapper {
+    width: 100%;
+    overflow-x: hidden;
+    padding-bottom: 0.25rem;
+  }
+
+  .chart-header-row,
+  .chart-data-row {
+    display: grid;
+    grid-template-columns: 24px repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chart-header-row {
+    padding-bottom: 0.35rem;
+    align-items: center;
+
+    .chart-col-title {
+      font-size: 0.82rem;
+      font-weight: 850;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .col-row-label span {
+      font-size: 0.7rem;
+      color: $hira-text-hint;
+    }
+  }
+
+  .chart-data-row {
+    .chart-row-label {
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+
+      strong {
+        font-size: 0.88rem;
+        color: $hira-primary;
+        line-height: 1;
+      }
+
+      small {
+        display: none;
+      }
+    }
+  }
+
+  .kana-cell-btn {
+    min-width: 0;
+    width: 100%;
+    min-height: 48px;
+    padding: 0.35rem 0.1rem;
+    border-radius: 8px;
+
+    .cell-kana {
+      font-size: 1.25rem;
+      line-height: 1.1;
+    }
+
+    .cell-romaji {
+      font-size: 0.65rem;
+      margin-top: 0.1rem;
+    }
+
+    .cell-sound-hint {
+      display: none;
+    }
+  }
+
+  .kana-cell-empty {
+    min-height: 48px;
+    border-radius: 8px;
+  }
+
+  .yoon-grid-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+  }
+
+  .yoon-card {
+    padding: 0.65rem 0.25rem;
+
+    .yoon-kana-display {
+      font-size: 1.25rem;
+    }
+
+    .yoon-romaji-label {
+      font-size: 0.72rem;
+    }
+
+    .yoon-sound-icon {
+      display: none;
+    }
+  }
+
+  .confusion-cards-grid,
+  .rule-box-grid {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .confusion-card,
+  .rule-box {
+    padding: 0.85rem;
+    border-radius: 12px;
+  }
+
+  .hira-theory-bottom-cta {
+    margin-top: 1.25rem;
+
+    .theory-cta-card {
+      padding: 1.5rem 1rem;
+      border-radius: 16px;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+    }
+
+    p {
+      font-size: 0.85rem;
+    }
+
+    .btn-theory-start-practice {
+      width: 100%;
+      justify-content: center;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.92rem;
+    }
+  }
+}
+
+@media (max-width: 380px) {
+  .hira-main {
+    padding: 0 0.25rem;
+  }
+
+  .theory-content-card {
+    padding: 0.85rem 0.35rem;
+  }
+
+  .chart-header-row,
+  .chart-data-row {
+    grid-template-columns: 24px repeat(5, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .kana-cell-btn {
+    padding: 0.35rem 0.05rem;
+    min-height: 44px;
+
+    .cell-kana {
+      font-size: 1.15rem;
+    }
+
+    .cell-romaji {
+      font-size: 0.6rem;
+    }
+  }
+}
+
+

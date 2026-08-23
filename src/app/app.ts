@@ -24,6 +24,7 @@ export class App implements OnInit, OnDestroy {
   isLoading = signal(true);
   isAdminArea = signal(false);
   isPracticeMode = signal(false);
+  isHomePage = signal(false);
 
   private routerSub?: Subscription;
   private loadingTimer?: ReturnType<typeof setTimeout>;
@@ -91,6 +92,12 @@ export class App implements OnInit, OnDestroy {
     this.isAdminArea.set(
       path === '/dang-nhap-quan-tri' || path.startsWith('/quan-tri-viejap'),
     );
-    this.isPracticeMode.set(path === '/luyen-the-te');
+    this.isPracticeMode.set(
+      path === '/luyen-the-te' ||
+        path === '/hoc-hiragana' ||
+        path === '/hoc-katakana' ||
+        path === '/hoc-so-dem',
+    );
+    this.isHomePage.set(path === '/' || path === '');
   }
 }

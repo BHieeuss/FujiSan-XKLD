@@ -687,11 +687,20 @@
       </div>
     </div>
 
-    <!-- Back to practice -->
-    <div class="te-theory-cta">
-      <button type="button" (click)="switchView('practice')">
-        <i class="fas fa-dumbbell"></i> Bắt đầu luyện tập
-      </button>
+    <!-- CTA Switch to Practice Mode at the bottom of Theory -->
+    <div class="te-theory-bottom-cta">
+      <div class="theory-cta-card">
+        <div class="theory-cta-badge">
+          <i class="fas fa-bolt"></i> ĐÃ NẮM VỮNG QUY TẮC CHIA?
+        </div>
+        <h3>Bắt đầu luyện tập chia thể て ngay</h3>
+        <p>Thực hành trắc nghiệm và ghép từ để rèn luyện phản xạ chia thể nhanh và chính xác.</p>
+        <button type="button" class="btn-theory-start-practice" (click)="switchView('practice')">
+          <i class="fas fa-dumbbell"></i>
+          <span>Vào phòng luyện tập</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
     </div>
   </div>
 </div>

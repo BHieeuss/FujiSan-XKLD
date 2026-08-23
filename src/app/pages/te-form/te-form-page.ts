@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import {
   TeFormVerb,
@@ -9,6 +9,7 @@ import {
   HIRAGANA_KEYBOARD_ROWS,
   DAKUTEN_KEYBOARD_ROWS,
 } from './te-form-data';
+import { JapaneseAudioService } from '../../services/japanese-audio.service';
 
 type ViewMode = 'practice' | 'theory';
 type ExerciseType = 'multipleChoice' | 'wordBuilder' | 'virtualKeyboard';
@@ -41,8 +42,11 @@ interface ExplanationData {
   styleUrl: './te-form-page.scss',
 })
 export class TeFormPage implements OnDestroy {
+  private readonly router = inject(Router);
+  private readonly audioService = inject(JapaneseAudioService);
+
   // ── View state ────────────────────────────────────────────────────
-  currentView: ViewMode = 'practice';
+  currentView: ViewMode = 'theory';
   exerciseType: ExerciseType = 'multipleChoice';
   currentVerb!: TeFormVerb;
 
@@ -82,9 +86,7 @@ export class TeFormPage implements OnDestroy {
   // ── Theory tab ────────────────────────────────────────────────────
   theoryActiveGroup: 1 | 2 | 3 = 1;
 
-  // ── Audio context ─────────────────────────────────────────────────
-  private audioCtx?: AudioContext;
-  private speechSynth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+  // ── Audio configuration ──────────────────────────────────────────
   private readonly AUDIO_REMINDER_KEY = 'teFormAudioUnlocked';
 
   // ── Used verbs tracking (avoid immediate repeats) ─────────────────
@@ -94,7 +96,7 @@ export class TeFormPage implements OnDestroy {
   // ── Animation timers ──────────────────────────────────────────────
   private feedbackTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(private router: Router) {
+  constructor() {
     this.initAudioReminder();
     this.nextQuestion();
   }
@@ -109,8 +111,6 @@ export class TeFormPage implements OnDestroy {
 
   ngOnDestroy(): void {
     clearTimeout(this.feedbackTimer);
-    this.speechSynth?.cancel();
-    this.audioCtx?.close();
   }
 
   openAudioPrompt(): void {
@@ -124,30 +124,31 @@ export class TeFormPage implements OnDestroy {
 
   async enableAudioSupport(): Promise<void> {
     this.audioPromptError = '';
-
-    try {
-      const ctx = this.getAudioContext();
-      if (ctx.state === 'suspended') {
-        await ctx.resume();
-      }
-
-      this.audioUnlocked = ctx.state === 'running';
-      if (!this.audioUnlocked) {
-        this.audioPromptError = 'Không thể bật âm thanh tự động. Hãy tăng âm lượng và thử lại.';
-        return;
-      }
-
+    const success = await this.audioService.unlockAudio();
+    if (success) {
+      this.audioUnlocked = true;
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(this.AUDIO_REMINDER_KEY, '1');
       }
-
       this.showAudioPrompt = false;
       this.playCorrectSound();
       this.speakJapanese('てけい');
-    } catch {
+    } else {
       this.audioPromptError =
         'Không thể bật âm thanh tự động. Hãy mở tiếng trên điện thoại rồi thử lại.';
     }
+  }
+
+  speakJapanese(text: string): void {
+    void this.audioService.speak(text);
+  }
+
+  playCorrectSound(): void {
+    this.audioService.playCorrectSound();
+  }
+
+  playWrongSound(): void {
+    this.audioService.playWrongSound();
   }
 
   private initAudioReminder(): void {
@@ -168,6 +169,9 @@ export class TeFormPage implements OnDestroy {
 
   switchView(view: ViewMode): void {
     this.currentView = view;
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════
@@ -438,107 +442,18 @@ export class TeFormPage implements OnDestroy {
     this.showExplanation = false;
   }
 
-  // ══════════════════════════════════════════════════════════════════
-  //  AUDIO & SPEECH
-  // ══════════════════════════════════════════════════════════════════
-
-  private getAudioContext(): AudioContext {
-    if (!this.audioCtx) {
-      this.audioCtx = new AudioContext();
-      this.audioCtx.onstatechange = () => {
-        if (this.audioCtx?.state === 'running') {
-          this.audioUnlocked = true;
-        }
-      };
-    }
-    return this.audioCtx;
-  }
-
-  private playCorrectSound(): void {
-    try {
-      const ctx = this.getAudioContext();
-      if (ctx.state === 'suspended') {
-        void ctx.resume();
-      }
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-
-      // Pleasant ascending chord
-      osc.frequency.setValueAtTime(523, ctx.currentTime); // C5
-      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1); // E5
-      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2); // G5
-
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.5);
-    } catch {
-      // Audio not available
-    }
-  }
-
-  private playWrongSound(): void {
-    try {
-      const ctx = this.getAudioContext();
-      if (ctx.state === 'suspended') {
-        void ctx.resume();
-      }
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-
-      // Gentle descending tone
-      osc.frequency.setValueAtTime(330, ctx.currentTime); // E4
-      osc.frequency.setValueAtTime(262, ctx.currentTime + 0.15); // C4
-
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.4);
-    } catch {
-      // Audio not available
-    }
-  }
-
-  speakJapanese(text: string): void {
-    if (!this.speechSynth) return;
-
-    this.speechSynth.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ja-JP';
-    utterance.rate = 0.85;
-    utterance.pitch = 1.0;
-    utterance.volume = 0.9;
-
-    // Try to find a Japanese voice
-    const voices = this.speechSynth.getVoices();
-    const jaVoice = voices.find((v) => v.lang.startsWith('ja'));
-    if (jaVoice) {
-      utterance.voice = jaVoice;
-    }
-
-    this.speechSynth.speak(utterance);
-  }
-
   speakVietnamese(text: string): void {
-    if (!this.speechSynth) return;
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'vi-VN';
-    utterance.rate = 0.9;
-    utterance.volume = 0.9;
-
-    this.speechSynth.speak(utterance);
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'vi-VN';
+      utterance.rate = 0.9;
+      utterance.volume = 0.9;
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      // Ignore
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════

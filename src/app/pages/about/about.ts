@@ -1,10 +1,8 @@
 import { Component, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   APP_COMPANY_INFO,
   APP_CONTACT_INFO,
-  APP_ORDER_LIST,
 } from '../../models/app.config';
 
 type ProgramKey = 'ky-su' | 'tokutei' | 'thuc-tap-sinh' | 'du-hoc-sinh';
@@ -74,16 +72,6 @@ type CompanyActivity = {
   styleUrls: ['./about.scss', './about-enhancements.scss'],
 })
 export class About implements OnDestroy {
-  readonly orderListUrl = `https://docs.google.com/spreadsheets/d/${APP_ORDER_LIST.sheetId}/edit?usp=drivesdk`;
-  readonly orderListEmbedUrl: SafeResourceUrl;
-  readonly orderListUpdatedLabel = APP_ORDER_LIST.updatedLabel;
-  isOrderPreviewLoaded = false;
-
-  constructor(private sanitizer: DomSanitizer) {
-    this.orderListEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-      `https://docs.google.com/spreadsheets/d/${APP_ORDER_LIST.sheetId}/preview?rm=minimal`,
-    );
-  }
 
   /* ============================================================
      DỮ LIỆU TRANG GIỚI THIỆU
@@ -514,9 +502,6 @@ export class About implements OnDestroy {
     }
   }
 
-  onOrderPreviewLoad(): void {
-    this.isOrderPreviewLoaded = true;
-  }
 
   @HostListener('document:keydown.escape')
   closeProgramPopupOnEscape(): void {
@@ -565,120 +550,132 @@ export class About implements OnDestroy {
     return this.quizResults[resultKey];
   }
 
-  // Chính sách hỗ trợ
+  // Chính sách & Thông tin cần biết
   policyVerifiedOn = '07/06/2026';
 
   policyCategories = [
     {
       id: 'policy-loan',
-      icon: 'fas fa-hand-holding-usd',
-      title: 'Vay vốn',
-      summary: 'Kiểm tra đúng đối tượng và mức vay',
+      icon: 'fas fa-hand-holding-dollar',
+      badge: '💰 Vay vốn',
+      title: 'Hỗ trợ vay vốn',
+      summary: 'Mức vay & điều kiện theo chính sách nhà nước',
+      theme: 'amber',
     },
     {
       id: 'policy-nenkin',
-      icon: 'fas fa-yen-sign',
-      title: 'Nenkin',
-      summary: 'Điều kiện và hồ sơ nhận trợ cấp',
+      icon: 'fas fa-money-bill-transfer',
+      badge: '💴 Tiền Nenkin',
+      title: 'Lấy lại tiền Nenkin',
+      summary: 'Nhận lại trọn vẹn tiền bảo hiểm khi về nước',
+      theme: 'emerald',
     },
     {
       id: 'policy-protection',
-      icon: 'fas fa-shield-alt',
-      title: 'Quyền cần nhớ',
-      summary: 'Quyền lợi và kênh hỗ trợ chính thức',
+      icon: 'fas fa-shield-heart',
+      badge: '🛡️ Quyền lợi',
+      title: 'Quyền lợi & Bảo vệ',
+      summary: 'Kênh hỗ trợ tiếng Việt miễn phí 24/7 tại Nhật',
+      theme: 'sky',
     },
   ];
 
   selectedPolicyId = 'policy-loan';
 
   loanPolicy = {
-    eyebrow: 'Vay theo đối tượng, không tự động áp dụng',
-    title: 'Vay chi phí đi làm việc ở nước ngoài',
+    eyebrow: 'Chính sách hỗ trợ từ Ngân hàng Chính sách Xã hội (NHCSXH)',
+    title: 'Vay chi phí đi Nhật: Ai được vay và mức vay bao nhiêu?',
     description:
-      'Ngân hàng Chính sách Xã hội cho vay đối với một số nhóm lao động đủ điều kiện. Hồ sơ được xét tại nơi người lao động cư trú hợp pháp.',
+      'Nhà nước có chương trình cho vay ưu đãi với lãi suất thấp dành cho một số nhóm lao động. Bạn có thể làm thủ tục vay trực tiếp tại Ngân hàng CSXH nơi đăng ký hộ khẩu.',
     illustration: 'assets/images/stickers/policies/loan-support.svg',
-    illustrationAlt: 'Minh họa hồ sơ vay vốn đi làm việc ở nước ngoài',
+    illustrationAlt: 'Minh họa hỗ trợ vay vốn đi làm việc tại Nhật Bản',
     facts: [
       {
-        icon: 'fas fa-wallet',
-        label: 'Mức vay',
-        value: 'Tối đa 100% chi phí ghi trong hợp đồng',
+        icon: 'fas fa-sack-dollar',
+        label: 'Mức vay tối đa',
+        value: 'Lên đến 100% chi phí trong hợp đồng',
+        color: '#f59e0b',
       },
       {
-        icon: 'fas fa-percentage',
-        label: 'Lãi suất tham khảo',
-        value: '6,24%/năm từ 01/12/2025',
+        icon: 'fas fa-percent',
+        label: 'Lãi suất ưu đãi',
+        value: '6,24%/năm (khoảng 0,52%/tháng)',
+        color: '#10b981',
       },
       {
-        icon: 'fas fa-calendar-alt',
-        label: 'Thời hạn vay',
-        value: 'Không quá thời hạn làm việc trong hợp đồng',
+        icon: 'fas fa-calendar-check',
+        label: 'Thời hạn trả nợ',
+        value: 'Theo suốt thời gian hợp đồng lao động',
+        color: '#3b82f6',
       },
     ],
     eligibleGroups: [
-      'Người lao động thuộc hộ nghèo hoặc hộ cận nghèo.',
-      'Người lao động là người dân tộc thiểu số.',
-      'Thân nhân của người có công với cách mạng.',
-      'Người lao động thuộc hộ bị thu hồi đất nông nghiệp.',
+      'Người lao động thuộc hộ nghèo hoặc hộ cận nghèo theo quy định.',
+      'Người lao động là người đồng bào dân tộc thiểu số.',
+      'Thân nhân gia đình có công với cách mạng, thương binh, liệt sĩ.',
+      'Hộ gia đình thuộc diện bị thu hồi đất nông nghiệp.',
     ],
     requirements: [
-      'Có năng lực hành vi dân sự đầy đủ và cư trú hợp pháp.',
-      'Đã ký hợp đồng với doanh nghiệp đưa người lao động đi làm việc ở nước ngoài.',
-      'Vốn vay dùng cho các khoản chi phí được ghi trong hợp đồng.',
-      'Có bảo đảm tiền vay khi NHCSXH yêu cầu.',
+      'Có CCCD/giấy tờ cư trú hợp pháp và đủ năng lực hành vi dân sự.',
+      'Đã trúng tuyển và ký hợp đồng chính thức đưa đi làm việc tại Nhật.',
+      'Có giấy xác nhận thuộc diện ưu tiên từ UBND cấp xã/phường.',
+      'Có bảo đảm tiền vay theo hướng dẫn của Ngân hàng CSXH (nếu có yêu cầu).',
     ],
     note:
-      'Lãi suất và chương trình bổ sung của từng địa phương có thể thay đổi. Người lao động nên xác nhận trực tiếp với NHCSXH nơi cư trú trước khi lập kế hoạch tài chính.',
+      'VieJap sẽ cung cấp đầy đủ bộ hồ sơ hợp đồng và giấy xác nhận trúng tuyển để bạn nộp trực tiếp cho Ngân hàng CSXH địa phương.',
     sources: [
       {
         label: 'Mức lãi suất hiện hành - NHCSXH',
         url: 'https://vbsp.org.vn/tu-ngay-1122025-nhcsxh-giam-lai-suat-cho-vay-cac-chuong-trinh-tin-dung-chinh-sach.html',
       },
       {
-        label: 'Tài liệu điều kiện vay - NHCSXH',
+        label: 'Tài liệu điều kiện vay vốn - NHCSXH',
         url: 'https://vbsp.org.vn/wp-content/uploads/2024/08/Cho-vay-ng%C6%B0%E1%BB%9Di-lao-%C4%91%E1%BB%99ng-%C4%91i-l%C3%A0m-vi%E1%BB%87c-%E1%BB%9F-n%C6%B0%E1%BB%9Bc-ngo%C3%A0i-theo-h%E1%BB%A3p-%C4%91%E1%BB%93ng.pdf',
       },
     ],
   };
 
   nenkinPolicy = {
-    eyebrow: 'Trợ cấp lương hưu trọn gói khi rời Nhật',
-    title: 'Nenkin: kiểm tra điều kiện trước khi nộp',
+    eyebrow: 'Hoàn tiền bảo hiểm hưu trí trọn gói khi về nước',
+    title: 'Lấy lại tiền Nenkin: Đừng bỏ lỡ khoản tiền lớn sau khi về nước!',
     description:
-      'Số tiền không cố định theo một mức chung. Cơ quan Lương hưu Nhật Bản tính dựa trên loại bảo hiểm, thời gian tham gia và mức lương tiêu chuẩn của từng hồ sơ.',
+      'Nenkin là khoản tiền bảo hiểm bắt buộc bạn đóng hàng tháng tại Nhật. Sau khi kết thúc hợp đồng về nước, bạn sẽ được hoàn lại số tiền này (từ 60 triệu đến hơn 150 triệu VNĐ tùy thời gian đóng).',
     illustration: 'assets/images/stickers/policies/nenkin-guide.svg',
-    illustrationAlt: 'Minh họa hồ sơ nhận trợ cấp Nenkin',
+    illustrationAlt: 'Minh họa thủ tục nhận lại tiền Nenkin',
     conditions: [
-      'Không mang quốc tịch Nhật Bản và không còn địa chỉ tại Nhật.',
-      'Có thời gian tham gia bảo hiểm đủ từ 6 tháng trở lên.',
-      'Chưa từng có quyền nhận lương hưu Nhật Bản, kể cả trợ cấp thương tật.',
-      'Nộp hồ sơ trong vòng 2 năm kể từ ngày không còn địa chỉ tại Nhật.',
+      'Không mang quốc tịch Nhật Bản và đã cắt địa chỉ cư trú tại Nhật.',
+      'Có thời gian tham gia đóng bảo hiểm từ 6 tháng trở lên.',
+      'Chưa từng làm thủ tục nhận trợ cấp thương tật hoặc lương hưu tại Nhật.',
+      'Nộp hồ sơ trong vòng 2 năm kể từ ngày xuất cảnh rời khỏi Nhật Bản.',
     ],
     reminders: [
       {
-        icon: 'fas fa-calendar-check',
-        title: 'Mức tính tối đa',
-        text: 'Thông thường tính theo tối đa 60 tháng tham gia đối với kỳ đóng cuối từ tháng 4/2021.',
-      },
-      {
-        icon: 'fas fa-history',
-        title: 'Cân nhắc thời gian đã đóng',
-        text: 'Khi nhận trợ cấp, toàn bộ thời gian tham gia trước thời điểm yêu cầu sẽ không còn được tính cho lương hưu sau này.',
+        icon: 'fas fa-money-bill-wave',
+        title: 'Đợt 1 (Nhận khoảng 80%)',
+        text: 'Nộp hồ sơ sang Cơ quan Lương hưu Nhật Bản (JPS). Tiền đợt 1 sẽ chuyển thẳng vào tài khoản ngân hàng của bạn tại Việt Nam sau 3 - 4 tháng.',
+        color: '#10b981',
       },
       {
         icon: 'fas fa-receipt',
-        title: 'Thuế với Kosei Nenkin',
-        text: 'Khoản trợ cấp bảo hiểm hưu trí phúc lợi có thể bị khấu trừ 20,42% thuế; có trường hợp được làm thủ tục hoàn thuế.',
+        title: 'Đợt 2 (Lấy lại ~20% tiền thuế)',
+        text: 'Khoản tiền đợt 1 bị trừ 20,42% thuế thu nhập. Bạn có thể làm tiếp thủ tục xin hoàn thuế tại Nhật để nhận trọn vẹn số tiền còn lại.',
+        color: '#f59e0b',
+      },
+      {
+        icon: 'fas fa-clock-rotate-left',
+        title: 'Tính tối đa lên đến 5 năm',
+        text: 'Quy định mới cho phép hoàn Nenkin tối đa tới 60 tháng (5 năm) đóng bảo hiểm thay vì chỉ 3 năm như trước đây.',
+        color: '#3b82f6',
       },
     ],
     steps: [
-      'Báo chuyển khỏi địa chỉ cư trú tại Nhật và giữ giấy tờ cần thiết.',
-      'Chuẩn bị đơn, bản sao hộ chiếu, thông tin tài khoản và mã số lương hưu.',
-      'Gửi hồ sơ đến Cơ quan Lương hưu Nhật Bản trong thời hạn 2 năm.',
-      'Giữ thông báo quyết định để kiểm tra khoản nhận và làm hoàn thuế nếu phù hợp.',
+      'Làm thủ tục chuyển đi (cắt địa chỉ) tại Tòa thị chính/Quận ở Nhật trước ngày bay về.',
+      'Giữ lại Sổ Nenkin (hoặc mã số Nenkin) và bản sao hộ chiếu có dấu xuất cảnh rời Nhật.',
+      'Gửi hồ sơ xin nhận trợ cấp Nenkin đợt 1 sang Cơ quan Lương hưu Nhật Bản.',
+      'Sau khi nhận tiền đợt 1, gửi Giấy thông báo (Gentsu) để làm thủ tục hoàn thuế đợt 2.',
     ],
     note:
-      'Đừng ước tính Nenkin chỉ bằng số năm làm việc. Hai hồ sơ cùng thời gian ở Nhật vẫn có thể nhận số tiền khác nhau.',
+      'Đừng vứt bỏ sổ Nenkin hay giấy tờ xuất cảnh! VieJap có đội ngũ hướng dẫn và hỗ trợ bạn làm thủ tục hoàn Nenkin từ A-Z.',
     sources: [
       {
         label: 'Hướng dẫn tiếng Việt - Japan Pension Service',
@@ -692,51 +689,54 @@ export class About implements OnDestroy {
   };
 
   protectionPolicy = {
-    eyebrow: 'Biết quyền của mình để chủ động hơn',
-    title: 'Quyền lợi và kênh hỗ trợ khi làm việc tại Nhật',
+    eyebrow: 'Quyền lợi được pháp luật bảo hộ và kênh trợ giúp 24/7',
+    title: 'An tâm làm việc: Quyền lợi & Kênh hỗ trợ chính thức tại Nhật',
     description:
-      'Người lao động có quyền được cung cấp thông tin rõ ràng, được hỗ trợ thực hiện hợp đồng và được bảo vệ quyền, lợi ích hợp pháp trong thời gian làm việc ở nước ngoài.',
+      'Người lao động đi theo chương trình hợp pháp được pháp luật Nhật Bản và Việt Nam bảo vệ toàn diện về tiền lương, an toàn lao động và các quyền con người cơ bản.',
     illustration: 'assets/images/stickers/policies/worker-rights.svg',
     illustrationAlt: 'Minh họa quyền lợi và kênh hỗ trợ người lao động',
     rights: [
       {
-        icon: 'fas fa-file-contract',
-        title: 'Thông tin và hợp đồng rõ ràng',
-        text: 'Được biết điều kiện làm việc, tiền lương, thời giờ làm việc, sinh hoạt và quyền lợi liên quan.',
+        icon: 'fas fa-file-invoice-dollar',
+        title: 'Hợp đồng & Lương minh bạch',
+        text: 'Được trả đúng mức lương đã ký, được tính tiền làm thêm giờ (tăng ca) đầy đủ theo đúng luật lao động Nhật Bản.',
+        color: '#3b82f6',
       },
       {
-        icon: 'fas fa-hard-hat',
-        title: 'An toàn và điều kiện làm việc',
-        text: 'Được huấn luyện an toàn, cung cấp trang bị bảo hộ phù hợp và làm việc theo nội dung đã thỏa thuận.',
+        icon: 'fas fa-heart-pulse',
+        title: 'An toàn & Bảo hiểm y tế',
+        text: 'Được trang bị đầy đủ đồ bảo hộ đạt chuẩn, khám sức khỏe định kỳ và bảo hiểm y tế chi trả 70% viện phí.',
+        color: '#ef4444',
       },
       {
-        icon: 'fas fa-handshake',
-        title: 'Được tư vấn và hỗ trợ',
-        text: 'Được hỗ trợ thực hiện quyền, nghĩa vụ trong hợp đồng và liên hệ cơ quan có thẩm quyền khi cần.',
+        icon: 'fas fa-id-card',
+        title: 'Tự quản lý giấy tờ cá nhân',
+        text: 'Bạn có quyền tự giữ hộ chiếu, thẻ ngoại kiều và thẻ ngân hàng. Nghiêm cấm bất kỳ ai thu giữ giấy tờ tùy thân!',
+        color: '#10b981',
       },
       {
-        icon: 'fas fa-passport',
-        title: 'Giữ giấy tờ cá nhân',
-        text: 'Nếu bị giữ hộ chiếu, ép về nước, bạo lực hoặc công việc khác hợp đồng, hãy liên hệ kênh hỗ trợ chính thức.',
+        icon: 'fas fa-handshake-angle',
+        title: 'Quyền được hỗ trợ chuyển việc',
+        text: 'Được quyền tìm kiếm môi trường làm việc mới nếu xí nghiệp gặp khó khăn giải thể hoặc có hành vi vi phạm.',
+        color: '#f59e0b',
       },
     ],
     emergencyExamples: [
-      'Không được trả tiền làm thêm giờ.',
-      'Bị bạo lực hoặc đe dọa.',
-      'Công việc khác với hợp đồng.',
-      'Bị yêu cầu giao hộ chiếu.',
-      'Bị ép về nước hoặc hạn chế đi lại.',
+      'Bị nợ lương, chậm lương hoặc không trả tiền tăng ca',
+      'Bị ép làm công việc nguy hiểm không đúng hợp đồng',
+      'Bị giữ hộ chiếu, thẻ ngoại kiều hoặc hạn chế đi lại',
+      'Bị đối xử bất công, xúc phạm hoặc bạo lực',
     ],
     viejapRole:
-      'VieJap tiếp nhận thông tin, hỗ trợ người lao động trao đổi với đơn vị liên quan và hướng dẫn tìm đúng kênh xử lý. VieJap không thay thế cơ quan nhà nước hoặc cơ quan pháp luật.',
+      'VieJap có đại diện thường trực tại Nhật Bản, luôn sẵn sàng lắng nghe, tư vấn và cùng bạn trao đổi với nghiệp đoàn / xí nghiệp tiếp nhận để bảo vệ quyền lợi chính đáng.',
     sources: [
       {
-        label: 'Luật 69/2020/QH14 - Bộ Tư pháp',
-        url: 'https://vbpl.moj.gov.vn/botuphap/Pages/vbpq-toanvan.aspx?ItemID=146643&Keyword=',
+        label: 'Tư vấn miễn phí tiếng Việt - OTIT Nhật Bản',
+        url: 'https://www.support.otit.go.jp/soudan/vi/',
       },
       {
-        label: 'Kênh tư vấn tiếng Việt - OTIT',
-        url: 'https://www.support.otit.go.jp/soudan/vi/',
+        label: 'Đại sứ quán Việt Nam tại Tokyo',
+        url: 'https://vnembassy-jp.org/',
       },
     ],
   };

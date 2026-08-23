@@ -28,6 +28,7 @@ export interface AppSubmenuItem {
   label: string;
   link: string;
   icon?: string;
+  jpBadge?: string;
   children?: AppSubmenuItem[];
 }
 
@@ -90,14 +91,34 @@ export const APP_PROGRAM_MENU: AppSubmenuItem[] = [
 
 // Bài học - thêm bài mới vào danh sách này khi cần mở rộng
 export const APP_LEARNING_MENU: AppSubmenuItem[] = [
-  { label: 'Hiragana (Chữ mềm)', link: '/hoc-hiragana', icon: 'fas fa-spell-check' },
-  { label: 'Katakana (Chữ cứng)', link: '/hoc-katakana', icon: 'fas fa-subscript' },
-  { label: 'Số đếm', link: '/hoc-so-dem', icon: 'fas fa-list-ol' },
+  {
+    id: 'co-ban',
+    label: 'Cơ bản',
+    link: '/hoc-hiragana',
+    jpBadge: 'あ',
+    children: [
+      {
+        label: 'Hiragana (Chữ mềm)',
+        link: '/hoc-hiragana',
+        jpBadge: 'あ',
+      },
+      {
+        label: 'Katakana (Chữ cứng)',
+        link: '/hoc-katakana',
+        jpBadge: 'ア',
+      },
+      {
+        label: 'Số đếm',
+        link: '/hoc-so-dem',
+        jpBadge: '123',
+      },
+    ],
+  },
   {
     id: 'kanji',
     label: 'Kanji ( Hán Tự )',
     link: '/hoc-kanji',
-    icon: 'fas fa-stamp',
+    jpBadge: '漢',
   },
   {
     id: 'minna-n5',
@@ -116,10 +137,12 @@ export const APP_LEARNING_MENU: AppSubmenuItem[] = [
     id: 'luyen-tap',
     label: 'Luyện tập',
     link: '/luyen-the-te',
+    icon: 'fas fa-dumbbell',
     children: [
       {
         label: 'Chia động từ — Thể て',
         link: '/luyen-the-te',
+        jpBadge: 'て',
       },
     ],
   },

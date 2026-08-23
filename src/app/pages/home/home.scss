@@ -43,14 +43,12 @@
 .hero-overlay {
   z-index: -2;
   background:
-    linear-gradient(
-      100deg,
+    linear-gradient(100deg,
       rgba(4, 14, 30, 0.95) 0%,
       rgba(4, 14, 30, 0.88) 28%,
       rgba(6, 20, 42, 0.65) 52%,
       rgba(6, 20, 42, 0.18) 72%,
-      transparent 100%
-    );
+      transparent 100%);
 }
 
 /* ── Layout ───────────────────────────────────────────────────────── */
@@ -213,7 +211,7 @@
   color: rgba(255, 255, 255, 0.38);
   font-size: 0.8rem;
 
-  > span {
+  >span {
     padding-right: 0.75rem;
     border-right: 1px solid rgba(255, 255, 255, 0.16);
   }
@@ -270,7 +268,7 @@
 }
 
 .hero-program-heading {
-  > span {
+  >span {
     color: rgba(255, 255, 255, 0.4);
     font-size: 0.7rem;
     font-weight: 700;
@@ -421,12 +419,10 @@
 
   .hero-overlay {
     background:
-      linear-gradient(
-        180deg,
+      linear-gradient(180deg,
         rgba(4, 14, 30, 0.82) 0%,
         rgba(4, 14, 30, 0.92) 55%,
-        rgba(4, 14, 30, 0.96) 100%
-      );
+        rgba(4, 14, 30, 0.96) 100%);
   }
 
   .hero-container {
@@ -462,12 +458,10 @@
 
   .hero-overlay {
     background:
-      linear-gradient(
-        180deg,
+      linear-gradient(180deg,
         rgba(4, 14, 30, 0.72) 0%,
         rgba(4, 14, 30, 0.88) 50%,
-        rgba(4, 14, 30, 0.96) 100%
-      );
+        rgba(4, 14, 30, 0.96) 100%);
   }
 
   .hero-container {
@@ -562,6 +556,7 @@
 /* ── Reduced motion ───────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
+
   .hero-content,
   .hero-program-panel {
     animation: none;

@@ -1,7 +1,10 @@
 <app-loading [isVisible]="isLoading()"></app-loading>
 
-@if (!isAdminArea() && !isPracticeMode()) {
+@if (isHomePage()) {
   <app-sakura></app-sakura>
+}
+
+@if (!isAdminArea() && !isPracticeMode()) {
   <app-header></app-header>
 }
 

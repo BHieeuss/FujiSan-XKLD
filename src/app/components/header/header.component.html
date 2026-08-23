@@ -117,8 +117,9 @@
                   [attr.aria-expanded]="isNestedSubmenuOpen(subItem)"
                   (click)="toggleNestedSubmenu($event, subItem)"
                 >
-                  <i *ngIf="subItem.icon" [class]="subItem.icon"></i>
-                  <span>{{ subItem.label }}</span>
+                  <span *ngIf="subItem.jpBadge" class="menu-jp-glyph" [class.is-number]="subItem.jpBadge === '123'" aria-hidden="true">{{ subItem.jpBadge }}</span>
+                  <i *ngIf="!subItem.jpBadge && subItem.icon" [class]="subItem.icon"></i>
+                  <span class="dropdown-item-label">{{ subItem.label }}</span>
                   <i class="fas fa-chevron-right submenu-chevron"></i>
                 </button>
 
@@ -129,8 +130,9 @@
                   [href]="subItem.link"
                   (click)="onSubmenuClick($event, subItem.link)"
                 >
-                  <i *ngIf="subItem.icon" [class]="subItem.icon"></i>
-                  <span>{{ subItem.label }}</span>
+                  <span *ngIf="subItem.jpBadge" class="menu-jp-glyph" [class.is-number]="subItem.jpBadge === '123'" aria-hidden="true">{{ subItem.jpBadge }}</span>
+                  <i *ngIf="!subItem.jpBadge && subItem.icon" [class]="subItem.icon"></i>
+                  <span class="dropdown-item-label">{{ subItem.label }}</span>
                 </a>
 
                 <ul
@@ -152,8 +154,9 @@
                       [attr.aria-expanded]="isNestedSubmenuOpen(childItem, 1)"
                       (click)="toggleNestedSubmenu($event, childItem, 1)"
                     >
-                      <i *ngIf="childItem.icon" [class]="childItem.icon"></i>
-                      <span>{{ childItem.label }}</span>
+                      <span *ngIf="childItem.jpBadge" class="menu-jp-glyph" [class.is-number]="childItem.jpBadge === '123'" aria-hidden="true">{{ childItem.jpBadge }}</span>
+                      <i *ngIf="!childItem.jpBadge && childItem.icon" [class]="childItem.icon"></i>
+                      <span class="dropdown-item-label">{{ childItem.label }}</span>
                       <i class="fas fa-chevron-right submenu-chevron"></i>
                     </button>
 
@@ -164,8 +167,9 @@
                       [href]="childItem.link"
                       (click)="onSubmenuClick($event, childItem.link)"
                     >
-                      <i *ngIf="childItem.icon" [class]="childItem.icon"></i>
-                      <span>{{ childItem.label }}</span>
+                      <span *ngIf="childItem.jpBadge" class="menu-jp-glyph" [class.is-number]="childItem.jpBadge === '123'" aria-hidden="true">{{ childItem.jpBadge }}</span>
+                      <i *ngIf="!childItem.jpBadge && childItem.icon" [class]="childItem.icon"></i>
+                      <span class="dropdown-item-label">{{ childItem.label }}</span>
                     </a>
 
                     <ul
@@ -180,8 +184,9 @@
                           [href]="grandchildItem.link"
                           (click)="onSubmenuClick($event, grandchildItem.link)"
                         >
-                          <i *ngIf="grandchildItem.icon" [class]="grandchildItem.icon"></i>
-                          <span>{{ grandchildItem.label }}</span>
+                          <span *ngIf="grandchildItem.jpBadge" class="menu-jp-glyph" [class.is-number]="grandchildItem.jpBadge === '123'" aria-hidden="true">{{ grandchildItem.jpBadge }}</span>
+                          <i *ngIf="!grandchildItem.jpBadge && grandchildItem.icon" [class]="grandchildItem.icon"></i>
+                          <span class="dropdown-item-label">{{ grandchildItem.label }}</span>
                         </a>
                       </li>
                     </ul>

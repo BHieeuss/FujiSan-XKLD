@@ -35,10 +35,34 @@
       }
 
       .footer-logo {
-        width: 150px;
-        height: 58px;
+        height: 75px;
+        width: auto;
+        max-width: 230px;
         display: block;
         object-fit: contain;
+        filter: drop-shadow(1px 0 0 #ffffff)
+                drop-shadow(-1px 0 0 #ffffff)
+                drop-shadow(0 1px 0 #ffffff)
+                drop-shadow(0 -1px 0 #ffffff)
+                drop-shadow(1px 1px 0 #ffffff)
+                drop-shadow(-1px -1px 0 #ffffff)
+                drop-shadow(1px -1px 0 #ffffff)
+                drop-shadow(-1px 1px 0 #ffffff)
+                drop-shadow(0 0 4px rgba(255, 255, 255, 0.9));
+        transition: transform 0.2s ease, filter 0.2s ease;
+
+        &:hover {
+          transform: scale(1.03);
+          filter: drop-shadow(1px 0 0 #ffffff)
+                  drop-shadow(-1px 0 0 #ffffff)
+                  drop-shadow(0 1px 0 #ffffff)
+                  drop-shadow(0 -1px 0 #ffffff)
+                  drop-shadow(1px 1px 0 #ffffff)
+                  drop-shadow(-1px -1px 0 #ffffff)
+                  drop-shadow(1px -1px 0 #ffffff)
+                  drop-shadow(-1px 1px 0 #ffffff)
+                  drop-shadow(0 0 8px rgba(255, 255, 255, 1));
+        }
       }
 
       .footer-desc {

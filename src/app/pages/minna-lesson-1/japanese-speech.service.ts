@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { JapaneseAudioService } from '../../services/japanese-audio.service';
 
 @Injectable({ providedIn: 'root' })
 export class JapaneseSpeechService {
+  private readonly audioService = inject(JapaneseAudioService);
   private readonly preferredVoicePatterns = [
     /nanami.*(?:natural|neural)/i,
     /keita.*(?:natural|neural)/i,
@@ -19,17 +21,7 @@ export class JapaneseSpeechService {
   }
 
   speak(text: string, rate = 0.86): void {
-    if (!this.available) {
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ja-JP';
-    utterance.rate = this.normalizedRate(rate);
-    utterance.pitch = 1;
-    utterance.voice = this.japaneseVoices()[0] ?? null;
-    window.speechSynthesis.speak(utterance);
+    void this.audioService.speak(text, this.normalizedRate(rate));
   }
 
   speakSequence(lines: readonly string[], rate = 0.84): void {

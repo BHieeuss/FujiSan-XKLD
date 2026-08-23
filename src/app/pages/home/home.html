@@ -1,13 +1,6 @@
 <main class="main-content">
   <section class="hero-section" id="trang-chu">
-    <video
-      #heroVideo
-      class="hero-video"
-      autoplay
-      [muted]="isMuted()"
-      loop
-      playsinline
-    >
+    <video #heroVideo class="hero-video" autoplay [muted]="isMuted()" loop playsinline>
       <source src="assets/video/video-hero.mp4" type="video/mp4" />
     </video>
 
@@ -35,12 +28,8 @@
           </div>
 
           <div class="hero-actions">
-            <a
-              class="btn btn-primary hero-primary-action"
-              [href]="contactInfo.consultationUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a class="btn btn-primary hero-primary-action" [href]="contactInfo.consultationUrl" target="_blank"
+              rel="noopener noreferrer">
               <i class="fas fa-comment-dots"></i>
               Nhắn Zalo để được tư vấn
             </a>
@@ -78,12 +67,7 @@
             <span><i class="fas fa-calendar-check"></i>Thời gian</span>
           </div>
 
-          <a
-            class="hero-consult-cta"
-            [href]="contactInfo.consultationUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a class="hero-consult-cta" [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
             Nhắn Zalo với VieJap
             <i class="fas fa-arrow-right"></i>
           </a>
@@ -97,13 +81,9 @@
     </div>
 
     <div class="video-controls">
-      <button
-        class="btn-volume-toggle"
-        type="button"
-        (click)="toggleMute()"
+      <button class="btn-volume-toggle" type="button" (click)="toggleMute()"
         [title]="isMuted() ? 'Bật âm thanh' : 'Tắt âm thanh'"
-        [attr.aria-label]="isMuted() ? 'Bật âm thanh video' : 'Tắt âm thanh video'"
-      >
+        [attr.aria-label]="isMuted() ? 'Bật âm thanh video' : 'Tắt âm thanh video'">
         <i [class]="isMuted() ? 'fas fa-volume-mute' : 'fas fa-volume-up'"></i>
       </button>
     </div>

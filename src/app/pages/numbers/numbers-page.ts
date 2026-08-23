@@ -1,38 +1,70 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   BASIC_NUMBER_ROWS,
-  COMMON_COUNTERS,
+  TENS_NUMBER_ROWS,
+  HUNDREDS_NUMBER_ROWS,
+  THOUSANDS_NUMBER_ROWS,
+  MAN_NUMBER_ROWS,
+  NATIVE_JAPANESE_NUMBERS,
+  DETAILED_COUNTERS,
   formatNumber,
   JapaneseNumber,
   NUMBER_GROUPS,
   NumberGroup,
   NumberGroupDefinition,
   toJapaneseNumber,
-  TEN_NUMBER_ROW,
 } from './japanese-number';
 import { createNumberQuiz, NumberQuizQuestion } from './number-quiz';
 import { NumberProgressService } from './number-progress.service';
 
-type LearningTab = 'quiz' | 'guide';
+import { JapaneseAudioService } from '../../services/japanese-audio.service';
+
+type LearningTab = 'quiz';
 type PracticeMode = 'guided' | 'continuous';
 type LearningGroup = 'all' | NumberGroup | 'weak';
+type ViewMode = 'practice' | 'theory';
+type TheoryTab = 'matrix' | 'irregulars' | 'counters' | 'builder';
 
 @Component({
   selector: 'app-numbers-page',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './numbers-page.html',
-  styleUrls: ['../hiragana/hiragana-page.scss', './numbers-page.scss'],
+  styleUrl: './numbers-page.scss',
 })
-export class NumbersPage {
+export class NumbersPage implements OnDestroy {
+  private readonly router = inject(Router);
+  private readonly audioService = inject(JapaneseAudioService);
   readonly progress = inject(NumberProgressService);
+
   readonly numberGroups = NUMBER_GROUPS;
-  readonly basicRows = [...BASIC_NUMBER_ROWS, TEN_NUMBER_ROW];
-  readonly counters = COMMON_COUNTERS;
+  readonly basicRows = BASIC_NUMBER_ROWS;
+  readonly tensRows = TENS_NUMBER_ROWS;
+  readonly hundredsRows = HUNDREDS_NUMBER_ROWS;
+  readonly thousandsRows = THOUSANDS_NUMBER_ROWS;
+  readonly manRows = MAN_NUMBER_ROWS;
+  readonly nativeRows = NATIVE_JAPANESE_NUMBERS;
+  readonly detailedCounters = DETAILED_COUNTERS;
   readonly examples = [18, 47, 300, 648, 2026, 8315, 31415, 90000];
 
+  // View state (Practice vs Theory) - Defaults to Theory!
+  currentView: ViewMode = 'theory';
+  theoryTab: TheoryTab = 'matrix';
+  headerCollapsed = false;
+
+  // Selected counter in theory
+  selectedCounterId = 'people';
+
+  // Audio system
+  audioUnlocked = false;
+  showAudioPrompt = false;
+  audioPromptError = '';
+  private readonly AUDIO_KEY = 'viejap.audio-unlocked';
+
+  // Practice state
   activeTab: LearningTab = 'quiz';
   selectedGroup: LearningGroup = 'all';
   quizMode: PracticeMode = 'guided';
@@ -44,10 +76,84 @@ export class NumbersPage {
   quizAnsweredCount = 0;
   quizComplete = false;
   lastQuizValue?: number;
+  streak = 0;
+  bestStreak = 0;
+
+  // Number builder state
   builderValue: number | null = 31415;
 
   constructor() {
     this.startQuiz();
+  }
+
+  ngOnDestroy(): void {}
+
+  goHome(): void {
+    this.router.navigate(['/']);
+  }
+
+  toggleHeader(): void {
+    this.headerCollapsed = !this.headerCollapsed;
+  }
+
+  switchView(view: ViewMode): void {
+    this.currentView = view;
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  setTheoryTab(tab: TheoryTab): void {
+    this.theoryTab = tab;
+  }
+
+  selectCounter(counterId: string): void {
+    this.selectedCounterId = counterId;
+  }
+
+  get selectedCounter() {
+    return this.detailedCounters.find((c) => c.id === this.selectedCounterId) ?? this.detailedCounters[0];
+  }
+
+  openAudioPrompt(): void {
+    this.audioPromptError = '';
+    this.showAudioPrompt = true;
+  }
+
+  closeAudioPrompt(): void {
+    this.showAudioPrompt = false;
+  }
+
+  async enableAudioSupport(): Promise<void> {
+    this.audioPromptError = '';
+    const success = await this.audioService.unlockAudio();
+    if (success) {
+      this.audioUnlocked = true;
+      this.showAudioPrompt = false;
+      this.playCorrectSound();
+      this.speakJapanese('いち');
+    } else {
+      this.audioPromptError = 'Không thể bật âm thanh tự động. Hãy mở tiếng trên thiết bị rồi thử lại.';
+    }
+  }
+
+  speakJapanese(text: string): void {
+    void this.audioService.speak(text);
+  }
+
+  playAudio(text: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.speakJapanese(text);
+  }
+
+  playCorrectSound(): void {
+    this.audioService.playCorrectSound();
+  }
+
+  playWrongSound(): void {
+    this.audioService.playWrongSound();
   }
 
   get groupOptions(): Array<{ id: LearningGroup; label: string; count: number }> {
@@ -100,12 +206,9 @@ export class NumbersPage {
   }
 
   get builderResult(): JapaneseNumber {
-    const value = Math.min(90000, Math.max(1, Math.trunc(this.builderValue ?? 1)));
-    return toJapaneseNumber(value);
-  }
-
-  setTab(tab: LearningTab): void {
-    this.activeTab = tab;
+    const raw = Number(this.builderValue ?? 1);
+    const clamped = Math.min(90000, Math.max(1, Math.trunc(raw || 1)));
+    return toJapaneseNumber(clamped);
   }
 
   selectGroup(group: LearningGroup): void {
@@ -114,10 +217,11 @@ export class NumbersPage {
   }
 
   setQuizMode(mode: PracticeMode): void {
-    if (this.quizMode !== mode) {
-      this.quizMode = mode;
-      this.startQuiz();
+    if (this.quizMode === mode) {
+      return;
     }
+    this.quizMode = mode;
+    this.startQuiz();
   }
 
   startQuiz(group: LearningGroup = this.selectedGroup): void {
@@ -130,11 +234,12 @@ export class NumbersPage {
     this.quizComplete = false;
     this.lastQuizValue = undefined;
 
-    const groups = this.groupsForSelection(group);
-    this.questions = groups.length
-      ? createNumberQuiz(groups, this.quizMode === 'continuous' ? 1 : 10)
-      : [];
-    this.lastQuizValue = this.questions[0]?.value;
+    if (this.quizMode === 'continuous') {
+      this.loadNextContinuousQuestion();
+      return;
+    }
+
+    this.questions = createNumberQuiz(this.groupsForSelection(group), 10);
   }
 
   chooseAnswer(answer: string): void {
@@ -142,31 +247,45 @@ export class NumbersPage {
     if (!question || this.answerLocked) {
       return;
     }
+
     this.selectedAnswer = answer;
     this.answerLocked = true;
     const isCorrect = answer === question.correctAnswer;
-    this.quizScore += isCorrect ? 1 : 0;
+    const group = this.groupForValue(question.value);
+
+    if (isCorrect) {
+      this.quizScore += 1;
+      this.streak += 1;
+      if (this.streak > this.bestStreak) {
+        this.bestStreak = this.streak;
+      }
+      this.playCorrectSound();
+    } else {
+      this.streak = 0;
+      this.playWrongSound();
+    }
     this.quizAnsweredCount += 1;
-    this.progress.record(this.groupForValue(question.value).id, isCorrect);
+    this.progress.record(group, isCorrect);
+
+    // Speak pronunciation on answer
+    this.speakJapanese(question.result.kana);
   }
 
   nextQuestion(): void {
     if (!this.answerLocked) {
       return;
     }
+
     if (this.quizMode === 'continuous') {
-      const groups = this.groupsForSelection(this.selectedGroup);
-      this.questions = createNumberQuiz(groups, 1, Math.random, this.lastQuizValue);
-      this.lastQuizValue = this.questions[0]?.value;
-      this.currentQuestionIndex = 0;
-      this.selectedAnswer = undefined;
-      this.answerLocked = false;
+      this.loadNextContinuousQuestion();
       return;
     }
+
     if (this.currentQuestionIndex >= this.questions.length - 1) {
       this.quizComplete = true;
       return;
     }
+
     this.currentQuestionIndex += 1;
     this.selectedAnswer = undefined;
     this.answerLocked = false;
@@ -178,22 +297,20 @@ export class NumbersPage {
   }
 
   answerClass(answer: string): Record<string, boolean> {
+    const question = this.currentQuestion;
     return {
       'is-selected': this.selectedAnswer === answer,
-      'is-correct': this.answerLocked && answer === this.currentQuestion?.correctAnswer,
+      'is-correct': this.answerLocked && answer === question?.correctAnswer,
       'is-wrong':
         this.answerLocked &&
         this.selectedAnswer === answer &&
-        answer !== this.currentQuestion?.correctAnswer,
+        answer !== question?.correctAnswer,
     };
   }
 
   setBuilderExample(value: number): void {
     this.builderValue = value;
-  }
-
-  format(value: number): string {
-    return formatNumber(value);
+    this.speakJapanese(this.builderResult.kana);
   }
 
   resetProgress(): void {
@@ -202,14 +319,20 @@ export class NumbersPage {
       window.confirm('Xóa toàn bộ tiến độ học số đếm trên thiết bị này?');
     if (confirmed) {
       this.progress.reset();
+      this.streak = 0;
+      this.bestStreak = 0;
       this.startQuiz('all');
     }
+  }
+
+  format(value: number): string {
+    return formatNumber(value);
   }
 
   @HostListener('document:keydown', ['$event'])
   onKeyboardAnswer(event: KeyboardEvent): void {
     if (
-      this.activeTab !== 'quiz' ||
+      this.currentView !== 'practice' ||
       this.quizComplete ||
       event.ctrlKey ||
       event.metaKey ||
@@ -217,12 +340,15 @@ export class NumbersPage {
     ) {
       return;
     }
+
     if (this.answerLocked && (event.key === 'Enter' || event.key === ' ')) {
       event.preventDefault();
       this.nextQuestion();
       return;
     }
-    const option = this.currentQuestion?.options[['1', '2', '3', '4'].indexOf(event.key)];
+
+    const optionIndex = ['1', '2', '3', '4'].indexOf(event.key);
+    const option = this.currentQuestion?.options[optionIndex];
     if (option && !this.answerLocked) {
       this.chooseAnswer(option);
     }
@@ -239,10 +365,20 @@ export class NumbersPage {
     return NUMBER_GROUPS.filter((group) => group.id === selection);
   }
 
-  private groupForValue(value: number): NumberGroupDefinition {
+  private groupForValue(value: number): NumberGroup {
     return (
-      NUMBER_GROUPS.find((group) => value >= group.min && value <= group.max) ??
-      NUMBER_GROUPS[NUMBER_GROUPS.length - 1]
+      NUMBER_GROUPS.find((group) => value >= group.min && value <= group.max)?.id ?? 'basic'
     );
+  }
+
+  private loadNextContinuousQuestion(): void {
+    const groups = this.groupsForSelection(this.selectedGroup);
+    const questions = createNumberQuiz(groups, 1, Math.random, this.lastQuizValue);
+    this.questions = questions;
+    this.currentQuestionIndex = 0;
+    this.selectedAnswer = undefined;
+    this.answerLocked = false;
+    this.quizComplete = false;
+    this.lastQuizValue = questions[0]?.value;
   }
 }
