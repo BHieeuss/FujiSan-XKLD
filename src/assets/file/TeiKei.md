@@ -119,3 +119,29 @@ Thể 「て」 hoặc 「で」 là một dạng chia động từ cơ bản, �
 - **Ngữ pháp:** Lời mời mọc lịch sự dùng 「～てください」. 「ですが」 = Tuy là... nhưng...
 - **Phân tích từ:**
   - 食べて ➔ Gốc: 食べる (Nhóm 2). Nghĩa: Ăn (Thực - 食).
+
+---
+
+## III. CẬP NHẬT GIAO DIỆN TE FORM (2026-08-23)
+
+### 1. Mục tiêu cập nhật
+
+- Bổ sung nhắc nhở người dùng bật âm thanh điện thoại trước khi học.
+- Hỗ trợ thao tác một chạm để mở khóa âm thanh trình duyệt (đặc biệt trên mobile).
+
+### 2. Thay đổi đã triển khai
+
+- Thêm thanh nhắc âm thanh ở đầu phần luyện tập (Practice View).
+- Thêm popup hướng dẫn bật âm thanh gồm:
+  - Nhắc tắt chế độ im lặng.
+  - Nhắc tăng âm lượng Media.
+  - Nút "Bật âm thanh ngay" để kích hoạt âm thanh.
+- Lưu trạng thái đã bật âm thanh bằng localStorage key: teFormAudioUnlocked.
+
+### 3. Hướng dẫn cho team
+
+- Nếu muốn test lại popup nhiều lần:
+  - Mở DevTools -> Application -> Local Storage.
+  - Xóa key teFormAudioUnlocked.
+  - Tải lại trang TE form.
+- Popup có thể đóng bằng nút "Để sau"; thanh nhắc vẫn còn để người dùng mở lại.

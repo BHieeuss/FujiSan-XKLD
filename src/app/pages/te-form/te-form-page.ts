@@ -33,7 +33,6 @@ interface ExplanationData {
   activePattern?: string;
 }
 
-
 @Component({
   selector: 'app-te-form-page',
   standalone: true,
@@ -46,6 +45,11 @@ export class TeFormPage implements OnDestroy {
   currentView: ViewMode = 'practice';
   exerciseType: ExerciseType = 'multipleChoice';
   currentVerb!: TeFormVerb;
+
+  // ── Audio reminder state ─────────────────────────────────────────
+  showAudioPrompt = false;
+  audioUnlocked = false;
+  audioPromptError = '';
 
   // ── Score & progress ──────────────────────────────────────────────
   score = 0;
@@ -81,6 +85,7 @@ export class TeFormPage implements OnDestroy {
   // ── Audio context ─────────────────────────────────────────────────
   private audioCtx?: AudioContext;
   private speechSynth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+  private readonly AUDIO_REMINDER_KEY = 'teFormAudioUnlocked';
 
   // ── Used verbs tracking (avoid immediate repeats) ─────────────────
   private recentVerbIds: string[] = [];
@@ -90,6 +95,7 @@ export class TeFormPage implements OnDestroy {
   private feedbackTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private router: Router) {
+    this.initAudioReminder();
     this.nextQuestion();
   }
 
@@ -105,6 +111,55 @@ export class TeFormPage implements OnDestroy {
     clearTimeout(this.feedbackTimer);
     this.speechSynth?.cancel();
     this.audioCtx?.close();
+  }
+
+  openAudioPrompt(): void {
+    this.audioPromptError = '';
+    this.showAudioPrompt = true;
+  }
+
+  closeAudioPrompt(): void {
+    this.showAudioPrompt = false;
+  }
+
+  async enableAudioSupport(): Promise<void> {
+    this.audioPromptError = '';
+
+    try {
+      const ctx = this.getAudioContext();
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
+      this.audioUnlocked = ctx.state === 'running';
+      if (!this.audioUnlocked) {
+        this.audioPromptError = 'Không thể bật âm thanh tự động. Hãy tăng âm lượng và thử lại.';
+        return;
+      }
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(this.AUDIO_REMINDER_KEY, '1');
+      }
+
+      this.showAudioPrompt = false;
+      this.playCorrectSound();
+      this.speakJapanese('てけい');
+    } catch {
+      this.audioPromptError =
+        'Không thể bật âm thanh tự động. Hãy mở tiếng trên điện thoại rồi thử lại.';
+    }
+  }
+
+  private initAudioReminder(): void {
+    if (typeof window === 'undefined') return;
+
+    const saved = window.localStorage.getItem(this.AUDIO_REMINDER_KEY);
+    if (saved === '1') {
+      this.audioUnlocked = true;
+      return;
+    }
+
+    this.showAudioPrompt = true;
   }
 
   // ══════════════════════════════════════════════════════════════════
@@ -301,7 +356,6 @@ export class TeFormPage implements OnDestroy {
     }
   }
 
-
   unselectWbTile(tile: { char: string; index: number }): void {
     if (this.isAnswered) return;
 
@@ -391,6 +445,11 @@ export class TeFormPage implements OnDestroy {
   private getAudioContext(): AudioContext {
     if (!this.audioCtx) {
       this.audioCtx = new AudioContext();
+      this.audioCtx.onstatechange = () => {
+        if (this.audioCtx?.state === 'running') {
+          this.audioUnlocked = true;
+        }
+      };
     }
     return this.audioCtx;
   }
@@ -398,6 +457,9 @@ export class TeFormPage implements OnDestroy {
   private playCorrectSound(): void {
     try {
       const ctx = this.getAudioContext();
+      if (ctx.state === 'suspended') {
+        void ctx.resume();
+      }
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -409,9 +471,9 @@ export class TeFormPage implements OnDestroy {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
 
       // Pleasant ascending chord
-      osc.frequency.setValueAtTime(523, ctx.currentTime);        // C5
-      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);  // E5
-      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2);  // G5
+      osc.frequency.setValueAtTime(523, ctx.currentTime); // C5
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1); // E5
+      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2); // G5
 
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.5);
@@ -423,6 +485,9 @@ export class TeFormPage implements OnDestroy {
   private playWrongSound(): void {
     try {
       const ctx = this.getAudioContext();
+      if (ctx.state === 'suspended') {
+        void ctx.resume();
+      }
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -434,7 +499,7 @@ export class TeFormPage implements OnDestroy {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
 
       // Gentle descending tone
-      osc.frequency.setValueAtTime(330, ctx.currentTime);       // E4
+      osc.frequency.setValueAtTime(330, ctx.currentTime); // E4
       osc.frequency.setValueAtTime(262, ctx.currentTime + 0.15); // C4
 
       osc.start(ctx.currentTime);
@@ -487,17 +552,23 @@ export class TeFormPage implements OnDestroy {
 
   get exerciseTypeLabel(): string {
     switch (this.exerciseType) {
-      case 'multipleChoice': return 'Trắc nghiệm';
-      case 'wordBuilder': return 'Ghép từ';
-      case 'virtualKeyboard': return 'Gõ phím';
+      case 'multipleChoice':
+        return 'Trắc nghiệm';
+      case 'wordBuilder':
+        return 'Ghép từ';
+      case 'virtualKeyboard':
+        return 'Gõ phím';
     }
   }
 
   get exerciseTypeIcon(): string {
     switch (this.exerciseType) {
-      case 'multipleChoice': return 'fas fa-list-check';
-      case 'wordBuilder': return 'fas fa-puzzle-piece';
-      case 'virtualKeyboard': return 'fas fa-keyboard';
+      case 'multipleChoice':
+        return 'fas fa-list-check';
+      case 'wordBuilder':
+        return 'fas fa-puzzle-piece';
+      case 'virtualKeyboard':
+        return 'fas fa-keyboard';
     }
   }
 
@@ -511,10 +582,14 @@ export class TeFormPage implements OnDestroy {
 
   getGroupLabel(group: number): string {
     switch (group) {
-      case 1: return 'Nhóm I (五段)';
-      case 2: return 'Nhóm II (一段)';
-      case 3: return 'Nhóm III (不規則)';
-      default: return '';
+      case 1:
+        return 'Nhóm I (五段)';
+      case 2:
+        return 'Nhóm II (一段)';
+      case 3:
+        return 'Nhóm III (不規則)';
+      default:
+        return '';
     }
   }
 
@@ -529,9 +604,7 @@ export class TeFormPage implements OnDestroy {
       const isSuru = v.rule === 'g3_suru';
       return {
         verbIntro: `「${masu}」là động từ Nhóm 3 (不規則 — bất quy tắc).`,
-        formula: isSuru
-          ? 'Động từ Nhóm 3:  します → して'
-          : 'Động từ Nhóm 3:  きます → きて',
+        formula: isSuru ? 'Động từ Nhóm 3:  します → して' : 'Động từ Nhóm 3:  きます → きて',
         steps: [
           { label: 'Dạng ます', value: masu },
           { label: 'Thể て', value: v.teForm, highlight: true },
@@ -556,23 +629,69 @@ export class TeFormPage implements OnDestroy {
           { label: 'Thể て', value: v.teForm, highlight: true },
         ],
         note: 'Nhóm 2 luôn chỉ có một quy tắc duy nhất: bỏ ます, thêm て.',
-        quickRef: [
-          { pattern: 'ます', result: 'て', example: `${masu} → ${v.teForm}` },
-        ],
+        quickRef: [{ pattern: 'ます', result: 'て', example: `${masu} → ${v.teForm}` }],
       };
     }
 
     // Group 1 — determine rule by endChar
-    const endMap: Record<string, { romanji: string; formula: string; result: string; steps: string }> = {
-      'い': { romanji: 'i', formula: 'い, ち, り  ➔  って (tte)', result: 'って', steps: `Bỏ「い」, thêm「って」` },
-      'ち': { romanji: 'chi', formula: 'い, ち, り  ➔  って (tte)', result: 'って', steps: `Bỏ「ち」, thêm「って」` },
-      'り': { romanji: 'ri', formula: 'い, ち, り  ➔  って (tte)', result: 'って', steps: `Bỏ「り」, thêm「って」` },
-      'み': { romanji: 'mi', formula: 'み, に, び  ➔  んで (nde)', result: 'んで', steps: `Bỏ「み」, thêm「んで」` },
-      'に': { romanji: 'ni', formula: 'み, に, び  ➔  んで (nde)', result: 'んで', steps: `Bỏ「に」, thêm「んで」` },
-      'び': { romanji: 'bi', formula: 'み, に, び  ➔  んで (nde)', result: 'んで', steps: `Bỏ「び」, thêm「んで」` },
-      'き': { romanji: 'ki', formula: 'き  ➔  いて (ite)', result: 'いて', steps: `Bỏ「き」, thêm「いて」` },
-      'ぎ': { romanji: 'gi', formula: 'ぎ  ➔  いで (ide)', result: 'いで', steps: `Bỏ「ぎ」, thêm「いで」` },
-      'し': { romanji: 'shi', formula: 'し  ➔  して (shite)', result: 'して', steps: `Giữ「し」, thêm「て」` },
+    const endMap: Record<
+      string,
+      { romanji: string; formula: string; result: string; steps: string }
+    > = {
+      い: {
+        romanji: 'i',
+        formula: 'い, ち, り  ➔  って (tte)',
+        result: 'って',
+        steps: `Bỏ「い」, thêm「って」`,
+      },
+      ち: {
+        romanji: 'chi',
+        formula: 'い, ち, り  ➔  って (tte)',
+        result: 'って',
+        steps: `Bỏ「ち」, thêm「って」`,
+      },
+      り: {
+        romanji: 'ri',
+        formula: 'い, ち, り  ➔  って (tte)',
+        result: 'って',
+        steps: `Bỏ「り」, thêm「って」`,
+      },
+      み: {
+        romanji: 'mi',
+        formula: 'み, に, び  ➔  んで (nde)',
+        result: 'んで',
+        steps: `Bỏ「み」, thêm「んで」`,
+      },
+      に: {
+        romanji: 'ni',
+        formula: 'み, に, び  ➔  んで (nde)',
+        result: 'んで',
+        steps: `Bỏ「に」, thêm「んで」`,
+      },
+      び: {
+        romanji: 'bi',
+        formula: 'み, に, び  ➔  んで (nde)',
+        result: 'んで',
+        steps: `Bỏ「び」, thêm「んで」`,
+      },
+      き: {
+        romanji: 'ki',
+        formula: 'き  ➔  いて (ite)',
+        result: 'いて',
+        steps: `Bỏ「き」, thêm「いて」`,
+      },
+      ぎ: {
+        romanji: 'gi',
+        formula: 'ぎ  ➔  いで (ide)',
+        result: 'いで',
+        steps: `Bỏ「ぎ」, thêm「いで」`,
+      },
+      し: {
+        romanji: 'shi',
+        formula: 'し  ➔  して (shite)',
+        result: 'して',
+        steps: `Giữ「し」, thêm「て」`,
+      },
     };
 
     const rule = endMap[endChar] ?? { romanji: '?', formula: '—', result: v.teForm, steps: '—' };
@@ -587,9 +706,7 @@ export class TeFormPage implements OnDestroy {
         { label: 'Áp dụng', value: `${stemBase} + ${rule.result}` },
         { label: 'Thể て', value: v.teForm, highlight: true },
       ],
-      note: isException
-        ? '⚠️ Ngoại lệ: いきます → いって (không theo quy tắc き → いて)'
-        : null,
+      note: isException ? '⚠️ Ngoại lệ: いきます → いって (không theo quy tắc き → いて)' : null,
       quickRef: [
         { pattern: 'い・ち・り', result: 'って', example: 'かいます → かって' },
         { pattern: 'み・に・び', result: 'んで', example: 'のみます → のんで' },
@@ -600,7 +717,6 @@ export class TeFormPage implements OnDestroy {
       activePattern: rule.result,
     };
   }
-
 
   private shuffleArray<T>(array: T[]): T[] {
     const result = [...array];
