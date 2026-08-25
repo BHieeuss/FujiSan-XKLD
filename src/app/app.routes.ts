@@ -112,9 +112,81 @@ export const routes: Routes = [
   },
   {
     path: 'luyen-the-te',
-    title: 'Luyện chia thể て - VieJap',
+    title: 'Luyện chia Thể て - VieJap',
     loadComponent: () =>
       import('./pages/te-form/te-form-page').then((module) => module.TeFormPage),
+  },
+  {
+    path: 'luyen-the-ta',
+    title: 'Luyện chia Thể quá khứ (た) - VieJap',
+    loadComponent: () =>
+      import('./pages/ta-form/ta-form-page').then((module) => module.TaFormPage),
+  },
+  {
+    path: 'luyen-the-nai',
+    title: 'Luyện chia Thể phủ định (ない) - VieJap',
+    loadComponent: () =>
+      import('./pages/nai-form/nai-form-page').then((module) => module.NaiFormPage),
+  },
+  {
+    path: 'luyen-the-ru',
+    title: 'Luyện chia Thể từ điển (る) - VieJap',
+    loadComponent: () =>
+      import('./pages/ru-form/ru-form-page').then((module) => module.RuFormPage),
+  },
+  {
+    path: 'luyen-the-y-chi',
+    title: 'Luyện chia Thể ý chí (よう) - VieJap',
+    loadComponent: () =>
+      import('./pages/volitional-form/volitional-form-page').then((module) => module.VolitionalFormPage),
+  },
+  {
+    path: 'luyen-the-menh-lenh',
+    title: 'Luyện chia Thể mệnh lệnh (命令形) - VieJap',
+    loadComponent: () =>
+      import('./pages/imperative-form/imperative-form-page').then((module) => module.ImperativeFormPage),
+  },
+  {
+    path: 'luyen-the-cam-chi',
+    title: 'Luyện chia Thể cấm chỉ (禁止形 / な) - VieJap',
+    loadComponent: () =>
+      import('./pages/prohibitive-form/prohibitive-form-page').then((module) => module.ProhibitiveFormPage),
+  },
+  {
+    path: 'luyen-the-kha-nang',
+    title: 'Luyện chia Thể khả năng (可能形) - VieJap',
+    loadComponent: () =>
+      import('./pages/potential-form/potential-form-page').then((module) => module.PotentialFormPage),
+  },
+  {
+    path: 'luyen-the-dieu-kien',
+    title: 'Luyện chia Thể điều kiện (条件形 / ば) - VieJap',
+    loadComponent: () =>
+      import('./pages/conditional-form/conditional-form-page').then((module) => module.ConditionalFormPage),
+  },
+  {
+    path: 'luyen-the-bi-dong',
+    title: 'Luyện chia Thể bị động (受身形) - VieJap',
+    loadComponent: () =>
+      import('./pages/passive-form/passive-form-page').then((module) => module.PassiveFormPage),
+  },
+  {
+    path: 'luyen-the-sai-khien',
+    title: 'Luyện chia Thể sai khiến (使役形) - VieJap',
+    loadComponent: () =>
+      import('./pages/causative-form/causative-form-page').then((module) => module.CausativeFormPage),
+  },
+  {
+    path: 'luyen-the-sai-khien-bi-dong',
+    title: 'Luyện chia Thể sai khiến bị động (使役受身形) - VieJap',
+    loadComponent: () =>
+      import('./pages/causative-passive-form/causative-passive-form-page').then((module) => module.CausativePassiveFormPage),
+  },
+  {
+    path: 'luyen-tap',
+    title: 'Trung tâm Luyện chia Thể Động Từ - VieJap',
+    loadComponent: () =>
+      import('./pages/practice-hub/practice-hub-page').then((module) => module.PracticeHubPage),
   },
   {
     path: '**',

@@ -1,0 +1,692 @@
+<!-- ============================================================
+     UNIFIED VERB FORM ARENA COMPONENT (DÙNG CHUNG TOÀN BỘ CÁC THỂ)
+     ============================================================ -->
+
+<div class="te-form-wrapper" *ngIf="config">
+  <!-- ── HEADER / TABS ─────────────────────────────────────────── -->
+  <header class="te-header" [class.collapsed]="headerCollapsed">
+    <!-- Always-visible minimal strip: back btn + switcher + toggle -->
+    <div class="te-header-bar">
+      <button type="button" class="te-back-btn" (click)="goHome()" title="Về trang chủ">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+
+      <!-- Quick Form Switcher Dropdown (12 thể động từ) -->
+      <div class="te-form-switcher" [class.open]="isSwitcherOpen">
+        <button
+          type="button"
+          class="te-switcher-trigger"
+          (click)="toggleSwitcher($event)"
+          [attr.aria-expanded]="isSwitcherOpen"
+          title="Chọn và chuyển sang thể động từ khác"
+        >
+          <span class="switcher-badge">{{ config.shortBadge }}</span>
+          <span class="switcher-title">
+            <span class="switcher-jp-badge">{{ config.jpBadge }}</span>
+            <span class="switcher-sep">·</span>
+            <span class="switcher-vn-title">{{ config.title }}</span>
+          </span>
+          <i class="fas fa-chevron-down switcher-arrow" [class.rotated]="isSwitcherOpen"></i>
+        </button>
+
+        <!-- Dropdown panel -->
+        <div class="te-switcher-panel" *ngIf="isSwitcherOpen" (click)="$event.stopPropagation()">
+          <div class="switcher-panel-header">
+            <div class="panel-title-wrap">
+              <span class="panel-icon">⛩️</span>
+              <span class="panel-heading">Chuyển thể luyện tập (12 thể)</span>
+            </div>
+            <a routerLink="/luyen-tap" class="panel-hub-btn" (click)="closeSwitcher()" title="Mở trang tổng hợp 12 thể">
+              <span>Xem tất cả</span>
+              <i class="fas fa-th-large"></i>
+            </a>
+          </div>
+
+          <div class="switcher-scroll-area">
+            <!-- Group N5 -->
+            <div class="switcher-group-section">
+              <div class="switcher-group-heading">
+                <span class="level-pill n5">N5</span>
+                <span class="level-title">Cơ bản (5 thể)</span>
+              </div>
+              <div class="switcher-grid">
+                <a
+                  *ngFor="let item of n5Forms"
+                  [routerLink]="item.route"
+                  class="switcher-card-item"
+                  [class.current]="item.id === config.formId"
+                  (click)="closeSwitcher()"
+                >
+                  <span class="card-badge">{{ item.jpBadge }}</span>
+                  <div class="card-text">
+                    <span class="card-name">{{ item.label }}</span>
+                    <span class="card-formula">{{ item.formula }}</span>
+                  </div>
+                  <span class="card-active-dot" *ngIf="item.id === config.formId" title="Đang học">
+                    <i class="fas fa-check"></i>
+                  </span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Group N4 -->
+            <div class="switcher-group-section">
+              <div class="switcher-group-heading">
+                <span class="level-pill n4">N4</span>
+                <span class="level-title">Nâng cao (7 thể)</span>
+              </div>
+              <div class="switcher-grid">
+                <a
+                  *ngFor="let item of n4Forms"
+                  [routerLink]="item.route"
+                  class="switcher-card-item"
+                  [class.current]="item.id === config.formId"
+                  (click)="closeSwitcher()"
+                >
+                  <span class="card-badge" [class.is-long]="item.jpBadge.length > 1">{{ item.jpBadge }}</span>
+                  <div class="card-text">
+                    <span class="card-name">{{ item.label }}</span>
+                    <span class="card-formula">{{ item.formula }}</span>
+                  </div>
+                  <span class="card-active-dot" *ngIf="item.id === config.formId" title="Đang học">
+                    <i class="fas fa-check"></i>
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="te-header-toggle"
+        (click)="toggleHeader()"
+        [title]="headerCollapsed ? 'Mở rộng' : 'Thu gọn'"
+      >
+        <i [class]="headerCollapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up'"></i>
+      </button>
+    </div>
+
+    <!-- Collapsible area: logo + tabs -->
+    <div class="te-header-collapsible">
+      <div class="te-header-content">
+        <div class="te-logo">
+          <span class="te-logo-jp">{{ config.shortBadge }}</span>
+          <div>
+            <h1>{{ config.title }}</h1>
+            <p>{{ config.subtitle }}</p>
+          </div>
+        </div>
+
+        <nav class="te-tabs" role="tablist">
+          <button
+            type="button"
+            class="te-tab"
+            role="tab"
+            [class.active]="currentView === 'practice'"
+            (click)="switchView('practice')"
+          >
+            <i class="fas fa-dumbbell"></i>
+            <span>Luyện tập</span>
+          </button>
+          <button
+            type="button"
+            class="te-tab"
+            role="tab"
+            [class.active]="currentView === 'theory'"
+            (click)="switchView('theory')"
+          >
+            <i class="fas fa-book-open"></i>
+            <span>Lý thuyết</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       PRACTICE VIEW
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="te-main" *ngIf="currentView === 'practice'">
+    <!-- ── Audio reminder ────────────────────────────────────────── -->
+    <div class="te-audio-reminder" *ngIf="!audioUnlocked">
+      <div class="te-audio-reminder-icon">
+        <i class="fas fa-volume-high"></i>
+      </div>
+      <div class="te-audio-reminder-content">
+        <strong>Nhớ bật âm thanh điện thoại</strong>
+        <p>Bật chuông/âm lượng để nghe phát âm từ vựng và âm báo đúng sai.</p>
+      </div>
+      <button type="button" class="te-audio-reminder-btn" (click)="openAudioPrompt()">
+        Bật âm thanh
+      </button>
+    </div>
+
+    <!-- ── Score Bar ────────────────────────────────────────────── -->
+    <div class="te-score-bar">
+      <div class="te-score-item">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ score }}/{{ totalAnswered }}</span>
+        <small>Đúng</small>
+      </div>
+      <div class="te-score-item">
+        <i class="fas fa-percentage"></i>
+        <span>{{ accuracy }}%</span>
+        <small>Chính xác</small>
+      </div>
+      <div class="te-score-item te-streak" [class.on-fire]="streak >= 3">
+        <i class="fas fa-fire"></i>
+        <span>{{ streak }}</span>
+        <small>Liên tiếp</small>
+      </div>
+      <div class="te-score-item">
+        <i class="fas fa-trophy"></i>
+        <span>{{ bestStreak }}</span>
+        <small>Kỷ lục</small>
+      </div>
+    </div>
+
+    <!-- ── Exercise Card ───────────────────────────────────────── -->
+    <div
+      class="te-exercise-card"
+      *ngIf="currentVerb"
+      [class.answered-correct]="isAnswered && isCorrect"
+      [class.answered-wrong]="isAnswered && !isCorrect"
+    >
+      <!-- Exercise type badge -->
+      <div class="te-exercise-badge">
+        <i [class]="exerciseTypeIcon"></i>
+        <span>{{ exerciseTypeLabel }}</span>
+      </div>
+
+      <!-- Verb display -->
+      <div class="te-verb-display">
+        <div class="te-verb-prompt">{{ config.targetFormPrompt }}</div>
+        <div class="te-verb-hiragana">{{ currentVerb.hiragana }}</div>
+        <div class="te-verb-sub">
+          <span class="te-verb-kanji">{{ currentVerb.kanji }}</span>
+          <span class="te-verb-divider">・</span>
+          <span class="te-verb-meaning">{{ currentVerb.meaning }}</span>
+          <span class="te-verb-hv" *ngIf="currentVerb.hanViet"> [{{ currentVerb.hanViet }}]</span>
+        </div>
+      </div>
+
+      <!-- ── DẠNG 1: TRẮC NGHIỆM ────────────────────────────── -->
+      <div class="te-mc-area" *ngIf="exerciseType === 'multipleChoice'">
+        <div class="te-mc-grid">
+          <button
+            *ngFor="let option of mcOptions; let i = index"
+            type="button"
+            class="te-mc-option"
+            [class]="getMcOptionClass(i)"
+            [disabled]="isAnswered"
+            (click)="selectMcOption(i)"
+          >
+            <span class="te-mc-label">{{ option.text }}</span>
+            <span class="te-mc-icon" *ngIf="isAnswered && option.isCorrect">
+              <i class="fas fa-check-circle"></i>
+            </span>
+            <span
+              class="te-mc-icon"
+              *ngIf="isAnswered && i === mcSelectedIndex && !option.isCorrect"
+            >
+              <i class="fas fa-times-circle"></i>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── DẠNG 2: GHÉP TỪ ─────────────────────────────────── -->
+      <div class="te-wb-area" *ngIf="exerciseType === 'wordBuilder'">
+        <!-- Hint: how many chars to pick -->
+        <div class="te-wb-hint">
+          <span
+            >Chọn đúng <strong>{{ currentVerb.targetForm.length }}</strong> ô ký tự</span
+          >
+          <span class="te-wb-counter"
+            >{{ wbSelectedTiles.length }}/{{ currentVerb.targetForm.length }}</span
+          >
+        </div>
+
+        <!-- Answer zone -->
+        <div
+          class="te-wb-answer"
+          [class.complete]="wbSelectedTiles.length === currentVerb.targetForm.length"
+        >
+          <span
+            *ngFor="let tile of wbSelectedTiles"
+            class="te-wb-tile selected"
+            (click)="unselectWbTile(tile)"
+          >
+            {{ tile.char }}
+          </span>
+          <span
+            class="te-wb-cursor"
+            *ngIf="!isAnswered && wbSelectedTiles.length < currentVerb.targetForm.length"
+            >|</span
+          >
+        </div>
+
+        <!-- Available tiles -->
+        <div class="te-wb-tiles">
+          <button
+            *ngFor="let tile of wbAvailableTiles"
+            type="button"
+            class="te-wb-tile available"
+            [class.distractor]="tile.index >= 1000"
+            [disabled]="isAnswered"
+            (click)="selectWbTile(tile)"
+          >
+            {{ tile.char }}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="te-wb-reset"
+          *ngIf="wbSelectedTiles.length > 0 && !isAnswered"
+          (click)="resetWordBuilder()"
+        >
+          <i class="fas fa-rotate-left"></i> Xếp lại
+        </button>
+      </div>
+
+      <!-- ── DẠNG 3: GÕ PHÍM ─────────────────────────────────── -->
+      <div class="te-vk-area" *ngIf="exerciseType === 'virtualKeyboard'">
+        <!-- Input display -->
+        <div class="te-vk-input-wrap">
+          <div class="te-vk-input" [class.has-text]="vkInput.length > 0">
+            <span *ngIf="!vkInput && !isAnswered" class="te-vk-placeholder"
+              >Dùng bàn phím bên dưới...</span
+            >
+            <span class="te-vk-text">{{ vkInput }}</span>
+            <span class="te-vk-blink" *ngIf="!isAnswered">|</span>
+          </div>
+          <div class="te-vk-input-actions" *ngIf="!isAnswered">
+            <button type="button" class="te-vk-btn-clear" (click)="vkClear()" [disabled]="!vkInput">
+              <i class="fas fa-eraser"></i>
+            </button>
+            <button
+              type="button"
+              class="te-vk-btn-submit"
+              (click)="vkSubmit()"
+              [disabled]="!vkInput"
+            >
+              <i class="fas fa-check"></i> Kiểm tra
+            </button>
+          </div>
+        </div>
+
+        <!-- Virtual Keyboard -->
+        <div class="te-vk-keyboard" *ngIf="!isAnswered">
+          <div class="te-vk-mode-toggle">
+            <button
+              type="button"
+              [class.active]="vkKeyboardMode === 'hiragana'"
+              (click)="vkKeyboardMode = 'hiragana'"
+            >
+              あ
+            </button>
+            <button
+              type="button"
+              [class.active]="vkKeyboardMode === 'dakuten'"
+              (click)="vkKeyboardMode = 'dakuten'"
+            >
+              が゛
+            </button>
+          </div>
+
+          <div class="te-vk-rows">
+            <div class="te-vk-row" *ngFor="let row of currentKeyboardRows">
+              <button
+                *ngFor="let key of row"
+                type="button"
+                class="te-vk-key"
+                [class.empty]="!key"
+                [disabled]="!key"
+                (click)="vkTypeChar(key)"
+              >
+                {{ key }}
+              </button>
+            </div>
+          </div>
+
+          <div class="te-vk-bottom-row">
+            <button type="button" class="te-vk-key te-vk-key-wide" (click)="toggleKeyboardMode()">
+              {{ vkKeyboardMode === 'hiragana' ? '゛゜' : 'あ' }}
+            </button>
+            <button type="button" class="te-vk-key te-vk-key-backspace" (click)="vkBackspace()">
+              <i class="fas fa-delete-left"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Correct answer display ───────────────────────────── -->
+      <div class="te-correct-display" *ngIf="isAnswered && isCorrect">
+        <div class="te-correct-badge">
+          <i class="fas fa-check-circle"></i>
+          <span>Chính xác!</span>
+        </div>
+        <div class="te-correct-answer">
+          <span class="te-correct-te">{{ currentVerb.targetForm }}</span>
+          <span class="te-correct-kanji-small">{{ currentVerb.targetFormKanji }}</span>
+        </div>
+        <div class="te-correct-speak">
+          <button
+            type="button"
+            (click)="speakJapanese(currentVerb.targetForm)"
+            title="Phát âm tiếng Nhật"
+          >
+            <i class="fas fa-volume-high"></i> Nghe lại
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Wrong answer display (inline) ────────────────────── -->
+      <div class="te-wrong-inline" *ngIf="isAnswered && !isCorrect && !showExplanation">
+        <div class="te-wrong-badge">
+          <i class="fas fa-times-circle"></i>
+          <span>Chưa đúng</span>
+        </div>
+        <div class="te-wrong-correct">
+          Đáp án: <strong>{{ currentVerb.targetForm }}</strong>
+        </div>
+        <button type="button" class="te-wrong-explain-btn" (click)="showExplanation = true">
+          <i class="fas fa-lightbulb"></i> Xem giải thích
+        </button>
+      </div>
+
+      <!-- ── Next button ──────────────────────────────────────── -->
+      <button *ngIf="isAnswered" type="button" class="te-next-btn" (click)="nextQuestion()">
+        Câu tiếp theo
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       AUDIO PROMPT
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="te-audio-overlay" *ngIf="showAudioPrompt" (click)="closeAudioPrompt()">
+    <div class="te-audio-popup" (click)="$event.stopPropagation()">
+      <button type="button" class="te-audio-close" (click)="closeAudioPrompt()" title="Đóng">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="te-audio-head">
+        <div class="te-audio-head-icon">
+          <i class="fas fa-bell"></i>
+        </div>
+        <div>
+          <h3>Bật âm thanh học từ vựng</h3>
+          <p>Trang cần một lần chạm để mở âm thanh trên điện thoại.</p>
+        </div>
+      </div>
+
+      <ul class="te-audio-steps">
+        <li>Thoát chế độ im lặng nếu đang bật.</li>
+        <li>Tăng âm lượng Media của điện thoại.</li>
+        <li>Nhấn nút bên dưới để bật âm thanh cho trang.</li>
+      </ul>
+
+      <p class="te-audio-error" *ngIf="audioPromptError">{{ audioPromptError }}</p>
+
+      <div class="te-audio-actions">
+        <button type="button" class="te-audio-enable" (click)="enableAudioSupport()">
+          <i class="fas fa-volume-high"></i>
+          Bật âm thanh ngay
+        </button>
+        <button type="button" class="te-audio-later" (click)="closeAudioPrompt()">Để sau</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       EXPLANATION POPUP (khi trả lời sai)
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="te-explain-overlay" *ngIf="showExplanation" (click)="closeExplanation()">
+    <div class="te-explain-popup" (click)="$event.stopPropagation()">
+      <button type="button" class="te-explain-close" (click)="closeExplanation()">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="te-explain-header">
+        <i class="fas fa-graduation-cap"></i>
+        <span>Giải thích chi tiết</span>
+      </div>
+
+      <div class="te-explain-body" *ngIf="explanationData as ed">
+        <!-- ① Verb intro -->
+        <div class="te-expl-intro">
+          <i class="fas fa-circle-info"></i>
+          <span>{{ ed.verbIntro }}</span>
+        </div>
+
+        <!-- ② Formula -->
+        <div class="te-expl-formula">
+          <div class="te-expl-formula-label">Công thức</div>
+          <div class="te-expl-formula-text">{{ ed.formula }}</div>
+        </div>
+
+        <!-- ③ Step-by-step application -->
+        <div class="te-expl-steps">
+          <div class="te-expl-steps-label">Áp dụng</div>
+          <div class="te-expl-steps-row">
+            <ng-container *ngFor="let step of ed.steps; let i = index">
+              <div class="te-expl-step" [class.highlight]="step.highlight">
+                <small>{{ step.label }}</small>
+                <span>{{ step.value }}</span>
+              </div>
+              <div class="te-expl-arrow" *ngIf="i < ed.steps.length - 1">➔</div>
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- ④ Exception note -->
+        <div class="te-expl-note" *ngIf="ed.note">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span>{{ ed.note }}</span>
+        </div>
+
+        <!-- ⑤ Quick-reference table -->
+        <div class="te-expl-quickref">
+          <div class="te-expl-quickref-label">
+            <i class="fas fa-table-list"></i>
+            Nhắc lại kiến thức — Nhóm {{ currentVerb.group }}
+          </div>
+          <div class="te-expl-quickref-rows">
+            <div
+              class="te-expl-quickref-row"
+              *ngFor="let ref of ed.quickRef"
+              [class.active]="ed.activePattern && ref.result === ed.activePattern"
+            >
+              <span class="te-expl-ref-pattern">{{ ref.pattern }}</span>
+              <span class="te-expl-ref-arrow">➔</span>
+              <span class="te-expl-ref-result">{{ ref.result }}</span>
+              <span class="te-expl-ref-example">{{ ref.example }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="te-explain-footer">
+        <button type="button" class="te-explain-got-it" (click)="closeExplanation()">
+          Đã hiểu <i class="fas fa-check"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       THEORY VIEW
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="te-theory" *ngIf="currentView === 'theory' && config.theory">
+    <div class="te-theory-header">
+      <h2>{{ config.theory.title }}</h2>
+      <p>{{ config.theory.description }}</p>
+    </div>
+
+    <!-- Theory group tabs -->
+    <div class="te-theory-tabs">
+      <button
+        type="button"
+        [class.active]="theoryActiveGroup === 1"
+        (click)="theoryActiveGroup = 1"
+      >
+        <span class="te-theory-tab-num">I</span>
+        Nhóm 1 (五段)
+      </button>
+      <button
+        type="button"
+        [class.active]="theoryActiveGroup === 2"
+        (click)="theoryActiveGroup = 2"
+      >
+        <span class="te-theory-tab-num">II</span>
+        Nhóm 2 (一段)
+      </button>
+      <button
+        type="button"
+        [class.active]="theoryActiveGroup === 3"
+        (click)="theoryActiveGroup = 3"
+      >
+        <span class="te-theory-tab-num">III</span>
+        Nhóm 3 (不規則)
+      </button>
+    </div>
+
+    <!-- ── GROUP 1 THEORY ──────────────────────────────────────── -->
+    <div class="te-theory-content" *ngIf="theoryActiveGroup === 1 && config.theory.group1">
+      <div class="te-theory-intro">
+        <h3>{{ config.theory.group1.introTitle }}</h3>
+        <p>{{ config.theory.group1.introDesc }}</p>
+      </div>
+
+      <div class="te-theory-rule" *ngFor="let rule of config.theory.group1.rules">
+        <div class="te-theory-rule-head">
+          <span class="te-theory-rule-badge">{{ rule.badge }}</span>
+          <span class="te-theory-rule-arrow">{{ rule.arrow || '→' }}</span>
+          <span class="te-theory-rule-result">{{ rule.result }}</span>
+        </div>
+        <p *ngIf="rule.description">{{ rule.description }}</p>
+        <div class="te-theory-examples">
+          <div class="te-theory-example" *ngFor="let ex of rule.examples">
+            <span class="te-theory-ex-from"
+              >{{ ex.fromHiragana }} <small class="te-kanji-tiny">{{ ex.fromKanji }}</small></span
+            >
+            <i class="fas fa-arrow-right"></i>
+            <span class="te-theory-ex-to"
+              >{{ ex.toHiragana }} <small class="te-kanji-tiny">{{ ex.toKanji }}</small></span
+            >
+            <small>{{ ex.meaning }}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exception if present -->
+      <div class="te-theory-exception" *ngIf="config.theory.group1.exceptions as exc">
+        <div class="te-theory-exception-head">
+          <i class="fas fa-triangle-exclamation"></i>
+          <strong>{{ exc.title }}</strong>
+        </div>
+        <p class="te-theory-exception-note" *ngIf="exc.note">{{ exc.note }}</p>
+        <div class="te-theory-examples" *ngIf="exc.examples">
+          <div class="te-theory-example" *ngFor="let ex of exc.examples">
+            <span class="te-theory-ex-from"
+              >{{ ex.fromHiragana }} <small class="te-kanji-tiny">{{ ex.fromKanji }}</small></span
+            >
+            <i class="fas fa-arrow-right"></i>
+            <span class="te-theory-ex-to"
+              >{{ ex.toHiragana }} <small class="te-kanji-tiny">{{ ex.toKanji }}</small></span
+            >
+            <small>{{ ex.meaning }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GROUP 2 THEORY ──────────────────────────────────────── -->
+    <div class="te-theory-content" *ngIf="theoryActiveGroup === 2 && config.theory.group2">
+      <div class="te-theory-intro">
+        <h3>{{ config.theory.group2.introTitle }}</h3>
+        <p>{{ config.theory.group2.introDesc }}</p>
+      </div>
+
+      <div class="te-theory-rule" *ngFor="let rule of config.theory.group2.rules">
+        <div class="te-theory-rule-head">
+          <span class="te-theory-rule-badge">{{ rule.badge }}</span>
+          <span class="te-theory-rule-arrow">{{ rule.arrow || '→' }}</span>
+          <span class="te-theory-rule-result">{{ rule.result }}</span>
+        </div>
+        <p *ngIf="rule.description">{{ rule.description }}</p>
+        <div class="te-theory-examples">
+          <div class="te-theory-example" *ngFor="let ex of rule.examples">
+            <span class="te-theory-ex-from"
+              >{{ ex.fromHiragana }} <small class="te-kanji-tiny">{{ ex.fromKanji }}</small></span
+            >
+            <i class="fas fa-arrow-right"></i>
+            <span class="te-theory-ex-to"
+              >{{ ex.toHiragana }} <small class="te-kanji-tiny">{{ ex.toKanji }}</small></span
+            >
+            <small>{{ ex.meaning }}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exception if present -->
+      <div class="te-theory-exception" *ngIf="config.theory.group2.exceptions as exc">
+        <div class="te-theory-exception-head">
+          <i class="fas fa-triangle-exclamation"></i>
+          <strong>{{ exc.title }}</strong>
+        </div>
+        <p class="te-theory-exception-note" *ngIf="exc.note">{{ exc.note }}</p>
+      </div>
+    </div>
+
+    <!-- ── GROUP 3 THEORY ──────────────────────────────────────── -->
+    <div class="te-theory-content" *ngIf="theoryActiveGroup === 3 && config.theory.group3">
+      <div class="te-theory-intro">
+        <h3>{{ config.theory.group3.introTitle }}</h3>
+        <p>{{ config.theory.group3.introDesc }}</p>
+      </div>
+
+      <div class="te-theory-rule" *ngFor="let rule of config.theory.group3.rules">
+        <div class="te-theory-rule-head">
+          <span class="te-theory-rule-badge">{{ rule.badge }}</span>
+          <span class="te-theory-rule-arrow">{{ rule.arrow || '→' }}</span>
+          <span class="te-theory-rule-result">{{ rule.result }}</span>
+        </div>
+        <p *ngIf="rule.description">{{ rule.description }}</p>
+        <div class="te-theory-examples">
+          <div class="te-theory-example" *ngFor="let ex of rule.examples">
+            <span class="te-theory-ex-from"
+              >{{ ex.fromHiragana }} <small class="te-kanji-tiny">{{ ex.fromKanji }}</small></span
+            >
+            <i class="fas fa-arrow-right"></i>
+            <span class="te-theory-ex-to"
+              >{{ ex.toHiragana }} <small class="te-kanji-tiny">{{ ex.toKanji }}</small></span
+            >
+            <small>{{ ex.meaning }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Switch to Practice Mode at the bottom of Theory -->
+    <div class="te-theory-bottom-cta">
+      <div class="theory-cta-card">
+        <div class="theory-cta-badge">
+          <i class="fas fa-bolt"></i> ĐÃ NẮM VỮNG QUY TẮC CHIA?
+        </div>
+        <h3>{{ config.theory.bottomCtaTitle || ('Bắt đầu luyện tập ' + config.title + ' ngay') }}</h3>
+        <p>{{ config.theory.bottomCtaDesc || 'Thực hành trắc nghiệm và ghép từ để rèn luyện phản xạ chia thể nhanh và chính xác.' }}</p>
+        <button type="button" class="btn-theory-start-practice" (click)="switchView('practice')">
+          <i class="fas fa-dumbbell"></i>
+          <span>Vào phòng luyện tập</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

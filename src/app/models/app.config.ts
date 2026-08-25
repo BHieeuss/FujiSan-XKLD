@@ -135,16 +135,9 @@ export const APP_LEARNING_MENU: AppSubmenuItem[] = [
   },
   {
     id: 'luyen-tap',
-    label: 'Luyện tập',
-    link: '/luyen-the-te',
-    icon: 'fas fa-dumbbell',
-    children: [
-      {
-        label: 'Chia động từ — Thể て',
-        link: '/luyen-the-te',
-        jpBadge: 'て',
-      },
-    ],
+    label: 'Luyện chia thể',
+    link: '/luyen-tap',
+    jpBadge: '活',
   },
 ];
 

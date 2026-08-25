@@ -167,7 +167,7 @@ $color-group3: #e8913a; // Cam — Nhóm 3 (đặc biệt, cần ghi nhớ)
   box-shadow: $te-shadow-sm;
 }
 
-// Always-visible strip: back + toggle button
+// Always-visible strip: back + switcher + toggle button
 .te-header-bar {
   max-width: 860px;
   margin: 0 auto;
@@ -177,14 +177,326 @@ $color-group3: #e8913a; // Cam — Nhóm 3 (đặc biệt, cần ghi nhớ)
   gap: 0.5rem;
 }
 
-// Toggle button (expands across remaining space)
-.te-header-toggle {
+// ── Quick Form Switcher ──────────────────────────────────────────
+.te-form-switcher {
   flex: 1;
+  position: relative;
+}
+
+.te-switcher-trigger {
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.3rem 0.75rem;
+  gap: 0.55rem;
+  padding: 0.32rem 0.75rem;
+  border: 1px solid $te-border-light;
+  border-radius: $te-radius-xs;
+  background: $te-bg-subtle;
+  color: $te-text;
+  cursor: pointer;
+  font-family: $te-font-vn;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .switcher-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.3rem;
+    border-radius: 6px;
+    background: linear-gradient(135deg, $te-primary, #1d4ed8);
+    color: #ffffff;
+    font-family: $te-font-jp;
+    font-size: 0.78rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(74, 124, 219, 0.2);
+  }
+
+  .switcher-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .switcher-jp-badge {
+      font-family: $te-font-jp;
+      font-weight: 800;
+      color: $te-primary;
+    }
+
+    .switcher-sep {
+      color: $te-text-hint;
+    }
+
+    .switcher-vn-title {
+      font-weight: 700;
+      color: $te-text;
+    }
+  }
+
+  .switcher-arrow {
+    font-size: 0.72rem;
+    color: $te-text-sub;
+    transition: transform 0.25s ease;
+
+    &.rotated {
+      transform: rotate(180deg);
+      color: $te-primary;
+    }
+  }
+
+  &:hover,
+  .te-form-switcher.open & {
+    background: #ffffff;
+    border-color: rgba(74, 124, 219, 0.4);
+    box-shadow: 0 2px 8px rgba(74, 124, 219, 0.12);
+  }
+}
+
+// Switcher Dropdown Panel (Floating Card)
+.te-switcher-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  min-width: 320px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  animation: te-fade-in 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  .switcher-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #edf2f7;
+
+    .panel-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+
+      .panel-icon {
+        font-size: 0.95rem;
+      }
+
+      .panel-heading {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: 0.02em;
+      }
+    }
+
+    .panel-hub-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: $te-primary;
+      text-decoration: none;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      background: $te-primary-bg;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+
+      i {
+        font-size: 0.7rem;
+      }
+
+      &:hover {
+        background: rgba(74, 124, 219, 0.18);
+      }
+    }
+  }
+
+  .switcher-scroll-area {
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 0.75rem;
+
+    &::-webkit-scrollbar {
+      width: 5px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #f8fafc;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  }
+
+  .switcher-group-section {
+    margin-bottom: 0.85rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .switcher-group-heading {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.25rem 0.35rem 0.45rem;
+
+      .level-pill {
+        padding: 0.15rem 0.45rem;
+        border-radius: 5px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+
+        &.n5 {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        &.n4 {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+      }
+
+      .level-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #64748b;
+      }
+    }
+
+    .switcher-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.4rem;
+    }
+  }
+
+  .switcher-card-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    text-decoration: none;
+    transition: all 0.18s ease;
+
+    .card-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 0.25rem;
+      border-radius: 7px;
+      background: #f1f5f9;
+      color: #334155;
+      font-family: $te-font-jp;
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+
+      &.is-long {
+        font-size: 0.7rem;
+      }
+    }
+
+    .card-text {
+      flex: 1;
+      min-width: 0;
+
+      .card-name {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #1e293b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .card-formula {
+        display: block;
+        font-size: 0.7rem;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .card-active-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 9999px;
+      background: #2563eb;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+
+      .card-badge {
+        background: #2563eb;
+        color: #ffffff;
+      }
+    }
+
+    &.current {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+
+      .card-badge {
+        background: #2563eb;
+        color: #ffffff;
+      }
+
+      .card-name {
+        color: #1d4ed8;
+        font-weight: 800;
+      }
+
+      .card-formula {
+        color: #3b82f6;
+      }
+    }
+  }
+}
+
+// Toggle button (square button)
+.te-header-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border: 1px solid $te-border-light;
   border-radius: $te-radius-xs;
   background: $te-bg-subtle;
@@ -194,9 +506,10 @@ $color-group3: #e8913a; // Cam — Nhóm 3 (đặc biệt, cần ghi nhớ)
   font-size: 0.8rem;
   font-weight: 700;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 
   i {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: $te-text-hint;
     transition: transform 0.3s ease;
   }
@@ -208,16 +521,6 @@ $color-group3: #e8913a; // Cam — Nhóm 3 (đặc biệt, cần ghi nhớ)
 
     i {
       color: $te-primary;
-    }
-  }
-
-  .te-header-toggle-title {
-    font-family: $te-font-jp;
-    font-size: 0.82rem;
-
-    &.collapsed-hint {
-      color: $te-accent;
-      font-weight: 900;
     }
   }
 }
@@ -1829,7 +2132,7 @@ $color-group3: #e8913a; // Cam — Nhóm 3 (đặc biệt, cần ghi nhớ)
 
 .te-theory-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 
   h2 {
     font-family: $te-font-jp;

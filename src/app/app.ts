@@ -94,6 +94,18 @@ export class App implements OnInit, OnDestroy {
     );
     this.isPracticeMode.set(
       path === '/luyen-the-te' ||
+        path === '/luyen-the-ta' ||
+        path === '/luyen-the-nai' ||
+        path === '/luyen-the-ru' ||
+        path === '/luyen-the-y-chi' ||
+        path === '/luyen-the-menh-lenh' ||
+        path === '/luyen-the-cam-chi' ||
+        path === '/luyen-the-kha-nang' ||
+        path === '/luyen-the-dieu-kien' ||
+        path === '/luyen-the-bi-dong' ||
+        path === '/luyen-the-sai-khien' ||
+        path === '/luyen-the-sai-khien-bi-dong' ||
+        path === '/luyen-tap' ||
         path === '/hoc-hiragana' ||
         path === '/hoc-katakana' ||
         path === '/hoc-so-dem',
