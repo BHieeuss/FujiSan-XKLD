@@ -1,0 +1,368 @@
+<!-- ============================================================
+     FOOTER - Chân trang website
+     ============================================================ -->
+<footer class="footer">
+  <!-- Main Footer -->
+  <div class="footer-main">
+    <div class="container">
+      <div class="row g-4">
+        <!-- Thông tin công ty -->
+        <div class="col-lg-4 col-md-6">
+          <div class="footer-section">
+            <h3 class="footer-title">
+              <img src="assets/images/logo.png" alt="VieJap" class="footer-logo" />
+            </h3>
+            <p class="footer-desc mb-3">
+              {{ companyInfo.name }} - Kết nối nguồn nhân lực Việt Nam với thị trường lao động quốc
+              tế.
+            </p>
+            <div class="company-details">
+              <p class="mb-2">
+                <i class="fas fa-building me-2 text-primary"></i>
+                <strong>{{ companyInfo.taxCode }}</strong>
+              </p>
+              <p class="mb-2">
+                <i class="fas fa-certificate me-2 text-primary"></i>
+                {{ companyInfo.license }}
+              </p>
+              <p class="mb-0">
+                <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                {{ companyInfo.address }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liên kết nhanh -->
+        <div class="col-lg-2 col-md-6">
+          <div class="footer-section">
+            <h4 class="footer-heading">Liên kết nhanh</h4>
+            <ul class="footer-links">
+              <li *ngFor="let link of quickLinks">
+                <a
+                  routerLink="/"
+                  [fragment]="quickLinkTargets[link.label]"
+                  class="footer-link"
+                >
+                  <i class="fas fa-angle-right me-2"></i>{{ link.label }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Chương trình -->
+        <div class="col-lg-3 col-md-6">
+          <div class="footer-section">
+            <h4 class="footer-heading">Chương trình</h4>
+            <ul class="footer-links">
+              <li *ngFor="let link of programLinks">
+                <a routerLink="/" fragment="chuong-trinh" class="footer-link">
+                  <i class="fas fa-angle-right me-2"></i>{{ link.label }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Liên hệ -->
+        <div class="col-lg-3 col-md-6">
+          <div class="footer-section">
+            <h4 class="footer-heading">Liên hệ</h4>
+            <ul class="footer-contact">
+              <li>
+                <a [href]="'tel:' + contactInfo.hotline" class="contact-link">
+                  <i class="fas fa-phone-alt me-2"></i>
+                  <span>Hotline: {{ contactInfo.hotline }}</span>
+                </a>
+              </li>
+              <li>
+                <a [href]="'mailto:' + contactInfo.email" class="contact-link">
+                  <i class="fas fa-envelope me-2"></i>
+                  <span>{{ contactInfo.email }}</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  [href]="contactInfo.zaloUrl"
+                  class="contact-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i class="fab fa-facebook-messenger me-2"></i>
+                  <span>Zalo: {{ contactInfo.zalo }}</span>
+                </a>
+              </li>
+            </ul>
+
+            <!-- Social Media -->
+            <div class="social-media mt-4">
+              <h5 class="social-heading mb-3">Theo dõi chúng tôi</h5>
+              <div class="social-links">
+                <a
+                  [href]="socialMedia.facebook.url"
+                  class="social-link facebook"
+                  title="Facebook"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i class="fab fa-facebook-f"></i>
+                </a>
+                <a
+                  [href]="socialMedia.tiktok.url"
+                  class="social-link tiktok"
+                  title="TikTok"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i class="fab fa-tiktok"></i>
+                </a>
+                <a
+                  [href]="socialMedia.youtube.url"
+                  class="social-link youtube"
+                  title="YouTube"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i class="fab fa-youtube"></i>
+                </a>
+                <a
+                  [href]="socialMedia.zalo.url"
+                  class="social-link zalo"
+                  title="Zalo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i class="fas fa-comment-dots"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Bottom -->
+  <div class="footer-bottom">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start">
+          <p class="copyright mb-0">
+            &copy; {{ currentYear }} <strong>{{ companyInfo.shortName }}</strong
+            >. Tất cả quyền được bảo lưu.
+          </p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <ul class="footer-bottom-links">
+            <li *ngFor="let link of supportLinks; let isLast = last">
+              <a [routerLink]="link.link" class="bottom-link">{{ link.label }}</a>
+              <span *ngIf="!isLast" class="separator">|</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Access Button -->
+  <div class="quick-access" [class.is-open]="isQuickAccessOpen">
+    <div id="quick-access-menu" class="quick-access-menu" *ngIf="isQuickAccessOpen">
+      <button
+        *ngFor="let link of quickAccessLinks"
+        type="button"
+        class="quick-access-link"
+        [attr.aria-label]="link.label"
+        (click)="openQuickAccessLink(link)"
+      >
+        <span class="quick-access-icon"><i [class]="link.icon"></i></span>
+        <span class="quick-access-copy">
+          <strong>{{ link.label }}</strong>
+          <small>{{ link.requiresPin ? 'Nhập mã để tiếp tục' : 'Xem các vị trí đang tuyển' }}</small>
+        </span>
+        <i
+          class="fas quick-access-status"
+          [class.fa-lock]="link.requiresPin"
+          [class.fa-arrow-right]="!link.requiresPin"
+          aria-hidden="true"
+        ></i>
+      </button>
+    </div>
+
+    <button
+      class="quick-access-toggle"
+      type="button"
+      (click)="toggleQuickAccess()"
+      [attr.aria-label]="isQuickAccessOpen ? 'Đóng liên kết nhanh' : 'Mở liên kết nhanh'"
+      [attr.aria-expanded]="isQuickAccessOpen"
+      aria-controls="quick-access-menu"
+    >
+      <i [class]="isQuickAccessOpen ? 'fas fa-times' : 'fas fa-link'"></i>
+    </button>
+  </div>
+
+  <!-- Order list viewer -->
+  <div
+    class="order-list-viewer"
+    *ngIf="isOrderListOpen"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="order-list-title"
+    (click)="closeOrderListViewer()"
+  >
+    <section class="order-list-card" (click)="$event.stopPropagation()">
+      <header class="order-list-header">
+        <div class="order-list-heading">
+          <span class="order-list-icon" aria-hidden="true">
+            <i class="fas fa-list-check"></i>
+          </span>
+          <div>
+            <span class="order-list-kicker">Cập nhật từ Google Sheet</span>
+            <h2 id="order-list-title">Danh sách đơn hàng đang tuyển</h2>
+            <p>Xem nhanh các vị trí đang mở, điều kiện và ghi chú mới nhất từ VieJap.</p>
+          </div>
+        </div>
+
+        <div class="order-list-actions">
+          <button type="button" class="order-list-open" (click)="openOrderListInGoogle()">
+            <i class="fas fa-arrow-up-right-from-square"></i>
+            Mở Google Sheet
+          </button>
+          <button
+            type="button"
+            class="order-list-close"
+            aria-label="Đóng danh sách đơn hàng"
+            (click)="closeOrderListViewer()"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="order-list-frame-wrap">
+        <div class="order-list-loading" *ngIf="!isOrderListFrameLoaded">
+          <span aria-hidden="true"><i class="fas fa-spinner"></i></span>
+          <strong>Đang mở danh sách...</strong>
+          <small>Nếu Google yêu cầu quyền xem, hãy dùng nút mở Google Sheet phía trên.</small>
+        </div>
+
+        <iframe
+          class="order-list-frame"
+          [src]="orderListEmbedUrl"
+          title="Danh sách đơn hàng VieJap"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          (load)="onOrderListFrameLoad()"
+        ></iframe>
+      </div>
+
+      <footer class="order-list-footer">
+        <span><i class="fas fa-circle-info"></i> Dữ liệu lấy trực tiếp từ Google Sheet của VieJap.</span>
+        <button type="button" (click)="openOrderListInGoogle()">Không thấy nội dung? Mở bản đầy đủ</button>
+      </footer>
+    </section>
+  </div>
+
+  <!-- Registration access gate -->
+  <div
+    class="registration-gate"
+    *ngIf="isRegistrationGateOpen"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="registration-gate-title"
+    (click)="closeRegistrationGate()"
+  >
+    <section class="registration-gate-card" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="registration-gate-close"
+        aria-label="Đóng"
+        (click)="closeRegistrationGate()"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="registration-gate-icon" aria-hidden="true">
+        <i class="fas fa-user-check"></i>
+      </div>
+
+      <span class="registration-gate-kicker">Đăng ký cùng VieJap</span>
+      <h2 id="registration-gate-title">Nhập mã truy cập 4 số</h2>
+      <p>Mã này giúp VieJap xác nhận bạn đang mở đúng biểu mẫu đăng ký.</p>
+
+      <label for="registration-pin">Mã truy cập</label>
+      <div
+        class="registration-pin-field"
+        [class.is-valid]="isRegistrationPinValid"
+        [class.is-invalid]="registrationPinInput.length === 4 && !isRegistrationPinValid"
+      >
+        <i class="fas fa-lock" aria-hidden="true"></i>
+        <input
+          #registrationPinField
+          id="registration-pin"
+          type="password"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="4"
+          autocomplete="one-time-code"
+          placeholder="••••"
+          [value]="registrationPinInput"
+          (input)="onRegistrationPinInput($event)"
+          (keydown.enter)="continueToRegistration()"
+          aria-describedby="registration-pin-help"
+        />
+        <i
+          *ngIf="isRegistrationPinValid"
+          class="fas fa-check-circle registration-pin-check"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div
+        id="registration-pin-help"
+        class="registration-pin-message"
+        [class.is-success]="isRegistrationPinValid"
+        [class.is-error]="registrationPinInput.length === 4 && !isRegistrationPinValid"
+        aria-live="polite"
+      >
+        <i
+          [class]="
+            isRegistrationPinValid
+              ? 'fas fa-check-circle'
+              : registrationPinInput.length === 4
+                ? 'fas fa-exclamation-circle'
+                : 'fas fa-circle-info'
+          "
+        ></i>
+        <span>{{ registrationPinMessage || 'Vui lòng nhập đủ 4 chữ số.' }}</span>
+      </div>
+
+      <button
+        type="button"
+        class="registration-continue"
+        [disabled]="!isRegistrationPinValid"
+        (click)="continueToRegistration()"
+      >
+        <span>Tiếp tục đăng ký</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+
+      <small class="registration-gate-note">
+        <i class="fas fa-shield-alt"></i>
+        Biểu mẫu sẽ mở trong một tab mới.
+      </small>
+    </section>
+  </div>
+
+  <!-- Back to Top Button -->
+  <button
+    class="back-to-top"
+    [class.visible]="showBackToTop"
+    type="button"
+    (click)="scrollToTop()"
+    title="Về đầu trang"
+    aria-label="Về đầu trang"
+  >
+    <i class="fas fa-arrow-up"></i>
+  </button>
+</footer>

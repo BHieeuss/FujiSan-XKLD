@@ -1,0 +1,694 @@
+<!-- ============================================================
+     BẢNG CHỮ CÁI HIRAGANA - HIRAGANA LEARNING & PRACTICE
+     ============================================================ -->
+
+<div class="hira-wrapper">
+  <!-- ── HEADER / TABS ─────────────────────────────────────────── -->
+  <header class="hira-header" [class.collapsed]="headerCollapsed">
+    <!-- Always-visible minimal strip: back btn + toggle -->
+    <div class="hira-header-bar">
+      <button type="button" class="hira-back-btn" (click)="goHome()" title="Về trang chủ">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+
+      <button
+        type="button"
+        class="hira-header-toggle"
+        (click)="toggleHeader()"
+        [title]="headerCollapsed ? 'Mở rộng' : 'Thu gọn'"
+      >
+        <span class="hira-header-toggle-title" *ngIf="!headerCollapsed">あ Hiragana Học & Luyện tập</span>
+        <span class="hira-header-toggle-title collapsed-hint" *ngIf="headerCollapsed">あ Hiragana</span>
+        <i [class]="headerCollapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up'"></i>
+      </button>
+    </div>
+
+    <!-- Collapsible area: logo + tabs -->
+    <div class="hira-header-collapsible">
+      <div class="hira-header-content">
+        <div class="hira-logo">
+          <span class="hira-logo-jp">あ</span>
+          <div>
+            <h1>Bảng chữ cái Hiragana</h1>
+            <p>Hiragana Practice & Chart</p>
+          </div>
+        </div>
+
+        <nav class="hira-tabs" role="tablist">
+          <button
+            type="button"
+            class="hira-tab"
+            role="tab"
+            [class.active]="currentView === 'practice'"
+            (click)="switchView('practice')"
+          >
+            <i class="fas fa-dumbbell"></i>
+            <span>Luyện tập</span>
+          </button>
+          <button
+            type="button"
+            class="hira-tab"
+            role="tab"
+            [class.active]="currentView === 'theory'"
+            (click)="switchView('theory')"
+          >
+            <i class="fas fa-book-open"></i>
+            <span>Bảng chữ & Mẹo</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       PRACTICE VIEW
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="hira-main" *ngIf="currentView === 'practice'">
+    <!-- ── Audio reminder ────────────────────────────────────────── -->
+    <div class="hira-audio-reminder" *ngIf="!audioUnlocked">
+      <div class="hira-audio-reminder-icon">
+        <i class="fas fa-volume-high"></i>
+      </div>
+      <div class="hira-audio-reminder-content">
+        <strong>Nhớ bật âm thanh điện thoại</strong>
+        <p>Bật chuông/âm lượng để nghe phát âm từng chữ cái và âm báo đúng sai.</p>
+      </div>
+      <button type="button" class="hira-audio-reminder-btn" (click)="openAudioPrompt()">
+        Bật âm thanh
+      </button>
+    </div>
+
+    <!-- ── Score Bar (4 Metric Cards) ──────────────────────────── -->
+    <div class="hira-score-bar">
+      <div class="hira-score-item">
+        <i class="fas fa-book-open text-primary"></i>
+        <span>{{ progress.studiedCount() }}/104</span>
+        <small>Đã học</small>
+      </div>
+      <div class="hira-score-item">
+        <i class="fas fa-circle-check text-success"></i>
+        <span>{{ progress.masteredCount() }}</span>
+        <small>Thành thạo</small>
+      </div>
+      <div class="hira-score-item">
+        <i class="fas fa-rotate text-warning"></i>
+        <span>{{ progress.weakIds().length }}</span>
+        <small>Cần ôn</small>
+      </div>
+      <div class="hira-score-item hira-streak" [class.on-fire]="progress.streak() > 0">
+        <i class="fas fa-fire text-danger"></i>
+        <span>{{ progress.streak() }}</span>
+        <small>Chuỗi ngày</small>
+      </div>
+    </div>
+
+    <!-- ── Filter & Mode Toolbar ──────────────────────────────── -->
+    <div class="hira-toolbar-container">
+      <!-- Sub-tabs: Trắc nghiệm vs Luyện viết -->
+      <div class="hira-mode-pills" role="tablist">
+        <button
+          type="button"
+          class="hira-mode-pill"
+          [class.active]="activeTab === 'quiz'"
+          (click)="setTab('quiz')"
+        >
+          <i class="fas fa-list-check"></i>
+          <span>Trắc nghiệm</span>
+        </button>
+        <button
+          type="button"
+          class="hira-mode-pill"
+          [class.active]="activeTab === 'writing'"
+          (click)="setTab('writing')"
+        >
+          <i class="fas fa-pen-nib"></i>
+          <span>Luyện viết nét</span>
+        </button>
+      </div>
+
+      <!-- Group Category Chips -->
+      <div class="hira-group-chips" aria-label="Chọn nhóm Hiragana">
+        <button
+          *ngFor="let group of groupOptions"
+          type="button"
+          class="hira-chip"
+          [class.active]="selectedGroup === group.id"
+          [disabled]="group.id === 'weak' && group.count === 0"
+          (click)="selectGroup(group.id)"
+        >
+          <span>{{ group.label }}</span>
+          <span class="chip-count">{{ group.count }}</span>
+        </button>
+      </div>
+
+      <!-- Practice Mode Bar (Lượt 10 câu vs Ôn liên tục) -->
+      <div class="hira-sub-control-row" *ngIf="activeTab === 'quiz'">
+        <div class="mode-toggle-group">
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="quizMode === 'guided'"
+            (click)="setQuizMode('guided')"
+          >
+            <i class="fas fa-list-ol"></i> Lượt 10 câu
+          </button>
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="quizMode === 'continuous'"
+            (click)="setQuizMode('continuous')"
+          >
+            <i class="fas fa-infinity"></i> Ôn liên tục
+          </button>
+        </div>
+
+        <button class="hira-reset-btn" type="button" (click)="resetProgress()" title="Xóa tiến độ làm lại từ đầu">
+          <i class="fas fa-trash-can"></i> Xóa tiến độ
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TAB 1: TRẮC NGHIỆM
+         ══════════════════════════════════════════════════════════ -->
+    <ng-container *ngIf="activeTab === 'quiz'">
+      <!-- Active Question Card -->
+      <div
+        class="hira-exercise-card"
+        *ngIf="questions.length && !quizComplete"
+        [class.answered-correct]="answerLocked && selectedAnswer === currentQuestion?.correctAnswer"
+        [class.answered-wrong]="answerLocked && selectedAnswer !== currentQuestion?.correctAnswer"
+      >
+        <!-- Header badge -->
+        <div class="card-top-row">
+          <div class="hira-badge">
+            <i class="fas fa-list-check"></i>
+            <span>Câu {{ currentQuestionNumber }}{{ quizMode === 'guided' ? '/' + questions.length : '' }} · {{ selectedGroupLabel }}</span>
+          </div>
+          <span class="score-badge">{{ quizScoreLabel }}</span>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="hira-progress-track">
+          <div class="hira-progress-bar" [style.width.%]="quizProgressPercent"></div>
+        </div>
+
+        <!-- Question content -->
+        <div class="hira-prompt-area" *ngIf="currentQuestion as question">
+          <div class="hira-prompt-label">
+            {{ question.direction === 'kana-to-romaji' ? 'Chọn cách đọc Romaji đúng' : 'Chọn chữ Hiragana đúng' }}
+          </div>
+
+          <!-- Big Kana / Romaji Display -->
+          <div class="hira-char-display">
+            <span class="hira-char-main">{{ question.prompt }}</span>
+            <button
+              type="button"
+              class="hira-audio-btn"
+              (click)="playKanaAudio(question.prompt, $event)"
+              title="Nghe phát âm"
+              aria-label="Nghe phát âm"
+            >
+              <i class="fas fa-volume-high"></i>
+            </button>
+          </div>
+
+          <!-- 2x2 Option Tiles -->
+          <div class="hira-mc-grid">
+            <button
+              *ngFor="let answer of question.options; let index = index"
+              type="button"
+              class="hira-mc-option"
+              [ngClass]="answerClass(answer)"
+              [disabled]="answerLocked"
+              (click)="chooseAnswer(answer)"
+            >
+              <span class="option-key">{{ ['A', 'B', 'C', 'D'][index] }}</span>
+              <span class="option-text" [class.kana-font]="question.direction === 'romaji-to-kana'">
+                {{ answer }}
+              </span>
+              <span class="option-icon" *ngIf="answerLocked && answer === question.correctAnswer">
+                <i class="fas fa-check-circle"></i>
+              </span>
+              <span class="option-icon" *ngIf="answerLocked && selectedAnswer === answer && answer !== question.correctAnswer">
+                <i class="fas fa-times-circle"></i>
+              </span>
+            </button>
+          </div>
+
+          <!-- Answer Feedback Box -->
+          <div
+            class="hira-feedback-banner"
+            *ngIf="answerLocked"
+            [class.is-correct]="selectedAnswer === question.correctAnswer"
+          >
+            <div class="feedback-icon">
+              <i [class]="selectedAnswer === question.correctAnswer ? 'fas fa-circle-check' : 'fas fa-circle-exclamation'"></i>
+            </div>
+            <div class="feedback-text">
+              <strong>
+                {{ selectedAnswer === question.correctAnswer ? 'Chính xác! Xuất sắc' : 'Chưa đúng rồi! Đáp án là: ' + question.correctAnswer }}
+              </strong>
+              <small>{{ question.item.kana }} phát âm là "{{ question.item.romaji }}"</small>
+            </div>
+            <button type="button" class="feedback-next-btn" (click)="nextQuestion()">
+              <span>{{ quizMode === 'continuous' ? 'Câu tiếp' : currentQuestionIndex === questions.length - 1 ? 'Xem kết quả' : 'Câu tiếp theo' }}</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State (No weak items) -->
+      <div class="hira-empty-state" *ngIf="!questions.length && !quizComplete">
+        <div class="empty-icon-circle"><i class="fas fa-award"></i></div>
+        <h3>Tuyệt vời! Bạn chưa có chữ cần ôn</h3>
+        <p>Những chữ trả lời sai hoặc có độ chính xác dưới 80% sẽ tự động lưu vào đây.</p>
+        <button type="button" class="btn-action-primary" (click)="startQuiz('all')">
+          <i class="fas fa-play"></i> Làm bài tổng hợp tất cả chữ
+        </button>
+      </div>
+
+      <!-- Quiz Completed View -->
+      <div class="hira-complete-card" *ngIf="quizComplete">
+        <div class="complete-trophy-icon">🏆</div>
+        <div class="complete-score-ring">
+          <span class="score-percent">{{ quizAccuracy }}%</span>
+          <span class="score-text">{{ quizScore }}/{{ questions.length }} câu đúng</span>
+        </div>
+        <h2>{{ quizAccuracy >= 80 ? 'Bạn nhớ chữ rất chắc chắn!' : 'Cố gắng ôn thêm một lượt nhé!' }}</h2>
+        <p>
+          {{ quizWrongIds.size ? quizWrongIds.size + ' chữ chưa đúng đã được lưu vào nhóm Cần ôn để bạn luyện lại.' : 'Tuyệt đối chính xác! Toàn bộ 10 câu đều hoàn hảo.' }}
+        </p>
+        <div class="complete-actions">
+          <button type="button" class="btn-action-primary" (click)="startQuiz()">
+            <i class="fas fa-rotate-right"></i> Làm lượt mới
+          </button>
+          <button *ngIf="progress.weakIds().length" type="button" class="btn-action-secondary" (click)="reviewWeakItems()">
+            <i class="fas fa-rotate"></i> Ôn các chữ còn yếu ({{ progress.weakIds().length }})
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TAB 2: LUYỆN VIẾT NÉT
+         ══════════════════════════════════════════════════════════ -->
+    <ng-container *ngIf="activeTab === 'writing'">
+      <div class="hira-sub-control-row">
+        <div class="mode-toggle-group">
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="writingMode === 'guided'"
+            (click)="setWritingMode('guided')"
+          >
+            <i class="fas fa-table-cells"></i> Chọn theo danh sách
+          </button>
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="writingMode === 'continuous'"
+            (click)="setWritingMode('continuous')"
+          >
+            <i class="fas fa-shuffle"></i> Ngẫu nhiên liên tục
+          </button>
+        </div>
+      </div>
+
+      <div class="hira-writing-layout" *ngIf="writingItem as item">
+        <!-- Sidebar Kana Picker -->
+        <aside class="hira-picker-card">
+          <div class="picker-header">
+            <div>
+              <span class="picker-group-badge">{{ groupLabel(item.group) }}</span>
+              <h4>Chọn chữ luyện</h4>
+            </div>
+            <span class="picker-total">{{ filteredWritingItems.length }} chữ</span>
+          </div>
+
+          <div class="picker-grid">
+            <button
+              *ngFor="let candidate of filteredWritingItems; trackBy: trackItem"
+              type="button"
+              class="picker-tile"
+              [class.active]="candidate.id === item.id"
+              [class.is-weak]="isWeak(candidate)"
+              [class.is-mastered]="isMastered(candidate)"
+              (click)="selectWritingItem(candidate)"
+            >
+              <strong>{{ candidate.kana }}</strong>
+              <small>{{ candidate.romaji }}</small>
+            </button>
+          </div>
+
+          <div class="picker-nav-row">
+            <button
+              type="button"
+              class="nav-arrow-btn"
+              [disabled]="writingMode === 'continuous'"
+              (click)="moveWritingItem(-1)"
+              title="Chữ trước"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="picker-current-info">
+              <strong>{{ item.kana }}</strong>
+              <span>{{ item.romaji }}</span>
+            </div>
+            <button
+              type="button"
+              class="nav-arrow-btn"
+              (click)="writingMode === 'continuous' ? selectRandomWritingItem() : moveWritingItem(1)"
+              title="Chữ tiếp theo"
+            >
+              <i [class]="writingMode === 'continuous' ? 'fas fa-shuffle' : 'fas fa-chevron-right'"></i>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Canvas Drawing Tool -->
+        <section class="hira-canvas-card">
+          <div class="canvas-header-row">
+            <div class="canvas-title-group">
+              <span class="canvas-kicker">Luyện theo thứ tự nét</span>
+              <h3>
+                {{ item.kana }}
+                <small>({{ item.romaji }})</small>
+                <button type="button" class="btn-inline-sound" (click)="playKanaAudio(item.kana, $event)">
+                  <i class="fas fa-volume-high"></i>
+                </button>
+              </h3>
+            </div>
+            <div class="canvas-action-buttons">
+              <button type="button" class="btn-tool" (click)="restartWriting()" title="Viết lại từ nét đầu">
+                <i class="fas fa-rotate-right"></i> <span>Viết lại</span>
+              </button>
+              <button *ngIf="writingMode === 'continuous'" type="button" class="btn-tool" (click)="selectRandomWritingItem()" title="Đổi chữ ngẫu nhiên khác">
+                <i class="fas fa-shuffle"></i> <span>Đổi chữ</span>
+              </button>
+            </div>
+          </div>
+
+          <p class="canvas-hint">
+            Dùng chuột hoặc ngón tay chạm vẽ theo hướng dẫn. Hệ thống kiểm tra đúng thứ tự từng nét.
+          </p>
+
+          <div class="hira-stroke-pads-wrapper" [class.is-compound]="item.glyphs.length > 1">
+            <app-stroke-pad
+              *ngFor="let glyph of item.glyphs; let index = index"
+              [data]="strokeData[glyph]"
+              [label]="item.glyphs.length > 1 ? 'Ô nét ' + (index + 1) : 'Khung luyện viết'"
+              [active]="index === activeGlyphIndex && !writingComplete"
+              [resetToken]="writingResetToken"
+              (padCompleted)="onGlyphCompleted(index)"
+              (padSkipped)="onGlyphSkipped(index)"
+            ></app-stroke-pad>
+          </div>
+
+          <!-- Writing Complete Banner -->
+          <div class="writing-complete-box" *ngIf="writingComplete" [class.is-skipped]="writingSkipped">
+            <div class="complete-box-icon">
+              <i [class]="writingSkipped ? 'fas fa-flag' : 'fas fa-circle-check'"></i>
+            </div>
+            <div class="complete-box-copy">
+              <strong>{{ writingSkipped ? 'Đã lưu vào nhóm Cần ôn' : 'Hoàn thành viết chữ ' + item.kana + '!' }}</strong>
+              <small>{{ writingSkipped ? 'Bạn có thể luyện lại chữ này bất cứ lúc nào.' : 'Thứ tự và hướng nét đã vẽ chính xác.' }}</small>
+            </div>
+            <button type="button" class="btn-continue-writing" (click)="continueWriting()">
+              <span>{{ writingMode === 'continuous' ? 'Chữ ngẫu nhiên tiếp' : 'Chữ tiếp theo' }}</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </section>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       THEORY VIEW: BẢNG CHỮ CÁI & MẸO GHI NHỚ
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="hira-main" *ngIf="currentView === 'theory'">
+    <!-- Segmented Tab Navigation for Chart -->
+    <div class="theory-nav-container">
+      <div class="theory-segmented-pills">
+        <button
+          type="button"
+          class="theory-pill"
+          [class.active]="theoryTab === 'basic'"
+          (click)="setTheoryTab('basic')"
+        >
+          <span class="pill-badge">46</span>
+          <span>Âm cơ bản (Seion)</span>
+        </button>
+        <button
+          type="button"
+          class="theory-pill"
+          [class.active]="theoryTab === 'voiced'"
+          (click)="setTheoryTab('voiced')"
+        >
+          <span class="pill-badge">25</span>
+          <span>Âm đục & Bán đục</span>
+        </button>
+        <button
+          type="button"
+          class="theory-pill"
+          [class.active]="theoryTab === 'yoon'"
+          (click)="setTheoryTab('yoon')"
+        >
+          <span class="pill-badge">33</span>
+          <span>Âm ghép (Yōon)</span>
+        </button>
+        <button
+          type="button"
+          class="theory-pill"
+          [class.active]="theoryTab === 'rules'"
+          (click)="setTheoryTab('rules')"
+        >
+          <span class="pill-badge">💡</span>
+          <span>Mẹo & Quy tắc đọc</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── TAB 1: 46 ÂM CƠ BẢN ──────────────────────────────────── -->
+    <section class="theory-content-card" *ngIf="theoryTab === 'basic'">
+      <div class="card-header-banner">
+        <span class="banner-tag">🌟 BẢNG 50 ÂM CƠ BẢN (GOJŪON)</span>
+        <h3>Bảng chữ cái Hiragana chuẩn 46 âm</h3>
+        <p>Bấm vào từng chữ để nghe phát âm giọng chuẩn Nhật Bản.</p>
+      </div>
+
+      <div class="chart-table-wrapper">
+        <div class="chart-header-row">
+          <div class="chart-col-title col-row-label"><span>Hàng</span></div>
+          <div class="chart-col-title">A <small class="col-kana-hint">(あ)</small></div>
+          <div class="chart-col-title">I <small class="col-kana-hint">(い)</small></div>
+          <div class="chart-col-title">U <small class="col-kana-hint">(う)</small></div>
+          <div class="chart-col-title">E <small class="col-kana-hint">(え)</small></div>
+          <div class="chart-col-title">O <small class="col-kana-hint">(お)</small></div>
+        </div>
+
+        <div class="chart-data-row" *ngFor="let row of basicChartRows">
+          <div class="chart-row-label">
+            <strong>{{ row.consonant }}</strong>
+            <small>{{ row.rowLabel }}</small>
+          </div>
+          <div class="chart-cells-group">
+            <ng-container *ngFor="let cell of row.cells">
+              <button
+                *ngIf="!cell.empty"
+                type="button"
+                class="kana-cell-btn"
+                (click)="playKanaAudio(cell.kana)"
+                title="Bấm để nghe phát âm {{ cell.romaji }}"
+              >
+                <span class="cell-kana">{{ cell.kana }}</span>
+                <span class="cell-romaji">{{ cell.romaji }}</span>
+                <i class="fas fa-volume-high cell-sound-hint"></i>
+              </button>
+              <div *ngIf="cell.empty" class="kana-cell-empty"></div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TAB 2: ÂM ĐỤC & BÁN ĐỤC ─────────────────────────────── -->
+    <section class="theory-content-card" *ngIf="theoryTab === 'voiced'">
+      <div class="card-header-banner">
+        <span class="banner-tag">✨ BIẾN ÂM DAKUON & HANDAKUON</span>
+        <h3>Bảng 25 Âm đục (゛) và Bán đục (゜)</h3>
+        <p>Thêm dấu Tenten (゛) hoặc Maru (゜) vào góc phải trên chữ để biến đổi âm đọc.</p>
+      </div>
+
+      <div class="chart-table-wrapper">
+        <div class="chart-header-row">
+          <div class="chart-col-title col-row-label"><span>Hàng</span></div>
+          <div class="chart-col-title">A</div>
+          <div class="chart-col-title">I</div>
+          <div class="chart-col-title">U</div>
+          <div class="chart-col-title">E</div>
+          <div class="chart-col-title">O</div>
+        </div>
+
+        <div class="chart-data-row" *ngFor="let row of voicedChartRows">
+          <div class="chart-row-label">
+            <strong>{{ row.consonant }}</strong>
+            <small>{{ row.rowLabel }}</small>
+          </div>
+          <div class="chart-cells-group">
+            <button
+              *ngFor="let cell of row.cells"
+              type="button"
+              class="kana-cell-btn theme-voiced"
+              (click)="playKanaAudio(cell.kana)"
+              title="Bấm để nghe phát âm {{ cell.romaji }}"
+            >
+              <span class="cell-kana">{{ cell.kana }}</span>
+              <span class="cell-romaji">{{ cell.romaji }}</span>
+              <i class="fas fa-volume-high cell-sound-hint"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TAB 3: ÂM GHÉP (YŌON) ────────────────────────────────── -->
+    <section class="theory-content-card" *ngIf="theoryTab === 'yoon'">
+      <div class="card-header-banner">
+        <span class="banner-tag">🎨 ÂM GHÉP (YŌON)</span>
+        <h3>Bảng 33 Âm ghép với Ya (ゃ), Yu (ゅ), Yo (ょ) nhỏ</h3>
+        <p>Kết hợp các âm ở cột I (ki, shi, chi, ni, hi, mi, ri, gi, ji, bi, pi) với ゃ, ゅ, ょ viết nhỏ bằng 1/2 kích thước.</p>
+      </div>
+
+      <div class="yoon-grid-container">
+        <div class="yoon-card" *ngFor="let item of yoonItems" (click)="playKanaAudio(item.kana)">
+          <div class="yoon-kana-display">{{ item.kana }}</div>
+          <div class="yoon-romaji-label">{{ item.romaji }}</div>
+          <i class="fas fa-volume-high yoon-sound-icon"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TAB 4: MẸO & QUY TẮC ĐỌC ─────────────────────────────── -->
+    <section class="theory-content-card" *ngIf="theoryTab === 'rules'">
+      <div class="card-header-banner">
+        <span class="banner-tag">💡 KINH NGHIỆM GHI NHỚ</span>
+        <h3>Mẹo nhận diện chữ và các quy tắc phát âm đặc biệt</h3>
+        <p>Tổng hợp những điểm cốt lõi giúp bạn học nhanh gấp đôi và không bị nhầm lẫn mặt chữ.</p>
+      </div>
+
+      <!-- Cặp chữ dễ nhầm -->
+      <div class="rules-section-block">
+        <h4 class="rules-block-title">
+          <i class="fas fa-eye text-warning"></i> 5 Cặp chữ Hiragana rất dễ nhầm lẫn
+        </h4>
+        <div class="confusion-cards-grid">
+          <div class="confusion-card">
+            <div class="pair-display">
+              <span class="char-a" (click)="playKanaAudio('さ')">さ (sa)</span>
+              <span class="divider-vs">vs</span>
+              <span class="char-b" (click)="playKanaAudio('ち')">ち (chi)</span>
+            </div>
+            <p><strong>さ (sa)</strong> nét móc vòng về bên phải, còn <strong>ち (chi)</strong> nét móc vòng về bên trái (giống số 5 lộn ngược).</p>
+          </div>
+
+          <div class="confusion-card">
+            <div class="pair-display">
+              <span class="char-a" (click)="playKanaAudio('は')">は (ha)</span>
+              <span class="divider-vs">vs</span>
+              <span class="char-b" (click)="playKanaAudio('ほ')">ほ (ho)</span>
+            </div>
+            <p><strong>は (ha)</strong> nét ngang không thò lên trên, còn <strong>ほ (ho)</strong> có nét ngang phụ che trên đầu nét thẳng.</p>
+          </div>
+
+          <div class="confusion-card">
+            <div class="pair-display">
+              <span class="char-a" (click)="playKanaAudio('ね')">ね (ne)</span>
+              <span class="divider-vs">vs</span>
+              <span class="char-b" (click)="playKanaAudio('れ')">れ (re)</span>
+            </div>
+            <p><strong>ね (ne)</strong> đuôi xoắn tròn lại ở cuối, <strong>れ (re)</strong> đuôi uốn hất lên trên, <strong>わ (wa)</strong> bụng tròn phồng ra.</p>
+          </div>
+
+          <div class="confusion-card">
+            <div class="pair-display">
+              <span class="char-a" (click)="playKanaAudio('め')">め (me)</span>
+              <span class="divider-vs">vs</span>
+              <span class="char-b" (click)="playKanaAudio('ぬ')">ぬ (nu)</span>
+            </div>
+            <p><strong>ぬ (nu)</strong> có đuôi xoắn tròn ở cuối giống chữ ね, còn <strong>め (me)</strong> đuôi kéo mượt buông xuống không xoắn.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quy tắc phát âm -->
+      <div class="rules-section-block">
+        <h4 class="rules-block-title">
+          <i class="fas fa-spell-check text-primary"></i> Quy tắc âm ngắt (っ) và trường âm
+        </h4>
+        <div class="rule-box-grid">
+          <div class="rule-box">
+            <div class="rule-icon-circle bg-blue"><i class="fas fa-pause"></i></div>
+            <div class="rule-box-body">
+              <h5>Âm ngắt (Sokuon - っ nhỏ)</h5>
+              <p>Chữ <strong>つ</strong> viết nhỏ <strong>っ</strong> biểu thị khoảng ngừng gấp đôi phụ âm sau nó.</p>
+              <div class="rule-example">
+                Ví dụ: <strong>がっこう</strong> (gakkou - trường học), <strong>きって</strong> (kitte - tem thư).
+              </div>
+            </div>
+          </div>
+
+          <div class="rule-box">
+            <div class="rule-icon-circle bg-green"><i class="fas fa-wave-square"></i></div>
+            <div class="rule-box-body">
+              <h5>Trường âm (Chōon - Kéo dài âm)</h5>
+              <p>Kéo dài nguyên âm 1 phách khi gặp chữ cùng hàng:</p>
+              <div class="rule-example">
+                • Hàng O kéo dài bằng <strong>う</strong>: <strong>おとうさん</strong> (otousan - bố).<br />
+                • Hàng E kéo dài bằng <strong>い</strong>: <strong>せんせい</strong> (sensei - thầy cô).
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Bottom CTA to switch to Practice Mode ───────────────── -->
+    <div class="hira-theory-bottom-cta">
+      <div class="theory-cta-card">
+        <div class="theory-cta-badge">
+          <i class="fas fa-bolt"></i> ĐÃ NẮM VỮNG LÝ THUYẾT?
+        </div>
+        <h3>Bắt đầu luyện tập phản xạ ngay</h3>
+        <p>Thực hành trắc nghiệm và luyện viết nét theo bảng chữ vừa học để nhớ lâu hơn.</p>
+        <button type="button" class="btn-theory-start-practice" (click)="switchView('practice')">
+          <i class="fas fa-dumbbell"></i>
+          <span>Bắt đầu luyện tập</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Audio Prompt Modal ────────────────────────────────────── -->
+  <div class="hira-modal-overlay" *ngIf="showAudioPrompt" (click)="closeAudioPrompt()">
+    <div class="hira-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-icon-glow">🔊</div>
+      <h3>Bật âm thanh học tiếng Nhật</h3>
+      <p>
+        Trình duyệt điện thoại cần bạn chạm xác nhận để cho phép phát âm từ vựng và chuông phản hồi đúng/sai tự động.
+      </p>
+      <div class="modal-alert-error" *ngIf="audioPromptError">{{ audioPromptError }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-enable" (click)="enableAudioSupport()">
+          <i class="fas fa-volume-high"></i> Bật âm thanh ngay
+        </button>
+        <button type="button" class="btn-modal-cancel" (click)="closeAudioPrompt()">
+          Để sau
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

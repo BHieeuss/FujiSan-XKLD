@@ -1,0 +1,69 @@
+<main class="support-page">
+  <section class="support-hero">
+    <div class="container">
+      <a routerLink="/" class="support-back">
+        <i class="fas fa-arrow-left"></i>
+        Về trang chủ
+      </a>
+
+      <div class="support-hero-layout">
+        <div>
+          <span class="support-eyebrow">{{ page.eyebrow }}</span>
+          <h1>{{ page.title }}</h1>
+          <p>{{ page.description }}</p>
+        </div>
+        <span class="support-hero-icon" aria-hidden="true">
+          <i [class]="page.icon"></i>
+        </span>
+      </div>
+
+      <div class="support-updated">
+        <i class="fas fa-clock"></i>
+        Cập nhật ngày {{ page.updated }}
+      </div>
+    </div>
+  </section>
+
+  <section class="support-content">
+    <div class="container">
+      <div class="support-layout">
+        <div class="support-sections">
+          <article *ngFor="let section of page.sections">
+            <h2>{{ section.title }}</h2>
+
+            <p *ngFor="let paragraph of section.paragraphs">
+              {{ paragraph }}
+            </p>
+
+            <ul *ngIf="section.items?.length">
+              <li *ngFor="let item of section.items">
+                <i class="fas fa-check-circle"></i>
+                <span>{{ item }}</span>
+              </li>
+            </ul>
+          </article>
+        </div>
+
+        <aside class="support-contact">
+          <span><i class="fas fa-comments"></i>Cần hỏi thêm?</span>
+          <h2>Trao đổi trực tiếp với VieJap</h2>
+          <p>Gửi câu hỏi hoặc tình trạng hồ sơ hiện tại để được hướng dẫn cụ thể hơn.</p>
+
+          <a
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="support-contact-primary"
+          >
+            <i class="fas fa-comment-dots"></i>
+            Nhắn Zalo
+          </a>
+          <a [href]="'tel:' + contactInfo.hotline" class="support-contact-secondary">
+            <i class="fas fa-phone"></i>
+            {{ contactInfo.hotline }}
+          </a>
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>

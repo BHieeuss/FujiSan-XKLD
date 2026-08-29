@@ -1,0 +1,486 @@
+.practice-hub-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 2.5rem 1.5rem 5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1e293b;
+}
+
+// ── Hero Section ─────────────────────────────────────────────
+.hub-hero {
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  text-align: center;
+
+  .hub-hero-inner {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 3rem 2rem 2.5rem;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    border: 1px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #2563eb, #7c3aed, #db2777, #ea580c);
+    }
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.05em;
+  }
+
+  .hub-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+
+    .title-jp {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  .hub-subtitle {
+    font-size: 1.05rem;
+    color: #475569;
+    max-width: 780px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+  }
+
+  .hub-filters {
+    display: inline-flex;
+    gap: 0.6rem;
+    background: #f1f5f9;
+    padding: 0.35rem;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.25rem;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      .counter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 0.35rem;
+        background: #e2e8f0;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        color: #475569;
+        font-weight: 700;
+      }
+
+      .level-tag {
+        padding: 0.15rem 0.45rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+
+        &.n5 {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        &.n4 {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+      }
+
+      &:hover {
+        color: #0f172a;
+      }
+
+      &.active {
+        background: #ffffff;
+        color: #0f172a;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+        .counter {
+          background: #2563eb;
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}
+
+// ── Content & Grid ───────────────────────────────────────────
+.hub-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.forms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.75rem;
+}
+
+// ── Form Card ────────────────────────────────────────────────
+.form-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+    border-color: #cbd5e1;
+
+    .enter-arena-btn {
+      background: #0f172a;
+      color: #ffffff;
+
+      i {
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  .card-header {
+    padding: 1.5rem 1.5rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .badge-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+
+      .level-badge {
+        padding: 0.25rem 0.7rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+
+        &.n5 {
+          background: #dcfce7;
+          color: #15803d;
+          border: 1px solid #bbf7d0;
+        }
+
+        &.n4 {
+          background: #e0e7ff;
+          color: #4338ca;
+          border: 1px solid #c7d2fe;
+        }
+      }
+
+      .jp-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #64748b;
+      }
+    }
+  }
+
+  .card-body {
+    padding: 1rem 1.5rem 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .form-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 0.6rem;
+      line-height: 1.3;
+    }
+
+    .formula-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.8rem;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      color: #334155;
+      margin-bottom: 0.85rem;
+
+      i {
+        color: #8b5cf6;
+        font-size: 0.8rem;
+      }
+
+      strong {
+        color: #0f172a;
+        font-weight: 700;
+      }
+    }
+
+    .form-desc {
+      font-size: 0.92rem;
+      color: #475569;
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+      flex: 1;
+    }
+
+    .examples-preview {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 0.75rem 0.9rem;
+      border: 1px solid #f1f5f9;
+
+      .examples-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.4rem;
+      }
+
+      .examples-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+
+        .ex-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          background: #ffffff;
+          padding: 0.25rem 0.6rem;
+          border-radius: 6px;
+          border: 1px solid #e2e8f0;
+          font-size: 0.82rem;
+          color: #1e293b;
+
+          .from {
+            color: #64748b;
+          }
+
+          .arrow-icon {
+            font-size: 0.65rem;
+            color: #94a3b8;
+          }
+
+          .to {
+            font-weight: 700;
+            color: #2563eb;
+          }
+        }
+      }
+    }
+  }
+
+  .card-footer {
+    padding: 0 1.5rem 1.5rem;
+
+    .enter-arena-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      width: 100%;
+      padding: 0.85rem;
+      background: #f1f5f9;
+      color: #1e293b;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+
+      i {
+        font-size: 0.85rem;
+        transition: transform 0.2s ease;
+      }
+    }
+  }
+
+  // ── Color Variants ─────────────────────────────────────────
+  &.grad-te .badge-avatar {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  }
+  &.grad-ta .badge-avatar {
+    background: linear-gradient(135deg, #10b981, #047857);
+  }
+  &.grad-nai .badge-avatar {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+  }
+  &.grad-ru .badge-avatar {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  }
+  &.grad-volitional .badge-avatar {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+  }
+  &.grad-imperative .badge-avatar {
+    background: linear-gradient(135deg, #f97316, #c2410c);
+  }
+  &.grad-prohibitive .badge-avatar {
+    background: linear-gradient(135deg, #e11d48, #9f1239);
+  }
+  &.grad-potential .badge-avatar {
+    background: linear-gradient(135deg, #06b6d4, #0e7490);
+  }
+  &.grad-conditional .badge-avatar {
+    background: linear-gradient(135deg, #14b8a6, #0f766e);
+  }
+  &.grad-passive .badge-avatar {
+    background: linear-gradient(135deg, #6366f1, #4338ca);
+  }
+  &.grad-causative .badge-avatar {
+    background: linear-gradient(135deg, #a855f7, #7e22ce);
+  }
+  &.grad-causative-passive .badge-avatar {
+    background: linear-gradient(135deg, #d946ef, #a21caf);
+  }
+}
+
+// ── Features Banner ──────────────────────────────────────────
+.features-banner {
+  max-width: 1200px;
+  margin: 4rem auto 0;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.25rem;
+
+      .feature-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+      }
+
+      .feature-info {
+        h3 {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 0.35rem;
+        }
+
+        p {
+          font-size: 0.9rem;
+          color: #64748b;
+          line-height: 1.5;
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+// ── Responsive ───────────────────────────────────────────────
+@media (max-width: 768px) {
+  .practice-hub-container {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .hub-hero {
+    .hub-hero-inner {
+      padding: 2rem 1.25rem;
+    }
+
+    .hub-title {
+      font-size: 1.85rem;
+
+      .title-jp {
+        font-size: 1.05rem;
+      }
+    }
+
+    .hub-filters {
+      width: 100%;
+      flex-direction: column;
+
+      .filter-btn {
+        justify-content: center;
+      }
+    }
+  }
+
+  .forms-grid {
+    grid-template-columns: 1fr;
+  }
+}

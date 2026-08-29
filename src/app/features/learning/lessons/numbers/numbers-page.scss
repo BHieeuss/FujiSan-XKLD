@@ -1,0 +1,1836 @@
+@use 'sass:color';
+/* ============================================================
+   JAPANESE NUMBERS (SỐ ĐẾM) LEARNING & PRACTICE PAGE
+   Design System perfectly aligned with Hiragana & Katakana
+   ============================================================ */
+
+// ── Variables ────────────────────────────────────────────────────
+$num-primary: #059669;
+$num-primary-soft: #10b981;
+$num-primary-bg: #ecfdf5;
+$num-accent: #d97706;
+$num-accent-soft: #f59e0b;
+$num-accent-bg: #fffbeb;
+$num-success: #16a34a;
+$num-success-bg: #f0fdf4;
+$num-error: #dc2626;
+$num-error-bg: #fef2f2;
+$num-warning: #f59e0b;
+$num-warning-bg: #fffbeb;
+$num-bg: #fafbfd;
+$num-bg-card: #ffffff;
+$num-bg-subtle: #f3f5f9;
+$num-border: #e2e8f0;
+$num-border-light: #edf1f7;
+$num-text: #1e293b;
+$num-text-sub: #64748b;
+$num-text-hint: #94a3b8;
+
+$num-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+$num-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04);
+$num-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.04);
+
+$num-font-vn: 'Be Vietnam Pro', 'Nunito', 'Inter', sans-serif;
+$num-font-jp: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Yu Gothic', sans-serif;
+$num-radius: 18px;
+$num-radius-sm: 12px;
+$num-radius-xs: 8px;
+
+// ── Animations ──────────────────────────────────────────────────
+@keyframes num-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes num-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes num-shake {
+  0%, 100% { transform: translateX(0); }
+  15%, 45%, 75% { transform: translateX(-5px); }
+  30%, 60%, 90% { transform: translateX(5px); }
+}
+
+@keyframes num-streak-glow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+// ── Root Wrapper ────────────────────────────────────────────────
+.hira-wrapper {
+  min-height: 100vh;
+  background: $num-bg;
+  color: $num-text;
+  font-family: $num-font-vn;
+  padding-bottom: 5rem;
+  box-sizing: border-box;
+
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  HEADER / COLLAPSIBLE BAR
+// ══════════════════════════════════════════════════════════════════
+
+.hira-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid $num-border;
+  transition: all 0.3s ease;
+
+  &.collapsed {
+    .hira-header-collapsible {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
+}
+
+.hira-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 1.25rem;
+  background: $num-bg-subtle;
+  border-bottom: 1px solid $num-border-light;
+}
+
+.hira-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-xs;
+  background: $num-bg-card;
+  color: $num-text-sub;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $num-primary-bg;
+    color: $num-primary;
+    border-color: $num-primary-soft;
+    transform: translateX(-2px);
+  }
+}
+
+.hira-header-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: $num-radius-xs;
+  background: transparent;
+  color: $num-text-sub;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: $num-text;
+  }
+
+  .collapsed-hint {
+    color: $num-accent;
+    font-weight: 800;
+  }
+}
+
+.hira-header-collapsible {
+  max-height: 140px;
+  opacity: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hira-header-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hira-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+
+  .hira-logo-jp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: $num-radius-sm;
+    background: linear-gradient(135deg, #059669, #0d9488);
+    color: #fff;
+    font-family: $num-font-jp;
+    font-size: 1.45rem;
+    font-weight: 900;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: $num-text;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin: 0.1rem 0 0;
+    font-size: 0.8rem;
+    color: $num-text-sub;
+    font-weight: 500;
+  }
+}
+
+.hira-tabs {
+  display: flex;
+  gap: 0.35rem;
+  background: $num-bg-subtle;
+  padding: 0.3rem;
+  border-radius: $num-radius-sm;
+  border: 1px solid $num-border-light;
+}
+
+.hira-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border: none;
+  border-radius: $num-radius-xs;
+  background: transparent;
+  color: $num-text-sub;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: $num-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $num-text;
+  }
+
+  &.active {
+    background: $num-bg-card;
+    color: $num-primary;
+    box-shadow: $num-shadow-sm;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MAIN CONTENT CONTAINER
+// ══════════════════════════════════════════════════════════════════
+
+.hira-main {
+  max-width: 920px;
+  margin: 1.5rem auto 0;
+  padding: 0 1.25rem;
+  animation: num-fade-in 0.3s ease;
+}
+
+// ── Audio Reminder Banner ─────────────────────────────────────────
+.hira-audio-reminder {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: $num-primary-bg;
+  border: 1px solid rgba($num-primary, 0.2);
+  border-radius: $num-radius-sm;
+  color: $num-text;
+
+  .hira-audio-reminder-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba($num-primary, 0.15);
+    color: $num-primary;
+    display: grid;
+    place-items: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .hira-audio-reminder-content {
+    flex: 1;
+    min-width: 0;
+
+    strong {
+      display: block;
+      font-size: 0.92rem;
+      color: $num-primary;
+      font-weight: 800;
+    }
+
+    p {
+      margin: 0.15rem 0 0;
+      font-size: 0.82rem;
+      color: $num-text-sub;
+    }
+  }
+
+  .hira-audio-reminder-btn {
+    padding: 0.45rem 1rem;
+    border: none;
+    border-radius: $num-radius-xs;
+    background: $num-primary;
+    color: #fff;
+    font-size: 0.84rem;
+    font-weight: 700;
+    font-family: $num-font-vn;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: color.adjust($num-primary, $lightness: -8%);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// ── Score Bar (4 Metric Cards) ──────────────────────────────────
+.hira-score-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.hira-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 0.5rem;
+  background: $num-bg-card;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-sm;
+  box-shadow: $num-shadow-sm;
+  text-align: center;
+  transition: transform 0.2s ease;
+
+  i {
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+  }
+
+  span {
+    font-size: 1.15rem;
+    font-weight: 850;
+    color: $num-text;
+    line-height: 1.15;
+  }
+
+  small {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: $num-text-sub;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+  }
+
+  &.hira-streak.on-fire {
+    background: linear-gradient(135deg, #fff9f0, #fff2e0);
+    border-color: rgba($num-accent, 0.4);
+
+    i {
+      animation: num-streak-glow 1.2s ease-in-out infinite;
+    }
+  }
+}
+
+// ── Toolbar Container (Pills & Chips) ───────────────────────────
+.hira-toolbar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.hira-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.hira-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid $num-border;
+  border-radius: 999px;
+  background: $num-bg-card;
+  color: $num-text-sub;
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-family: $num-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  .chip-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: $num-bg-subtle;
+    font-size: 0.74rem;
+    font-weight: 850;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $num-primary-soft;
+    color: $num-primary;
+  }
+
+  &.active {
+    background: $num-primary;
+    border-color: $num-primary;
+    color: #fff;
+
+    .chip-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.hira-sub-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mode-toggle-group {
+  display: flex;
+  gap: 0.35rem;
+  background: $num-bg-card;
+  padding: 0.25rem;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-xs;
+
+  .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: $num-text-sub;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: $num-font-vn;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+      background: $num-primary-bg;
+      color: $num-primary;
+    }
+  }
+}
+
+.hira-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: $num-radius-xs;
+  background: transparent;
+  color: $num-text-hint;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: $num-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $num-error;
+    background: $num-error-bg;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  EXERCISE CARD (TRẮC NGHIỆM SỐ ĐẾM)
+// ══════════════════════════════════════════════════════════════════
+
+.hira-exercise-card {
+  background: $num-bg-card;
+  border: 1px solid $num-border;
+  border-radius: $num-radius;
+  box-shadow: $num-shadow;
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &.answered-correct {
+    border-color: rgba($num-success, 0.6);
+    box-shadow: 0 8px 24px rgba($num-success, 0.12);
+  }
+
+  &.answered-wrong {
+    border-color: rgba($num-error, 0.6);
+    box-shadow: 0 8px 24px rgba($num-error, 0.12);
+    animation: num-shake 0.4s ease;
+  }
+}
+
+.card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.hira-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: $num-primary-bg;
+  color: $num-primary;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.score-badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: $num-text-sub;
+}
+
+.hira-progress-track {
+  height: 6px;
+  background: $num-bg-subtle;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.hira-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, $num-primary, $num-primary-soft);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.hira-prompt-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hira-prompt-label {
+  font-size: 0.95rem;
+  color: $num-text-sub;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.hira-char-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin: 0.5rem 0 1.75rem;
+
+  .hira-char-main {
+    font-family: $num-font-jp;
+    font-size: clamp(2.6rem, 7vw, 4.2rem);
+    font-weight: 900;
+    color: #065f46;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-shadow: 0 4px 12px rgba(6, 95, 70, 0.08);
+
+    &.is-kana {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      color: #047857;
+    }
+  }
+
+  .hira-audio-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid $num-border;
+    background: $num-bg-subtle;
+    color: $num-primary;
+    display: grid;
+    place-items: center;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $num-primary;
+      color: #fff;
+      transform: scale(1.08);
+    }
+  }
+}
+
+// ── 2x2 MC Options Grid ─────────────────────────────────────────
+.hira-mc-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.hira-mc-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  background: $num-bg-subtle;
+  border: 2px solid $num-border;
+  border-radius: $num-radius-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+
+  .option-key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.05);
+    color: $num-text-sub;
+    font-size: 0.8rem;
+    font-weight: 850;
+    margin-right: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .option-text {
+    flex: 1;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: $num-text;
+
+    &.kana-font {
+      font-family: $num-font-jp;
+      font-size: 1.35rem;
+    }
+  }
+
+  .option-icon {
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+  }
+
+  &:hover:not(:disabled) {
+    background: #fff;
+    border-color: $num-primary-soft;
+    transform: translateY(-2px);
+    box-shadow: $num-shadow;
+  }
+
+  &.is-selected {
+    border-color: $num-primary;
+    background: $num-primary-bg;
+  }
+
+  &.is-correct {
+    border-color: $num-success !important;
+    background: $num-success-bg !important;
+    color: $num-success;
+
+    .option-key {
+      background: $num-success;
+      color: #fff;
+    }
+
+    .option-text {
+      color: #166534;
+    }
+
+    .option-icon {
+      color: $num-success;
+    }
+  }
+
+  &.is-wrong {
+    border-color: $num-error !important;
+    background: $num-error-bg !important;
+    color: $num-error;
+
+    .option-key {
+      background: $num-error;
+      color: #fff;
+    }
+
+    .option-text {
+      color: #991b1b;
+    }
+
+    .option-icon {
+      color: $num-error;
+    }
+  }
+}
+
+// ── Feedback Banner ─────────────────────────────────────────────
+.hira-feedback-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: $num-radius-sm;
+  background: $num-error-bg;
+  border: 1px solid rgba($num-error, 0.3);
+  animation: num-scale-in 0.2s ease;
+
+  &.is-correct {
+    background: $num-success-bg;
+    border-color: rgba($num-success, 0.3);
+
+    .feedback-icon {
+      color: $num-success;
+    }
+
+    .feedback-text strong {
+      color: #166534;
+    }
+  }
+
+  .feedback-icon {
+    font-size: 1.6rem;
+    color: $num-error;
+    flex-shrink: 0;
+  }
+
+  .feedback-text {
+    flex: 1;
+    text-align: left;
+
+    strong {
+      display: block;
+      font-size: 0.95rem;
+      color: #991b1b;
+      font-weight: 800;
+    }
+
+    p {
+      margin: 0.15rem 0 0;
+      font-size: 0.84rem;
+      color: $num-text-sub;
+    }
+  }
+
+  .feedback-next-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border: none;
+    border-radius: $num-radius-xs;
+    background: $num-text;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 800;
+    font-family: $num-font-vn;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #000;
+      transform: translateY(-2px);
+      box-shadow: $num-shadow;
+    }
+  }
+}
+
+// ── Complete Victory Card ───────────────────────────────────────
+.hira-complete-card {
+  background: $num-bg-card;
+  border: 1px solid $num-border;
+  border-radius: $num-radius;
+  box-shadow: $num-shadow-lg;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  animation: num-fade-in 0.4s ease;
+
+  .complete-trophy-icon {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .complete-score-ring {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.25rem;
+
+    .score-percent {
+      font-size: 2.75rem;
+      font-weight: 900;
+      color: $num-primary;
+      line-height: 1;
+    }
+
+    .score-text {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: $num-text-sub;
+      margin-top: 0.35rem;
+    }
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 850;
+    color: $num-text;
+    margin: 0 0 0.5rem;
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: $num-text-sub;
+    max-width: 500px;
+    margin: 0 auto 1.75rem;
+    line-height: 1.6;
+  }
+
+  .complete-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
+
+.btn-action-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: $num-radius-sm;
+  background: $num-primary;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: $num-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: color.adjust($num-primary, $lightness: -8%);
+    transform: translateY(-2px);
+    box-shadow: $num-shadow;
+  }
+}
+
+.btn-action-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-sm;
+  background: $num-bg-card;
+  color: $num-text;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: $num-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $num-bg-subtle;
+    border-color: $num-text-hint;
+    transform: translateY(-2px);
+  }
+}
+
+.hira-empty-state {
+  background: $num-bg-card;
+  border: 1px solid $num-border;
+  border-radius: $num-radius;
+  padding: 3rem 1.5rem;
+  text-align: center;
+
+  .empty-icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: $num-success-bg;
+    color: $num-success;
+    display: grid;
+    place-items: center;
+    font-size: 1.75rem;
+    margin: 0 auto 1rem;
+  }
+
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    color: $num-text-sub;
+    font-size: 0.92rem;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  THEORY VIEW (BẢNG SỐ, BIẾN ÂM, TRỢ SỐ TỪ, BỘ GHÉP SỐ)
+// ══════════════════════════════════════════════════════════════════
+
+.theory-nav-container {
+  margin-bottom: 1.5rem;
+}
+
+.theory-segmented-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background: $num-bg-card;
+  padding: 0.4rem;
+  border: 1px solid $num-border;
+  border-radius: $num-radius;
+  box-shadow: $num-shadow-sm;
+}
+
+.theory-pill {
+  flex: 1;
+  min-width: 150px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: $num-radius-sm;
+  background: transparent;
+  color: $num-text-sub;
+  font-size: 0.9rem;
+  font-weight: 750;
+  font-family: $num-font-vn;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  .pill-badge {
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: $num-bg-subtle;
+    font-size: 0.74rem;
+    font-weight: 850;
+  }
+
+  &:hover {
+    color: $num-text;
+    background: $num-bg-subtle;
+  }
+
+  &.active {
+    background: $num-primary;
+    color: #fff;
+
+    .pill-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+  }
+}
+
+.theory-content-card {
+  background: $num-bg-card;
+  border: 1px solid $num-border;
+  border-radius: $num-radius;
+  box-shadow: $num-shadow;
+  padding: 2rem;
+  animation: num-fade-in 0.3s ease;
+}
+
+.card-header-banner {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid $num-border-light;
+
+  .banner-tag {
+    font-size: 0.78rem;
+    font-weight: 850;
+    color: $num-accent;
+    letter-spacing: 0.06em;
+  }
+
+  h3 {
+    margin: 0.3rem 0 0.35rem;
+    font-size: 1.45rem;
+    font-weight: 850;
+    color: $num-text;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: $num-text-sub;
+  }
+}
+
+// ── Number Matrix Grids ─────────────────────────────────────────
+.number-sub-section {
+  margin-bottom: 2rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .sub-section-title {
+    font-size: 1.15rem;
+    font-weight: 850;
+    color: $num-text;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.number-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  gap: 0.65rem;
+}
+
+.number-card-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 0.6rem;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-sm;
+  background: $num-bg-subtle;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+
+  .card-val {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #065f46;
+    line-height: 1.1;
+  }
+
+  .card-kana {
+    font-family: $num-font-jp;
+    font-size: 1rem;
+    font-weight: 800;
+    color: $num-text;
+    margin-top: 0.25rem;
+  }
+
+  .card-romaji {
+    font-size: 0.76rem;
+    font-weight: 650;
+    color: $num-text-sub;
+    margin-top: 0.15rem;
+  }
+
+  .card-note {
+    font-size: 0.7rem;
+    font-weight: 750;
+    color: $num-accent;
+    margin-top: 0.2rem;
+  }
+
+  .card-sound-icon {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 0.65rem;
+    color: $num-text-hint;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover {
+    background: #fff;
+    border-color: $num-primary;
+    transform: translateY(-2px);
+    box-shadow: $num-shadow;
+
+    .card-val {
+      color: $num-primary;
+    }
+
+    .card-sound-icon {
+      opacity: 1;
+      color: $num-primary;
+    }
+  }
+
+  &.is-irregular {
+    border-color: rgba($num-accent, 0.4);
+    background: #fffdf7;
+
+    .card-val {
+      color: $num-accent;
+    }
+  }
+}
+
+// ── Native Numbers Grid (Hitotsu, Futatsu...) ────────────────────
+.native-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 0.75rem;
+}
+
+.native-card-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.95rem 0.65rem;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-sm;
+  background: $num-bg-subtle;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+
+  .native-num {
+    font-size: 1.15rem;
+    font-weight: 850;
+    color: #1e3a8a;
+  }
+
+  .native-kana {
+    font-family: $num-font-jp;
+    font-size: 1.2rem;
+    font-weight: 850;
+    color: #1e293b;
+    margin-top: 0.2rem;
+  }
+
+  .native-romaji {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: $num-text-sub;
+  }
+
+  .native-meaning {
+    font-size: 0.72rem;
+    color: $num-accent;
+    font-weight: 750;
+    margin-top: 0.2rem;
+  }
+
+  &:hover {
+    background: #fff;
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: $num-shadow;
+  }
+}
+
+// ── Counter Category Tabs & Tables ─────────────────────────────
+.counter-category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.5rem;
+}
+
+.counter-cat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid $num-border;
+  border-radius: 999px;
+  background: $num-bg-subtle;
+  color: $num-text;
+  font-size: 0.85rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  .cat-kanji {
+    font-family: $num-font-jp;
+    font-size: 1rem;
+    color: $num-primary;
+    font-weight: 850;
+  }
+
+  &:hover {
+    background: #fff;
+    border-color: $num-primary-soft;
+  }
+
+  &.active {
+    background: $num-primary;
+    border-color: $num-primary;
+    color: #fff;
+
+    .cat-kanji {
+      color: #fff;
+    }
+  }
+}
+
+.counter-detail-box {
+  background: $num-bg-subtle;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-sm;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+
+  .counter-box-header {
+    margin-bottom: 0.85rem;
+
+    h4 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 850;
+      color: $num-text;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    p {
+      margin: 0.25rem 0 0;
+      font-size: 0.86rem;
+      color: $num-text-sub;
+    }
+  }
+
+  .counter-tip-alert {
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid rgba($num-accent, 0.4);
+    font-size: 0.84rem;
+    color: #92400e;
+    line-height: 1.45;
+  }
+}
+
+.counter-grid-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.65rem;
+}
+
+.counter-item-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 0.5rem;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-xs;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+
+  .tile-kanji {
+    font-family: $num-font-jp;
+    font-size: 1.15rem;
+    font-weight: 850;
+    color: $num-primary;
+  }
+
+  .tile-kana {
+    font-family: $num-font-jp;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: $num-text;
+    margin-top: 0.2rem;
+  }
+
+  .tile-romaji {
+    font-size: 0.74rem;
+    color: $num-text-sub;
+    font-weight: 650;
+  }
+
+  .tile-irregular-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #d97706;
+    margin-top: 0.2rem;
+  }
+
+  &:hover {
+    border-color: $num-primary;
+    transform: translateY(-2px);
+    box-shadow: $num-shadow;
+  }
+
+  &.is-irregular {
+    border-color: rgba($num-accent, 0.4);
+    background: #fffdf5;
+  }
+}
+
+// ── Number Builder Tool ─────────────────────────────────────────
+.number-builder-box {
+  background: $num-bg-card;
+  border: 1px solid $num-border;
+  border-radius: $num-radius-sm;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  .builder-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+
+    h4 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 850;
+      color: $num-text;
+    }
+  }
+
+  .builder-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+
+    label {
+      font-size: 0.88rem;
+      font-weight: 750;
+      color: $num-text-sub;
+    }
+
+    input {
+      width: 140px;
+      padding: 0.55rem 0.85rem;
+      border: 2px solid $num-border;
+      border-radius: $num-radius-xs;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: $num-text;
+      outline: none;
+      transition: all 0.2s ease;
+
+      &:focus {
+        border-color: $num-primary;
+        box-shadow: 0 0 0 3px rgba($num-primary, 0.15);
+      }
+    }
+  }
+
+  .builder-examples-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 1.5rem;
+
+    span {
+      font-size: 0.82rem;
+      font-weight: 750;
+      color: $num-text-sub;
+      margin-right: 0.35rem;
+    }
+
+    .btn-example-chip {
+      padding: 0.3rem 0.75rem;
+      border: 1px solid $num-border;
+      border-radius: 999px;
+      background: $num-bg-subtle;
+      font-size: 0.82rem;
+      font-weight: 750;
+      color: $num-text;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: $num-primary-bg;
+        border-color: $num-primary-soft;
+        color: $num-primary;
+      }
+    }
+  }
+
+  .builder-result-card {
+    background: linear-gradient(135deg, #065f46, #047857);
+    border-radius: $num-radius-sm;
+    padding: 1.5rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    .result-texts {
+      flex: 1;
+
+      .result-val {
+        font-size: 1.75rem;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+      }
+
+      .result-kana {
+        font-family: $num-font-jp;
+        font-size: 1.45rem;
+        font-weight: 850;
+        margin-top: 0.35rem;
+        color: #fef08a;
+      }
+
+      .result-romaji {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.85);
+        margin-top: 0.2rem;
+      }
+    }
+
+    .btn-speak-result {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+      font-size: 1.35rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+
+      &:hover {
+        background: #fff;
+        color: #065f46;
+        transform: scale(1.08);
+      }
+    }
+  }
+
+  .segments-breakdown-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+
+    .segment-card {
+      padding: 0.75rem 1rem;
+      background: $num-bg-subtle;
+      border: 1px solid $num-border;
+      border-radius: $num-radius-xs;
+      text-align: center;
+
+      .seg-unit {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: $num-primary;
+        text-transform: uppercase;
+      }
+
+      .seg-val {
+        font-size: 1.15rem;
+        font-weight: 850;
+        color: $num-text;
+        margin-top: 0.15rem;
+      }
+
+      .seg-kana {
+        font-family: $num-font-jp;
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: #065f46;
+        margin-top: 0.15rem;
+      }
+    }
+
+    .segment-plus {
+      font-size: 1.1rem;
+      font-weight: 850;
+      color: $num-text-hint;
+    }
+  }
+}
+
+// ── Theory Bottom CTA ───────────────────────────────────────────
+.hira-theory-bottom-cta {
+  margin-top: 1.75rem;
+
+  .theory-cta-card {
+    background: linear-gradient(135deg, #065f46, #047857);
+    border-radius: $num-radius;
+    padding: 2.2rem 1.5rem;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(6, 95, 70, 0.2);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent 70%);
+      pointer-events: none;
+    }
+  }
+
+  .theory-cta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fef08a;
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.65rem;
+  }
+
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.45rem;
+    font-weight: 850;
+    color: #fff;
+  }
+
+  p {
+    margin: 0 auto 1.35rem;
+    max-width: 480px;
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.55;
+  }
+
+  .btn-theory-start-practice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.75rem;
+    border: none;
+    border-radius: $num-radius-sm;
+    background: #fff;
+    color: #065f46;
+    font-size: 1rem;
+    font-weight: 850;
+    font-family: $num-font-vn;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      background: #f8fafc;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MODAL / OVERLAY
+// ══════════════════════════════════════════════════════════════════
+
+.hira-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  animation: num-fade-in 0.2s ease;
+}
+
+.hira-modal-card {
+  max-width: 420px;
+  width: 100%;
+  background: $num-bg-card;
+  border-radius: $num-radius;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  animation: num-scale-in 0.25s ease;
+
+  .modal-icon-glow {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.3rem;
+    font-weight: 850;
+    color: $num-text;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    font-size: 0.9rem;
+    color: $num-text-sub;
+    line-height: 1.55;
+  }
+
+  .modal-alert-error {
+    padding: 0.65rem;
+    border-radius: 8px;
+    background: $num-error-bg;
+    color: #991b1b;
+    font-size: 0.82rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-modal-enable {
+    padding: 0.8rem;
+    border: none;
+    border-radius: $num-radius-xs;
+    background: $num-primary;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    font-family: $num-font-vn;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: color.adjust($num-primary, $lightness: -8%);
+    }
+  }
+
+  .btn-modal-cancel {
+    padding: 0.6rem;
+    border: none;
+    background: transparent;
+    color: $num-text-sub;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+      color: $num-text;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  RESPONSIVE RULES
+// ══════════════════════════════════════════════════════════════════
+
+@media (max-width: 768px) {
+  .hira-main {
+    margin-top: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .hira-header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .hira-tabs {
+    width: 100%;
+
+    .hira-tab {
+      flex: 1;
+      justify-content: center;
+      padding: 0.45rem 0.5rem;
+      font-size: 0.82rem;
+    }
+  }
+
+  .hira-audio-reminder {
+    padding: 0.75rem 0.85rem;
+    gap: 0.65rem;
+
+    .hira-audio-reminder-icon {
+      width: 34px;
+      height: 34px;
+      font-size: 0.95rem;
+    }
+
+    .hira-audio-reminder-content strong {
+      font-size: 0.84rem;
+    }
+
+    .hira-audio-reminder-content p {
+      font-size: 0.74rem;
+    }
+
+    .hira-audio-reminder-btn {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.78rem;
+    }
+  }
+
+  .hira-score-bar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .hira-score-item {
+    padding: 0.65rem 0.35rem;
+
+    span {
+      font-size: 1rem;
+    }
+
+    small {
+      font-size: 0.68rem;
+    }
+  }
+
+  .hira-exercise-card {
+    padding: 1.25rem 0.85rem;
+    border-radius: 16px;
+  }
+
+  .hira-mc-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .hira-mc-option {
+    padding: 0.85rem 1rem;
+
+    .option-text {
+      font-size: 1.15rem;
+
+      &.kana-font {
+        font-size: 1.25rem;
+      }
+    }
+  }
+
+  .theory-segmented-pills {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.35rem;
+    padding: 0.3rem;
+  }
+
+  .theory-pill {
+    min-width: 0;
+    width: 100%;
+    padding: 0.55rem 0.35rem;
+    font-size: 0.78rem;
+  }
+
+  .theory-content-card {
+    padding: 1.15rem 0.6rem;
+    border-radius: 16px;
+  }
+
+  .number-cards-grid,
+  .native-cards-grid,
+  .counter-grid-items {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .hira-theory-bottom-cta {
+    margin-top: 1.25rem;
+
+    .theory-cta-card {
+      padding: 1.5rem 1rem;
+      border-radius: 16px;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+    }
+
+    p {
+      font-size: 0.85rem;
+    }
+
+    .btn-theory-start-practice {
+      width: 100%;
+      justify-content: center;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.92rem;
+    }
+  }
+}

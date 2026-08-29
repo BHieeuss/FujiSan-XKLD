@@ -41,6 +41,9 @@ yarn-error.log
 testem.log
 /typings
 
+# Agent plugins (cloned repos)
+.agents/plugins/
+
 # System files
 .DS_Store
 Thumbs.db

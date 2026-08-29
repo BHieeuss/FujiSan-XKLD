@@ -1,0 +1,840 @@
+<!-- ============================================================
+     GIỚI THIỆU CÔNG TY - ABOUT SECTION
+     ============================================================ -->
+
+<section class="featured-activity-section py-5" id="hoat-dong-noi-bat">
+  <div class="container">
+    <div class="featured-activity-layout">
+      <div class="featured-activity-media">
+        <figure class="featured-activity-main">
+          <img [src]="featuredActivity.coverImage.src" [alt]="featuredActivity.coverImage.alt"
+            [title]="featuredActivity.coverImage.alt" loading="eager" fetchpriority="high" />
+          <figcaption>
+            <i class="fas fa-location-dot"></i>
+            {{ featuredActivity.location }}
+          </figcaption>
+        </figure>
+
+        <div class="featured-activity-strip" aria-label="Hình ảnh hội thảo nổi bật">
+          <figure *ngFor="let image of featuredActivity.gallery | slice: 1 : 4">
+            <img [src]="image.src" [alt]="image.alt" [title]="image.alt" loading="lazy" />
+          </figure>
+        </div>
+      </div>
+
+      <article class="featured-activity-copy">
+        <span class="featured-activity-label">
+          <i class="fas fa-star"></i>
+          Hoạt động nổi bật
+        </span>
+        <h2>VieJap hiện diện tại hội thảo kết nối thương mại Việt Nam - Nhật Bản</h2>
+        <p>{{ featuredActivity.summary }}</p>
+
+        <div class="featured-activity-facts" aria-label="Thông tin hội thảo nổi bật">
+          <span>
+            <i class="fas fa-calendar-check"></i>
+            <small>Thời điểm</small>
+            <strong>{{ featuredActivity.metric }} {{ featuredActivity.metricLabel }}</strong>
+          </span>
+          <span>
+            <i class="fas fa-building-columns"></i>
+            <small>Tính chất</small>
+            <strong>Đối ngoại & doanh nghiệp</strong>
+          </span>
+          <span>
+            <i class="fas fa-handshake-angle"></i>
+            <small>Giá trị với học viên</small>
+            <strong>Tư vấn có bối cảnh thực tế</strong>
+          </span>
+        </div>
+
+        <ul class="featured-activity-points">
+          <li *ngFor="let highlight of featuredActivity.highlights">
+            <i class="fas fa-circle-check"></i>
+            <span>{{ highlight }}</span>
+          </li>
+        </ul>
+
+        <div class="featured-activity-actions">
+          <a href="#hoat-dong" class="featured-activity-primary">
+            Xem thêm hoạt động
+            <i class="fas fa-arrow-right"></i>
+          </a>
+          <a [href]="contactInfo.consultationUrl" class="featured-activity-secondary" target="_blank"
+            rel="noopener noreferrer">
+            Trao đổi với VieJap
+            <i class="fas fa-comment-dots"></i>
+          </a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Giới thiệu công ty -->
+<section class="about-section py-5" id="gioi-thieu">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <!-- Hình ảnh -->
+      <div class="col-lg-6 about-visual-column">
+        <div class="about-image-wrapper about-real-gallery">
+          <figure class="about-photo-main">
+            <img
+              src="assets/images/HoatDong/TrungThuChoEm-DaiPhuocCangLongTraVinh/z7909725653671_1f5336c32d7129c287b1d3c7d81b408a.jpg"
+              alt="VieJap gặp gỡ và hướng nghiệp cùng học sinh" loading="lazy" />
+            <figcaption>
+              <span>Buổi hướng nghiệp cùng các bạn học sinh tại Sóc Trăng</span>
+            </figcaption>
+          </figure>
+
+          <div class="about-photo-row">
+            <figure>
+              <img
+                src="assets/images/HoatDong/24DiemTruongTHPTSOCTRANG/z7909725575538_c6455e009c24635dce29c381a9bca345.jpg"
+                alt="Hoạt động Trung thu cho em tại Đại Phước" loading="lazy" />
+              <figcaption>Hoạt động cộng đồng</figcaption>
+            </figure>
+
+            <div class="about-logo-card">
+              <img src="assets/images/logo.png" alt="VieJap" />
+              <span>Cầu nối học tập và làm việc tại Nhật Bản</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 about-content-column">
+        <div class="about-content">
+          <span class="about-section-label">
+            <i class="fas fa-info-circle me-2"></i>Về VieJap
+          </span>
+          <p class="about-company-name">{{ companyInfo.name }}</p>
+          <h2 class="about-section-title">
+            <span>Cùng bạn chuẩn bị</span>
+            <span>hành trình sang Nhật</span>
+          </h2>
+          <p class="about-text">
+            VieJap hỗ trợ học viên và người lao động tìm hiểu chương trình, chuẩn bị hồ sơ,
+            học tiếng và định hướng công việc tại Nhật Bản theo cách rõ ràng, dễ hiểu.
+          </p>
+          <div class="about-quote-card">
+            Mỗi hồ sơ có một hoàn cảnh riêng. Vì vậy VieJap ưu tiên tư vấn kỹ, nói rõ điều kiện
+            và đồng hành từng bước để bạn yên tâm hơn trước khi quyết định.
+          </div>
+          <ul class="about-values-list" aria-label="Điểm VieJap chú trọng">
+            <li><i class="fas fa-check"></i><span>Tư vấn dễ hiểu, không nói quá.</span></li>
+            <li><i class="fas fa-check"></i><span>Thông tin chương trình và chi phí rõ ràng.</span></li>
+            <li><i class="fas fa-check"></i><span>Theo sát từ lúc tìm hiểu đến khi chuẩn bị xuất cảnh.</span></li>
+          </ul>
+          <div class="about-cta mt-4">
+            <a [href]="contactInfo.consultationUrl" class="btn btn-primary btn-lg me-3" target="_blank"
+              rel="noopener noreferrer">
+              <i class="fas fa-comment-dots me-2"></i>Trao đổi với VieJap
+            </a>
+            <a href="#hoat-dong" class="btn btn-outline-primary btn-lg">
+              <i class="fas fa-camera me-2"></i>Xem hoạt động thực tế
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Chương trình xuất cảnh -->
+<section class="programs-section py-5" id="chuong-trinh">
+  <div class="container">
+    <div class="programs-heading-row">
+      <div class="programs-heading">
+        <span class="programs-kicker">4 hướng đi phổ biến</span>
+        <h2>Chọn chương trình phù hợp với bạn</h2>
+        <p>Mỗi chương trình có điều kiện và cách chuẩn bị khác nhau. Xem ảnh thực tế và lộ trình trước khi lựa chọn.</p>
+      </div>
+
+      <a class="programs-help-link" [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
+        <i class="fas fa-comment-dots"></i>
+        <span>
+          <small>Chưa rõ mình phù hợp diện nào?</small>
+          <strong>Hỏi VieJap qua Zalo</strong>
+        </span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="row g-3 g-lg-4">
+      <div class="col-lg-6 col-md-6" *ngFor="let item of programs">
+        <article class="program-card" role="button" tabindex="0" (click)="openProgramModal(item.key)"
+          (keydown.enter)="openProgramModal(item.key)" [attr.aria-label]="'Xem chương trình ' + item.label">
+          <div class="program-card-media">
+            <img [src]="item.coverImage" [alt]="item.coverAlt" [title]="item.coverAlt" loading="lazy" />
+            <span class="program-card-badge">{{ item.badge }}</span>
+          </div>
+
+          <div class="program-card-body">
+            <div class="program-card-title">
+              <span class="program-icon"><i [class]="item.icon"></i></span>
+              <h3>{{ item.label }}</h3>
+            </div>
+            <div class="program-description">{{ item.description }}</div>
+
+            <div class="program-card-footer">
+              <span>{{ item.supportText }}</span>
+              <strong>
+                Xem chương trình
+                <i class="fas fa-arrow-right"></i>
+              </strong>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="program-popup-overlay" *ngIf="isProgramPopupOpen" role="dialog" aria-modal="true"
+  aria-labelledby="program-popup-title" (click)="closeProgramPopup()">
+  <div class="program-popup-panel" [class.program-roadmap-active]="isProgramRoadmapOpen"
+    (click)="$event.stopPropagation()">
+    <div class="program-popup-handle" aria-hidden="true"></div>
+    <div class="program-modal-wrap">
+      <header class="program-popup-header">
+        <button *ngIf="isProgramRoadmapOpen" type="button" class="program-popup-back" (click)="showProgramOverview()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Quay lại</span>
+        </button>
+
+        <span *ngIf="!isProgramRoadmapOpen" class="program-popup-context">
+          <i class="fas fa-compass"></i>
+          Tìm hiểu chương trình
+        </span>
+
+        <button type="button" class="program-popup-close" aria-label="Đóng thông tin chương trình"
+          (click)="closeProgramPopup()">
+          <i class="fas fa-times"></i>
+        </button>
+      </header>
+
+      <div class="program-popup-scroll">
+        <ng-container *ngIf="!isProgramRoadmapOpen; else programRoadmapView">
+          <div class="program-detail-layout">
+            <figure class="program-detail-visual">
+              <img [src]="selectedProgramDetail.images[0]" [alt]="selectedProgramDetail.title"
+                [title]="selectedProgramDetail.title" />
+              <figcaption>
+                <i class="fas fa-camera"></i>
+                Hình ảnh trong môi trường học tập, làm việc
+              </figcaption>
+            </figure>
+
+            <div class="program-detail-copy">
+              <span class="program-detail-kicker">{{ selectedProgramDetail.eyebrow }}</span>
+              <h2 class="program-modal-title" id="program-popup-title">
+                {{ selectedProgramDetail.title }}
+              </h2>
+              <p class="program-modal-subtitle">{{ selectedProgramDetail.subtitle }}</p>
+
+              <div class="program-quick-facts">
+                <article class="program-fact" *ngFor="let fact of selectedProgramDetail.facts">
+                  <span class="program-fact-icon"><i [class]="fact.icon"></i></span>
+                  <span>
+                    <strong>{{ fact.title }}</strong>
+                    <small>{{ fact.text }}</small>
+                  </span>
+                </article>
+              </div>
+
+              <div class="program-friendly-note">
+                <i class="fas fa-comment-dots"></i>
+                <p>{{ selectedProgramDetail.note }}</p>
+              </div>
+            </div>
+          </div>
+
+          <section class="program-photo-section">
+            <div class="program-photo-heading">
+              <strong>Một vài hình ảnh thực tế</strong>
+              <small>Xem nhanh môi trường của chương trình</small>
+            </div>
+
+            <div class="program-photo-strip">
+              <figure *ngFor="let image of selectedProgramDetail.images | slice: 1; let index = index">
+                <img [src]="image" [alt]="'Hình ảnh ' + selectedProgramDetail.title + ' ' + (index + 2)"
+                  [title]="'Hình ảnh ' + selectedProgramDetail.title + ' ' + (index + 2)" loading="lazy" />
+              </figure>
+            </div>
+          </section>
+        </ng-container>
+
+        <ng-template #programRoadmapView>
+          <section class="program-roadmap-view">
+            <div class="program-roadmap-heading">
+              <span class="program-detail-kicker">Xem từng bước</span>
+              <h2 class="program-modal-title" id="program-popup-title">
+                Lộ trình {{ selectedProgramDetail.title }}
+              </h2>
+              <p>
+                Đây là bức tranh tổng quan để bạn dễ hình dung. Từng mốc có thể thay đổi
+                một chút theo hồ sơ và thời điểm đăng ký.
+              </p>
+            </div>
+
+            <a class="program-roadmap-poster" [href]="selectedProgramDetail.guideImage" target="_blank"
+              rel="noopener noreferrer">
+              <img [src]="selectedProgramDetail.guideImage" [alt]="selectedProgramDetail.guideAlt"
+                [title]="selectedProgramDetail.guideAlt" />
+              <span>
+                <i class="fas fa-expand-alt"></i>
+                Mở ảnh rõ hơn
+              </span>
+            </a>
+
+            <div class="program-roadmap-note">
+              <i class="fas fa-info-circle"></i>
+              <span>
+                Bạn không cần tự chuẩn bị mọi thứ một mình. VieJap sẽ cùng kiểm tra từng
+                bước trước khi bắt đầu.
+              </span>
+            </div>
+          </section>
+        </ng-template>
+      </div>
+
+      <footer class="program-popup-footer">
+        <ng-container *ngIf="!isProgramRoadmapOpen; else programRoadmapActions">
+          <button type="button" class="program-action program-action-primary" (click)="showProgramRoadmap()">
+            <span class="program-action-icon"><i class="fas fa-route"></i></span>
+            <span class="program-action-copy">
+              <strong>Xem lộ trình</strong>
+              <small>Các bước chuẩn bị từ đầu đến khi sang Nhật</small>
+            </span>
+            <i class="fas fa-arrow-right program-action-arrow"></i>
+          </button>
+
+          <a class="program-action program-action-secondary" [href]="contactInfo.consultationUrl" target="_blank"
+            rel="noopener noreferrer" (click)="closeProgramPopup()">
+            <span class="program-action-icon"><i class="fas fa-comment-dots"></i></span>
+            <span class="program-action-copy">
+              <strong>Hỏi đơn phù hợp</strong>
+              <small>VieJap xem hồ sơ và trao đổi cùng bạn</small>
+            </span>
+            <i class="fas fa-external-link-alt program-action-arrow"></i>
+          </a>
+        </ng-container>
+
+        <ng-template #programRoadmapActions>
+          <button type="button" class="program-action program-action-secondary" (click)="showProgramOverview()">
+            <span class="program-action-icon"><i class="fas fa-arrow-left"></i></span>
+            <span class="program-action-copy">
+              <strong>Quay lại thông tin</strong>
+              <small>Xem điều kiện và hình ảnh chương trình</small>
+            </span>
+          </button>
+
+          <a class="program-action program-action-primary" [href]="contactInfo.consultationUrl" target="_blank"
+            rel="noopener noreferrer" (click)="closeProgramPopup()">
+            <span class="program-action-icon"><i class="fas fa-comment-dots"></i></span>
+            <span class="program-action-copy">
+              <strong>Nhắn VieJap hỏi thêm</strong>
+              <small>Trao đổi trực tiếp qua Zalo</small>
+            </span>
+            <i class="fas fa-arrow-right program-action-arrow"></i>
+          </a>
+        </ng-template>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<section class="program-matcher-section py-5" id="phu-hop">
+  <div class="container">
+    <div class="matcher-layout">
+      <div class="matcher-intro">
+        <span class="section-kicker">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          Gợi ý trong khoảng 1 phút
+        </span>
+        <h2>Bạn phù hợp chương trình nào?</h2>
+        <p>
+          Trả lời 5 câu ngắn về mục tiêu, bằng cấp và kinh nghiệm. Kết quả chỉ là gợi ý
+          ban đầu, không yêu cầu bạn nhập thông tin cá nhân.
+        </p>
+
+        <div class="matcher-points">
+          <span><i class="fas fa-shield-halved"></i>Không lưu câu trả lời</span>
+          <span><i class="fas fa-list-check"></i>Có lý do gợi ý rõ ràng</span>
+          <span><i class="fas fa-rotate"></i>Có thể làm lại bất cứ lúc nào</span>
+        </div>
+      </div>
+
+      <div class="matcher-card">
+        <div class="matcher-progress" aria-hidden="true">
+          <span [style.width.%]="quizProgress"></span>
+        </div>
+
+        <ng-container *ngIf="!quizResult; else quizResultView">
+          <header class="matcher-question-head">
+            <span>Câu {{ quizStep + 1 }} / {{ quizQuestions.length }}</span>
+            <button *ngIf="quizStep > 0" type="button" (click)="previousQuizQuestion()">
+              <i class="fas fa-arrow-left"></i>
+              Quay lại
+            </button>
+          </header>
+
+          <h3>{{ currentQuizQuestion.title }}</h3>
+          <p class="matcher-question-description">{{ currentQuizQuestion.description }}</p>
+
+          <div class="matcher-options">
+            <button *ngFor="let option of currentQuizQuestion.options" type="button" class="matcher-option"
+              (click)="chooseQuizOption(option)">
+              <span class="matcher-option-check"><i class="fas fa-check"></i></span>
+              <span>
+                <strong>{{ option.label }}</strong>
+                <small>{{ option.detail }}</small>
+              </span>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </ng-container>
+
+        <ng-template #quizResultView>
+          <div class="matcher-result">
+            <span class="matcher-result-icon"><i [class]="quizResult?.icon"></i></span>
+            <span class="matcher-result-kicker">Gợi ý phù hợp nhất</span>
+            <h3>{{ quizResult?.title }}</h3>
+            <p>{{ quizResult?.summary }}</p>
+            <div class="matcher-result-reason">
+              <i class="fas fa-lightbulb"></i>
+              <span>{{ quizResult?.reason }}</span>
+            </div>
+
+            <div class="matcher-result-actions">
+              <button type="button" class="matcher-primary" (click)="viewQuizProgram()">
+                Xem chương trình
+                <i class="fas fa-arrow-right"></i>
+              </button>
+              <button type="button" class="matcher-secondary" (click)="resetQuiz()">
+                <i class="fas fa-rotate-left"></i>
+                Làm lại
+              </button>
+            </div>
+
+            <small class="matcher-disclaimer">
+              Gợi ý này không thay thế việc kiểm tra hồ sơ, sức khỏe và điều kiện của từng đơn tuyển.
+            </small>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Thông tin cần biết & Quyền lợi -->
+<section class="policy-section" id="chinh-sach">
+  <div class="container">
+    <!-- Header -->
+    <div class="policy-header-wrapper text-center">
+      <div class="policy-cute-badge">
+        <span class="badge-sparkle">✨</span> Cẩm nang bỏ túi
+      </div>
+      <h2 class="policy-main-title">Hiểu đúng quyền lợi – Đi Nhật an tâm hơn</h2>
+      <p class="policy-main-subtitle">
+        Những thông tin thiết thực về chi phí, hoàn tiền bảo hiểm và quyền lợi khi làm việc tại Nhật được VieJap tóm tắt dễ hiểu nhất.
+      </p>
+    </div>
+
+    <!-- 3 Cartoon/Friendly Tabs -->
+    <div class="policy-tabs-row" role="tablist" aria-label="Chọn chủ đề thông tin">
+      <button
+        *ngFor="let category of policyCategories"
+        type="button"
+        class="policy-tab-card"
+        [class.active]="category.id === selectedPolicyId"
+        [class.theme-amber]="category.theme === 'amber'"
+        [class.theme-emerald]="category.theme === 'emerald'"
+        [class.theme-sky]="category.theme === 'sky'"
+        role="tab"
+        [attr.aria-selected]="category.id === selectedPolicyId"
+        [attr.aria-controls]="category.id + '-panel'"
+        (click)="selectPolicy(category.id)"
+      >
+        <div class="tab-icon-sticker">
+          <i [class]="category.icon"></i>
+        </div>
+        <div class="tab-meta">
+          <div class="tab-badge-pill">{{ category.badge }}</div>
+          <h3 class="tab-title">{{ category.title }}</h3>
+          <span class="tab-summary">{{ category.summary }}</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Active Panel Content -->
+    <div class="policy-panel-container" [ngSwitch]="selectedPolicyId">
+
+      <!-- TAB 1: VAY VỐN -->
+      <article *ngSwitchCase="'policy-loan'" class="policy-panel-card theme-amber-panel" id="policy-loan-panel" role="tabpanel">
+        <div class="panel-top-banner">
+          <div class="banner-kicker">
+            <span class="emoji-tag">🏦</span> {{ loanPolicy.eyebrow }}
+          </div>
+          <h3 class="banner-title">{{ loanPolicy.title }}</h3>
+          <p class="banner-desc">{{ loanPolicy.description }}</p>
+        </div>
+
+        <!-- 3 Highlight Facts -->
+        <div class="policy-highlight-grid">
+          <div class="highlight-item" *ngFor="let fact of loanPolicy.facts">
+            <div class="highlight-icon-circle" [style.color]="fact.color" [style.background-color]="fact.color + '15'">
+              <i [class]="fact.icon"></i>
+            </div>
+            <div class="highlight-text">
+              <small>{{ fact.label }}</small>
+              <strong>{{ fact.value }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Information Boxes -->
+        <div class="policy-dual-cards">
+          <!-- Ai được vay -->
+          <div class="info-subcard">
+            <div class="subcard-header">
+              <div class="subcard-icon-pill bg-amber">
+                <i class="fas fa-users-viewfinder"></i>
+              </div>
+              <h4>Đối tượng được ưu tiên vay</h4>
+            </div>
+            <ul class="subcard-list">
+              <li *ngFor="let item of loanPolicy.eligibleGroups">
+                <span class="check-icon-sticker"><i class="fas fa-check"></i></span>
+                <span>{{ item }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Điều kiện cần chuẩn bị -->
+          <div class="info-subcard">
+            <div class="subcard-header">
+              <div class="subcard-icon-pill bg-blue">
+                <i class="fas fa-file-circle-check"></i>
+              </div>
+              <h4>Hồ sơ & Điều kiện cơ bản</h4>
+            </div>
+            <ul class="subcard-list">
+              <li *ngFor="let item of loanPolicy.requirements">
+                <span class="check-icon-sticker"><i class="fas fa-check"></i></span>
+                <span>{{ item }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Note Tip Box -->
+        <div class="policy-friendly-tip">
+          <div class="tip-icon-sticker">💡</div>
+          <div class="tip-content">
+            <strong>Mách nhỏ từ VieJap:</strong>
+            <p>{{ loanPolicy.note }}</p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="panel-bottom-footer">
+          <div class="footer-sources">
+            <span class="source-label"><i class="fas fa-link me-1"></i>Nguồn đối chiếu:</span>
+            <div class="source-links">
+              <a *ngFor="let source of loanPolicy.sources" [href]="source.url" target="_blank" rel="noopener noreferrer">
+                {{ source.label }} <i class="fas fa-arrow-up-right-from-square"></i>
+              </a>
+            </div>
+          </div>
+          <a class="btn-ask-viejap" [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-comment-dots"></i> Nhắn VieJap tư vấn hồ sơ
+          </a>
+        </div>
+      </article>
+
+      <!-- TAB 2: NENKIN -->
+      <article *ngSwitchCase="'policy-nenkin'" class="policy-panel-card theme-emerald-panel" id="policy-nenkin-panel" role="tabpanel">
+        <div class="panel-top-banner">
+          <div class="banner-kicker">
+            <span class="emoji-tag">💴</span> {{ nenkinPolicy.eyebrow }}
+          </div>
+          <h3 class="banner-title">{{ nenkinPolicy.title }}</h3>
+          <p class="banner-desc">{{ nenkinPolicy.description }}</p>
+        </div>
+
+        <!-- 3 Highlight Reminders (2 đợt hoàn tiền) -->
+        <div class="policy-highlight-grid nenkin-grid">
+          <div class="highlight-item" *ngFor="let item of nenkinPolicy.reminders">
+            <div class="highlight-icon-circle" [style.color]="item.color" [style.background-color]="item.color + '15'">
+              <i [class]="item.icon"></i>
+            </div>
+            <div class="highlight-text">
+              <small>{{ item.title }}</small>
+              <strong>{{ item.text }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Information Boxes -->
+        <div class="policy-dual-cards">
+          <!-- Điều kiện -->
+          <div class="info-subcard">
+            <div class="subcard-header">
+              <div class="subcard-icon-pill bg-emerald">
+                <i class="fas fa-user-check"></i>
+              </div>
+              <h4>Điều kiện nhận lại Nenkin</h4>
+            </div>
+            <ul class="subcard-list">
+              <li *ngFor="let item of nenkinPolicy.conditions">
+                <span class="check-icon-sticker"><i class="fas fa-check"></i></span>
+                <span>{{ item }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 4 Bước thực hiện -->
+          <div class="info-subcard">
+            <div class="subcard-header">
+              <div class="subcard-icon-pill bg-teal">
+                <i class="fas fa-route"></i>
+              </div>
+              <h4>4 Bước làm thủ tục dễ dàng</h4>
+            </div>
+            <ol class="step-cute-list">
+              <li *ngFor="let step of nenkinPolicy.steps; let idx = index">
+                <span class="step-number-bubble">{{ idx + 1 }}</span>
+                <span>{{ step }}</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Note Tip Box -->
+        <div class="policy-friendly-tip tip-emerald">
+          <div class="tip-icon-sticker">🎉</div>
+          <div class="tip-content">
+            <strong>Kinh nghiệm bỏ túi:</strong>
+            <p>{{ nenkinPolicy.note }}</p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="panel-bottom-footer">
+          <div class="footer-sources">
+            <span class="source-label"><i class="fas fa-link me-1"></i>Nguồn chính thức:</span>
+            <div class="source-links">
+              <a *ngFor="let source of nenkinPolicy.sources" [href]="source.url" target="_blank" rel="noopener noreferrer">
+                {{ source.label }} <i class="fas fa-arrow-up-right-from-square"></i>
+              </a>
+            </div>
+          </div>
+          <a class="btn-ask-viejap btn-emerald" [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-comment-dots"></i> Nhắn VieJap hỗ trợ làm Nenkin
+          </a>
+        </div>
+      </article>
+
+      <!-- TAB 3: QUYỀN LỢI & BẢO VỆ -->
+      <article *ngSwitchCase="'policy-protection'" class="policy-panel-card theme-sky-panel" id="policy-protection-panel" role="tabpanel">
+        <div class="panel-top-banner">
+          <div class="banner-kicker">
+            <span class="emoji-tag">🛡️</span> {{ protectionPolicy.eyebrow }}
+          </div>
+          <h3 class="banner-title">{{ protectionPolicy.title }}</h3>
+          <p class="banner-desc">{{ protectionPolicy.description }}</p>
+        </div>
+
+        <!-- 4 Rights Cards -->
+        <div class="policy-rights-grid">
+          <div class="right-card-item" *ngFor="let right of protectionPolicy.rights">
+            <div class="right-icon-box" [style.color]="right.color" [style.background-color]="right.color + '15'">
+              <i [class]="right.icon"></i>
+            </div>
+            <div class="right-card-body">
+              <h5>{{ right.title }}</h5>
+              <p>{{ right.text }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Emergency Alert Box -->
+        <div class="policy-emergency-box">
+          <div class="emergency-header">
+            <span class="emergency-icon-glow">🚨</span>
+            <div>
+              <h4>Liên hệ hỗ trợ khẩn cấp khi bạn gặp các trường hợp sau:</h4>
+              <p>Luật pháp Nhật Bản nghiêm cấm mọi hành vi xâm phạm quyền lợi của người lao động.</p>
+            </div>
+          </div>
+          <div class="emergency-tags">
+            <span class="emergency-pill" *ngFor="let item of protectionPolicy.emergencyExamples">
+              <i class="fas fa-circle-exclamation me-1"></i> {{ item }}
+            </span>
+          </div>
+        </div>
+
+        <!-- VieJap Role Note -->
+        <div class="policy-friendly-tip tip-sky">
+          <div class="tip-icon-sticker">🤝</div>
+          <div class="tip-content">
+            <strong>VieJap luôn sát cánh bên bạn:</strong>
+            <p>{{ protectionPolicy.viejapRole }}</p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="panel-bottom-footer">
+          <div class="footer-sources">
+            <span class="source-label"><i class="fas fa-link me-1"></i>Đường dây nóng tiếng Việt:</span>
+            <div class="source-links">
+              <a *ngFor="let source of protectionPolicy.sources" [href]="source.url" target="_blank" rel="noopener noreferrer">
+                {{ source.label }} <i class="fas fa-arrow-up-right-from-square"></i>
+              </a>
+            </div>
+          </div>
+          <a class="btn-ask-viejap btn-sky" [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-comment-dots"></i> Báo VieJap hỗ trợ ngay
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+<section class="company-activities-section py-5" id="hoat-dong">
+  <div class="container">
+    <div class="activities-heading">
+      <div class="activities-heading-copy">
+        <span class="about-section-label">
+          <i class="fas fa-newspaper me-2"></i>Góc hoạt động
+        </span>
+        <h2 class="about-section-title">Hoạt động thực tế: từ đối ngoại, văn hóa đến đồng hành học viên</h2>
+        <p class="about-section-desc">
+          Bộ ảnh này gom lại những lần VieJap có mặt trong các sự kiện kết nối Việt Nam - Nhật Bản,
+          sinh hoạt văn hóa và hoạt động tại địa phương. Người xem có thể nhìn thấy đội ngũ qua
+          những khoảnh khắc thật, rõ bối cảnh, thay vì chỉ đọc lời giới thiệu.
+        </p>
+      </div>
+
+      <div class="activities-impact" aria-label="Dấu ấn hoạt động">
+        <div class="impact-item">
+          <strong>05</strong>
+          <span>
+            <span class="impact-label-full">hoạt động thực tế được ghi lại</span>
+            <span class="impact-label-short">hoạt động</span>
+          </span>
+        </div>
+        <div class="impact-item">
+          <strong>Tokyo</strong>
+          <span>
+            <span class="impact-label-full">dấu ấn đối ngoại Việt Nam - Nhật Bản</span>
+            <span class="impact-label-short">đối ngoại</span>
+          </span>
+        </div>
+        <div class="impact-item">
+          <strong>24</strong>
+          <span>
+            <span class="impact-label-full">điểm trường hướng nghiệp</span>
+            <span class="impact-label-short">điểm trường</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity-showcase">
+      <div class="activity-media">
+        <figure class="activity-main-image">
+          <img [src]="selectedActivityImage.src" [alt]="selectedActivityImage.alt" [title]="selectedActivityImage.alt"
+            loading="lazy" />
+          <figcaption>
+            <i class="fas fa-camera"></i>
+            Ảnh ghi lại tại chương trình
+          </figcaption>
+        </figure>
+
+        <div class="activity-thumbnails" aria-label="Chọn hình ảnh hoạt động">
+          <button *ngFor="let image of selectedActivity.gallery; let index = index" type="button"
+            [class.active]="image.src === selectedActivityImage.src"
+            [attr.aria-pressed]="image.src === selectedActivityImage.src" (click)="selectActivityImage(image)"
+            [attr.aria-label]="'Xem ảnh ' + (index + 1) + ': ' + image.alt"
+            [title]="'Xem ảnh ' + (index + 1) + ': ' + image.alt">
+            <img [src]="image.src" [alt]="image.alt" [title]="image.alt" loading="lazy" />
+          </button>
+        </div>
+      </div>
+
+      <article class="activity-story">
+        <span class="activity-category">{{ selectedActivity.category }}</span>
+        <h3>{{ selectedActivity.title }}</h3>
+
+        <div class="activity-meta">
+          <span>
+            <i class="fas fa-location-dot"></i>
+            {{ selectedActivity.location }}
+          </span>
+          <span>
+            <strong>{{ selectedActivity.metric }}</strong>
+            {{ selectedActivity.metricLabel }}
+          </span>
+        </div>
+
+        <p class="activity-summary">{{ selectedActivity.summary }}</p>
+
+        <ul class="activity-highlights">
+          <li *ngFor="let highlight of selectedActivity.highlights">
+            <i class="fas fa-circle-check"></i>
+            <span>{{ highlight }}</span>
+          </li>
+        </ul>
+
+        <div class="activity-video" *ngIf="selectedActivity.video">
+          <div class="activity-video-heading">
+            <span><i class="fas fa-play-circle"></i> Video hoạt động</span>
+            <small>Một đoạn ngắn từ buổi gặp gỡ</small>
+          </div>
+          <video controls preload="metadata" playsinline [poster]="selectedActivity.coverImage.src">
+            <source [src]="selectedActivity.video" type="video/mp4" />
+            Trình duyệt của bạn không hỗ trợ video.
+          </video>
+        </div>
+      </article>
+    </div>
+
+    <div class="activity-selector" aria-label="Danh sách hoạt động công ty">
+      <button *ngFor="let activity of orderedCompanyActivities" type="button" class="activity-selector-card"
+        [class.active]="activity.id === selectedActivity.id" [attr.aria-pressed]="activity.id === selectedActivity.id"
+        (click)="selectCompanyActivity(activity)">
+        <img [src]="activity.coverImage.src" [alt]="activity.coverImage.alt" [title]="activity.coverImage.alt"
+          loading="lazy" />
+        <span class="activity-selector-copy">
+          <small>{{ activity.category }}</small>
+          <strong>{{ activity.title }}</strong>
+          <span><i class="fas fa-location-dot"></i>{{ activity.location }}</span>
+        </span>
+        <i class="fas fa-arrow-right activity-selector-arrow" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5" id="lien-he">
+  <div class="container">
+    <div class="cta-content text-center">
+      <h2 class="cta-title">Sẵn sàng bắt đầu hành trình mới?</h2>
+      <p class="cta-desc">Đăng ký tư vấn miễn phí ngay hôm nay để được hỗ trợ tốt nhất</p>
+      <div class="cta-buttons">
+        <a [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer"
+          class="btn btn-light btn-lg me-3">
+          <i class="fas fa-comment-dots me-2"></i>Nhắn Zalo để được tư vấn
+        </a>
+        <a [href]="'tel:' + contactInfo.hotline" class="btn btn-outline-light btn-lg">
+          <i class="fas fa-phone-alt me-2"></i>Gọi ngay: {{ contactInfo.hotline }}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

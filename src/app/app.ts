@@ -8,10 +8,10 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { HeaderComponent } from './components/header/header.component';
-import { FooterComponent } from './components/footer/footer.component';
-import { LoadingComponent } from './shared/loading/loading.component';
-import { SakuraComponent } from './components/sakura/sakura.component';
+import { HeaderComponent } from './core/layout/header/header.component';
+import { FooterComponent } from './core/layout/footer/footer.component';
+import { LoadingComponent } from './core/shared/loading/loading.component';
+import { SakuraComponent } from './core/layout/sakura/sakura.component';
 
 @Component({
   selector: 'app-root',

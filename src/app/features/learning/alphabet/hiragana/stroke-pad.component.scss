@@ -1,0 +1,266 @@
+:host {
+  min-width: 0;
+  display: block;
+}
+
+.stroke-pad {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #fff;
+  transition:
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+
+  &.is-active {
+    border-color: #8fa9ca;
+  }
+
+  &.is-disabled {
+    opacity: 0.62;
+  }
+
+  &.is-complete {
+    border-color: #8fc4b2;
+    background: #fbfffd;
+  }
+}
+
+.stroke-pad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+
+  > div {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  span {
+    color: #6b7b90;
+    font-size: 0.74rem;
+    font-weight: 750;
+  }
+
+  strong {
+    color: #173f85;
+    font-family: 'Yu Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+}
+
+.stroke-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  white-space: nowrap;
+
+  i {
+    color: #1c856b;
+  }
+}
+
+.pad-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid #cbd7e5;
+  border-radius: 6px;
+  background: #fbfcfe;
+}
+
+.grid-line {
+  position: absolute;
+  z-index: 0;
+  background: #e2e8f0;
+  pointer-events: none;
+}
+
+.grid-line-horizontal {
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+}
+
+.grid-line-vertical {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.grid-line-diagonal-a,
+.grid-line-diagonal-b {
+  top: 50%;
+  left: -21%;
+  width: 142%;
+  height: 1px;
+  background: #edf1f6;
+}
+
+.grid-line-diagonal-a {
+  transform: rotate(45deg);
+}
+
+.grid-line-diagonal-b {
+  transform: rotate(-45deg);
+}
+
+.stroke-reference,
+.drawing-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.stroke-reference {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.drawing-canvas {
+  z-index: 2;
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.glyph-outline {
+  fill: #e9eef5;
+}
+
+.animated-median {
+  fill: none;
+  stroke: #315f9d;
+  stroke-width: 34;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-stroke 0.65s ease forwards;
+}
+
+.hint-median {
+  fill: none;
+  stroke: #e2a916;
+  stroke-width: 42;
+  stroke-linecap: round;
+  opacity: 0.82;
+  animation: hint-pulse 1.1s ease-in-out infinite;
+}
+
+.pad-lock,
+.pad-complete-mark {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.4rem;
+}
+
+.pad-lock {
+  background: rgba(248, 250, 252, 0.84);
+  color: #718096;
+  font-size: 0.76rem;
+  font-weight: 750;
+
+  i {
+    font-size: 1rem;
+  }
+}
+
+.pad-complete-mark {
+  pointer-events: none;
+
+  i {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(25, 132, 103, 0.92);
+    color: #fff;
+    font-size: 1.2rem;
+    box-shadow: 0 10px 25px rgba(25, 132, 103, 0.24);
+  }
+}
+
+.stroke-status {
+  min-height: 38px;
+  margin: 0.65rem 0 0;
+  color: #68788e;
+  font-size: 0.75rem;
+  line-height: 1.45;
+
+  &.is-warning {
+    color: #a05d17;
+  }
+}
+
+.stroke-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  margin-top: 0.35rem;
+
+  button {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d7e0eb;
+    border-radius: 6px;
+    background: #fff;
+    color: #31577f;
+    cursor: pointer;
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      border-color: #8fa9ca;
+      background: #eef4fb;
+    }
+
+    &:disabled {
+      color: #adb8c5;
+      cursor: not-allowed;
+    }
+  }
+
+  .skip-stroke {
+    margin-left: auto;
+    border-color: #e8c58c;
+    color: #a05d17;
+  }
+}
+
+@keyframes draw-stroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hint-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-median {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .hint-median {
+    animation: none;
+  }
+}
