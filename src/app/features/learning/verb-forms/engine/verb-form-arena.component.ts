@@ -195,12 +195,36 @@ export class VerbFormArenaComponent implements OnInit, OnDestroy {
     this.showAudioPrompt = true;
   }
 
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    if (this.currentView !== 'practice') return;
+
+    // Next question on Enter or Space
+    if (this.isAnswered && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      this.nextQuestion();
+      return;
+    }
+
+    // Number keys 1..4 for Multiple Choice options
+    if (!this.isAnswered && this.exerciseType === 'multipleChoice') {
+      const keyNum = parseInt(event.key, 10);
+      if (keyNum >= 1 && keyNum <= this.mcOptions.length) {
+        event.preventDefault();
+        this.selectMcOption(keyNum - 1);
+      }
+    }
+  }
+
   // ══════════════════════════════════════════════════════════════════
   //  VIEW SWITCHING
-  // ══════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   switchView(view: ViewMode): void {
     this.currentView = view;
+    if (view === 'practice') {
+      this.headerCollapsed = true;
+    }
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }

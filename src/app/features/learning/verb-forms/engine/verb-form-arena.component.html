@@ -293,46 +293,66 @@
       </div>
 
 
-      <!-- ── Correct answer display ───────────────────────────── -->
-      <div class="te-correct-display" *ngIf="isAnswered && isCorrect">
-        <div class="te-correct-badge">
-          <i class="fas fa-check-circle"></i>
-          <span>Chính xác!</span>
-        </div>
-        <div class="te-correct-answer">
-          <span class="te-correct-te">{{ currentVerb.targetForm }}</span>
-          <span class="te-correct-kanji-small">{{ currentVerb.targetFormKanji }}</span>
-        </div>
-        <div class="te-correct-speak">
+      <!-- ── Answer Feedback & Next Action Bar ───────────────────── -->
+      <div class="te-feedback-action-bar" *ngIf="isAnswered">
+        <div class="te-feedback-info is-correct" *ngIf="isCorrect">
+          <div class="te-feedback-left">
+            <span class="te-status-pill is-correct">
+              <i class="fas fa-check-circle"></i>
+              <span>Chính xác!</span>
+            </span>
+            <span class="te-target-reading" *ngIf="currentVerb.targetFormKanji">
+              {{ currentVerb.targetFormKanji }}
+            </span>
+          </div>
           <button
             type="button"
+            class="te-speak-btn"
             (click)="speakJapanese(currentVerb.targetForm)"
             title="Phát âm tiếng Nhật"
           >
-            <i class="fas fa-volume-high"></i> Nghe lại
+            <i class="fas fa-volume-high"></i>
+            <span>Nghe lại</span>
           </button>
         </div>
-      </div>
 
-      <!-- ── Wrong answer display (inline) ────────────────────── -->
-      <div class="te-wrong-inline" *ngIf="isAnswered && !isCorrect && !showExplanation">
-        <div class="te-wrong-badge">
-          <i class="fas fa-times-circle"></i>
-          <span>Chưa đúng</span>
+        <div class="te-feedback-info is-wrong" *ngIf="!isCorrect">
+          <div class="te-feedback-left">
+            <span class="te-status-pill is-wrong">
+              <i class="fas fa-times-circle"></i>
+              <span>Chưa đúng</span>
+            </span>
+            <span class="te-correct-hint">
+              Đáp án: <strong>{{ currentVerb.targetForm }}</strong>
+            </span>
+          </div>
+          <div class="te-wrong-actions">
+            <button
+              type="button"
+              class="te-speak-btn icon-only"
+              (click)="speakJapanese(currentVerb.targetForm)"
+              title="Phát âm tiếng Nhật"
+            >
+              <i class="fas fa-volume-high"></i>
+            </button>
+            <button
+              type="button"
+              class="te-explain-pill-btn"
+              (click)="showExplanation = true"
+              title="Xem giải thích quy tắc"
+            >
+              <i class="fas fa-lightbulb"></i>
+              <span>Giải thích</span>
+            </button>
+          </div>
         </div>
-        <div class="te-wrong-correct">
-          Đáp án: <strong>{{ currentVerb.targetForm }}</strong>
-        </div>
-        <button type="button" class="te-wrong-explain-btn" (click)="showExplanation = true">
-          <i class="fas fa-lightbulb"></i> Xem giải thích
+
+        <!-- Next button -->
+        <button type="button" class="te-next-btn" (click)="nextQuestion()">
+          <span>Câu tiếp theo</span>
+          <i class="fas fa-arrow-right"></i>
         </button>
       </div>
-
-      <!-- ── Next button ──────────────────────────────────────── -->
-      <button *ngIf="isAnswered" type="button" class="te-next-btn" (click)="nextQuestion()">
-        Câu tiếp theo
-        <i class="fas fa-arrow-right"></i>
-      </button>
     </div>
   </div>
 
