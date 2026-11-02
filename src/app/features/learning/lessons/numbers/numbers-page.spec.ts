@@ -17,7 +17,9 @@ describe('NumbersPage', () => {
   afterEach(() => localStorage.removeItem(NUMBER_PROGRESS_STORAGE_KEY));
 
   it('should render and score a four-answer quiz', () => {
-    expect(fixture.nativeElement.querySelectorAll('.answer-grid button').length).toBe(4);
+    component.switchView('practice');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.hira-mc-option').length).toBe(4);
     const question = component.currentQuestion!;
     component.chooseAnswer(question.correctAnswer);
     fixture.detectChanges();
@@ -26,14 +28,16 @@ describe('NumbersPage', () => {
   });
 
   it('should explain a custom number by segments', () => {
-    component.setTab('guide');
+    component.switchView('theory');
+    component.setTheoryTab('builder');
     component.builderValue = 31415;
     fixture.detectChanges();
     expect(component.builderResult.kana).toBe('さんまんせんよんひゃくじゅうご');
-    expect(fixture.nativeElement.querySelectorAll('.segment-flow article').length).toBe(5);
+    expect(fixture.nativeElement.querySelectorAll('.segment-card').length).toBe(5);
   });
 
   it('should continue with a different random value', () => {
+    component.switchView('practice');
     component.setQuizMode('continuous');
     const first = component.currentQuestion!;
     component.chooseAnswer(first.correctAnswer);

@@ -1,0 +1,193 @@
+<div class="template-gallery-container">
+  <!-- Tiêu đề ngắn gọn, thanh lịch -->
+  <div class="gallery-heading">
+    <p class="gallery-subtext">Chọn 1 trong 3 phong cách thiết kế bên dưới để tạo poster:</p>
+  </div>
+
+  <!-- Lưới 3 mẫu poster chính -->
+  <div class="template-cards-grid">
+    <div
+      class="template-card"
+      *ngFor="let tpl of templates"
+      [class.selected]="selectedTemplateId === tpl.id"
+      (click)="selectTemplate(tpl)"
+    >
+      <!-- Khung Canvas sơ đồ bố cục wireframe -->
+      <div class="thumb-aspect-frame">
+        <canvas
+          #thumbCanvas
+          [attr.width]="posterWidth"
+          [attr.height]="posterHeight"
+          class="thumb-canvas"
+        ></canvas>
+
+        <span class="badge-tag">{{ tpl.badge }}</span>
+
+        <div class="selection-check-indicator" *ngIf="selectedTemplateId === tpl.id">
+          <i class="fas fa-check"></i>
+        </div>
+      </div>
+
+      <!-- Thông tin mẫu -->
+      <div class="card-info">
+        <div class="card-title-row">
+          <h3 class="template-name">{{ tpl.name }}</h3>
+          <span class="photo-req-tag">
+            <i class="fas fa-images me-1"></i>{{ tpl.recommendedPhotoCount }} ảnh
+          </span>
+        </div>
+
+        <p class="template-desc">{{ tpl.description }}</p>
+
+        <div class="card-actions">
+          <button
+            type="button"
+            class="btn-view-layout"
+            (click)="openLayoutPreview(tpl, $event)"
+            title="Xem chi tiết sơ đồ bố cục"
+          >
+            <i class="fas fa-magnifying-glass-plus me-1"></i> Xem bố cục lớn
+          </button>
+
+          <span class="status-selected" *ngIf="selectedTemplateId === tpl.id">
+            <i class="fas fa-check-circle me-1"></i> Đang chọn
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thanh xác nhận lựa chọn ở cuối -->
+  <div class="template-confirmation-bar">
+    <div class="selected-summary">
+      <i class="fas fa-circle-check text-primary fs-5"></i>
+      <div>
+        <span class="summary-label">Mẫu đã chọn:</span>
+        <strong class="summary-name">{{ currentSelectedTemplate.name }}</strong>
+        <span class="badge bg-light text-dark border ms-2">{{ currentSelectedTemplate.badge }}</span>
+      </div>
+    </div>
+
+    <div class="confirmation-actions">
+      <button
+        type="button"
+        class="btn-preview-again"
+        (click)="openLayoutPreview(currentSelectedTemplate)"
+      >
+        <i class="fas fa-eye me-1"></i> Xem chi tiết
+      </button>
+
+      <button
+        type="button"
+        class="btn-confirm-next"
+        (click)="confirmSelection()"
+      >
+        <span>Dùng mẫu này & Tiếp tục</span>
+        <i class="fas fa-arrow-right ms-1"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL XEM TRƯỚC BỐ CỤC LỚN (LAYOUT PREVIEW MODAL) -->
+  <div
+    class="layout-modal-backdrop"
+    *ngIf="previewingTemplate"
+    (click)="closeLayoutPreview()"
+  >
+    <div
+      class="layout-modal-dialog"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+    >
+      <header class="layout-modal-header">
+        <div>
+          <h3>{{ previewingTemplate.name }}</h3>
+          <p class="text-muted mb-0 small">
+            Định dạng khung hình dọc chuẩn điện thoại (9:16 &bull; 1080 &times; 1920 px)
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn-close-layout-modal"
+          (click)="closeLayoutPreview()"
+          aria-label="Đóng"
+        >
+          <i class="fas fa-xmark"></i>
+        </button>
+      </header>
+
+      <div class="layout-modal-body">
+        <!-- Cột Canvas Preview -->
+        <div class="canvas-holder">
+          <div class="canvas-screen-wrap">
+            <canvas
+              #modalPreviewCanvas
+              [attr.width]="posterWidth"
+              [attr.height]="posterHeight"
+              class="large-preview-canvas"
+            ></canvas>
+            <div class="canvas-loading-overlay" *ngIf="renderingPreview">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Đang kết xuất khung mẫu...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột thuyết minh bố cục -->
+        <aside class="layout-inspector-sidebar">
+          <div class="inspector-section">
+            <h4><i class="fas fa-sitemap me-2 text-primary"></i>Các khu vực trên poster</h4>
+            <ul class="layout-elements-list">
+              <li>
+                <div class="elem-badge"><i class="fas fa-flag"></i> Khu vực 1</div>
+                <strong>Logo và biểu trưng công ty</strong>
+                <p>Logo VieJap chính thức, khẩu hiệu và dải cờ Nhật - Việt trang trọng.</p>
+              </li>
+
+              <li>
+                <div class="elem-badge"><i class="fas fa-heading"></i> Khu vực 2</div>
+                <strong>Tên đơn hàng & Mã tuyển</strong>
+                <p>Chữ in đậm nổi bật, cỡ chữ lớn giúp người đọc xem rõ ngay trên điện thoại.</p>
+              </li>
+
+              <li>
+                <div class="elem-badge"><i class="fas fa-images"></i> Khu vực 3</div>
+                <strong>Hình ảnh thực tế ({{ previewingTemplate.recommendedPhotoCount }} ảnh)</strong>
+                <p>
+                  {{ previewingTemplate.recommendedPhotoCount === 3
+                    ? 'Cụm 3 ảnh bo góc nghệ thuật thể hiện công việc và nơi làm việc.'
+                    : 'Ảnh lớn công việc chính và ảnh môi trường làm việc tại Nhật Bản.'
+                  }}
+                </p>
+              </li>
+
+              <li>
+                <div class="elem-badge"><i class="fas fa-yen-sign"></i> Khu vực 4</div>
+                <strong>Mức lương & Điều kiện tuyển</strong>
+                <p>Lương thực lĩnh, lương cơ bản kèm địa điểm làm việc, độ tuổi và ngày phỏng vấn.</p>
+              </li>
+
+              <li>
+                <div class="elem-badge"><i class="fas fa-qrcode"></i> Khu vực 5</div>
+                <strong>Hotline & Mã QR đăng ký</strong>
+                <p>Số điện thoại liên hệ và mã QR để người lao động quét camera đăng ký nhanh.</p>
+              </li>
+            </ul>
+          </div>
+
+          <div class="inspector-confirm-box">
+            <button
+              type="button"
+              class="btn-use-this-template-now"
+              (click)="selectAndConfirmFromModal(previewingTemplate)"
+            >
+              <i class="fas fa-check-circle me-1"></i>
+              Xác nhận & Sử dụng mẫu này
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>

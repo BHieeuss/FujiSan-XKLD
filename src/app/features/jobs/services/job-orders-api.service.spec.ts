@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { AdminAuthService } from '../admin/admin-auth.service';
+import { AdminAuthService } from '../../admin/services/admin-auth.service';
 import { JobOrdersApiService } from './job-orders-api.service';
 
 describe('JobOrdersApiService', () => {
@@ -27,7 +27,7 @@ describe('JobOrdersApiService', () => {
   });
 
   it('protects admin mutations with the current CSRF token', async () => {
-    const auth = TestBed.inject(AdminAuthService);
+    const auth = TestBed.inject(AdminAuthService) as AdminAuthService;
     auth.session.set({ authenticated: true, username: 'admin', csrfToken: 'csrf-token' });
     fetchSpy.and.resolveTo(
       new Response(

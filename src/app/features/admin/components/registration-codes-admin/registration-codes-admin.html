@@ -1,0 +1,857 @@
+<div class="codes-admin-wrapper">
+  <!-- Toast Notification -->
+  @if (actionToast()) {
+    <div class="action-toast animate-fade-in">
+      <i class="fas fa-circle-check"></i>
+      <span>{{ actionToast() }}</span>
+    </div>
+  }
+
+  <!-- METRIC KPI CARDS (6 TIÊU CHÍ) -->
+  <div class="metrics-grid">
+    <div class="metric-card total">
+      <div class="metric-icon"><i class="fas fa-ticket"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Tổng mã đã cấp</span>
+        <strong class="metric-value">{{ stats()?.total || 0 }}</strong>
+      </div>
+    </div>
+    <div class="metric-card pending">
+      <div class="metric-icon"><i class="fas fa-clock"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Chưa sử dụng</span>
+        <strong class="metric-value text-primary">{{ stats()?.pending || 0 }}</strong>
+      </div>
+    </div>
+    <div class="metric-card in-progress">
+      <div class="metric-icon"><i class="fas fa-pen-to-square"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Đang khai thông tin</span>
+        <strong class="metric-value text-info">{{ stats()?.in_progress || stats()?.inProgress || 0 }}</strong>
+      </div>
+    </div>
+    <div class="metric-card used">
+      <div class="metric-icon"><i class="fas fa-circle-check"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Đã gửi hồ sơ</span>
+        <strong class="metric-value text-success">{{ stats()?.used || 0 }}</strong>
+      </div>
+    </div>
+    <div class="metric-card expiring">
+      <div class="metric-icon"><i class="fas fa-hourglass-half"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Sắp hết hạn (&lt;24h)</span>
+        <strong class="metric-value text-warning">{{ stats()?.expiring_soon || stats()?.expiringSoon || 0 }}</strong>
+      </div>
+    </div>
+    <div class="metric-card expired">
+      <div class="metric-icon"><i class="fas fa-ban"></i></div>
+      <div class="metric-info">
+        <span class="metric-label">Hết hạn / Thu hồi</span>
+        <strong class="metric-value text-muted">{{ (stats()?.expired || 0) + (stats()?.revoked || 0) }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROL TOOLBAR -->
+  <div class="codes-control-bar">
+    <div class="actions-left">
+      @if (canCreate) {
+        <button type="button" class="btn-action btn-primary" (click)="openCreateModal()">
+          <i class="fas fa-plus"></i>
+          <span>Tạo mã đăng ký mới</span>
+        </button>
+      }
+      @if (canCreateBulk) {
+        <button type="button" class="btn-action btn-outline" (click)="openBulkModal()">
+          <i class="fas fa-users-gear"></i>
+          <span>Cấp mã hàng loạt</span>
+        </button>
+      }
+      @if (canExport) {
+        <button type="button" class="btn-action btn-outline" (click)="exportCodesCsv()" [disabled]="isLoading()">
+          <i class="fas fa-file-excel"></i>
+          <span>Xuất file Excel</span>
+        </button>
+      }
+      @if (canViewHistory) {
+        <button type="button" class="btn-action btn-outline" (click)="openHistoryModal()">
+          <i class="fas fa-clock-rotate-left"></i>
+          <span>Nhật ký xác thực</span>
+        </button>
+      }
+    </div>
+
+    <div class="refresh-right">
+      <button type="button" class="btn-refresh" (click)="loadData()" [disabled]="isLoading()" title="Làm mới danh sách">
+        <i class="fas fa-arrows-rotate" [class.fa-spin]="isLoading()"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTERS & SEARCH ROW -->
+  <div class="filters-panel">
+    <div class="search-box">
+      <i class="fas fa-magnifying-glass"></i>
+      <input
+        type="text"
+        placeholder="Tìm theo tên học viên, mã 6 số, số điện thoại..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onFilterChange()"
+      />
+      @if (searchTerm) {
+        <button type="button" class="btn-clear-search" (click)="searchTerm = ''; onFilterChange()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      }
+    </div>
+
+    <div class="filter-selects">
+      <div class="select-group">
+        <label>Trạng thái mã:</label>
+        <select [(ngModel)]="statusFilter" (change)="onFilterChange()">
+          <option value="all">Tất cả trạng thái</option>
+          <option value="pending">Chưa sử dụng</option>
+          <option value="in_progress">Đang khai</option>
+          <option value="used">Đã gửi hồ sơ</option>
+          <option value="expired">Đã hết hạn</option>
+          <option value="revoked">Đã thu hồi</option>
+        </select>
+      </div>
+
+      <div class="select-group">
+        <label>Tiến độ hồ sơ:</label>
+        <select [(ngModel)]="progressFilter" (change)="onFilterChange()">
+          <option value="all">Tất cả tiến độ</option>
+          <option value="not_started">Chưa bắt đầu</option>
+          <option value="filling">Đang khai thông tin</option>
+          <option value="draft_saved">Đã lưu bản nháp</option>
+          <option value="submitted">Đã gửi hồ sơ</option>
+          <option value="checking">Đang kiểm tra hồ sơ</option>
+          <option value="need_info">Cần bổ sung</option>
+          <option value="approved">Đã duyệt</option>
+        </select>
+      </div>
+
+      <div class="select-group">
+        <label>Phụ trách:</label>
+        <select [(ngModel)]="assignedFilter" (change)="onFilterChange()">
+          <option value="all">Tất cả cán bộ</option>
+          @for (u of staffUsers(); track u.userId) {
+            <option [value]="u.userId">{{ u.fullName }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA TABLE -->
+  <div class="codes-table-container">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <p>Đang tải danh sách mã đăng ký...</p>
+      </div>
+    } @else if (codes().length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-ticket-simple"></i>
+        <h4>Chưa có mã đăng ký nào</h4>
+        <p>Không tìm thấy mã đăng ký phù hợp với bộ lọc hiện tại. Bấm "Tạo mã đăng ký mới" để cấp mã cho học viên.</p>
+        @if (canCreate) {
+          <button type="button" class="btn-create-empty" (click)="openCreateModal()">
+            <i class="fas fa-plus"></i> Tạo mã đầu tiên
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="codes-table">
+          <thead>
+            <tr>
+              <th class="th-student">Học viên</th>
+              <th class="th-code">Mã đăng ký (6 số)</th>
+              <th class="th-date">Ngày cấp & Hạn sử dụng</th>
+              <th class="th-progress">Tiến độ hồ sơ</th>
+              <th class="th-status">Trạng thái mã</th>
+              <th class="th-creator">Người tạo</th>
+              <th class="th-actions">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of codes(); track c.id) {
+              <tr [class.row-used]="c.status === 'used'" [class.row-expired]="c.status === 'expired' || c.status === 'revoked'">
+                <!-- HỌC VIÊN -->
+                <td class="td-student">
+                  <div class="student-info">
+                    <strong class="student-name">{{ c.studentName }}</strong>
+                    <div class="student-contacts">
+                      @if (c.phone) {
+                        <span class="contact-pill"><i class="fas fa-phone"></i> {{ c.phone }}</span>
+                      }
+                      @if (c.email) {
+                        <span class="contact-pill"><i class="fas fa-envelope"></i> {{ c.email }}</span>
+                      }
+                    </div>
+                    @if (c.assignedStaffName) {
+                      <span class="staff-badge"><i class="fas fa-user-tie"></i> {{ c.assignedStaffName }}</span>
+                    }
+                  </div>
+                </td>
+
+                <!-- MÃ ĐĂNG KÝ -->
+                <td class="td-code">
+                  <div class="code-box">
+                    <code class="code-number">{{ c.code }}</code>
+                    <button type="button" class="btn-copy-code" (click)="copyCodeOnly(c)" title="Sao chép mã 6 số">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <button type="button" class="btn-qr-view" (click)="openViewModal(c)" title="Xem mã QR & tin nhắn gửi học viên">
+                      <i class="fas fa-qrcode"></i>
+                    </button>
+                  </div>
+                </td>
+
+                <!-- NGÀY CẤP & HẠN DÙNG -->
+                <td class="td-date">
+                  <div class="date-col">
+                    <span class="date-created"><i class="far fa-calendar-plus"></i> {{ formatDateTime(c.createdAt) }}</span>
+                    <span class="date-expiry" [class.text-danger]="c.status === 'expired'">
+                      <i class="far fa-clock"></i> {{ formatCountdown(c.expiresAt, c.status) }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- TIẾN ĐỘ HỒ SƠ -->
+                <td class="td-progress">
+                  <div class="progress-col">
+                    <span class="prog-badge" [class]="getProgressBadgeClass(c.progressStatus)">
+                      {{ getProgressLabel(c.progressStatus) }}
+                    </span>
+                    <div class="mini-progress-track">
+                      <div class="mini-progress-fill" [style.width.%]="c.progressPercent"></div>
+                    </div>
+                    <small class="prog-pct">{{ c.progressPercent }}% hoàn thành</small>
+                  </div>
+                </td>
+
+                <!-- TRẠNG THÁI MÃ -->
+                <td class="td-status">
+                  <span class="status-badge" [class]="getStatusBadgeClass(c.status)">
+                    {{ getStatusLabel(c.status) }}
+                  </span>
+                </td>
+
+                <!-- NGƯỜI TẠO -->
+                <td class="td-creator">
+                  <span class="creator-name">{{ formatCreator(c.createdBy) }}</span>
+                </td>
+
+                <!-- THAO TÁC -->
+                <td class="td-actions">
+                  <div class="action-buttons-group">
+                    <button
+                      type="button"
+                      class="btn-tbl-action btn-tbl-view"
+                      (click)="openViewModal(c)"
+                      title="Xem mã & QR gửi học viên"
+                    >
+                      <i class="fas fa-qrcode"></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-tbl-action btn-tbl-msg"
+                      (click)="copyStudentMessage(c)"
+                      title="Sao chép tin nhắn Zalo gửi học viên"
+                    >
+                      <i class="fas fa-comment-dots"></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-tbl-action btn-tbl-prog"
+                      (click)="openProgressModal(c)"
+                      title="Xem tiến độ & bản nháp chi tiết"
+                    >
+                      <i class="fas fa-chart-pie"></i>
+                    </button>
+
+                    @if (canReissue && (c.status === 'expired' || c.status === 'revoked')) {
+                      <button
+                        type="button"
+                        class="btn-tbl-action btn-tbl-reissue"
+                        (click)="confirmReissue(c)"
+                        title="Cấp lại mã mới 3 ngày"
+                      >
+                        <i class="fas fa-rotate-right"></i>
+                      </button>
+                    }
+
+                    @if (canRevoke && (c.status === 'pending' || c.status === 'in_progress')) {
+                      <button
+                        type="button"
+                        class="btn-tbl-action btn-tbl-revoke"
+                        (click)="openRevokeModal(c)"
+                        title="Thu hồi mã"
+                      >
+                        <i class="fas fa-ban"></i>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PAGINATION -->
+      <app-admin-pagination
+        [currentPage]="currentPage"
+        [totalItems]="total"
+        [pageSize]="pageSize"
+        itemLabel="mã đăng ký"
+        (pageChange)="onPageChange($event)"
+      ></app-admin-pagination>
+    }
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: TẠO MÃ ĐĂNG KÝ MỚI
+       ========================================================================= -->
+  @if (showCreateModal) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeCreateModal()">
+      <div class="modal-card modal-create" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="header-icon"><i class="fas fa-ticket-simple"></i></div>
+          <div class="header-text">
+            <h4>Cấp mã đăng ký mới cho học viên</h4>
+            <p>Hệ thống tự động sinh ngẫu nhiên mã 6 chữ số, có hiệu lực 72 giờ.</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeCreateModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        @if (createError) {
+          <div class="modal-alert-error">
+            <i class="fas fa-circle-exclamation"></i>
+            <span>{{ createError }}</span>
+          </div>
+        }
+
+        <form (ngSubmit)="submitCreateCode()" class="modal-form">
+          <div class="form-group required">
+            <label>Họ và tên học viên (*):</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="VD: TRẦN BÁ HIẾU"
+              [(ngModel)]="newStudentName"
+              name="studentName"
+              required
+              autofocus
+            />
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Số điện thoại liên hệ:</label>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="VD: 0966966284"
+                [(ngModel)]="newPhone"
+                name="phone"
+              />
+            </div>
+            <div class="form-group">
+              <label>Email (nếu có):</label>
+              <input
+                type="email"
+                class="form-control"
+                placeholder="VD: hieu@gmail.com"
+                [(ngModel)]="newEmail"
+                name="email"
+              />
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Cán bộ phụ trách:</label>
+              <select class="form-control" [(ngModel)]="newAssignedTo" name="assignedTo">
+                <option value="">Chưa phân công</option>
+                @for (u of staffUsers(); track u.userId) {
+                  <option [value]="u.userId">{{ u.fullName }} ({{ u.role }})</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Thời hạn hiệu lực:</label>
+              <select class="form-control" [(ngModel)]="newValidityHours" name="validityHours">
+                <option [ngValue]="72">3 ngày (72 giờ - Mặc định)</option>
+                <option [ngValue]="48">2 ngày (48 giờ)</option>
+                <option [ngValue]="120">5 ngày (120 giờ)</option>
+                <option [ngValue]="168">7 ngày (1 tuần)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Ghi chú nội bộ:</label>
+            <textarea
+              class="form-control"
+              rows="2"
+              placeholder="Ghi chú về đơn hàng quan tâm, tình trạng ứng tuyển..."
+              [(ngModel)]="newNotes"
+              name="notes"
+            ></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeCreateModal()">Hủy bỏ</button>
+            <button type="submit" class="btn-submit" [disabled]="isCreating || !newStudentName.trim()">
+              @if (isCreating) {
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Đang cấp mã...</span>
+              } @else {
+                <i class="fas fa-key"></i>
+                <span>Tạo và cấp mã 6 số</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODAL 2: HIỂN THỊ MÃ VỪA TẠO & QR CODE
+       ========================================================================= -->
+  @if (showViewModal && selectedCode) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeViewModal()">
+      <div class="modal-card modal-view-code" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="header-icon success"><i class="fas fa-circle-check"></i></div>
+          <div class="header-text">
+            <h4>Mã đăng ký học viên</h4>
+            <p>Học viên: <strong>{{ selectedCode.studentName }}</strong> ({{ selectedCode.phone || 'Chưa có SĐT' }})</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeViewModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        @if (copyToast()) {
+          <div class="copy-alert animate-fade-in">
+            <i class="fas fa-check"></i> {{ copyToast() }}
+          </div>
+        }
+
+        <div class="view-code-body">
+          <!-- BIG DIGITS DISPLAY -->
+          <div class="big-code-display">
+            <span class="code-label">MÃ XÁC THỰC 6 CHỮ SỐ:</span>
+            <div class="code-digits-row">
+              <span class="digit-box">{{ selectedCode.code[0] }}</span>
+              <span class="digit-box">{{ selectedCode.code[1] }}</span>
+              <span class="digit-box">{{ selectedCode.code[2] }}</span>
+              <span class="digit-sep">-</span>
+              <span class="digit-box">{{ selectedCode.code[3] }}</span>
+              <span class="digit-box">{{ selectedCode.code[4] }}</span>
+              <span class="digit-box">{{ selectedCode.code[5] }}</span>
+            </div>
+            <div class="code-meta-row">
+              <span><i class="far fa-clock"></i> Hiệu lực đến: <strong>{{ formatDateTime(selectedCode.expiresAt) }}</strong></span>
+              <button type="button" class="btn-copy-mini" (click)="copyCodeOnly(selectedCode)">
+                <i class="fas fa-copy"></i> Sao chép mã
+              </button>
+            </div>
+          </div>
+
+          <!-- QR CODE & ACCESS LINK -->
+          <div class="qr-preview-box">
+            <div class="qr-canvas-wrap">
+              @if (qrDataUrl) {
+                <img [src]="qrDataUrl" alt="Mã QR truy cập" class="qr-img" />
+              } @else {
+                <div class="qr-loading"><i class="fas fa-circle-notch fa-spin"></i></div>
+              }
+            </div>
+            <div class="qr-info-wrap">
+              <h5>Quét mã QR truy cập nhanh</h5>
+              <p>Học viên có thể mở camera hoặc Zalo quét mã để tự động vào form mà không cần gõ mã.</p>
+              <div class="qr-buttons">
+                <button type="button" class="btn-qr-action" (click)="downloadQrImage()" [disabled]="!qrDataUrl">
+                  <i class="fas fa-download"></i> Tải ảnh QR
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRE-FORMATTED ZALO MESSAGE -->
+          <div class="message-preview-card">
+            <div class="msg-card-header">
+              <span><i class="fab fa-facebook-messenger"></i> Mẫu tin nhắn gửi học viên qua Zalo / Messenger:</span>
+              <button type="button" class="btn-copy-msg" (click)="copyStudentMessage(selectedCode)">
+                <i class="fas fa-copy"></i> Sao chép tin nhắn nhanh
+              </button>
+            </div>
+            <pre class="msg-content">{{ getStudentMessageTemplate(selectedCode) }}</pre>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-submit" (click)="closeViewModal()">Đóng cửa sổ</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODAL 3: CẤP MÃ HÀNG LOẠT
+       ========================================================================= -->
+  @if (showBulkModal) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeBulkModal()">
+      <div class="modal-card modal-bulk" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="header-icon"><i class="fas fa-users-gear"></i></div>
+          <div class="header-text">
+            <h4>Cấp mã đăng ký hàng loạt</h4>
+            <p>Tạo mã 6 số riêng biệt cho từng học viên trong một thao tác duy nhất.</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeBulkModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        @if (!bulkResult) {
+          <div class="bulk-instructions">
+            <p><strong>Hướng dẫn định dạng:</strong> Nhập mỗi học viên trên một dòng, ngăn cách bằng dấu phẩy (<code>,</code>) hoặc tab. Ví dụ:</p>
+            <code>TRẦN BÁ HIẾU, 0966966284, hieu&#64;viejap.com
+NGUYỄN VĂN AN, 0912345678
+LÊ THỊ MAI, 0987654321</code>
+          </div>
+
+          <div class="form-group">
+            <label>Danh sách học viên:</label>
+            <textarea
+              class="form-control bulk-textarea"
+              rows="8"
+              placeholder="Họ và tên, Số điện thoại, Email..."
+              [(ngModel)]="bulkInputText"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Gán cán bộ phụ trách cho cả danh sách:</label>
+            <select class="form-control" [(ngModel)]="bulkAssignedTo">
+              <option value="">Chưa phân công</option>
+              @for (u of staffUsers(); track u.userId) {
+                <option [value]="u.userId">{{ u.fullName }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeBulkModal()">Hủy</button>
+            <button
+              type="button"
+              class="btn-submit"
+              [disabled]="isBulkCreating || !bulkInputText.trim()"
+              (click)="submitBulkCreate()"
+            >
+              @if (isBulkCreating) {
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Đang xử lý cấp mã...</span>
+              } @else {
+                <i class="fas fa-bolt"></i>
+                <span>Tạo mã hàng loạt ngay</span>
+              }
+            </button>
+          </div>
+        } @else {
+          <!-- BULK RESULT -->
+          <div class="bulk-result-view">
+            <div class="result-summary">
+              <div class="res-box success">
+                <strong>{{ bulkResult.createdCount }}</strong>
+                <span>Mã tạo thành công</span>
+              </div>
+              <div class="res-box fail">
+                <strong>{{ bulkResult.failedCount }}</strong>
+                <span>Thất bại / Bị bỏ qua</span>
+              </div>
+            </div>
+
+            <div class="result-actions">
+              <button type="button" class="btn-export-bulk" (click)="downloadBulkResultCsv()">
+                <i class="fas fa-file-excel"></i> Xuất kết quả cấp mã ra file Excel
+              </button>
+            </div>
+
+            <div class="result-table-wrap">
+              <table class="result-table">
+                <thead>
+                  <tr>
+                    <th>Họ và tên</th>
+                    <th>Số điện thoại</th>
+                    <th>Mã 6 số</th>
+                    <th>Hạn dùng</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of bulkResult.created; track c.id) {
+                    <tr>
+                      <td><strong>{{ c.studentName }}</strong></td>
+                      <td>{{ c.phone || '—' }}</td>
+                      <td><code class="code-number">{{ c.code }}</code></td>
+                      <td>{{ formatDateTime(c.expiresAt) }}</td>
+                      <td><span class="badge-pending">Chưa dùng</span></td>
+                    </tr>
+                  }
+                  @for (f of bulkResult.failed; track f.index) {
+                    <tr class="row-fail">
+                      <td>{{ f.studentName || '(Dòng rỗng)' }}</td>
+                      <td>{{ f.phone || '—' }}</td>
+                      <td colspan="2"><span class="text-danger">{{ f.reason }}</span></td>
+                      <td><span class="badge-expired">Thất bại</span></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-submit" (click)="closeBulkModal()">Hoàn tất & Đóng</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODAL 4: XEM TIẾN ĐỘ & BẢN NHÁP CHI TIẾT
+       ========================================================================= -->
+  @if (showProgressModal && selectedProgressCode) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeProgressModal()">
+      <div class="modal-card modal-progress" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="header-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="header-text">
+            <h4>Chi tiết tiến độ khai hồ sơ</h4>
+            <p>Học viên: <strong>{{ selectedProgressCode.studentName }}</strong> (Mã: <code>{{ selectedProgressCode.code }}</code>)</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeProgressModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body progress-body">
+          <!-- TIMELINE -->
+          <div class="progress-timeline">
+            <div class="timeline-item complete">
+              <div class="t-icon"><i class="fas fa-check"></i></div>
+              <div class="t-content">
+                <strong>Cấp mã đăng ký</strong>
+                <small>{{ formatDateTime(selectedProgressCode.createdAt) }} bởi {{ formatCreator(selectedProgressCode.createdBy) }}</small>
+              </div>
+            </div>
+
+            <div class="timeline-item" [class.complete]="selectedProgressCode.firstUsedAt">
+              <div class="t-icon">
+                <i [class]="selectedProgressCode.firstUsedAt ? 'fas fa-check' : 'fas fa-spinner'"></i>
+              </div>
+              <div class="t-content">
+                <strong>Học viên xác thực mở form</strong>
+                <small>{{ selectedProgressCode.firstUsedAt ? formatDateTime(selectedProgressCode.firstUsedAt) : 'Chưa truy cập' }}</small>
+              </div>
+            </div>
+
+            <div class="timeline-item" [class.complete]="selectedProgressCode.lastDraftSavedAt">
+              <div class="t-icon">
+                <i [class]="selectedProgressCode.lastDraftSavedAt ? 'fas fa-check' : 'far fa-circle'"></i>
+              </div>
+              <div class="t-content">
+                <strong>Lần lưu nháp gần nhất</strong>
+                <small>{{ selectedProgressCode.lastDraftSavedAt ? formatDateTime(selectedProgressCode.lastDraftSavedAt) : 'Chưa có bản nháp' }}</small>
+              </div>
+            </div>
+
+            <div class="timeline-item" [class.complete]="selectedProgressCode.status === 'used'">
+              <div class="t-icon">
+                <i [class]="selectedProgressCode.status === 'used' ? 'fas fa-check-double' : 'far fa-circle'"></i>
+              </div>
+              <div class="t-content">
+                <strong>Nộp hồ sơ hoàn tất</strong>
+                <small>{{ selectedProgressCode.completedAt ? formatDateTime(selectedProgressCode.completedAt) : 'Chưa gửi hồ sơ' }}</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- COMPLETION BAR -->
+          <div class="progress-metric-card">
+            <div class="pm-header">
+              <span>Độ hoàn thiện hồ sơ:</span>
+              <strong>{{ selectedProgressCode.progressPercent }}%</strong>
+            </div>
+            <div class="pm-bar">
+              <div class="pm-fill" [style.width.%]="selectedProgressCode.progressPercent"></div>
+            </div>
+          </div>
+
+          <!-- CẬP NHẬT TIẾN ĐỘ -->
+          @if (canManageProgress) {
+            <div class="progress-status-change">
+              <label>Cập nhật tiến độ kiểm duyệt hồ sơ:</label>
+              <div class="status-change-buttons">
+                <button
+                  type="button"
+                  class="btn-status-pill"
+                  [class.active]="selectedProgressCode.progressStatus === 'checking'"
+                  (click)="changeProgressStatus(selectedProgressCode, 'checking')"
+                >
+                  <i class="fas fa-magnifying-glass"></i> Đang kiểm tra
+                </button>
+                <button
+                  type="button"
+                  class="btn-status-pill warn"
+                  [class.active]="selectedProgressCode.progressStatus === 'need_info'"
+                  (click)="changeProgressStatus(selectedProgressCode, 'need_info')"
+                >
+                  <i class="fas fa-triangle-exclamation"></i> Cần bổ sung
+                </button>
+                <button
+                  type="button"
+                  class="btn-status-pill success"
+                  [class.active]="selectedProgressCode.progressStatus === 'approved'"
+                  (click)="changeProgressStatus(selectedProgressCode, 'approved')"
+                >
+                  <i class="fas fa-circle-check"></i> Đã duyệt
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-submit" (click)="closeProgressModal()">Đóng</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODAL 5: XÁC NHẬN THU HỒI MÃ
+       ========================================================================= -->
+  @if (showRevokeModal && codeToRevoke) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeRevokeModal()">
+      <div class="modal-card modal-confirm-revoke" (click)="$event.stopPropagation()">
+        <div class="modal-header danger">
+          <div class="header-icon danger"><i class="fas fa-triangle-exclamation"></i></div>
+          <div class="header-text">
+            <h4>Xác nhận thu hồi mã đăng ký</h4>
+            <p>Học viên: <strong>{{ codeToRevoke.studentName }}</strong> (Mã: <code>{{ codeToRevoke.code }}</code>)</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeRevokeModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="revoke-warning-text">
+            Sau khi thu hồi, học viên sẽ không thể sử dụng mã này để xác thực hoặc gửi hồ sơ nữa.
+          </p>
+
+          <div class="form-group">
+            <label>Lý do thu hồi (*):</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="revokeReason"
+              placeholder="VD: Học viên đổi kế hoạch, cấp nhầm thông tin..."
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeRevokeModal()">Hủy bỏ</button>
+          <button type="button" class="btn-submit btn-danger" [disabled]="isRevoking" (click)="submitRevoke()">
+            @if (isRevoking) {
+              <i class="fas fa-circle-notch fa-spin"></i> Đang thu hồi...
+            } @else {
+              <i class="fas fa-ban"></i> Thu hồi ngay
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODAL 6: NHẬT KÝ XÁC THỰC & AUDIT LOGS
+       ========================================================================= -->
+  @if (showHistoryModal) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeHistoryModal()">
+      <div class="modal-card modal-history" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="header-icon"><i class="fas fa-clock-rotate-left"></i></div>
+          <div class="header-text">
+            <h4>Nhật ký xác thực & Thao tác mã</h4>
+            <p>Lịch sử 100 lần thử xác thực, kiểm tra chống dò mã và các thao tác cấp mã.</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeHistoryModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body history-body">
+          @if (isLoadingHistory) {
+            <div class="loading-state">
+              <i class="fas fa-circle-notch fa-spin"></i>
+              <p>Đang tải nhật ký...</p>
+            </div>
+          } @else if (historyLogs().length === 0) {
+            <div class="empty-state">
+              <p>Chưa có dữ liệu nhật ký xác thực.</p>
+            </div>
+          } @else {
+            <div class="table-responsive">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Thời gian</th>
+                    <th>Địa chỉ IP</th>
+                    <th>Mã nhập</th>
+                    <th>Kết quả</th>
+                    <th>Chi tiết</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (log of historyLogs(); track log.id) {
+                    <tr>
+                      <td>{{ formatDateTime(log.createdAt) }}</td>
+                      <td><code>{{ log.ip }}</code></td>
+                      <td><code class="code-number">{{ log.codeMasked }}</code></td>
+                      <td>
+                        @if (log.result === 'success') {
+                          <span class="badge-pending">Thành công</span>
+                        } @else if (log.result === 'rate_limited') {
+                          <span class="badge-revoked">Tạm khóa (Nhập sai nhiều lần)</span>
+                        } @else if (log.result === 'invalid_code') {
+                          <span class="badge-expired">Mã không đúng</span>
+                        } @else if (log.result === 'expired') {
+                          <span class="badge-expired">Mã hết hạn</span>
+                        } @else if (log.result === 'revoked') {
+                          <span class="badge-expired">Mã đã thu hồi</span>
+                        } @else {
+                          <span class="badge-expired">{{ log.result }}</span>
+                        }
+                      </td>
+                      <td>{{ log.details }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-submit" (click)="closeHistoryModal()">Đóng nhật ký</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

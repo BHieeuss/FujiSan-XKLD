@@ -1,0 +1,352 @@
+<div class="activities-public-page">
+  <!-- ========================================================= -->
+  <!-- 1. HERO SECTION & LIVE METRICS                            -->
+  <!-- ========================================================= -->
+  <section class="hero-section">
+    <div class="container hero-container">
+      <div class="hero-badge">
+        <i class="fas fa-heart text-red"></i>
+        <span>Hành Trình Kết Nối & Lan Tỏa</span>
+      </div>
+
+      <h1 class="hero-title">
+        Góc Hoạt Động & Sự Kiện <span class="text-highlight">VieJap</span>
+      </h1>
+
+      <p class="hero-description">
+        Khám phá những khoảnh khắc chân thực, các hoạt động đào tạo văn hóa Nhật Bản, hội thảo quốc tế và sự kiện vì cộng đồng của đại gia đình VieJap.
+      </p>
+
+      <!-- Search Toolbar -->
+      <div class="hero-search-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input
+          type="text"
+          class="hero-search-input"
+          placeholder="Tìm kiếm hoạt động, lễ hội văn hóa, hội thảo, địa điểm..."
+          [ngModel]="searchQuery"
+          (ngModelChange)="onSearch($event)"
+        />
+        @if (searchQuery) {
+          <button type="button" class="btn-clear-search" (click)="onSearch('')">
+            <i class="fas fa-times"></i>
+          </button>
+        }
+      </div>
+
+      <!-- Live Statistics Strip -->
+      <div class="hero-stats-grid">
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.totalPublished }}+</span>
+          <span class="stat-label">Hoạt động ghi nhận</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.totalViews | number }}+</span>
+          <span class="stat-label">Lượt quan tâm & theo dõi</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.totalEvents }}+</span>
+          <span class="stat-label">Chương trình rèn luyện</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.satisfiedPartners }}+</span>
+          <span class="stat-label">Nghiệp đoàn & Đối tác Nhật</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- 2. FEATURED SPOTLIGHT BANNER                              -->
+  <!-- ========================================================= -->
+  @if (featuredActivity) {
+    <section class="spotlight-section">
+      <div class="container">
+        <div class="section-tag-row">
+          <span class="section-tag">
+            <i class="fas fa-star text-gold"></i>
+            Tiêu Điểm Nổi Bật
+          </span>
+        </div>
+
+        <div class="spotlight-card">
+          <div class="spotlight-cover-col">
+            <img
+              [src]="getCoverImageUrl(featuredActivity.coverImage)"
+              (error)="onImageError($event)"
+              alt="Hoạt động tiêu biểu"
+              [alt]="featuredActivity.title"
+              class="spotlight-cover-img"
+            />
+            <div class="spotlight-badges-float">
+              <span class="badge-cat">
+                <i class="fas fa-tag"></i> {{ featuredActivity.categoryName || featuredActivity.category }}
+              </span>
+              @if (featuredActivity.hotBadge.enabled) {
+                <span class="badge-hot">
+                  <i class="fas fa-fire"></i> HOT
+                </span>
+              }
+              @if (featuredActivity.level === 'special') {
+                <span class="badge-special">
+                  <i class="fas fa-crown"></i> ĐẶC BIỆT
+                </span>
+              }
+            </div>
+          </div>
+
+          <div class="spotlight-content-col">
+            <div class="spotlight-meta-top">
+              <span><i class="fas fa-calendar-check"></i> {{ featuredActivity.eventDate }}</span>
+              <span><i class="fas fa-location-dot"></i> {{ featuredActivity.location }}</span>
+              @if (featuredActivity.metric) {
+                <span class="spotlight-metric-pill">
+                  <strong>{{ featuredActivity.metric }}</strong> {{ featuredActivity.metricLabel }}
+                </span>
+              }
+            </div>
+
+            <h2 class="spotlight-title">
+              <a [routerLink]="['/hoat-dong', featuredActivity.slug]">{{ featuredActivity.title }}</a>
+            </h2>
+
+            <p class="spotlight-summary">
+              {{ featuredActivity.summary }}
+            </p>
+
+            <div class="spotlight-actions">
+              <a [routerLink]="['/hoat-dong', featuredActivity.slug]" class="btn btn-primary btn-spotlight">
+                <span>Khám phá toàn bộ hoạt động</span>
+                <i class="fas fa-arrow-right"></i>
+              </a>
+              <span class="views-count">
+                <i class="fas fa-eye"></i> {{ featuredActivity.metrics?.viewCount || featuredActivity.viewCount || 0 | number }} lượt xem
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- ========================================================= -->
+  <!-- 3. HOT ACTIVITIES STRIP (DẢI SỰ KIỆN HOT)                  -->
+  <!-- ========================================================= -->
+  @if (hotActivities.length > 0) {
+    <section class="hot-strip-section">
+      <div class="container">
+        <div class="hot-strip-header">
+          <div class="hot-strip-title">
+            <span class="fire-icon-wrapper"><i class="fas fa-fire"></i></span>
+            <h3>Sự Kiện Đang Diễn Ra & Sôi Nổi (HOT)</h3>
+          </div>
+          <span class="hot-strip-sub">Cập nhật liên tục những dấu ấn mới nhất tại VieJap</span>
+        </div>
+
+        <div class="hot-cards-row">
+          @for (item of hotActivities; track item.id) {
+            <a [routerLink]="['/hoat-dong', item.slug]" class="hot-mini-card">
+              <div class="hot-mini-thumb">
+                <img [src]="getCoverImageUrl(item.coverImage)" (error)="onImageError($event)" alt="Hoạt động HOT" [alt]="item.title" />
+                <span class="hot-badge-pill">HOT</span>
+              </div>
+              <div class="hot-mini-info">
+                <span class="hot-mini-cat">{{ item.categoryName || item.category }}</span>
+                <h4 class="hot-mini-title">{{ item.title }}</h4>
+                <div class="hot-mini-meta">
+                  <span><i class="fas fa-calendar-alt"></i> {{ item.eventDate }}</span>
+                  <span><i class="fas fa-location-dot"></i> {{ item.location }}</span>
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- ========================================================= -->
+  <!-- 4. CATEGORY FILTER TABS & MAIN EDITORIAL FEED             -->
+  <!-- ========================================================= -->
+  <section class="feed-section" id="activities-feed">
+    <div class="container">
+      <div class="feed-header">
+        <div class="feed-title-block">
+          <span class="section-tag">
+            <i class="fas fa-newspaper text-primary"></i>
+            Tin Tức & Hoạt Động
+          </span>
+          <h2 class="section-title">Danh Sách Hoạt Động VieJap</h2>
+        </div>
+
+        <!-- Category Tabs Bar -->
+        <div class="category-tabs-bar">
+          <button
+            type="button"
+            class="cat-tab-btn"
+            [class.active]="selectedCategory === 'all'"
+            (click)="selectCategory('all')"
+          >
+            <span>Tất cả</span>
+            <span class="cat-count-pill">{{ stats.totalPublished }}</span>
+          </button>
+
+          @for (cat of categories; track cat.id) {
+            <button
+              type="button"
+              class="cat-tab-btn"
+              [class.active]="selectedCategory === cat.id"
+              (click)="selectCategory(cat.id)"
+            >
+              <i [class]="cat.icon"></i>
+              <span>{{ cat.name }}</span>
+              @if (cat.count !== undefined) {
+                <span class="cat-count-pill">{{ cat.count }}</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Main Activities Grid -->
+      @if (isLoading) {
+        <div class="loading-state-public">
+          <i class="fas fa-spinner fa-spin spinner"></i>
+          <p>Đang tải dữ liệu hoạt động...</p>
+        </div>
+      } @else if (activities.length === 0) {
+        <div class="empty-state-public">
+          <i class="fas fa-folder-open empty-icon"></i>
+          <h3>Không tìm thấy hoạt động</h3>
+          <p>Không có hoạt động nào trong chuyên mục này hoặc từ khóa tìm kiếm của bạn.</p>
+          <button type="button" class="btn btn-outline" (click)="selectCategory('all'); onSearch('')">
+            Xem tất cả hoạt động
+          </button>
+        </div>
+      } @else {
+        <div class="activities-cards-grid">
+          @for (act of activities; track act.id) {
+            <article class="activity-card">
+              <a [routerLink]="['/hoat-dong', act.slug]" class="card-cover-link">
+                <div class="card-cover-wrapper">
+                  <img [src]="getCoverImageUrl(act.coverImage)" (error)="onImageError($event)" alt="Ảnh hoạt động VieJap" [alt]="act.title" class="card-cover-img" loading="lazy" />
+                  <div class="card-badges-row">
+                    <span class="card-cat-badge">
+                      {{ act.categoryName || act.category }}
+                    </span>
+                    @if (act.hotBadge.enabled) {
+                      <span class="card-hot-badge">
+                        <i class="fas fa-fire"></i> HOT
+                      </span>
+                    }
+                  </div>
+                </div>
+              </a>
+
+              <div class="card-body">
+                <div class="card-meta">
+                  <span class="meta-date"><i class="fas fa-calendar-alt"></i> {{ act.eventDate }}</span>
+                  @if (act.location) {
+                    <span class="meta-loc"><i class="fas fa-location-dot"></i> {{ act.location }}</span>
+                  }
+                </div>
+
+                <h3 class="card-title">
+                  <a [routerLink]="['/hoat-dong', act.slug]">{{ act.title }}</a>
+                </h3>
+
+                <p class="card-summary">
+                  {{ act.summary }}
+                </p>
+
+                <div class="card-footer">
+                  @if (act.metric) {
+                    <div class="card-metric">
+                      <strong>{{ act.metric }}</strong>
+                      <small>{{ act.metricLabel }}</small>
+                    </div>
+                  } @else {
+                    <div class="card-views">
+                      <i class="fas fa-eye"></i> {{ act.metrics?.viewCount || act.viewCount || 0 | number }} xem
+                    </div>
+                  }
+
+                  <a [routerLink]="['/hoat-dong', act.slug]" class="card-readmore-btn">
+                    <span>Xem chi tiết</span>
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        <!-- Custom Pagination -->
+        @if (totalPages > 1) {
+          <div class="public-pagination">
+            <button
+              type="button"
+              class="page-nav-btn"
+              [disabled]="currentPage === 1"
+              (click)="goToPage(currentPage - 1)"
+            >
+              <i class="fas fa-chevron-left"></i>
+              <span>Trang trước</span>
+            </button>
+
+            <div class="page-numbers-list">
+              @for (p of [].constructor(totalPages); track $index; let i = $index) {
+                <button
+                  type="button"
+                  class="page-num-btn"
+                  [class.active]="currentPage === i + 1"
+                  (click)="goToPage(i + 1)"
+                >
+                  {{ i + 1 }}
+                </button>
+              }
+            </div>
+
+            <button
+              type="button"
+              class="page-nav-btn"
+              [disabled]="currentPage === totalPages"
+              (click)="goToPage(currentPage + 1)"
+            >
+              <span>Trang sau</span>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- 5. CALL TO ACTION / REGISTRATION BANNER                   -->
+  <!-- ========================================================= -->
+  <section class="cta-section">
+    <div class="container cta-container">
+      <div class="cta-content">
+        <span class="cta-eyebrow">Khát vọng vươn xa cùng VieJap</span>
+        <h2 class="cta-title">Sẵn Sàng Cho Hành Trình Làm Việc & Học Tập Tại Nhật Bản?</h2>
+        <p class="cta-desc">
+          Đăng ký tham gia các khóa đào tạo, định hướng kỹ năng và tham quan thực tế môi trường đào tạo chuyên nghiệp chuẩn Nhật Bản của VieJap ngay hôm nay.
+        </p>
+        <div class="cta-buttons">
+          <a routerLink="/lien-he" class="btn-cta-primary">
+            <i class="fas fa-paper-plane"></i>
+            <span>Liên hệ tư vấn miễn phí</span>
+          </a>
+          <a routerLink="/form-hoc-vien" class="btn-cta-outline">
+            <i class="fas fa-file-signature"></i>
+            <span>Khai sơ yếu lý lịch online</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

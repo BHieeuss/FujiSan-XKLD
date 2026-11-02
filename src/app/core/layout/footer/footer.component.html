@@ -1,171 +1,240 @@
 <!-- ============================================================
-     FOOTER - Chân trang website
+     FOOTER - CHÂN TRANG CHUẨN THƯƠNG HIỆU VIEJAP
+     Thiết kế 4 cột Desktop · Accordion Mobile · Tự động đồng bộ
      ============================================================ -->
-<footer class="footer">
-  <!-- Main Footer -->
+<footer class="site-footer" role="contentinfo">
+  <!-- Dải màu nhấn thương hiệu phía trên -->
+  <div class="footer-top-accent" aria-hidden="true"></div>
+
+  <!-- Phần thân Footer chính -->
   <div class="footer-main">
-    <div class="container">
-      <div class="row g-4">
-        <!-- Thông tin công ty -->
-        <div class="col-lg-4 col-md-6">
-          <div class="footer-section">
-            <h3 class="footer-title">
-              <img src="assets/images/logo.png" alt="VieJap" class="footer-logo" />
-            </h3>
-            <p class="footer-desc mb-3">
-              {{ companyInfo.name }} - Kết nối nguồn nhân lực Việt Nam với thị trường lao động quốc
-              tế.
-            </p>
-            <div class="company-details">
-              <p class="mb-2">
-                <i class="fas fa-building me-2 text-primary"></i>
-                <strong>{{ companyInfo.taxCode }}</strong>
-              </p>
-              <p class="mb-2">
-                <i class="fas fa-certificate me-2 text-primary"></i>
-                {{ companyInfo.license }}
-              </p>
-              <p class="mb-0">
-                <i class="fas fa-map-marker-alt me-2 text-primary"></i>
-                {{ companyInfo.address }}
-              </p>
+    <div class="container footer-grid-container">
+
+      <!-- ======================================================== -->
+      <!-- CỘT 1: THƯƠNG HIỆU & DOANH NGHIỆP                        -->
+      <!-- ======================================================== -->
+      <section class="footer-col footer-col-brand" aria-label="Thông tin doanh nghiệp VieJap">
+        <div class="brand-header">
+          <a routerLink="/" class="footer-logo-link" aria-label="VieJap - Về trang chủ">
+            <img src="assets/images/logo.png" alt="VieJap Logo" class="footer-brand-logo" />
+          </a>
+          <p class="brand-slogan">{{ companyInfo.slogan }}</p>
+        </div>
+
+        <p class="brand-desc">
+          {{ footerConfig.tagline }}
+        </p>
+
+        <!-- Thông tin doanh nghiệp chính thức (Trình bày tự nhiên, chuẩn thương hiệu) -->
+        <div class="company-official-info">
+          <h4 class="company-official-name">{{ companyInfo.name }}</h4>
+          <dl class="company-meta-list">
+            <div class="company-meta-item">
+              <dt class="meta-label">Mã số thuế / MSDN:</dt>
+              <dd class="meta-value text-amber">{{ companyInfo.taxCode.replace('MST/MSDN: ', '') }}</dd>
             </div>
-          </div>
-        </div>
-
-        <!-- Liên kết nhanh -->
-        <div class="col-lg-2 col-md-6">
-          <div class="footer-section">
-            <h4 class="footer-heading">Liên kết nhanh</h4>
-            <ul class="footer-links">
-              <li *ngFor="let link of quickLinks">
-                <a
-                  routerLink="/"
-                  [fragment]="quickLinkTargets[link.label]"
-                  class="footer-link"
-                >
-                  <i class="fas fa-angle-right me-2"></i>{{ link.label }}
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Chương trình -->
-        <div class="col-lg-3 col-md-6">
-          <div class="footer-section">
-            <h4 class="footer-heading">Chương trình</h4>
-            <ul class="footer-links">
-              <li *ngFor="let link of programLinks">
-                <a routerLink="/" fragment="chuong-trinh" class="footer-link">
-                  <i class="fas fa-angle-right me-2"></i>{{ link.label }}
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Liên hệ -->
-        <div class="col-lg-3 col-md-6">
-          <div class="footer-section">
-            <h4 class="footer-heading">Liên hệ</h4>
-            <ul class="footer-contact">
-              <li>
-                <a [href]="'tel:' + contactInfo.hotline" class="contact-link">
-                  <i class="fas fa-phone-alt me-2"></i>
-                  <span>Hotline: {{ contactInfo.hotline }}</span>
-                </a>
-              </li>
-              <li>
-                <a [href]="'mailto:' + contactInfo.email" class="contact-link">
-                  <i class="fas fa-envelope me-2"></i>
-                  <span>{{ contactInfo.email }}</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  [href]="contactInfo.zaloUrl"
-                  class="contact-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <i class="fab fa-facebook-messenger me-2"></i>
-                  <span>Zalo: {{ contactInfo.zalo }}</span>
-                </a>
-              </li>
-            </ul>
-
-            <!-- Social Media -->
-            <div class="social-media mt-4">
-              <h5 class="social-heading mb-3">Theo dõi chúng tôi</h5>
-              <div class="social-links">
-                <a
-                  [href]="socialMedia.facebook.url"
-                  class="social-link facebook"
-                  title="Facebook"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <i class="fab fa-facebook-f"></i>
-                </a>
-                <a
-                  [href]="socialMedia.tiktok.url"
-                  class="social-link tiktok"
-                  title="TikTok"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <i class="fab fa-tiktok"></i>
-                </a>
-                <a
-                  [href]="socialMedia.youtube.url"
-                  class="social-link youtube"
-                  title="YouTube"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <i class="fab fa-youtube"></i>
-                </a>
-                <a
-                  [href]="socialMedia.zalo.url"
-                  class="social-link zalo"
-                  title="Zalo"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <i class="fas fa-comment-dots"></i>
-                </a>
-              </div>
+            <div class="company-meta-item">
+              <dt class="meta-label">Đăng ký kinh doanh:</dt>
+              <dd class="meta-value">{{ companyInfo.license }}</dd>
             </div>
-          </div>
+            <div class="company-meta-item address-item">
+              <dt class="meta-label">Trụ sở chính:</dt>
+              <dd class="meta-value">{{ companyInfo.address }}</dd>
+            </div>
+          </dl>
         </div>
-      </div>
-    </div>
-  </div>
+      </section>
 
-  <!-- Footer Bottom -->
-  <div class="footer-bottom">
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6 text-center text-md-start">
-          <p class="copyright mb-0">
-            &copy; {{ currentYear }} <strong>{{ companyInfo.shortName }}</strong
-            >. Tất cả quyền được bảo lưu.
-          </p>
-        </div>
-        <div class="col-md-6 text-center text-md-end">
-          <ul class="footer-bottom-links">
-            <li *ngFor="let link of supportLinks; let isLast = last">
-              <a [routerLink]="link.link" class="bottom-link">{{ link.label }}</a>
-              <span *ngIf="!isLast" class="separator">|</span>
+      <!-- ======================================================== -->
+      <!-- CỘT 2: KHÁM PHÁ WEBSITE (ACCORDION ON MOBILE)           -->
+      <!-- ======================================================== -->
+      <section 
+        class="footer-col footer-col-links" 
+        [class.is-expanded]="isAccordionOpen('explore')"
+        aria-label="Khám phá website"
+      >
+        <!-- Tiêu đề trên Desktop / Nút Accordion trên Mobile -->
+        <button 
+          type="button" 
+          class="accordion-trigger" 
+          (click)="toggleAccordion('explore')"
+          [attr.aria-expanded]="isAccordionOpen('explore')"
+          aria-controls="footer-explore-nav"
+        >
+          <h3 class="col-heading">
+            <span>{{ footerConfig.groups.explore.title }}</span>
+          </h3>
+          <span class="accordion-chevron" aria-hidden="true">
+            <i class="fas fa-chevron-down"></i>
+          </span>
+        </button>
+
+        <!-- Danh sách liên kết tự động đồng bộ -->
+        <nav class="footer-nav-content" id="footer-explore-nav" [attr.aria-label]="footerConfig.groups.explore.title">
+          <ul class="nav-links-list">
+            <li *ngFor="let link of exploreLinks">
+              <a 
+                [routerLink]="link.path" 
+                [fragment]="link.fragment" 
+                class="footer-nav-link"
+              >
+                <i class="fas fa-chevron-right link-bullet" aria-hidden="true"></i>
+                <span class="link-label">{{ link.label }}</span>
+                @if (link.badge) {
+                  <span class="link-badge" [ngClass]="link.badgeClass">{{ link.badge }}</span>
+                }
+              </a>
             </li>
           </ul>
+        </nav>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- CỘT 3: TIỆN ÍCH & HỌC TIẾNG NHẬT (ACCORDION ON MOBILE)   -->
+      <!-- ======================================================== -->
+      <section 
+        class="footer-col footer-col-links" 
+        [class.is-expanded]="isAccordionOpen('programs')"
+        aria-label="Tiện ích và học tiếng Nhật"
+      >
+        <!-- Tiêu đề trên Desktop / Nút Accordion trên Mobile -->
+        <button 
+          type="button" 
+          class="accordion-trigger" 
+          (click)="toggleAccordion('programs')"
+          [attr.aria-expanded]="isAccordionOpen('programs')"
+          aria-controls="footer-programs-nav"
+        >
+          <h3 class="col-heading">
+            <span>{{ footerConfig.groups.programsAndTools.title }}</span>
+          </h3>
+          <span class="accordion-chevron" aria-hidden="true">
+            <i class="fas fa-chevron-down"></i>
+          </span>
+        </button>
+
+        <!-- Danh sách liên kết tự động đồng bộ -->
+        <nav class="footer-nav-content" id="footer-programs-nav" [attr.aria-label]="footerConfig.groups.programsAndTools.title">
+          <ul class="nav-links-list">
+            <li *ngFor="let link of programAndToolLinks">
+              <a 
+                [routerLink]="link.path" 
+                [fragment]="link.fragment" 
+                class="footer-nav-link"
+              >
+                <i class="fas fa-chevron-right link-bullet" aria-hidden="true"></i>
+                <span class="link-label">{{ link.label }}</span>
+                @if (link.badge) {
+                  <span class="link-badge" [ngClass]="link.badgeClass">{{ link.badge }}</span>
+                }
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- CỘT 4: KẾT NỐI & MẠNG XÃ HỘI                             -->
+      <!-- ======================================================== -->
+      <section class="footer-col footer-col-contact" aria-label="Liên hệ và mạng xã hội">
+        <h3 class="col-heading static-heading">
+          <span>Kết nối với VieJap</span>
+        </h3>
+
+        <!-- Danh sách thông tin liên hệ chuẩn mực, tự nhiên, không khung hộp AI -->
+        <div class="contact-info-list">
+          <div class="contact-info-row">
+            <span class="info-label">Hotline tư vấn (24/7):</span>
+            <a 
+              [href]="'tel:' + contactInfo.hotline" 
+              class="info-value info-link phone-link" 
+              aria-label="Gọi hotline tư vấn miễn phí"
+            >
+              {{ formatPhone(contactInfo.hotline) }}
+            </a>
+          </div>
+
+          <div class="contact-info-row">
+            <span class="info-label">Hỗ trợ Zalo:</span>
+            <a 
+              [href]="contactInfo.zaloUrl" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="info-value info-link zalo-link" 
+              aria-label="Nhắn tin tư vấn qua Zalo"
+            >
+              {{ formatPhone(contactInfo.zalo) }}
+            </a>
+          </div>
+
+          <div class="contact-info-row">
+            <span class="info-label">Email:</span>
+            <a 
+              [href]="'mailto:' + contactInfo.email" 
+              class="info-value info-link mail-link" 
+              aria-label="Gửi email cho VieJap"
+            >
+              {{ contactInfo.email }}
+            </a>
+          </div>
+
+          <div class="contact-info-row">
+            <span class="info-label">Giờ làm việc:</span>
+            <span class="info-value">{{ footerConfig.workingHours }}</span>
+          </div>
         </div>
-      </div>
+
+        <!-- Mạng xã hội chính thức -->
+        <div class="social-channels-wrap">
+          <span class="social-title-label">Theo dõi chúng tôi:</span>
+          <div class="social-pills-row">
+            @for (item of validSocialMediaList; track item.key) {
+              <a 
+                [href]="item.url" 
+                [class]="'social-icon-btn ' + item.key" 
+                [title]="item.label" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                [attr.aria-label]="item.label"
+              >
+                <i [class]="item.icon" aria-hidden="true"></i>
+              </a>
+            }
+          </div>
+        </div>
+      </section>
+
     </div>
   </div>
 
-  <!-- Quick Access Button -->
+  <!-- ============================================================ -->
+  <!-- DẢI BẢN QUYỀN & LIÊN KẾT PHÁP LÝ (BOTTOM STRIP)              -->
+  <!-- ============================================================ -->
+  <div class="footer-bottom-bar">
+    <div class="container bottom-bar-inner">
+      <div class="copyright-info">
+        <i class="far fa-copyright" aria-hidden="true"></i>
+        <span>
+          {{ currentYear }} <strong>{{ companyInfo.name }}</strong>. Tất cả quyền được bảo lưu.
+        </span>
+      </div>
+
+      <nav class="legal-nav-bar" aria-label="Liên kết pháp lý và hỗ trợ">
+        <ul class="legal-links-list">
+          <li *ngFor="let link of legalLinks; let isLast = last">
+            <a [routerLink]="link.path" class="legal-anchor">{{ link.label }}</a>
+            @if (!isLast) {
+              <span class="legal-divider" aria-hidden="true">·</span>
+            }
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- NÚT TIỆN ÍCH QUICK ACCESS & MODALS                           -->
+  <!-- ============================================================ -->
   <div class="quick-access" [class.is-open]="isQuickAccessOpen">
     <div id="quick-access-menu" class="quick-access-menu" *ngIf="isQuickAccessOpen">
       <button
@@ -201,7 +270,7 @@
     </button>
   </div>
 
-  <!-- Order list viewer -->
+  <!-- Order list viewer dialog -->
   <div
     class="order-list-viewer"
     *ngIf="isOrderListOpen"
@@ -263,7 +332,7 @@
     </section>
   </div>
 
-  <!-- Registration access gate -->
+  <!-- Registration access gate dialog -->
   <div
     class="registration-gate"
     *ngIf="isRegistrationGateOpen"
@@ -363,6 +432,6 @@
     title="Về đầu trang"
     aria-label="Về đầu trang"
   >
-    <i class="fas fa-arrow-up"></i>
+    <i class="fas fa-arrow-up" aria-hidden="true"></i>
   </button>
 </footer>

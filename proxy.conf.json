@@ -1,4 +1,32 @@
 {
+  "/api/auth": {
+    "target": "http://localhost:5000",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/progress": {
+    "target": "http://localhost:5000",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/student-form-submit.php": {
+    "target": "http://127.0.0.1:8081",
+    "secure": false,
+    "changeOrigin": false
+  },
+  "/api/student-files.php": {
+    "target": "http://127.0.0.1:8081",
+    "secure": false,
+    "changeOrigin": false
+  },
+  "/student-api": {
+    "target": "http://127.0.0.1:8081",
+    "secure": false,
+    "changeOrigin": false,
+    "pathRewrite": {
+      "^/student-api": "/api"
+    }
+  },
   "/admin-api": {
     "target": "http://127.0.0.1:8081",
     "secure": false,
@@ -14,5 +42,10 @@
     "pathRewrite": {
       "^/orders-api": "/api"
     }
+  },
+  "/uploads": {
+    "target": "http://127.0.0.1:8081",
+    "secure": false,
+    "changeOrigin": false
   }
 }

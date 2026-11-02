@@ -20,227 +20,186 @@
 
 .policy-section {
   scroll-margin-top: 76px;
-  padding: 5rem 0 5.5rem;
-  background: linear-gradient(180deg, #fbfcfd 0%, #f4f7fb 100%);
+  padding: 4.5rem 0 5rem;
+  background: #f8fafc;
   border-top: 1px solid #e2e8f0;
   border-bottom: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
 }
 
-/* ── Section Header ────────────────────────────────────────── */
-.policy-header-wrapper {
-  max-width: 680px;
-  margin: 0 auto 3rem;
+.policy-container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
 
-  .policy-cute-badge {
+/* ── KHU VỰC A: Header ───────────────────────────────────────── */
+.policy-header-wrapper {
+  max-width: 720px;
+  margin: 0 auto 2.5rem;
+  text-align: center;
+
+  .policy-header-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    padding: 0.4rem 1rem;
+    gap: 0.4rem;
+    padding: 0.35rem 0.95rem;
     border-radius: 999px;
-    background: #fff;
+    background: #ffffff;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
     color: #475569;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 750;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    margin-bottom: 0.9rem;
+    margin-bottom: 0.85rem;
 
-    .badge-sparkle {
-      font-size: 0.95rem;
-      animation: sparkle-spin 3s ease-in-out infinite;
+    .text-amber {
+      color: #d97706;
     }
   }
 
   .policy-main-title {
-    font-size: clamp(1.85rem, 3.5vw, 2.45rem);
+    font-size: clamp(1.75rem, 3.2vw, 2.35rem);
     font-weight: 850;
     color: #0f172a;
-    line-height: 1.22;
-    letter-spacing: -0.03em;
+    line-height: 1.24;
+    letter-spacing: -0.025em;
     margin-bottom: 0.85rem;
   }
 
   .policy-main-subtitle {
-    font-size: 1.02rem;
-    color: #64748b;
-    line-height: 1.7;
+    font-size: 1rem;
+    color: #475569;
+    line-height: 1.65;
     margin: 0;
   }
 }
 
-@keyframes sparkle-spin {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.2) rotate(15deg); }
-}
-
-/* ── 3 Main Navigation Tabs ────────────────────────────────── */
-.policy-tabs-row {
+/* ── KHU VỰC B: Ba quyền lợi nổi bật (Nav Strip) ─────────────── */
+.policy-nav-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
 }
 
-.policy-tab-card {
+.policy-nav-item {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  padding: 1.25rem 1.4rem;
-  border-radius: 20px;
-  background: #fff;
-  border: 2px solid #e2e8f0;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  gap: 0.9rem;
+  padding: 1rem 1.2rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
   text-align: left;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease;
   position: relative;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
 
-    .tab-icon-sticker {
-      transform: scale(1.1) rotate(6deg);
+    .nav-item-icon {
+      background: #eff6ff;
+      color: #174783;
     }
   }
 
-  .tab-icon-sticker {
-    width: 52px;
-    height: 52px;
-    flex: 0 0 52px;
-    display: grid;
-    place-items: center;
-    border-radius: 16px;
-    font-size: 1.35rem;
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8), 0 4px 10px rgba(0, 0, 0, 0.06);
+  &.active {
+    border-color: #174783;
+    background: #ffffff;
+    box-shadow: 0 6px 20px rgba(23, 71, 131, 0.08);
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 1.5rem;
+      right: 1.5rem;
+      height: 3px;
+      background: #174783;
+      border-radius: 3px 3px 0 0;
+    }
+
+    .nav-item-icon {
+      background: #174783;
+      color: #ffffff;
+    }
+
+    .nav-item-title {
+      color: #174783;
+    }
   }
 
-  .tab-meta {
+  .nav-item-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 1.15rem;
+    transition: all 0.2s ease;
+  }
+
+  .nav-item-meta {
     display: flex;
     flex-direction: column;
     min-width: 0;
     gap: 0.15rem;
 
-    .tab-badge-pill {
-      font-size: 0.72rem;
+    .nav-item-title {
+      font-size: 0.95rem;
       font-weight: 750;
-      letter-spacing: 0.03em;
-    }
-
-    .tab-title {
-      font-size: 1.08rem;
-      font-weight: 800;
       color: #1e293b;
-      margin: 0;
       line-height: 1.3;
     }
 
-    .tab-summary {
-      font-size: 0.78rem;
+    .nav-item-desc {
+      font-size: 0.775rem;
       color: #64748b;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      line-height: 1.4;
-    }
-  }
-
-  /* Amber Theme */
-  &.theme-amber {
-    .tab-icon-sticker {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      color: #d97706;
-      border: 1px solid #fcd34d;
-    }
-    .tab-badge-pill { color: #b45309; }
-
-    &.active {
-      background: #fff;
-      border-color: #f59e0b;
-      box-shadow: 0 12px 30px rgba(245, 158, 11, 0.16);
-
-      .tab-icon-sticker {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: #fff;
-        border-color: #d97706;
-        transform: scale(1.08);
-      }
-      .tab-title { color: #b45309; }
-    }
-  }
-
-  /* Emerald Theme */
-  &.theme-emerald {
-    .tab-icon-sticker {
-      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-      color: #059669;
-      border: 1px solid #86efac;
-    }
-    .tab-badge-pill { color: #047857; }
-
-    &.active {
-      background: #fff;
-      border-color: #10b981;
-      box-shadow: 0 12px 30px rgba(16, 185, 129, 0.16);
-
-      .tab-icon-sticker {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: #fff;
-        border-color: #059669;
-        transform: scale(1.08);
-      }
-      .tab-title { color: #047857; }
-    }
-  }
-
-  /* Sky Theme */
-  &.theme-sky {
-    .tab-icon-sticker {
-      background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-      color: #0284c7;
-      border: 1px solid #7dd3fc;
-    }
-    .tab-badge-pill { color: #0369a1; }
-
-    &.active {
-      background: #fff;
-      border-color: #0ea5e9;
-      box-shadow: 0 12px 30px rgba(14, 165, 233, 0.16);
-
-      .tab-icon-sticker {
-        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-        color: #fff;
-        border-color: #0284c7;
-        transform: scale(1.08);
-      }
-      .tab-title { color: #0369a1; }
+      line-height: 1.35;
     }
   }
 }
 
-/* ── Panel Card Body ────────────────────────────────────────── */
+/* ── KHU VỰC C: Policy Panel Card ────────────────────────────── */
 .policy-panel-card {
   padding: 2.5rem;
-  border-radius: 24px;
-  background: #fff;
+  border-radius: 20px;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.05);
-  animation: panel-fade-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+  animation: panel-fade-slide 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 
-  &.theme-amber-panel { border-top: 5px solid #f59e0b; }
-  &.theme-emerald-panel { border-top: 5px solid #10b981; }
-  &.theme-sky-panel { border-top: 5px solid #0ea5e9; }
+  &.theme-loan-panel {
+    border-top: 4px solid #174783;
+  }
+
+  &.theme-nenkin-panel {
+    border-top: 4px solid #059669;
+  }
+
+  &.theme-protection-panel {
+    border-top: 4px solid #0284c7;
+  }
 }
 
 @keyframes panel-fade-slide {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -248,69 +207,83 @@
   }
 }
 
-/* Top Banner inside panel */
-.panel-top-banner {
+/* Panel Hero Header */
+.panel-hero-header {
   padding-bottom: 1.75rem;
   margin-bottom: 2rem;
   border-bottom: 1px solid #f1f5f9;
 
-  .banner-kicker {
+  .panel-badge-kicker {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #64748b;
-    margin-bottom: 0.5rem;
+    color: #1e40af;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    margin-bottom: 0.75rem;
 
-    .emoji-tag { font-size: 1rem; }
+    &.kicker-emerald {
+      color: #065f46;
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+    }
+
+    &.kicker-sky {
+      color: #0369a1;
+      background: #f0f9ff;
+      border-color: #bae6fd;
+    }
   }
 
-  .banner-title {
-    font-size: clamp(1.45rem, 2.5vw, 1.85rem);
+  .panel-hero-title {
+    font-size: clamp(1.45rem, 2.4vw, 1.85rem);
     font-weight: 850;
     color: #0f172a;
     line-height: 1.25;
     letter-spacing: -0.025em;
-    margin: 0 0 0.65rem;
+    margin: 0 0 0.6rem;
   }
 
-  .banner-desc {
-    font-size: 0.98rem;
+  .panel-hero-desc {
+    font-size: 0.96rem;
     color: #475569;
-    line-height: 1.75;
+    line-height: 1.7;
     margin: 0;
-    max-width: 860px;
+    max-width: 900px;
   }
 }
 
-/* Highlight Grid (Facts & Reminders) */
-.policy-highlight-grid {
+/* ── 1. Thông tin khoản vay (3 Thông số số liệu trực quan) ──── */
+.policy-metrics-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.15rem;
+  gap: 1.25rem;
   margin-bottom: 2rem;
 
-  .highlight-item {
+  .metric-card-item {
     display: flex;
-    align-items: center;
-    gap: 0.95rem;
-    padding: 1.15rem 1.25rem;
-    border-radius: 16px;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.35rem;
+    border-radius: 14px;
     background: #f8fafc;
     border: 1px solid #edf2f7;
     transition: all 0.2s ease;
 
     &:hover {
-      background: #fff;
+      background: #ffffff;
       border-color: #cbd5e1;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
       transform: translateY(-2px);
     }
 
-    .highlight-icon-circle {
+    .metric-icon-wrap {
       width: 44px;
       height: 44px;
       flex: 0 0 44px;
@@ -320,124 +293,147 @@
       font-size: 1.15rem;
     }
 
-    .highlight-text {
+    .metric-content {
       display: flex;
       flex-direction: column;
-      gap: 0.15rem;
+      gap: 0.2rem;
       min-width: 0;
 
-      small {
-        font-size: 0.74rem;
+      .metric-tag {
+        font-size: 0.72rem;
         font-weight: 750;
         color: #64748b;
         text-transform: uppercase;
         letter-spacing: 0.04em;
       }
 
-      strong {
-        font-size: 0.92rem;
-        font-weight: 800;
-        color: #1e293b;
-        line-height: 1.4;
+      .metric-highlight {
+        font-size: 1.25rem;
+        font-weight: 850;
+        color: #0f172a;
+        line-height: 1.25;
+      }
+
+      .metric-subtext {
+        font-size: 0.8rem;
+        color: #475569;
+        line-height: 1.45;
       }
     }
   }
 
-  &.nenkin-grid {
-    .highlight-item {
-      align-items: flex-start;
+  &.nenkin-metrics {
+    .metric-card-item .metric-content .metric-highlight {
+      font-size: 1rem;
+      font-weight: 750;
+    }
+  }
+}
 
-      .highlight-text {
-        strong {
-          font-size: 0.84rem;
-          font-weight: 500;
-          color: #475569;
-          line-height: 1.55;
+/* ── 2. Điều kiện & Hồ sơ (Dual Checklist Box) ──────────────── */
+.policy-dual-checklist-box {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  .checklist-column {
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+
+    .checklist-title-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.15rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+
+      .title-icon {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        font-size: 0.95rem;
+
+        &.icon-users {
+          background: #eff6ff;
+          color: #174783;
+        }
+
+        &.icon-docs {
+          background: #fef3c7;
+          color: #b45309;
+        }
+
+        &.icon-emerald {
+          background: #ecfdf5;
+          color: #059669;
+        }
+
+        &.icon-teal {
+          background: #f0fdfa;
+          color: #0d9488;
+        }
+      }
+
+      h4 {
+        font-size: 1rem;
+        font-weight: 750;
+        color: #0f172a;
+        margin: 0;
+      }
+    }
+
+    .checklist-unstyled {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+
+      li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+        font-size: 0.88rem;
+        color: #334155;
+        line-height: 1.55;
+
+        .check-bullet {
+          width: 19px;
+          height: 19px;
+          flex: 0 0 19px;
+          margin-top: 0.15rem;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: #ecfdf5;
+          color: #059669;
+          font-size: 0.65rem;
+          font-weight: 900;
+
+          &.bullet-emerald {
+            background: #d1fae5;
+            color: #047857;
+          }
+        }
+
+        .item-text {
+          flex: 1;
         }
       }
     }
   }
 }
 
-/* Dual Information Boxes (Subcards) */
-.policy-dual-cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.info-subcard {
-  padding: 1.5rem;
-  border-radius: 18px;
-  background: #f8fafc;
-  border: 1px solid #edf2f7;
-
-  .subcard-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.15rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #e2e8f0;
-
-    .subcard-icon-pill {
-      width: 34px;
-      height: 34px;
-      display: grid;
-      place-items: center;
-      border-radius: 10px;
-      font-size: 0.95rem;
-
-      &.bg-amber { background: #fef3c7; color: #d97706; }
-      &.bg-blue { background: #dbeafe; color: #2563eb; }
-      &.bg-emerald { background: #dcfce7; color: #059669; }
-      &.bg-teal { background: #ccfbf1; color: #0d9488; }
-    }
-
-    h4 {
-      font-size: 1.02rem;
-      font-weight: 800;
-      color: #1e293b;
-      margin: 0;
-    }
-  }
-
-  .subcard-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-
-    li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.65rem;
-      font-size: 0.9rem;
-      color: #334155;
-      line-height: 1.6;
-
-      .check-icon-sticker {
-        width: 20px;
-        height: 20px;
-        flex: 0 0 20px;
-        margin-top: 0.15rem;
-        display: grid;
-        place-items: center;
-        border-radius: 50%;
-        background: #dcfce7;
-        color: #16a34a;
-        font-size: 0.68rem;
-        font-weight: 900;
-      }
-    }
-  }
-}
-
-/* Numbered Step Bubble List (Nenkin) */
-.step-cute-list {
+/* Numbered List for Nenkin */
+.step-numbered-list {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -448,305 +444,419 @@
   li {
     display: flex;
     align-items: flex-start;
-    gap: 0.7rem;
-    font-size: 0.9rem;
+    gap: 0.65rem;
+    font-size: 0.88rem;
     color: #334155;
-    line-height: 1.6;
+    line-height: 1.55;
 
-    .step-number-bubble {
-      width: 22px;
-      height: 22px;
-      flex: 0 0 22px;
+    .step-num-pill {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
       margin-top: 0.15rem;
       display: grid;
       place-items: center;
       border-radius: 50%;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: #fff;
-      font-size: 0.72rem;
+      background: #174783;
+      color: #ffffff;
+      font-size: 0.68rem;
       font-weight: 800;
-      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+
+      &.pill-emerald {
+        background: #059669;
+      }
+    }
+
+    .item-text {
+      flex: 1;
     }
   }
 }
 
-/* Rights Grid (4 Cards) */
-.policy-rights-grid {
+/* ── 3. Tương tác thông minh: Accordion Quy trình ───────────── */
+.policy-accordion-section {
+  margin-bottom: 2rem;
+
+  .procedure-toggle-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem 1.25rem;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .trigger-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .trigger-icon {
+        color: #174783;
+        font-size: 1rem;
+      }
+
+      strong {
+        font-size: 0.9rem;
+        font-weight: 750;
+      }
+    }
+
+    .trigger-chevron {
+      color: #64748b;
+      font-size: 0.85rem;
+      transition: transform 0.25s ease;
+
+      &.rotated {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .procedure-expand-panel {
+    margin-top: 0.85rem;
+    padding: 1.25rem;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+    animation: accordion-down 0.25s ease-out both;
+
+    .procedure-steps-container {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+
+      .procedure-step-card {
+        padding: 1rem;
+        border-radius: 10px;
+        background: #f8fafc;
+        border: 1px solid #edf2f7;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+
+        .step-num-pill {
+          display: inline-flex;
+          align-items: center;
+          align-self: flex-start;
+          padding: 0.15rem 0.55rem;
+          border-radius: 999px;
+          background: #eff6ff;
+          color: #174783;
+          font-size: 0.7rem;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+
+        .step-card-title {
+          font-size: 0.85rem;
+          font-weight: 750;
+          color: #0f172a;
+          line-height: 1.35;
+        }
+
+        .step-card-desc {
+          font-size: 0.78rem;
+          color: #475569;
+          line-height: 1.5;
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+@keyframes accordion-down {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── 4. KHU VỰC D: Lời nhắn VieJap, CTA & Footer ─────────────── */
+.policy-viejap-message-box {
+  padding: 1.15rem 1.4rem;
+  border-radius: 12px;
+  background: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-left: 4px solid #174783;
+  margin-bottom: 2rem;
+
+  .message-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #174783;
+    margin-bottom: 0.35rem;
+
+    i {
+      font-size: 1rem;
+    }
+  }
+
+  .message-body {
+    font-size: 0.88rem;
+    color: #334155;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  &.box-emerald {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    border-left-color: #059669;
+
+    .message-badge { color: #065f46; }
+    .message-body { color: #064e3b; }
+  }
+
+  &.box-sky {
+    background: #f0f9ff;
+    border-color: #bae6fd;
+    border-left-color: #0284c7;
+
+    .message-badge { color: #0369a1; }
+    .message-body { color: #075985; }
+  }
+}
+
+/* Hàng hành động CTA */
+.policy-actions-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+
+  .btn-primary-policy-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #174783 0%, #1e5699 100%);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 750;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(23, 71, 131, 0.25);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #133969 0%, #174783 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(23, 71, 131, 0.35);
+      color: #ffffff;
+    }
+
+    &.btn-emerald-cta {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+
+      &:hover {
+        background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+        box-shadow: 0 6px 18px rgba(5, 150, 105, 0.35);
+      }
+    }
+
+    &.btn-sky-cta {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+
+      &:hover {
+        background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+      }
+    }
+  }
+
+  .secondary-policy-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+
+    .secondary-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: #2563eb;
+      font-size: 0.85rem;
+      font-weight: 650;
+      text-decoration: none;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+      }
+
+      i {
+        font-size: 0.85rem;
+      }
+    }
+  }
+}
+
+/* Nguồn đối chiếu & Xác minh */
+.policy-source-footer {
+  .source-notes {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.6;
+
+    .source-intro {
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .policy-verified {
+      color: #059669;
+      font-weight: 650;
+    }
+  }
+}
+
+/* ── Specific Styles for Tab 3 Rights Grid & Alert ─────────── */
+.policy-rights-refined-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.25rem;
   margin-bottom: 2rem;
 
-  .right-card-item {
+  .right-item-card {
     display: flex;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.95rem;
     padding: 1.25rem;
-    border-radius: 16px;
+    border-radius: 14px;
     background: #f8fafc;
     border: 1px solid #edf2f7;
-    transition: all 0.2s ease;
 
-    &:hover {
-      background: #fff;
-      border-color: #cbd5e1;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
-      transform: translateY(-2px);
-    }
-
-    .right-icon-box {
-      width: 44px;
-      height: 44px;
-      flex: 0 0 44px;
+    .right-icon-pill {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
       display: grid;
       place-items: center;
-      border-radius: 12px;
+      border-radius: 10px;
       font-size: 1.15rem;
     }
 
-    .right-card-body {
+    .right-meta {
       h5 {
-        font-size: 0.98rem;
-        font-weight: 800;
-        color: #1e293b;
-        margin: 0 0 0.35rem;
+        font-size: 0.95rem;
+        font-weight: 750;
+        color: #0f172a;
+        margin: 0 0 0.25rem;
       }
+
       p {
-        font-size: 0.86rem;
+        font-size: 0.85rem;
         color: #475569;
-        line-height: 1.6;
+        line-height: 1.55;
         margin: 0;
       }
     }
   }
 }
 
-/* Emergency Alert Box */
-.policy-emergency-box {
-  padding: 1.25rem 1.4rem;
-  border-radius: 16px;
-  background: #fff8f8;
-  border: 1.5px solid #fecaca;
+.policy-emergency-callout {
+  padding: 1.15rem 1.35rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   margin-bottom: 1.5rem;
 
-  .emergency-header {
+  .emergency-badge-title {
     display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    margin-bottom: 0.9rem;
+    align-items: center;
+    gap: 0.55rem;
+    color: #991b1b;
+    margin-bottom: 0.75rem;
 
-    .emergency-icon-glow {
-      font-size: 1.35rem;
-      animation: pulse-glow 2s infinite;
-    }
+    i { font-size: 1.1rem; }
 
     h4 {
-      font-size: 0.95rem;
-      font-weight: 800;
+      font-size: 0.9rem;
+      font-weight: 750;
       color: #991b1b;
-      margin: 0 0 0.15rem;
-    }
-
-    p {
-      font-size: 0.82rem;
-      color: #b91c1c;
       margin: 0;
     }
   }
 
-  .emergency-tags {
+  .emergency-pill-list {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
 
-    .emergency-pill {
+    .emergency-tag-item {
       display: inline-flex;
       align-items: center;
-      padding: 0.35rem 0.75rem;
+      padding: 0.25rem 0.65rem;
       border-radius: 999px;
-      background: #fff;
+      background: #ffffff;
       border: 1px solid #fca5a5;
       color: #b91c1c;
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.78rem;
+      font-weight: 650;
     }
   }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-}
-
-/* Friendly Tip Boxes */
-.policy-friendly-tip {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.9rem;
-  padding: 1.15rem 1.4rem;
-  border-radius: 16px;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-left: 4px solid #f59e0b;
-  margin-bottom: 2rem;
-
-  .tip-icon-sticker {
-    font-size: 1.35rem;
-    line-height: 1;
-    margin-top: 0.1rem;
-  }
-
-  .tip-content {
-    strong {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 800;
-      color: #92400e;
-      margin-bottom: 0.2rem;
-    }
-    p {
-      font-size: 0.88rem;
-      color: #78350f;
-      line-height: 1.65;
-      margin: 0;
-    }
-  }
-
-  &.tip-emerald {
-    background: #f0fdf4;
-    border-color: #bbf7d0;
-    border-left-color: #10b981;
-
-    .tip-content strong { color: #065f46; }
-    .tip-content p { color: #047857; }
-  }
-
-  &.tip-sky {
-    background: #f0f9ff;
-    border-color: #bae6fd;
-    border-left-color: #0ea5e9;
-
-    .tip-content strong { color: #075985; }
-    .tip-content p { color: #0369a1; }
-  }
-}
-
-/* Panel Bottom Footer */
-.panel-bottom-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #f1f5f9;
-  flex-wrap: wrap;
-
-  .footer-sources {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-
-    .source-label {
-      font-size: 0.8rem;
-      font-weight: 750;
-      color: #64748b;
-    }
-
-    .source-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem 1.15rem;
-
-      a {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        font-size: 0.84rem;
-        font-weight: 650;
-        color: #2563eb;
-        text-decoration: none;
-        transition: color 0.15s ease;
-
-        &:hover {
-          color: #1d4ed8;
-          text-decoration: underline;
-        }
-
-        i { font-size: 0.7rem; }
-      }
-    }
-  }
-
-  .btn-ask-viejap {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    padding: 0.75rem 1.4rem;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: #fff;
-    font-size: 0.92rem;
-    font-weight: 800;
-    text-decoration: none;
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    white-space: nowrap;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
-      color: #fff;
-    }
-
-    &.btn-emerald {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-
-      &:hover {
-        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-      }
-    }
-
-    &.btn-sky {
-      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
-
-      &:hover {
-        box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
-      }
-    }
-  }
-}
-
-/* ── Responsive Styling ────────────────────────────────────── */
+/* ── Responsive Tablet & Mobile ─────────────────────────────── */
 @media (max-width: 991.98px) {
   .policy-section {
     padding: 3.5rem 0 4rem;
   }
 
-  .policy-tabs-row {
+  .policy-nav-strip {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.75rem;
   }
 
-  .policy-highlight-grid {
+  .policy-metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .policy-dual-cards {
+  .policy-dual-checklist-box {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .policy-rights-grid {
+  .policy-rights-refined-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .panel-bottom-footer {
+  .policy-accordion-section .procedure-expand-panel .procedure-steps-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .policy-actions-container {
     flex-direction: column;
     align-items: stretch;
 
-    .btn-ask-viejap {
+    .btn-primary-policy-cta {
       justify-content: center;
       width: 100%;
     }
@@ -755,52 +865,34 @@
 
 @media (max-width: 767.98px) {
   .policy-header-wrapper {
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
 
     .policy-main-title {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
     }
+
     .policy-main-subtitle {
-      font-size: 0.92rem;
-    }
-  }
-
-  .policy-tab-card {
-    padding: 0.95rem 1.1rem;
-    gap: 0.85rem;
-
-    .tab-icon-sticker {
-      width: 44px;
-      height: 44px;
-      flex: 0 0 44px;
-      font-size: 1.15rem;
-    }
-
-    .tab-meta .tab-title {
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
   }
 
   .policy-panel-card {
-    padding: 1.35rem 1.15rem;
-    border-radius: 18px;
+    padding: 1.35rem 1.1rem;
+    border-radius: 16px;
   }
 
-  .policy-highlight-grid {
+  .policy-metrics-grid {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0.65rem;
+    gap: 0.75rem;
   }
 
-  .info-subcard {
-    padding: 1.15rem;
+  .policy-accordion-section .procedure-expand-panel .procedure-steps-container {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .policy-emergency-box {
-    padding: 1rem;
-  }
-
-  .policy-friendly-tip {
-    padding: 1rem 1.15rem;
+  .policy-actions-container .secondary-policy-links {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -815,8 +907,8 @@
 .about-section {
   scroll-margin-top: 76px;
   background: rgba(246, 248, 252, 0.88);
-  backdrop-filter: blur(20px) saturate(1.3);
   -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
   border-bottom: 1px solid rgba(220, 230, 242, 0.6);
 
   .about-image-wrapper {
@@ -965,6 +1057,7 @@
     color: #fff;
     font-size: 0.72rem;
     font-weight: 700;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
   }
 
@@ -1386,8 +1479,8 @@
 .company-activities-section {
   background:
     linear-gradient(180deg, rgba(255, 250, 241, 0.88) 0%, rgba(255, 255, 255, 0.85) 42%, rgba(246, 249, 253, 0.88) 100%);
-  backdrop-filter: blur(18px) saturate(1.4);
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
   border-top: 1px solid rgba(240, 226, 200, 0.6);
   border-bottom: 1px solid rgba(228, 234, 242, 0.6);
 
@@ -2364,8 +2457,8 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.55) 38%),
     rgba(243, 246, 250, 0.82);
-  backdrop-filter: blur(20px) saturate(1.3);
   -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
 
   &::before {
     content: '';
@@ -2539,6 +2632,7 @@
     color: #fff;
     font-size: 0.7rem;
     font-weight: 800;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
   }
 
@@ -2941,6 +3035,7 @@
     color: #fff;
     font-size: 0.75rem;
     font-weight: 750;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
   }
 }

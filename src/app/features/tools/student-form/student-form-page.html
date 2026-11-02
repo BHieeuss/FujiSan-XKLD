@@ -1,22 +1,223 @@
 <section class="student-form-page">
+  <!-- PAGE HERO -->
   <div class="page-hero">
     <div class="container hero-inner">
-      <div>
-        <span class="eyebrow">Hồ sơ học viên</span>
-        <h1>Khai sơ yếu lý lịch</h1>
-        <p>
-          Nhập thông tin trực tuyến và tải xuống Excel theo đúng biểu mẫu gốc. Dữ liệu chỉ được xử
-          lý ngay trên thiết bị của bạn.
+      <div class="hero-content">
+        <div class="eyebrow-badge">
+          <i class="fas fa-passport"></i>
+          <span>VieJap Portal • Xuất Khẩu Lao Động Nhật Bản</span>
+        </div>
+        <h1>Khai Sơ Yếu Lý Lịch Học Viên</h1>
+        <p class="hero-description">
+          Hệ thống khai báo lý lịch trực tuyến thông minh, tự động lưu nháp an toàn trên thiết bị và
+          xuất file Excel chuẩn Nghiệp đoàn Nhật Bản.
         </p>
+
+        <div class="hero-features">
+          <div class="feature-item">
+            <i class="fas fa-asterisk"></i>
+            <div>
+              <strong>3 trường bắt buộc</strong>
+              <span>Họ tên, CCCD, Số điện thoại</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-shield-halved"></i>
+            <div>
+              <strong>Lưu nháp tự động</strong>
+              <span>Không sợ mất dữ liệu khi tắt máy</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-file-excel"></i>
+            <div>
+              <strong>Xuất Excel chuẩn form</strong>
+              <span>Khớp 100% mẫu 2 trang gốc</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="hero-note">
-        <strong>3 trường bắt buộc</strong>
-        <span>Họ và tên, số điện thoại TTS, số CMT/CCCD</span>
+
+      <!-- VIEW MODE SWITCHER -->
+      <div class="hero-mode-card">
+        <span class="mode-label">Chế độ hiển thị biểu mẫu:</span>
+        <div class="mode-buttons">
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="viewMode === 'stepper'"
+            (click)="setViewMode('stepper')"
+          >
+            <i class="fas fa-layer-group"></i>
+            <span>Từng bước</span>
+            <small>Dễ điền nhất</small>
+          </button>
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="viewMode === 'full'"
+            (click)="setViewMode('full')"
+          >
+            <i class="fas fa-file-lines"></i>
+            <span>Xem toàn bộ</span>
+            <small>Xem 1 trang</small>
+          </button>
+        </div>
+        <div class="auto-save-pill">
+          <i class="fas fa-cloud-arrow-up"></i>
+          <span>{{ draftMessage }}</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="container form-shell">
+  <div id="student-form-anchor"></div>
+
+  <!-- GATEKEEPER VERIFICATION SCREEN (CHƯA XÁC THỰC MÃ) -->
+  @if (!isVerified) {
+    <div class="container verification-shell animate-fade-in">
+      <div class="verification-card">
+        <div class="verification-badge">
+          <i class="fas fa-shield-halved"></i>
+          <span>Xác thực danh tính học viên</span>
+        </div>
+
+        <div class="verification-header">
+          <h2>KHAI THÔNG TIN HỌC VIÊN</h2>
+          <p>Nhập mã đăng ký 6 chữ số do VieJap cấp để bắt đầu khai thông tin sơ yếu lý lịch.</p>
+        </div>
+
+        @if (verificationError) {
+          <div class="verification-alert alert-danger animate-shake">
+            <i class="fas fa-circle-exclamation"></i>
+            <div>
+              <strong>Không thể truy cập:</strong>
+              <span>{{ verificationError }}</span>
+            </div>
+          </div>
+        }
+
+        <form (ngSubmit)="onVerifyCodeSubmit()" class="verification-form">
+          <div class="code-input-container">
+            <label for="regCodeInput">MÃ ĐĂNG KÝ (6 CHỮ SỐ)</label>
+            <div class="code-input-box">
+              <input
+                id="regCodeInput"
+                type="text"
+                class="code-digit-input"
+                [(ngModel)]="inputCode"
+                name="inputCode"
+                maxlength="6"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                placeholder="000000"
+                autocomplete="one-time-code"
+                autofocus
+                [disabled]="isVerifying || rateLimited"
+                (input)="onCodeInput($event)"
+              />
+            </div>
+            <span class="code-hint">
+              <i class="fas fa-info-circle"></i>
+              Mã gồm đúng 6 chữ số (cho phép số 0 ở đầu) và có hiệu lực trong 72 giờ.
+            </span>
+          </div>
+
+          <button
+            type="submit"
+            class="btn-verify-submit"
+            [disabled]="isVerifying || inputCode.length !== 6 || rateLimited"
+          >
+            @if (isVerifying) {
+              <i class="fas fa-circle-notch fa-spin"></i>
+              <span>Đang kiểm tra mã...</span>
+            } @else {
+              <i class="fas fa-arrow-right-to-bracket"></i>
+              <span>Xác nhận mã và tiếp tục</span>
+            }
+          </button>
+        </form>
+
+        <div class="verification-footer-info">
+          <div class="info-row">
+            <i class="fas fa-qrcode"></i>
+            <span>Nếu được cán bộ tư vấn gửi kèm <strong>mã QR</strong> hoặc đường link Zalo, bạn có thể quét QR để tự động truy cập nhanh.</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-user-lock"></i>
+            <span>Quy trình bảo mật mới: Học viên <strong>không cần tạo tài khoản hoặc mật khẩu</strong>. Mỗi mã chỉ dùng một lần duy nhất.</span>
+          </div>
+          <div class="info-contact">
+            Chưa có mã đăng ký? Liên hệ Hotline tư vấn VieJap: <strong>0966 966 284</strong> (Zalo 24/7)
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- MAIN CONTAINER (ĐÃ XÁC THỰC MÃ HỢP LỆ) -->
+    <div class="container form-shell">
+      @if (studentSession) {
+        <!-- VERIFIED STUDENT GREETING BANNER -->
+        <div class="verified-greeting-card animate-fade-in">
+          <div class="greeting-avatar">
+            <i class="fas fa-id-card-clip"></i>
+          </div>
+          <div class="greeting-content">
+            <div class="greeting-eyebrow">
+              <span class="badge-active"><i class="fas fa-circle-check"></i> Đã xác thực thành công</span>
+              <span class="badge-code"><i class="fas fa-key"></i> Mã: <strong>{{ studentSession.code }}</strong></span>
+              @if (studentSession.expiresAt) {
+                <span class="badge-expiry"><i class="fas fa-clock"></i> Hạn mã: {{ formatExpiry(studentSession.expiresAt) }}</span>
+              }
+            </div>
+            <h3>Xin chào <span>{{ studentSession.studentName || data.fullName }}</span></h3>
+            <p>Bạn đang thực hiện khai thông tin học viên tại Trung tâm VieJap. Mọi thay đổi sẽ được tự động lưu bản nháp an toàn lên hệ thống.</p>
+          </div>
+          <div class="greeting-actions">
+            <button type="button" class="btn-logout-code" (click)="logoutCodeSession()" title="Đổi mã hoặc thoát phiên">
+              <i class="fas fa-arrow-right-from-bracket"></i>
+              <span>Thoát</span>
+            </button>
+          </div>
+        </div>
+      }
+    <!-- STEPPER PROGRESS BAR (Visible always or in stepper mode) -->
+    <div class="stepper-card">
+      <div class="progress-header">
+        <div class="progress-title-group">
+          <span class="progress-title">Tiến trình hoàn thiện hồ sơ</span>
+          <span class="progress-badge" [class.complete]="completionPercentage >= 90">
+            {{ completionPercentage }}% hoàn thành
+          </span>
+        </div>
+        <div class="progress-track" role="progressbar" [attr.aria-valuenow]="completionPercentage" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill" [style.transform]="'scaleX(' + (completionPercentage / 100) + ')'"></div>
+        </div>
+      </div>
+
+      <!-- STEP BUTTONS -->
+      <nav class="step-nav" aria-label="Các bước khai sơ yếu lý lịch">
+        <button
+          *ngFor="let s of steps; let i = index"
+          type="button"
+          class="step-nav-item"
+          [class.active]="viewMode === 'stepper' && currentStep === i"
+          [class.is-complete]="isStepComplete(i)"
+          (click)="goToStep(i)"
+        >
+          <div class="step-indicator">
+            <span *ngIf="!isStepComplete(i)" class="step-num">{{ s.stepNumber }}</span>
+            <i *ngIf="isStepComplete(i)" class="fas fa-check step-check"></i>
+          </div>
+          <div class="step-label-group">
+            <span class="step-name">{{ s.shortTitle }}</span>
+            <span class="step-sub">{{ s.subtitle }}</span>
+          </div>
+        </button>
+      </nav>
+    </div>
+
+    <!-- MAIN FORM -->
     <form
       #studentForm="ngForm"
       (ngSubmit)="onSubmit(studentForm)"
@@ -24,679 +225,1376 @@
       (change)="scheduleSave()"
       novalidate
     >
-      <section class="form-card">
-        <div class="section-heading">
-          <span>01</span>
-          <div>
-            <h2>Thông tin cơ bản</h2>
-            <p>Các mục không có dấu * có thể để trống.</p>
+      <!-- ========================================== -->
+      <!-- SECTION 01: THÔNG TIN CÁ NHÂN & LIÊN LẠC   -->
+      <!-- ========================================== -->
+      <section
+        class="form-card"
+        [class.step-hidden]="viewMode === 'stepper' && currentStep !== 0"
+        id="section-personal"
+      >
+        <header class="section-heading">
+          <div class="heading-badge">
+            <i class="fas fa-user-circle"></i>
+            <span>01</span>
           </div>
-        </div>
+          <div class="heading-text">
+            <h2>Thông tin cá nhân & Liên lạc</h2>
+            <p>Vui lòng điền chính xác theo Căn cước công dân. Các trường có dấu <b>(*)</b> là bắt buộc.</p>
+          </div>
+          <span class="step-status-tag" *ngIf="isStepComplete(0)">
+            <i class="fas fa-circle-check"></i> Đã điền hợp lệ
+          </span>
+        </header>
 
         <div class="form-grid">
-          <label class="field">
-            <span>Ngày khai form</span>
-            <input type="date" name="formDate" [(ngModel)]="data.formDate" />
-          </label>
+          <!-- Ngày khai form -->
+          <div class="field-wrap">
+            <label class="field-label" for="formDate">
+              <span>Ngày khai form</span>
+              <span class="tag-opt">Tự động</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-calendar-days input-icon"></i>
+              <input
+                id="formDate"
+                type="date"
+                name="formDate"
+                [(ngModel)]="data.formDate"
+              />
+            </div>
+            <span class="field-helper">Mặc định là ngày hôm nay.</span>
+          </div>
 
-          <label class="field field-wide">
-            <span>Họ và tên <b>*</b></span>
-            <input
-              type="text"
-              name="fullName"
-              [(ngModel)]="data.fullName"
-              required
-              autocomplete="name"
-              placeholder="Nguyễn Văn A"
-            />
-            <small *ngIf="submitted && !data.fullName.trim()">Vui lòng nhập họ và tên.</small>
-          </label>
+          <!-- Họ và tên (Bắt buộc) -->
+          <div class="field-wrap field-span-2">
+            <label class="field-label" for="fullName">
+              <span>Họ và tên học viên <b class="req-star">*</b></span>
+              <span class="tag-req">Bắt buộc</span>
+            </label>
+            <div class="input-container" [class.has-error]="submitted && !data.fullName.trim()">
+              <i class="fas fa-user input-icon"></i>
+              <input
+                id="fullName"
+                type="text"
+                name="fullName"
+                [(ngModel)]="data.fullName"
+                required
+                autocomplete="name"
+                placeholder="VÍ DỤ: NGUYỄN VĂN AN"
+              />
+            </div>
+            <span class="field-error" *ngIf="submitted && !data.fullName.trim()">
+              <i class="fas fa-circle-exclamation"></i> Vui lòng nhập họ và tên của học viên.
+            </span>
+            <span class="field-helper" *ngIf="!submitted || data.fullName.trim()">
+              Ghi đầy đủ họ tên có dấu, viết in hoa hoặc in thường đều được hệ thống tự động chuẩn hóa.
+            </span>
+          </div>
 
-          <label class="field">
-            <span>Ngày tháng năm sinh</span>
-            <input type="date" name="birthDate" [(ngModel)]="data.birthDate" />
-          </label>
+          <!-- Ngày tháng năm sinh -->
+          <div class="field-wrap">
+            <label class="field-label" for="birthDate">
+              <span>Ngày tháng năm sinh</span>
+              <span class="tag-opt">Theo CCCD</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-cake-candles input-icon"></i>
+              <input
+                id="birthDate"
+                type="date"
+                name="birthDate"
+                [(ngModel)]="data.birthDate"
+              />
+            </div>
+            <span class="field-helper">Ngày/tháng/năm sinh theo CCCD.</span>
+          </div>
 
-          <label class="field">
-            <span>Số CMT/CCCD <b>*</b></span>
-            <input
-              type="text"
-              name="idNumber"
-              [(ngModel)]="data.idNumber"
-              required
-              inputmode="numeric"
-              autocomplete="off"
-            />
-            <small *ngIf="submitted && !data.idNumber.trim()">Vui lòng nhập số CMT/CCCD.</small>
-          </label>
+          <!-- Số CMT/CCCD (Bắt buộc) -->
+          <div class="field-wrap">
+            <label class="field-label" for="idNumber">
+              <span>Số CMT / CCCD <b class="req-star">*</b></span>
+              <span class="tag-req">Bắt buộc</span>
+            </label>
+            <div class="input-container" [class.has-error]="submitted && !data.idNumber.trim()">
+              <i class="fas fa-id-card input-icon"></i>
+              <input
+                id="idNumber"
+                type="text"
+                name="idNumber"
+                [(ngModel)]="data.idNumber"
+                required
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="Ví dụ: 012345678901"
+              />
+            </div>
+            <span class="field-error" *ngIf="submitted && !data.idNumber.trim()">
+              <i class="fas fa-circle-exclamation"></i> Vui lòng nhập số CMT hoặc 12 số CCCD gắn chip.
+            </span>
+            <span class="field-helper" *ngIf="!submitted || data.idNumber.trim()">
+              Nhập 12 số Căn cước công dân gắn chip hoặc 9 số CMT cũ.
+            </span>
+          </div>
 
-          <label class="field">
-            <span>Ngày cấp CMT/CCCD</span>
-            <input type="date" name="idIssueDate" [(ngModel)]="data.idIssueDate" />
-          </label>
+          <!-- Ngày cấp CMT/CCCD -->
+          <div class="field-wrap">
+            <label class="field-label" for="idIssueDate">
+              <span>Ngày cấp CMT/CCCD</span>
+              <span class="tag-opt">Mặt sau</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-calendar-check input-icon"></i>
+              <input
+                id="idIssueDate"
+                type="date"
+                name="idIssueDate"
+                [(ngModel)]="data.idIssueDate"
+              />
+            </div>
+            <span class="field-helper">Xem ngày cấp ở mặt sau thẻ CCCD.</span>
+          </div>
 
-          <label class="field">
-            <span>Số điện thoại TTS <b>*</b></span>
-            <input
-              type="tel"
-              name="phone"
-              [(ngModel)]="data.phone"
-              required
-              inputmode="tel"
-              autocomplete="tel"
-              placeholder="09xxxxxxxx"
-            />
-            <small *ngIf="submitted && !data.phone.trim()">Vui lòng nhập số điện thoại.</small>
-          </label>
+          <!-- Số điện thoại TTS (Bắt buộc) -->
+          <div class="field-wrap">
+            <label class="field-label" for="phone">
+              <span>Số điện thoại TTS <b class="req-star">*</b></span>
+              <span class="tag-req">Bắt buộc</span>
+            </label>
+            <div class="input-container" [class.has-error]="submitted && !data.phone.trim()">
+              <i class="fas fa-phone input-icon"></i>
+              <input
+                id="phone"
+                type="tel"
+                name="phone"
+                [(ngModel)]="data.phone"
+                required
+                inputmode="tel"
+                autocomplete="tel"
+                placeholder="Ví dụ: 0901234567"
+              />
+            </div>
+            <span class="field-error" *ngIf="submitted && !data.phone.trim()">
+              <i class="fas fa-circle-exclamation"></i> Vui lòng nhập số điện thoại liên hệ của bạn.
+            </span>
+            <span class="field-helper" *ngIf="!submitted || data.phone.trim()">
+              Số điện thoại chính chủ để trung tâm liên lạc tư vấn đơn hàng.
+            </span>
+          </div>
 
-          <label class="field">
-            <span>Số điện thoại người thân</span>
-            <input
-              type="tel"
-              name="relativePhone"
-              [(ngModel)]="data.relativePhone"
-              inputmode="tel"
-            />
-          </label>
+          <!-- Số điện thoại người thân -->
+          <div class="field-wrap">
+            <label class="field-label" for="relativePhone">
+              <span>SĐT người thân (Bố/Mẹ/Vợ)</span>
+              <span class="tag-opt">Khuyên dùng</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-phone-volume input-icon"></i>
+              <input
+                id="relativePhone"
+                type="tel"
+                name="relativePhone"
+                [(ngModel)]="data.relativePhone"
+                inputmode="tel"
+                placeholder="Ví dụ: 0987654321"
+              />
+            </div>
+            <span class="field-helper">Số liên hệ phụ phòng trường hợp khẩn cấp.</span>
+          </div>
 
-          <label class="field field-full">
-            <span>Địa chỉ</span>
-            <textarea name="address" [(ngModel)]="data.address" rows="2"></textarea>
-          </label>
+          <!-- Địa chỉ thường trú -->
+          <div class="field-wrap field-full">
+            <label class="field-label" for="address">
+              <span>Địa chỉ thường trú / Nơi ở hiện tại</span>
+              <span class="tag-opt">Chi tiết</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-location-dot input-icon text-area-icon"></i>
+              <textarea
+                id="address"
+                name="address"
+                [(ngModel)]="data.address"
+                rows="2"
+                placeholder="Ví dụ: Ấp 1, Xã An Bình, Huyện Càng Long, Tỉnh Trà Vinh (hoặc địa chỉ tại Nhật nếu đang ở Nhật)"
+              ></textarea>
+            </div>
+            <span class="field-helper">
+              Ghi đầy đủ: Thôn/Ấp, Xã/Phường, Quận/Huyện, Tỉnh/Thành phố theo hộ khẩu hoặc nơi ở hiện tại.
+            </span>
+          </div>
 
-          <fieldset class="choice-field field-full">
-            <legend>Tình trạng hôn nhân</legend>
-            <div class="choice-row choice-row-four">
-              <label>
-                <input
-                  type="radio"
-                  name="maritalStatus"
-                  value="married"
-                  [(ngModel)]="data.maritalStatus"
-                />
-                <span>Đã kết hôn</span>
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="maritalStatus"
-                  value="separated"
-                  [(ngModel)]="data.maritalStatus"
-                />
-                <span>Ly thân</span>
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="maritalStatus"
-                  value="divorced"
-                  [(ngModel)]="data.maritalStatus"
-                />
-                <span>Đã ly hôn</span>
-              </label>
-              <label>
+          <!-- Tình trạng hôn nhân -->
+          <fieldset class="field-wrap field-full choice-fieldset">
+            <legend class="field-label">
+              <span>Tình trạng hôn nhân</span>
+              <span class="tag-opt">Chọn 1</span>
+            </legend>
+            <div class="pill-group pill-group-four">
+              <label class="pill-option" [class.selected]="data.maritalStatus === 'single'">
                 <input
                   type="radio"
                   name="maritalStatus"
                   value="single"
                   [(ngModel)]="data.maritalStatus"
                 />
-                <span>Chưa kết hôn</span>
+                <span class="pill-content">
+                  <i class="fas fa-user"></i>
+                  <span>Chưa kết hôn</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.maritalStatus === 'married'">
+                <input
+                  type="radio"
+                  name="maritalStatus"
+                  value="married"
+                  [(ngModel)]="data.maritalStatus"
+                />
+                <span class="pill-content">
+                  <i class="fas fa-ring"></i>
+                  <span>Đã kết hôn</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.maritalStatus === 'separated'">
+                <input
+                  type="radio"
+                  name="maritalStatus"
+                  value="separated"
+                  [(ngModel)]="data.maritalStatus"
+                />
+                <span class="pill-content">
+                  <i class="fas fa-arrows-split-up-and-left"></i>
+                  <span>Ly thân</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.maritalStatus === 'divorced'">
+                <input
+                  type="radio"
+                  name="maritalStatus"
+                  value="divorced"
+                  [(ngModel)]="data.maritalStatus"
+                />
+                <span class="pill-content">
+                  <i class="fas fa-user-slash"></i>
+                  <span>Đã ly hôn</span>
+                </span>
               </label>
             </div>
           </fieldset>
 
-          <label class="photo-field field-full">
-            <span>Ảnh thẻ (không bắt buộc)</span>
-            <div class="photo-picker">
-              <div class="photo-preview">
-                <img *ngIf="photoPreview" [src]="photoPreview" alt="Ảnh thẻ đã chọn" />
-                <i *ngIf="!photoPreview" class="fas fa-user"></i>
+          <!-- Ảnh thẻ học viên -->
+          <div class="field-wrap field-full photo-card-wrap">
+            <div class="photo-card">
+              <div class="photo-preview-box">
+                <img *ngIf="photoPreview" [src]="photoPreview" alt="Ảnh thẻ học viên đã chọn" />
+                <div *ngIf="!photoPreview" class="photo-placeholder">
+                  <i class="fas fa-camera"></i>
+                  <span>Ảnh 3x4 / 4x6</span>
+                </div>
               </div>
-              <div>
-                <input
-                  type="file"
-                  name="photo"
-                  accept="image/png,image/jpeg"
-                  (change)="onPhotoSelected($event)"
-                />
-                <small>Chọn ảnh JPG hoặc PNG, ảnh sẽ được đặt vào khung trên trang 2.</small>
+              <div class="photo-info">
+                <h4>Ảnh thẻ chân dung (Không bắt buộc)</h4>
+                <p>
+                  Khuyên dùng ảnh chân dung chụp trong 6 tháng gần nhất, áo sơ mi sáng màu, phông nền xanh
+                  hoặc trắng. Ảnh sẽ tự động được chèn vào khung trang 2 trong file Excel tải về.
+                </p>
+                <div class="photo-actions">
+                  <label class="btn-photo-pick">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <span>{{ photoPreview ? 'Đổi ảnh khác' : 'Chọn ảnh từ máy' }}</span>
+                    <input
+                      #photoInput
+                      type="file"
+                      name="photo"
+                      accept="image/png,image/jpeg"
+                      (change)="onPhotoSelected($event)"
+                    />
+                  </label>
+                  <button
+                    *ngIf="photoPreview"
+                    type="button"
+                    class="btn-photo-remove"
+                    (click)="removePhoto(photoInput)"
+                  >
+                    <i class="fas fa-trash-can"></i> Xóa ảnh
+                  </button>
+                </div>
+                <small class="photo-format-note">Hỗ trợ định dạng JPG, PNG (Dung lượng khuyến nghị &lt; 5MB).</small>
               </div>
             </div>
-          </label>
-        </div>
-      </section>
-
-      <section class="form-card">
-        <div class="section-heading">
-          <span>02</span>
-          <div>
-            <h2>Sức khỏe và thói quen</h2>
-            <p>Các lựa chọn Có/Không sẽ được đánh dấu X trong file Excel.</p>
           </div>
         </div>
 
-        <div class="choice-grid">
-          <fieldset class="choice-field">
-            <legend>Thị lực</legend>
-            <div class="choice-row">
-              <label>
-                <input type="radio" name="eyesight" value="glasses" [(ngModel)]="data.eyesight" />
-                <span>Có kính</span>
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="eyesight"
-                  value="no-glasses"
-                  [(ngModel)]="data.eyesight"
-                />
-                <span>Không kính</span>
-              </label>
-            </div>
-          </fieldset>
-
-          <fieldset class="choice-field">
-            <legend>Thuận tay</legend>
-            <div class="choice-row">
-              <label>
-                <input type="radio" name="handedness" value="right" [(ngModel)]="data.handedness" />
-                <span>Phải</span>
-              </label>
-              <label>
-                <input type="radio" name="handedness" value="left" [(ngModel)]="data.handedness" />
-                <span>Trái</span>
-              </label>
-            </div>
-          </fieldset>
-
-          <fieldset class="choice-field">
-            <legend>Mù màu</legend>
-            <div class="choice-row">
-              <label
-                ><input
-                  type="radio"
-                  name="colorBlind"
-                  value="yes"
-                  [(ngModel)]="data.colorBlind"
-                /><span>Có</span></label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="colorBlind"
-                  value="no"
-                  [(ngModel)]="data.colorBlind"
-                /><span>Không</span></label
-              >
-            </div>
-          </fieldset>
-
-          <fieldset class="choice-field">
-            <legend>Chân tay có dị tật không?</legend>
-            <div class="choice-row">
-              <label
-                ><input
-                  type="radio"
-                  name="limbDisability"
-                  value="yes"
-                  [(ngModel)]="data.limbDisability"
-                /><span>Có</span></label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="limbDisability"
-                  value="no"
-                  [(ngModel)]="data.limbDisability"
-                /><span>Không</span></label
-              >
-            </div>
-          </fieldset>
-
-          <label class="field">
-            <span>Chiều cao (cm)</span>
-            <input type="number" name="height" [(ngModel)]="data.height" min="0" />
-          </label>
-          <label class="field">
-            <span>Cân nặng (kg)</span>
-            <input type="number" name="weight" [(ngModel)]="data.weight" min="0" />
-          </label>
-
-          <fieldset class="choice-field">
-            <legend>Đã phẫu thuật lần nào chưa?</legend>
-            <div class="choice-row">
-              <label
-                ><input type="radio" name="surgery" value="yes" [(ngModel)]="data.surgery" /><span
-                  >Có</span
-                ></label
-              >
-              <label
-                ><input type="radio" name="surgery" value="no" [(ngModel)]="data.surgery" /><span
-                  >Không</span
-                ></label
-              >
-            </div>
-          </fieldset>
-
-          <fieldset class="choice-field">
-            <legend>Nhóm máu</legend>
-            <div class="choice-row choice-row-four">
-              <label
-                ><input type="radio" name="bloodType" value="A" [(ngModel)]="data.bloodType" /><span
-                  >A</span
-                ></label
-              >
-              <label
-                ><input type="radio" name="bloodType" value="B" [(ngModel)]="data.bloodType" /><span
-                  >B</span
-                ></label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="bloodType"
-                  value="AB"
-                  [(ngModel)]="data.bloodType"
-                /><span>AB</span></label
-              >
-              <label
-                ><input type="radio" name="bloodType" value="O" [(ngModel)]="data.bloodType" /><span
-                  >O</span
-                ></label
-              >
-            </div>
-          </fieldset>
-
-          <fieldset class="choice-field">
-            <legend>Có hình xăm không?</legend>
-            <div class="choice-row">
-              <label
-                ><input type="radio" name="tattoo" value="yes" [(ngModel)]="data.tattoo" /><span
-                  >Có</span
-                ></label
-              >
-              <label
-                ><input type="radio" name="tattoo" value="no" [(ngModel)]="data.tattoo" /><span
-                  >Không</span
-                ></label
-              >
-            </div>
-          </fieldset>
-
-          <fieldset class="choice-field">
-            <legend>Gia đình có tiền sử bệnh lý?</legend>
-            <div class="choice-row">
-              <label
-                ><input
-                  type="radio"
-                  name="familyMedicalHistory"
-                  value="yes"
-                  [(ngModel)]="data.familyMedicalHistory"
-                /><span>Có</span></label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="familyMedicalHistory"
-                  value="no"
-                  [(ngModel)]="data.familyMedicalHistory"
-                /><span>Không</span></label
-              >
-            </div>
-          </fieldset>
-
-          <fieldset class="choice-field">
-            <legend>Có uống bia, rượu không?</legend>
-            <div class="choice-row">
-              <label
-                ><input type="radio" name="alcohol" value="yes" [(ngModel)]="data.alcohol" /><span
-                  >Có</span
-                ></label
-              >
-              <label
-                ><input type="radio" name="alcohol" value="no" [(ngModel)]="data.alcohol" /><span
-                  >Không</span
-                ></label
-              >
-            </div>
-          </fieldset>
-
-          <fieldset class="choice-field">
-            <legend>Có hút thuốc không?</legend>
-            <div class="choice-row">
-              <label
-                ><input type="radio" name="smoking" value="yes" [(ngModel)]="data.smoking" /><span
-                  >Có</span
-                ></label
-              >
-              <label
-                ><input type="radio" name="smoking" value="no" [(ngModel)]="data.smoking" /><span
-                  >Không</span
-                ></label
-              >
-            </div>
-          </fieldset>
-        </div>
-
-        <div class="form-grid top-gap">
-          <label class="field">
-            <span>Tôn giáo</span>
-            <input type="text" name="religion" [(ngModel)]="data.religion" />
-          </label>
-          <label class="field field-wide">
-            <span>Chuyên ngành/chuyên môn đã đào tạo</span>
-            <input type="text" name="trainedSpecialty" [(ngModel)]="data.trainedSpecialty" />
-          </label>
-        </div>
+        <!-- STEP FOOTER NAV -->
+        <footer class="section-footer-nav" *ngIf="viewMode === 'stepper'">
+          <div class="nav-hint">
+            <i class="fas fa-circle-info"></i>
+            <span>Hoàn thành thông tin cá nhân để chuyển sang mục Sức khỏe.</span>
+          </div>
+          <button type="button" class="btn-step-next" (click)="nextStep()">
+            <span>Tiếp tục: Sức khỏe & Thể chất</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </footer>
       </section>
 
-      <section class="form-card">
-        <div class="section-heading">
-          <span>03</span>
-          <div>
-            <h2>Tính cách, kinh nghiệm và mục tiêu</h2>
-            <p>Viết ngắn gọn để nội dung hiển thị tốt trong các ô của biểu mẫu.</p>
+      <!-- ========================================== -->
+      <!-- SECTION 02: SỨC KHỎE & THỂ CHẤT            -->
+      <!-- ========================================== -->
+      <section
+        class="form-card"
+        [class.step-hidden]="viewMode === 'stepper' && currentStep !== 1"
+        id="section-health"
+      >
+        <header class="section-heading">
+          <div class="heading-badge">
+            <i class="fas fa-heart-pulse"></i>
+            <span>02</span>
           </div>
+          <div class="heading-text">
+            <h2>Sức khỏe & Thể chất</h2>
+            <p>Các chỉ số thể lực và thói quen sinh hoạt. Các lựa chọn Có/Không sẽ được đánh dấu X trong Excel.</p>
+          </div>
+          <span class="step-status-tag" *ngIf="isStepComplete(1)">
+            <i class="fas fa-circle-check"></i> Đã điền
+          </span>
+        </header>
+
+        <!-- CHỈ SỐ THỂ LỰC CƠ BẢN -->
+        <div class="sub-section-title">
+          <i class="fas fa-ruler-combined"></i>
+          <span>1. Chỉ số thể lực & Nhóm máu</span>
         </div>
 
         <div class="form-grid">
-          <label class="field"
-            ><span>Điểm mạnh</span><input type="text" name="strengths" [(ngModel)]="data.strengths"
-          /></label>
-          <label class="field"
-            ><span>Điểm yếu</span
-            ><input type="text" name="weaknesses" [(ngModel)]="data.weaknesses"
-          /></label>
-          <label class="field"
-            ><span>Sở thích</span><input type="text" name="hobbies" [(ngModel)]="data.hobbies"
-          /></label>
-          <label class="field"
-            ><span>Thu nhập bản thân</span
-            ><input
-              type="text"
-              name="personalIncome"
-              [(ngModel)]="data.personalIncome"
-              inputmode="numeric"
-          /></label>
-          <label class="field"
-            ><span>Thu nhập gia đình</span
-            ><input
-              type="text"
-              name="familyIncome"
-              [(ngModel)]="data.familyIncome"
-              inputmode="numeric"
-          /></label>
+          <div class="field-wrap">
+            <label class="field-label" for="height">
+              <span>Chiều cao</span>
+              <span class="tag-opt">Đơn vị: cm</span>
+            </label>
+            <div class="input-container input-with-suffix">
+              <i class="fas fa-arrows-up-down input-icon"></i>
+              <input
+                id="height"
+                type="number"
+                name="height"
+                [(ngModel)]="data.height"
+                min="0"
+                placeholder="Ví dụ: 168"
+              />
+              <span class="input-suffix">cm</span>
+            </div>
+            <span class="field-helper">Chiều cao đo khi đứng thẳng, không đi giày.</span>
+          </div>
 
-          <fieldset class="choice-field">
-            <legend>Có kinh nghiệm sống tập thể?</legend>
-            <div class="choice-row">
-              <label
-                ><input
-                  type="radio"
-                  name="collectiveLiving"
-                  value="yes"
-                  [(ngModel)]="data.collectiveLiving"
-                /><span>Có</span></label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="collectiveLiving"
-                  value="no"
-                  [(ngModel)]="data.collectiveLiving"
-                /><span>Không</span></label
-              >
+          <div class="field-wrap">
+            <label class="field-label" for="weight">
+              <span>Cân nặng</span>
+              <span class="tag-opt">Đơn vị: kg</span>
+            </label>
+            <div class="input-container input-with-suffix">
+              <i class="fas fa-weight-scale input-icon"></i>
+              <input
+                id="weight"
+                type="number"
+                name="weight"
+                [(ngModel)]="data.weight"
+                min="0"
+                placeholder="Ví dụ: 62"
+              />
+              <span class="input-suffix">kg</span>
+            </div>
+            <span class="field-helper">Cân nặng thực tế hiện tại.</span>
+          </div>
+
+          <!-- Nhóm máu -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label">
+              <span>Nhóm máu</span>
+              <span class="tag-opt">Chọn 1</span>
+            </legend>
+            <div class="pill-group pill-group-four">
+              <label class="pill-option" [class.selected]="data.bloodType === 'A'">
+                <input type="radio" name="bloodType" value="A" [(ngModel)]="data.bloodType" />
+                <span class="pill-content"><b>A</b></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.bloodType === 'B'">
+                <input type="radio" name="bloodType" value="B" [(ngModel)]="data.bloodType" />
+                <span class="pill-content"><b>B</b></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.bloodType === 'AB'">
+                <input type="radio" name="bloodType" value="AB" [(ngModel)]="data.bloodType" />
+                <span class="pill-content"><b>AB</b></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.bloodType === 'O'">
+                <input type="radio" name="bloodType" value="O" [(ngModel)]="data.bloodType" />
+                <span class="pill-content"><b>O</b></span>
+              </label>
+            </div>
+            <span class="field-helper">Nếu chưa rõ, mặc định là A hoặc kiểm tra trước khi khám.</span>
+          </fieldset>
+        </div>
+
+        <!-- THỊ LỰC & VẬN ĐỘNG -->
+        <div class="sub-section-title top-space">
+          <i class="fas fa-eye"></i>
+          <span>2. Thị lực & Tình trạng vận động</span>
+        </div>
+
+        <div class="form-grid">
+          <!-- Thị lực -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Thị lực (Có đeo kính không?)</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.eyesight === 'no-glasses'">
+                <input type="radio" name="eyesight" value="no-glasses" [(ngModel)]="data.eyesight" />
+                <span class="pill-content">
+                  <i class="fas fa-eye"></i>
+                  <span>Không kính (Mắt tốt)</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.eyesight === 'glasses'">
+                <input type="radio" name="eyesight" value="glasses" [(ngModel)]="data.eyesight" />
+                <span class="pill-content">
+                  <i class="fas fa-glasses"></i>
+                  <span>Có đeo kính</span>
+                </span>
+              </label>
             </div>
           </fieldset>
 
-          <fieldset class="choice-field">
-            <legend>Có biết nấu ăn không?</legend>
-            <div class="choice-row">
-              <label
-                ><input type="radio" name="canCook" value="yes" [(ngModel)]="data.canCook" /><span
-                  >Có</span
-                ></label
-              >
-              <label
-                ><input type="radio" name="canCook" value="no" [(ngModel)]="data.canCook" /><span
-                  >Không</span
-                ></label
-              >
+          <!-- Thuận tay -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Thuận tay nào?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.handedness === 'right'">
+                <input type="radio" name="handedness" value="right" [(ngModel)]="data.handedness" />
+                <span class="pill-content">
+                  <i class="fas fa-hand"></i>
+                  <span>Tay phải</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.handedness === 'left'">
+                <input type="radio" name="handedness" value="left" [(ngModel)]="data.handedness" />
+                <span class="pill-content">
+                  <i class="fas fa-hand-back-fist"></i>
+                  <span>Tay trái</span>
+                </span>
+              </label>
             </div>
           </fieldset>
 
-          <label class="field field-full">
-            <span>Tự nhận xét về tính cách</span>
-            <textarea name="selfAssessment" [(ngModel)]="data.selfAssessment" rows="3"></textarea>
-          </label>
-          <label class="field field-full">
-            <span>Lý do đi Nhật</span>
-            <textarea name="reasonJapan" [(ngModel)]="data.reasonJapan" rows="3"></textarea>
-          </label>
-          <label class="field field-wide">
-            <span>Số tiền muốn mang về sau 3 năm</span>
-            <input type="text" name="savingsGoal" [(ngModel)]="data.savingsGoal" />
-          </label>
-          <label class="field field-wide">
-            <span>Dự định sau 3 năm</span>
-            <input type="text" name="futurePlan" [(ngModel)]="data.futurePlan" />
-          </label>
-
-          <fieldset class="choice-field">
-            <legend>Đã từng ra nước ngoài?</legend>
-            <div class="choice-row">
-              <label
-                ><input
-                  type="radio"
-                  name="abroadBefore"
-                  value="yes"
-                  [(ngModel)]="data.abroadBefore"
-                /><span>Có</span></label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="abroadBefore"
-                  value="no"
-                  [(ngModel)]="data.abroadBefore"
-                /><span>Không</span></label
-              >
+          <!-- Mù màu -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Có bị mù màu không?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.colorBlind === 'no'">
+                <input type="radio" name="colorBlind" value="no" [(ngModel)]="data.colorBlind" />
+                <span class="pill-content">
+                  <i class="fas fa-circle-check"></i>
+                  <span>Không</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.colorBlind === 'yes'">
+                <input type="radio" name="colorBlind" value="yes" [(ngModel)]="data.colorBlind" />
+                <span class="pill-content">
+                  <i class="fas fa-triangle-exclamation"></i>
+                  <span>Có</span>
+                </span>
+              </label>
             </div>
           </fieldset>
-          <label class="field"
-            ><span>Nước nào?</span
-            ><input type="text" name="abroadCountry" [(ngModel)]="data.abroadCountry"
-          /></label>
-          <label class="field"
-            ><span>Năm nào?</span
-            ><input type="text" name="abroadYear" [(ngModel)]="data.abroadYear" inputmode="numeric"
-          /></label>
 
-          <fieldset class="choice-field">
-            <legend>Đã đăng ký xin VISA Nhật?</legend>
-            <div class="choice-row">
-              <label
-                ><input
-                  type="radio"
-                  name="visaApplied"
-                  value="yes"
-                  [(ngModel)]="data.visaApplied"
-                /><span>Có</span></label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="visaApplied"
-                  value="no"
-                  [(ngModel)]="data.visaApplied"
-                /><span>Chưa từng</span></label
-              >
+          <!-- Dị tật chân tay -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Chân tay có dị tật không?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.limbDisability === 'no'">
+                <input type="radio" name="limbDisability" value="no" [(ngModel)]="data.limbDisability" />
+                <span class="pill-content">
+                  <i class="fas fa-circle-check"></i>
+                  <span>Bình thường</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.limbDisability === 'yes'">
+                <input type="radio" name="limbDisability" value="yes" [(ngModel)]="data.limbDisability" />
+                <span class="pill-content">
+                  <i class="fas fa-triangle-exclamation"></i>
+                  <span>Có dị tật</span>
+                </span>
+              </label>
             </div>
           </fieldset>
         </div>
-      </section>
 
-      <section class="form-card">
-        <div class="section-heading">
-          <span>04</span>
-          <div>
-            <h2>Quá trình học tập</h2>
-            <p>Có tối đa 4 dòng tương ứng với biểu mẫu gốc.</p>
+        <!-- TIỀN SỬ BỆNH & THÓI QUEN -->
+        <div class="sub-section-title top-space">
+          <i class="fas fa-notes-medical"></i>
+          <span>3. Tiền sử phẫu thuật & Thói quen sinh hoạt</span>
+        </div>
+
+        <div class="form-grid">
+          <!-- Phẫu thuật -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Đã phẫu thuật lần nào chưa?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.surgery === 'no'">
+                <input type="radio" name="surgery" value="no" [(ngModel)]="data.surgery" />
+                <span class="pill-content"><span>Chưa từng</span></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.surgery === 'yes'">
+                <input type="radio" name="surgery" value="yes" [(ngModel)]="data.surgery" />
+                <span class="pill-content"><span>Đã từng</span></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Hình xăm -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Có hình xăm không?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.tattoo === 'no'">
+                <input type="radio" name="tattoo" value="no" [(ngModel)]="data.tattoo" />
+                <span class="pill-content"><span>Không có</span></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.tattoo === 'yes'">
+                <input type="radio" name="tattoo" value="yes" [(ngModel)]="data.tattoo" />
+                <span class="pill-content"><span>Có hình xăm</span></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Tiền sử bệnh lý gia đình -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Gia đình có tiền sử bệnh lý?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.familyMedicalHistory === 'no'">
+                <input type="radio" name="familyMedicalHistory" value="no" [(ngModel)]="data.familyMedicalHistory" />
+                <span class="pill-content"><span>Không có</span></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.familyMedicalHistory === 'yes'">
+                <input type="radio" name="familyMedicalHistory" value="yes" [(ngModel)]="data.familyMedicalHistory" />
+                <span class="pill-content"><span>Có tiền sử</span></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Rượu bia -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Có uống bia, rượu không?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.alcohol === 'no'">
+                <input type="radio" name="alcohol" value="no" [(ngModel)]="data.alcohol" />
+                <span class="pill-content"><span>Không uống</span></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.alcohol === 'yes'">
+                <input type="radio" name="alcohol" value="yes" [(ngModel)]="data.alcohol" />
+                <span class="pill-content"><span>Có uống</span></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Hút thuốc -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Có hút thuốc lá không?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.smoking === 'no'">
+                <input type="radio" name="smoking" value="no" [(ngModel)]="data.smoking" />
+                <span class="pill-content"><span>Không hút</span></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.smoking === 'yes'">
+                <input type="radio" name="smoking" value="yes" [(ngModel)]="data.smoking" />
+                <span class="pill-content"><span>Có hút thuốc</span></span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- TÔN GIÁO & CHUYÊN MÔN -->
+        <div class="sub-section-title top-space">
+          <i class="fas fa-briefcase"></i>
+          <span>4. Tôn giáo & Nghề nghiệp đã đào tạo</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-wrap">
+            <label class="field-label" for="religion">
+              <span>Tôn giáo</span>
+              <span class="tag-opt">Tùy chọn</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-place-of-worship input-icon"></i>
+              <input
+                id="religion"
+                type="text"
+                name="religion"
+                [(ngModel)]="data.religion"
+                placeholder="Ví dụ: Không / Phật giáo / Công giáo"
+              />
+            </div>
+            <span class="field-helper">Ghi Không nếu không theo tôn giáo nào.</span>
+          </div>
+
+          <div class="field-wrap field-span-2">
+            <label class="field-label" for="trainedSpecialty">
+              <span>Chuyên ngành / Chuyên môn đã đào tạo</span>
+              <span class="tag-opt">Kỹ năng</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-wrench input-icon"></i>
+              <input
+                id="trainedSpecialty"
+                type="text"
+                name="trainedSpecialty"
+                [(ngModel)]="data.trainedSpecialty"
+                placeholder="Ví dụ: Cơ khí chế tạo, Hàn điện tử, May công nghiệp, Lái xe nâng, Nấu ăn..."
+              />
+            </div>
+            <span class="field-helper">Nghề hoặc tay nghề bạn đã từng học hoặc có kinh nghiệm làm thực tế.</span>
           </div>
         </div>
 
-        <div class="table-scroll">
+        <!-- STEP FOOTER NAV -->
+        <footer class="section-footer-nav" *ngIf="viewMode === 'stepper'">
+          <button type="button" class="btn-step-prev" (click)="prevStep()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Quay lại: Cá nhân</span>
+          </button>
+          <button type="button" class="btn-step-next" (click)="nextStep()">
+            <span>Tiếp tục: Tính cách & Nguyện vọng</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </footer>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SECTION 03: TÍNH CÁCH & NGUYỆN VỌNG        -->
+      <!-- ========================================== -->
+      <section
+        class="form-card"
+        [class.step-hidden]="viewMode === 'stepper' && currentStep !== 2"
+        id="section-goals"
+      >
+        <header class="section-heading">
+          <div class="heading-badge">
+            <i class="fas fa-compass"></i>
+            <span>03</span>
+          </div>
+          <div class="heading-text">
+            <h2>Tính cách, Kinh nghiệm & Nguyện vọng</h2>
+            <p>Viết ngắn gọn, rõ ràng để nhà tuyển dụng Nhật Bản đánh giá sự phù hợp và tinh thần trách nhiệm.</p>
+          </div>
+          <span class="step-status-tag" *ngIf="isStepComplete(2)">
+            <i class="fas fa-circle-check"></i> Đã điền
+          </span>
+        </header>
+
+        <!-- ĐIỂM MẠNH, YẾU, SỞ THÍCH -->
+        <div class="sub-section-title">
+          <i class="fas fa-star"></i>
+          <span>1. Đặc điểm cá nhân</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-wrap">
+            <label class="field-label" for="strengths">
+              <span>Điểm mạnh nổi bật</span>
+              <span class="tag-opt">Ưu điểm</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-thumbs-up input-icon"></i>
+              <input
+                id="strengths"
+                type="text"
+                name="strengths"
+                [(ngModel)]="data.strengths"
+                placeholder="Ví dụ: Chăm chỉ, cẩn thận, đúng giờ, chịu khó"
+              />
+            </div>
+            <span class="field-helper">Những phẩm chất giúp bạn làm việc tốt tại Nhật.</span>
+          </div>
+
+          <div class="field-wrap">
+            <label class="field-label" for="weaknesses">
+              <span>Điểm yếu</span>
+              <span class="tag-opt">Cần cải thiện</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-hand-holding-heart input-icon"></i>
+              <input
+                id="weaknesses"
+                type="text"
+                name="weaknesses"
+                [(ngModel)]="data.weaknesses"
+                placeholder="Ví dụ: Tiếng Nhật chưa tốt, ít nói khi mới gặp"
+              />
+            </div>
+            <span class="field-helper">Nêu điểm yếu và thái độ sẵn sàng khắc phục.</span>
+          </div>
+
+          <div class="field-wrap">
+            <label class="field-label" for="hobbies">
+              <span>Sở thích</span>
+              <span class="tag-opt">Giải trí</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-futbol input-icon"></i>
+              <input
+                id="hobbies"
+                type="text"
+                name="hobbies"
+                [(ngModel)]="data.hobbies"
+                placeholder="Ví dụ: Đá bóng, nấu ăn, chạy bộ, nghe nhạc"
+              />
+            </div>
+            <span class="field-helper">Hoạt động lành mạnh bạn thường làm lúc rảnh.</span>
+          </div>
+        </div>
+
+        <!-- THU NHẬP & KỸ NĂNG SỐNG -->
+        <div class="sub-section-title top-space">
+          <i class="fas fa-coins"></i>
+          <span>2. Thu nhập & Khả năng sinh hoạt độc lập</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-wrap">
+            <label class="field-label" for="personalIncome">
+              <span>Thu nhập hiện tại của bản thân</span>
+              <span class="tag-opt">Trước khi đi</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-wallet input-icon"></i>
+              <input
+                id="personalIncome"
+                type="text"
+                name="personalIncome"
+                [(ngModel)]="data.personalIncome"
+                inputmode="numeric"
+                placeholder="Ví dụ: 7.000.000 VNĐ/tháng (hoặc Chưa có việc làm)"
+              />
+            </div>
+            <span class="field-helper">Mức lương trung bình trước khi tham gia chương trình.</span>
+          </div>
+
+          <div class="field-wrap">
+            <label class="field-label" for="familyIncome">
+              <span>Thu nhập bình quân của gia đình</span>
+              <span class="tag-opt">Tổng gia đình</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-house-chimney-window input-icon"></i>
+              <input
+                id="familyIncome"
+                type="text"
+                name="familyIncome"
+                [(ngModel)]="data.familyIncome"
+                inputmode="numeric"
+                placeholder="Ví dụ: 15.000.000 VNĐ/tháng"
+              />
+            </div>
+            <span class="field-helper">Tổng thu nhập của các thành viên trong nhà.</span>
+          </div>
+
+          <!-- Sống tập thể -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Có kinh nghiệm sống tập thể?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.collectiveLiving === 'yes'">
+                <input
+                  type="radio"
+                  name="collectiveLiving"
+                  value="yes"
+                  [(ngModel)]="data.collectiveLiving"
+                />
+                <span class="pill-content">
+                  <i class="fas fa-users"></i>
+                  <span>Có thể sống chung</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.collectiveLiving === 'no'">
+                <input
+                  type="radio"
+                  name="collectiveLiving"
+                  value="no"
+                  [(ngModel)]="data.collectiveLiving"
+                />
+                <span class="pill-content">
+                  <i class="fas fa-user-xmark"></i>
+                  <span>Chưa từng</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- Biết nấu ăn -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Có biết tự nấu ăn không?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.canCook === 'yes'">
+                <input type="radio" name="canCook" value="yes" [(ngModel)]="data.canCook" />
+                <span class="pill-content">
+                  <i class="fas fa-utensils"></i>
+                  <span>Biết tự nấu ăn</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.canCook === 'no'">
+                <input type="radio" name="canCook" value="no" [(ngModel)]="data.canCook" />
+                <span class="pill-content">
+                  <i class="fas fa-bowl-food"></i>
+                  <span>Chưa biết</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- TỰ NHẬN XÉT & LÝ DO ĐI NHẬT -->
+        <div class="sub-section-title top-space">
+          <i class="fas fa-bullseye"></i>
+          <span>3. Động lực & Kế hoạch tương lai</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-wrap field-full">
+            <label class="field-label" for="selfAssessment">
+              <span>Tự nhận xét về tính cách</span>
+              <span class="tag-opt">Tự bạch</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-comment-dots input-icon text-area-icon"></i>
+              <textarea
+                id="selfAssessment"
+                name="selfAssessment"
+                [(ngModel)]="data.selfAssessment"
+                rows="3"
+                placeholder="Ví dụ: Em là người thật thà, hòa đồng, có tinh thần cầu tiến và luôn tuân thủ nội quy nơi làm việc."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="field-wrap field-full">
+            <label class="field-label" for="reasonJapan">
+              <span>Lý do muốn sang Nhật Bản làm việc</span>
+              <span class="tag-opt">Quan trọng</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-plane-departure input-icon text-area-icon"></i>
+              <textarea
+                id="reasonJapan"
+                name="reasonJapan"
+                [(ngModel)]="data.reasonJapan"
+                rows="3"
+                placeholder="Ví dụ: Em muốn rèn luyện nâng cao tay nghề, học hỏi tác phong làm việc của người Nhật và tích lũy vốn phụ giúp gia đình."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="field-wrap field-span-2">
+            <label class="field-label" for="savingsGoal">
+              <span>Số tiền muốn tích lũy sau 3 năm</span>
+              <span class="tag-opt">Mục tiêu tài chính</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-piggy-bank input-icon"></i>
+              <input
+                id="savingsGoal"
+                type="text"
+                name="savingsGoal"
+                [(ngModel)]="data.savingsGoal"
+                placeholder="Ví dụ: 600 - 800 triệu VNĐ"
+              />
+            </div>
+          </div>
+
+          <div class="field-wrap field-span-2">
+            <label class="field-label" for="futurePlan">
+              <span>Dự định công việc sau khi về nước</span>
+              <span class="tag-opt">Định hướng</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-road input-icon"></i>
+              <input
+                id="futurePlan"
+                type="text"
+                name="futurePlan"
+                [(ngModel)]="data.futurePlan"
+                placeholder="Ví dụ: Mở xưởng cơ khí nhỏ tại quê nhà / Làm cho doanh nghiệp Nhật tại Việt Nam"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- XUẤT CẢNH & VISA -->
+        <div class="sub-section-title top-space">
+          <i class="fas fa-passport"></i>
+          <span>4. Lịch sử xuất cảnh & Xin VISA Nhật</span>
+        </div>
+
+        <div class="form-grid">
+          <!-- Đã từng ra nước ngoài -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Đã từng ra nước ngoài chưa?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.abroadBefore === 'no'">
+                <input type="radio" name="abroadBefore" value="no" [(ngModel)]="data.abroadBefore" />
+                <span class="pill-content"><span>Chưa từng</span></span>
+              </label>
+              <label class="pill-option" [class.selected]="data.abroadBefore === 'yes'">
+                <input type="radio" name="abroadBefore" value="yes" [(ngModel)]="data.abroadBefore" />
+                <span class="pill-content"><span>Đã từng</span></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="field-wrap" *ngIf="data.abroadBefore === 'yes'">
+            <label class="field-label" for="abroadCountry"><span>Đi nước nào?</span></label>
+            <div class="input-container">
+              <i class="fas fa-earth-asia input-icon"></i>
+              <input
+                id="abroadCountry"
+                type="text"
+                name="abroadCountry"
+                [(ngModel)]="data.abroadCountry"
+                placeholder="Ví dụ: Đài Loan, Hàn Quốc..."
+              />
+            </div>
+          </div>
+
+          <div class="field-wrap" *ngIf="data.abroadBefore === 'yes'">
+            <label class="field-label" for="abroadYear"><span>Năm nào?</span></label>
+            <div class="input-container">
+              <i class="fas fa-calendar input-icon"></i>
+              <input
+                id="abroadYear"
+                type="text"
+                name="abroadYear"
+                [(ngModel)]="data.abroadYear"
+                inputmode="numeric"
+                placeholder="Ví dụ: 2021"
+              />
+            </div>
+          </div>
+
+          <!-- Đã xin Visa Nhật -->
+          <fieldset class="field-wrap choice-fieldset field-span-2">
+            <legend class="field-label">
+              <span>Đã từng đăng ký xin VISA Nhật Bản chưa?</span>
+              <span class="tag-opt">Khai trung thực</span>
+            </legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.visaApplied === 'no'">
+                <input type="radio" name="visaApplied" value="no" [(ngModel)]="data.visaApplied" />
+                <span class="pill-content">
+                  <i class="fas fa-circle-check"></i>
+                  <span>Chưa từng nộp hồ sơ xin VISA</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.visaApplied === 'yes'">
+                <input type="radio" name="visaApplied" value="yes" [(ngModel)]="data.visaApplied" />
+                <span class="pill-content">
+                  <i class="fas fa-triangle-exclamation"></i>
+                  <span>Đã từng xin VISA</span>
+                </span>
+              </label>
+            </div>
+            <span class="field-helper">Cần khai trung thực để tránh trùng lặp dữ liệu Cục Xuất Nhập Cảnh Nhật Bản.</span>
+          </fieldset>
+        </div>
+
+        <!-- STEP FOOTER NAV -->
+        <footer class="section-footer-nav" *ngIf="viewMode === 'stepper'">
+          <button type="button" class="btn-step-prev" (click)="prevStep()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Quay lại: Sức khỏe</span>
+          </button>
+          <button type="button" class="btn-step-next" (click)="nextStep()">
+            <span>Tiếp tục: Học tập & Làm việc</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </footer>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SECTION 04: HỌC TẬP & LÀM VIỆC             -->
+      <!-- ========================================== -->
+      <section
+        class="form-card"
+        [class.step-hidden]="viewMode === 'stepper' && currentStep !== 3"
+        id="section-history"
+      >
+        <header class="section-heading">
+          <div class="heading-badge">
+            <i class="fas fa-graduation-cap"></i>
+            <span>04</span>
+          </div>
+          <div class="heading-text">
+            <h2>Quá trình học tập & Kinh nghiệm làm việc</h2>
+            <p>Khai báo theo thứ tự thời gian. Có tối đa 4 dòng tương ứng với biểu mẫu Excel gốc (có thể để trống dòng không dùng).</p>
+          </div>
+          <span class="step-status-tag" *ngIf="isStepComplete(3)">
+            <i class="fas fa-circle-check"></i> Đã điền
+          </span>
+        </header>
+
+        <!-- HỌC TẬP -->
+        <div class="entry-block-header">
+          <div class="entry-title-wrap">
+            <i class="fas fa-school"></i>
+            <h3>Quá trình học tập</h3>
+            <span class="entry-counter-tag">{{ getFilledEducationCount() }}/4 bậc học</span>
+          </div>
+          <p class="entry-sub-note">Khai từ cấp 2 (THCS) hoặc cấp 3 (THPT) đến bậc học cao nhất bạn đã tốt nghiệp.</p>
+        </div>
+
+        <!-- DESKTOP TABLE VIEW -->
+        <div class="table-scroll desktop-only-table">
           <table class="entry-table">
             <thead>
               <tr>
-                <th>Từ tháng/năm</th>
-                <th>Đến tháng/năm</th>
-                <th>Tên trường</th>
-                <th>Chuyên ngành</th>
+                <th style="width: 16%;">Từ tháng/năm</th>
+                <th style="width: 16%;">Đến tháng/năm</th>
+                <th style="width: 38%;">Tên trường học</th>
+                <th style="width: 30%;">Chuyên ngành / Bậc tốt nghiệp</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let entry of data.education; let i = index; trackBy: trackByIndex">
-                <td data-label="Từ tháng/năm">
+                <td>
                   <input
                     type="text"
                     name="educationFrom{{ i }}"
                     [(ngModel)]="entry.from"
-                    placeholder="09/2018"
+                    placeholder="Ví dụ: 09/2018"
                   />
                 </td>
-                <td data-label="Đến tháng/năm">
+                <td>
                   <input
                     type="text"
                     name="educationTo{{ i }}"
                     [(ngModel)]="entry.to"
-                    placeholder="06/2021"
+                    placeholder="Ví dụ: 06/2021"
                   />
                 </td>
-                <td data-label="Tên trường">
-                  <input type="text" name="educationSchool{{ i }}" [(ngModel)]="entry.school" />
+                <td>
+                  <input
+                    type="text"
+                    name="educationSchool{{ i }}"
+                    [(ngModel)]="entry.school"
+                    placeholder="Ví dụ: THPT Nguyễn Đáng"
+                  />
                 </td>
-                <td data-label="Chuyên ngành">
-                  <input type="text" name="educationMajor{{ i }}" [(ngModel)]="entry.major" />
+                <td>
+                  <input
+                    type="text"
+                    name="educationMajor{{ i }}"
+                    [(ngModel)]="entry.major"
+                    placeholder="Ví dụ: Tốt nghiệp THPT"
+                  />
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="study-status">
-          <label
-            ><input type="checkbox" name="studiedLate" [(ngModel)]="data.studiedLate" /><span
-              >Học muộn</span
-            ></label
+        <!-- MOBILE CARDS VIEW -->
+        <div class="mobile-entry-cards">
+          <div
+            *ngFor="let entry of data.education; let i = index; trackBy: trackByIndex"
+            class="entry-card-item"
           >
-          <label
-            ><input type="checkbox" name="studiedEarly" [(ngModel)]="data.studiedEarly" /><span
-              >Học sớm</span
-            ></label
-          >
-          <label
-            ><input type="checkbox" name="repeatedGrade" [(ngModel)]="data.repeatedGrade" /><span
-              >Học lại</span
-            ></label
-          >
-          <label class="field compact"
-            ><span>Năm nào?</span
-            ><input type="text" name="studyStatusYear" [(ngModel)]="data.studyStatusYear"
-          /></label>
-        </div>
-      </section>
-
-      <section class="form-card">
-        <div class="section-heading">
-          <span>05</span>
-          <div>
-            <h2>Quá trình làm việc</h2>
-            <p>Khai chính xác tên công ty và công việc cụ thể đã làm.</p>
+            <div class="entry-card-top">
+              <span class="entry-badge">Bậc học {{ i + 1 }}</span>
+              <span class="entry-role-hint">
+                {{ i === 0 ? 'Thường là Cấp 2 / THCS' : i === 1 ? 'Thường là Cấp 3 / THPT' : i === 2 ? 'Trung cấp / Cao đẳng / ĐH' : 'Khóa đào tạo khác' }}
+              </span>
+            </div>
+            <div class="entry-card-grid">
+              <div class="field-wrap">
+                <label class="field-label" for="eduFromM{{ i }}"><span>Từ tháng/năm</span></label>
+                <input
+                  id="eduFromM{{ i }}"
+                  type="text"
+                  name="eduFromM{{ i }}"
+                  [(ngModel)]="entry.from"
+                  placeholder="09/2018"
+                />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label" for="eduToM{{ i }}"><span>Đến tháng/năm</span></label>
+                <input
+                  id="eduToM{{ i }}"
+                  type="text"
+                  name="eduToM{{ i }}"
+                  [(ngModel)]="entry.to"
+                  placeholder="06/2021"
+                />
+              </div>
+              <div class="field-wrap field-full">
+                <label class="field-label" for="eduSchoolM{{ i }}"><span>Tên trường</span></label>
+                <input
+                  id="eduSchoolM{{ i }}"
+                  type="text"
+                  name="eduSchoolM{{ i }}"
+                  [(ngModel)]="entry.school"
+                  placeholder="Ví dụ: THPT Nguyễn Đáng"
+                />
+              </div>
+              <div class="field-wrap field-full">
+                <label class="field-label" for="eduMajorM{{ i }}"><span>Chuyên ngành / Tốt nghiệp</span></label>
+                <input
+                  id="eduMajorM{{ i }}"
+                  type="text"
+                  name="eduMajorM{{ i }}"
+                  [(ngModel)]="entry.major"
+                  placeholder="Ví dụ: Tốt nghiệp THPT"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="table-scroll">
+        <!-- TRẠNG THÁI HỌC TẬP ĐẶC BIỆT -->
+        <div class="study-special-card">
+          <div class="special-label">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>Tình trạng học tập đặc biệt (Nếu có):</span>
+          </div>
+          <div class="special-checkboxes">
+            <label class="checkbox-pill">
+              <input type="checkbox" name="studiedEarly" [(ngModel)]="data.studiedEarly" />
+              <span>Học sớm</span>
+            </label>
+            <label class="checkbox-pill">
+              <input type="checkbox" name="studiedLate" [(ngModel)]="data.studiedLate" />
+              <span>Học muộn</span>
+            </label>
+            <label class="checkbox-pill">
+              <input type="checkbox" name="repeatedGrade" [(ngModel)]="data.repeatedGrade" />
+              <span>Học lại / Lưu ban</span>
+            </label>
+          </div>
+          <div class="field-wrap special-year-field">
+            <label class="field-label" for="studyStatusYear"><span>Năm nào / Lý do:</span></label>
+            <input
+              id="studyStatusYear"
+              type="text"
+              name="studyStatusYear"
+              [(ngModel)]="data.studyStatusYear"
+              placeholder="Ví dụ: Năm 2018 (Nghỉ 1 năm phụ gia đình)"
+            />
+          </div>
+        </div>
+
+        <!-- LÀM VIỆC -->
+        <div class="entry-block-header top-space">
+          <div class="entry-title-wrap">
+            <i class="fas fa-building"></i>
+            <h3>Quá trình làm việc</h3>
+            <span class="entry-counter-tag">{{ getFilledWorkCount() }}/4 công việc</span>
+          </div>
+          <p class="entry-sub-note">Khai chính xác tên công ty, xưởng sản xuất và nội dung công việc cụ thể đã làm.</p>
+        </div>
+
+        <!-- DESKTOP WORK TABLE -->
+        <div class="table-scroll desktop-only-table">
           <table class="entry-table">
             <thead>
               <tr>
-                <th>Từ tháng/năm</th>
-                <th>Đến tháng/năm</th>
-                <th>Tên công ty/nơi làm việc</th>
-                <th>Nội dung công việc</th>
+                <th style="width: 16%;">Từ tháng/năm</th>
+                <th style="width: 16%;">Đến tháng/năm</th>
+                <th style="width: 38%;">Tên công ty / Nơi làm việc</th>
+                <th style="width: 30%;">Nội dung công việc cụ thể</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let entry of data.workHistory; let i = index; trackBy: trackByIndex">
-                <td data-label="Từ tháng/năm">
-                  <input type="text" name="workFrom{{ i }}" [(ngModel)]="entry.from" />
+                <td>
+                  <input
+                    type="text"
+                    name="workFrom{{ i }}"
+                    [(ngModel)]="entry.from"
+                    placeholder="Ví dụ: 07/2021"
+                  />
                 </td>
-                <td data-label="Đến tháng/năm">
-                  <input type="text" name="workTo{{ i }}" [(ngModel)]="entry.to" />
+                <td>
+                  <input
+                    type="text"
+                    name="workTo{{ i }}"
+                    [(ngModel)]="entry.to"
+                    placeholder="Ví dụ: 08/2023"
+                  />
                 </td>
-                <td data-label="Tên công ty/nơi làm việc">
-                  <input type="text" name="workCompany{{ i }}" [(ngModel)]="entry.company" />
+                <td>
+                  <input
+                    type="text"
+                    name="workCompany{{ i }}"
+                    [(ngModel)]="entry.company"
+                    placeholder="Ví dụ: Công ty TNHH Cơ khí Tân Á"
+                  />
                 </td>
-                <td data-label="Nội dung công việc">
-                  <input type="text" name="workJob{{ i }}" [(ngModel)]="entry.job" />
+                <td>
+                  <input
+                    type="text"
+                    name="workJob{{ i }}"
+                    [(ngModel)]="entry.job"
+                    placeholder="Ví dụ: Công nhân hàn kết cấu thép"
+                  />
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-      </section>
 
-      <section class="form-card">
-        <div class="section-heading">
-          <span>06</span>
-          <div>
-            <h2>Thành phần gia đình</h2>
-            <p>Có tối đa 6 thành viên theo số dòng của biểu mẫu.</p>
+        <!-- MOBILE WORK CARDS -->
+        <div class="mobile-entry-cards">
+          <div
+            *ngFor="let entry of data.workHistory; let i = index; trackBy: trackByIndex"
+            class="entry-card-item"
+          >
+            <div class="entry-card-top">
+              <span class="entry-badge">Nơi làm việc {{ i + 1 }}</span>
+              <span class="entry-role-hint">Khai nơi làm việc thực tế</span>
+            </div>
+            <div class="entry-card-grid">
+              <div class="field-wrap">
+                <label class="field-label" for="workFromM{{ i }}"><span>Từ tháng/năm</span></label>
+                <input
+                  id="workFromM{{ i }}"
+                  type="text"
+                  name="workFromM{{ i }}"
+                  [(ngModel)]="entry.from"
+                  placeholder="07/2021"
+                />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label" for="workToM{{ i }}"><span>Đến tháng/năm</span></label>
+                <input
+                  id="workToM{{ i }}"
+                  type="text"
+                  name="workToM{{ i }}"
+                  [(ngModel)]="entry.to"
+                  placeholder="08/2023"
+                />
+              </div>
+              <div class="field-wrap field-full">
+                <label class="field-label" for="workCompM{{ i }}"><span>Tên công ty / Nơi làm việc</span></label>
+                <input
+                  id="workCompM{{ i }}"
+                  type="text"
+                  name="workCompM{{ i }}"
+                  [(ngModel)]="entry.company"
+                  placeholder="Ví dụ: Công ty TNHH Cơ khí Tân Á"
+                />
+              </div>
+              <div class="field-wrap field-full">
+                <label class="field-label" for="workJobM{{ i }}"><span>Nội dung công việc</span></label>
+                <input
+                  id="workJobM{{ i }}"
+                  type="text"
+                  name="workJobM{{ i }}"
+                  [(ngModel)]="entry.job"
+                  placeholder="Ví dụ: Công nhân hàn kết cấu, vận hành máy"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="table-scroll">
+        <!-- STEP FOOTER NAV -->
+        <footer class="section-footer-nav" *ngIf="viewMode === 'stepper'">
+          <button type="button" class="btn-step-prev" (click)="prevStep()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Quay lại: Tính cách</span>
+          </button>
+          <button type="button" class="btn-step-next" (click)="nextStep()">
+            <span>Tiếp tục: Gia đình & Hoàn tất</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </footer>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SECTION 05: GIA ĐÌNH & HOÀN TẤT            -->
+      <!-- ========================================== -->
+      <section
+        class="form-card"
+        [class.step-hidden]="viewMode === 'stepper' && currentStep !== 4"
+        id="section-family"
+      >
+        <header class="section-heading">
+          <div class="heading-badge">
+            <i class="fas fa-people-roof"></i>
+            <span>05</span>
+          </div>
+          <div class="heading-text">
+            <h2>Thành phần gia đình & Hoàn tất hồ sơ</h2>
+            <p>Có tối đa 6 thành viên theo số dòng của biểu mẫu gốc (Bố, Mẹ, Vợ/Chồng, Con, Anh/Chị/Em).</p>
+          </div>
+          <span class="step-status-tag" *ngIf="isStepComplete(4)">
+            <i class="fas fa-circle-check"></i> Đã điền
+          </span>
+        </header>
+
+        <!-- FAMILY HEADER -->
+        <div class="entry-block-header">
+          <div class="entry-title-wrap">
+            <i class="fas fa-users-line"></i>
+            <h3>Danh sách thành viên gia đình</h3>
+            <span class="entry-counter-tag">{{ getFilledFamilyCount() }}/6 thành viên</span>
+          </div>
+          <p class="entry-sub-note">Khai thông tin những người thân trong gia đình. Dòng không có để trống.</p>
+        </div>
+
+        <!-- DESKTOP FAMILY TABLE -->
+        <div class="table-scroll desktop-only-table">
           <table class="entry-table family-table">
             <thead>
               <tr>
-                <th>Họ và tên</th>
-                <th>Quan hệ</th>
-                <th>Năm sinh</th>
-                <th>Nghề nghiệp</th>
-                <th>Nơi ở</th>
+                <th style="width: 26%;">Họ và tên</th>
+                <th style="width: 16%;">Quan hệ</th>
+                <th style="width: 14%;">Năm sinh</th>
+                <th style="width: 24%;">Nghề nghiệp</th>
+                <th style="width: 20%;">Nơi ở</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let member of data.family; let i = index; trackBy: trackByIndex">
-                <td data-label="Họ và tên">
-                  <input type="text" name="familyName{{ i }}" [(ngModel)]="member.fullName" />
+                <td>
+                  <input
+                    type="text"
+                    name="familyName{{ i }}"
+                    [(ngModel)]="member.fullName"
+                    placeholder="Ví dụ: Nguyễn Văn B"
+                  />
                 </td>
-                <td data-label="Quan hệ">
+                <td>
                   <input
                     type="text"
                     name="familyRelationship{{ i }}"
                     [(ngModel)]="member.relationship"
+                    placeholder="Ví dụ: Bố"
                   />
                 </td>
-                <td data-label="Năm sinh">
+                <td>
                   <input
                     type="text"
                     name="familyBirthYear{{ i }}"
                     [(ngModel)]="member.birthYear"
                     inputmode="numeric"
+                    placeholder="1970"
                   />
                 </td>
-                <td data-label="Nghề nghiệp">
+                <td>
                   <input
                     type="text"
                     name="familyOccupation{{ i }}"
                     [(ngModel)]="member.occupation"
+                    placeholder="Ví dụ: Làm nông"
                   />
                 </td>
-                <td data-label="Nơi ở">
+                <td>
                   <div class="inline-radios">
-                    <label>
+                    <label [class.selected]="member.livingStatus === 'together'">
                       <input
                         type="radio"
                         name="livingStatus{{ i }}"
@@ -705,7 +1603,7 @@
                       />
                       <span>Chung</span>
                     </label>
-                    <label>
+                    <label [class.selected]="member.livingStatus === 'separate'">
                       <input
                         type="radio"
                         name="livingStatus{{ i }}"
@@ -721,94 +1619,552 @@
           </table>
         </div>
 
-        <div class="form-grid top-gap">
-          <label class="field field-wide">
-            <span>Ai trong gia đình đã từng xin VISA hoặc sang Nhật?</span>
-            <input type="text" name="familyJapanHistory" [(ngModel)]="data.familyJapanHistory" />
-          </label>
-          <fieldset class="choice-field">
-            <legend>Gia đình đồng ý cho đi Nhật?</legend>
-            <div class="choice-row">
-              <label
-                ><input
-                  type="radio"
-                  name="familyConsent"
-                  value="yes"
-                  [(ngModel)]="data.familyConsent"
-                /><span>Có</span></label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="familyConsent"
-                  value="no"
-                  [(ngModel)]="data.familyConsent"
-                /><span>Không</span></label
-              >
+        <!-- MOBILE FAMILY CARDS -->
+        <div class="mobile-entry-cards">
+          <div
+            *ngFor="let member of data.family; let i = index; trackBy: trackByIndex"
+            class="entry-card-item"
+          >
+            <div class="entry-card-top">
+              <span class="entry-badge">Thành viên {{ i + 1 }}</span>
+              <span class="entry-role-hint">
+                {{ i === 0 ? 'Ví dụ: Bố' : i === 1 ? 'Ví dụ: Mẹ' : i === 2 ? 'Vợ / Chồng / Anh / Em' : 'Người thân khác' }}
+              </span>
+            </div>
+            <div class="entry-card-grid">
+              <div class="field-wrap field-full">
+                <label class="field-label" for="famNameM{{ i }}"><span>Họ và tên</span></label>
+                <input
+                  id="famNameM{{ i }}"
+                  type="text"
+                  name="famNameM{{ i }}"
+                  [(ngModel)]="member.fullName"
+                  placeholder="Ví dụ: Nguyễn Văn B"
+                />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label" for="famRelM{{ i }}"><span>Quan hệ</span></label>
+                <input
+                  id="famRelM{{ i }}"
+                  type="text"
+                  name="famRelM{{ i }}"
+                  [(ngModel)]="member.relationship"
+                  placeholder="Bố / Mẹ / Vợ..."
+                />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label" for="famYearM{{ i }}"><span>Năm sinh</span></label>
+                <input
+                  id="famYearM{{ i }}"
+                  type="text"
+                  name="famYearM{{ i }}"
+                  [(ngModel)]="member.birthYear"
+                  inputmode="numeric"
+                  placeholder="1970"
+                />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label" for="famJobM{{ i }}"><span>Nghề nghiệp</span></label>
+                <input
+                  id="famJobM{{ i }}"
+                  type="text"
+                  name="famJobM{{ i }}"
+                  [(ngModel)]="member.occupation"
+                  placeholder="Làm nông / May..."
+                />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label"><span>Nơi ở</span></label>
+                <div class="inline-radios">
+                  <label [class.selected]="member.livingStatus === 'together'">
+                    <input
+                      type="radio"
+                      name="famLiveM{{ i }}"
+                      value="together"
+                      [(ngModel)]="member.livingStatus"
+                    />
+                    <span>Chung</span>
+                  </label>
+                  <label [class.selected]="member.livingStatus === 'separate'">
+                    <input
+                      type="radio"
+                      name="famLiveM{{ i }}"
+                      value="separate"
+                      [(ngModel)]="member.livingStatus"
+                    />
+                    <span>Riêng</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAMILY JAPAN HISTORY & CONSENT -->
+        <div class="sub-section-title top-space">
+          <i class="fas fa-handshake"></i>
+          <span>Quan hệ gia đình với Nhật Bản & Sự đồng thuận</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-wrap field-span-2">
+            <label class="field-label" for="familyJapanHistory">
+              <span>Ai trong gia đình đã từng xin VISA hoặc sang Nhật?</span>
+              <span class="tag-opt">Thông tin</span>
+            </label>
+            <div class="input-container">
+              <i class="fas fa-people-arrows input-icon"></i>
+              <input
+                id="familyJapanHistory"
+                type="text"
+                name="familyJapanHistory"
+                [(ngModel)]="data.familyJapanHistory"
+                placeholder="Ví dụ: Anh trai ruột đang làm Kỹ sư tại Osaka / Không có ai"
+              />
+            </div>
+            <span class="field-helper">Ghi rõ họ tên và quan hệ nếu có người nhà ở Nhật.</span>
+          </div>
+
+          <!-- Gia đình đồng ý -->
+          <fieldset class="field-wrap choice-fieldset">
+            <legend class="field-label"><span>Gia đình có đồng ý cho đi Nhật không?</span></legend>
+            <div class="pill-group pill-group-two">
+              <label class="pill-option" [class.selected]="data.familyConsent === 'yes'">
+                <input type="radio" name="familyConsent" value="yes" [(ngModel)]="data.familyConsent" />
+                <span class="pill-content">
+                  <i class="fas fa-check"></i>
+                  <span>Đồng ý</span>
+                </span>
+              </label>
+              <label class="pill-option" [class.selected]="data.familyConsent === 'no'">
+                <input type="radio" name="familyConsent" value="no" [(ngModel)]="data.familyConsent" />
+                <span class="pill-content">
+                  <i class="fas fa-xmark"></i>
+                  <span>Chưa đồng ý</span>
+                </span>
+              </label>
             </div>
           </fieldset>
         </div>
-      </section>
 
-      <label class="submission-consent">
-        <input
-          id="sendConsent"
-          type="checkbox"
-          [(ngModel)]="sendConsent"
-          [ngModelOptions]="{ standalone: true }"
-        />
-        <span>
-          Tôi đồng ý gửi và lưu trữ hồ sơ này trong Google Drive của VieJap để tiếp nhận, tư vấn
-          và xử lý đăng ký.
-          <small>
-            Chỉ gửi dữ liệu lên máy chủ khi bạn bấm “Gửi hồ sơ”. Nút tải Excel vẫn xử lý trên
-            thiết bị.
-          </small>
-        </span>
-      </label>
+        <!-- TÀI LIỆU ĐÍNH KÈM (PDF) -->
+        <div class="attachment-section">
+          <div class="attachment-header">
+            <div class="attachment-title-group">
+              <i class="fas fa-file-pdf"></i>
+              <div>
+                <h3>Tài liệu đính kèm (File PDF)</h3>
+                <p>Học viên có thể tải lên tài liệu bổ sung (bằng cấp, chứng chỉ, CCCD photo...) theo yêu cầu (Tối đa 20MB, định dạng PDF).</p>
+              </div>
+            </div>
+            <span class="attachment-status-badge" [class.has-file]="!!documentPdf">
+              <i [class]="documentPdf ? 'fas fa-check-circle' : 'fas fa-paperclip'"></i>
+              {{ documentPdf ? 'Đã đính kèm PDF' : 'Tùy chọn' }}
+            </span>
+          </div>
 
-      <div class="form-actions">
-        <div class="action-note">
-          <i class="fas fa-cloud-arrow-down"></i>
+          <!-- DROP ZONE / UPLOAD CARD -->
+          <div
+            class="pdf-dropzone"
+            [class.dragover]="isPdfDragOver"
+            [class.has-file]="!!documentPdf"
+            (dragover)="onPdfDragOver($event)"
+            (dragleave)="onPdfDragLeave($event)"
+            (drop)="onPdfDrop($event)"
+          >
+            <!-- Khi CHƯA chọn file -->
+            <div *ngIf="!documentPdf" class="dropzone-empty">
+              <div class="dropzone-icon">
+                <i class="fas fa-cloud-arrow-up"></i>
+              </div>
+              <h4>Kéo & Thả file PDF vào đây</h4>
+              <p>hoặc bấm nút bên dưới để chọn file từ máy</p>
+              <label class="btn-pdf-select">
+                <i class="fas fa-folder-open"></i>
+                <span>Chọn file PDF</span>
+                <input
+                  #pdfInput
+                  type="file"
+                  name="documentPdf"
+                  accept="application/pdf,.pdf"
+                  (change)="onPdfSelected($event)"
+                />
+              </label>
+              <span class="dropzone-hint">Chỉ chấp nhận file định dạng .PDF (dung lượng tối đa 20MB)</span>
+            </div>
+
+            <!-- Khi ĐÃ chọn file -->
+            <div *ngIf="documentPdf" class="dropzone-file-card">
+              <div class="file-icon-box">
+                <i class="fas fa-file-pdf"></i>
+              </div>
+              <div class="file-meta">
+                <strong class="file-name" [title]="documentPdf.name">{{ documentPdf.name }}</strong>
+                <span class="file-size">{{ formatFileSize(documentPdf.size) }}</span>
+                <span class="file-ready-tag"><i class="fas fa-circle-check"></i> Sẵn sàng gửi kèm hồ sơ</span>
+              </div>
+              <div class="file-actions">
+                <button
+                  type="button"
+                  class="btn-file-preview"
+                  (click)="previewPdf()"
+                  title="Xem trước nội dung PDF"
+                >
+                  <i class="fas fa-eye"></i>
+                  <span>Xem trước</span>
+                </button>
+                <label class="btn-file-replace" title="Chọn file PDF khác">
+                  <i class="fas fa-arrow-rotate-right"></i>
+                  <span>Thay file</span>
+                  <input
+                    #pdfReplaceInput
+                    type="file"
+                    name="documentPdfReplace"
+                    accept="application/pdf,.pdf"
+                    (change)="onPdfSelected($event)"
+                  />
+                </label>
+                <button
+                  type="button"
+                  class="btn-file-remove"
+                  (click)="removePdf()"
+                  title="Xóa tài liệu này"
+                >
+                  <i class="fas fa-trash-can"></i>
+                  <span>Xóa</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="pdfError" class="pdf-error-banner" role="alert">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>{{ pdfError }}</span>
+          </div>
+        </div>
+
+        <!-- SUMMARY REVIEW CARD -->
+        <div class="review-summary-card">
+          <div class="summary-card-header">
+            <i class="fas fa-clipboard-check"></i>
+            <div>
+              <h3>Tóm tắt kiểm tra hồ sơ trước khi gửi</h3>
+              <p>Vui lòng rà soát lại các thông tin nhận diện cơ bản dưới đây:</p>
+            </div>
+          </div>
+
+          <div class="summary-chips-grid">
+            <div class="summary-chip">
+              <span class="chip-label">Họ và tên:</span>
+              <strong class="chip-value">{{ data.fullName || 'Chưa nhập' }}</strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Số CMT/CCCD:</span>
+              <strong class="chip-value">{{ data.idNumber || 'Chưa nhập' }}</strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Số điện thoại TTS:</span>
+              <strong class="chip-value">{{ data.phone || 'Chưa nhập' }}</strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Ngày sinh:</span>
+              <strong class="chip-value">{{ data.birthDate || 'Chưa chọn' }}</strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Thể lực:</span>
+              <strong class="chip-value">
+                {{ data.height ? data.height + ' cm' : '---' }} / {{ data.weight ? data.weight + ' kg' : '---' }} (Máu {{ data.bloodType }})
+              </strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Ảnh thẻ:</span>
+              <strong class="chip-value" [class.text-success]="photoPreview">
+                {{ photoPreview ? '✓ Đã đính kèm ảnh' : 'Chưa có ảnh (Tùy chọn)' }}
+              </strong>
+            </div>
+            <div class="summary-chip">
+              <span class="chip-label">Tài liệu PDF:</span>
+              <strong class="chip-value" [class.text-success]="documentPdf">
+                {{ documentPdf ? '✓ ' + documentPdf.name : 'Chưa đính kèm (Tùy chọn)' }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONSENT CHECKBOX -->
+        <label class="submission-consent" for="sendConsent">
+          <input
+            id="sendConsent"
+            type="checkbox"
+            [(ngModel)]="sendConsent"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          <span class="consent-text">
+            <strong>Tôi đồng ý gửi và lưu trữ hồ sơ này trong hệ thống của VieJap</strong>
+            <span>
+              Hồ sơ được dùng để tiếp nhận, thẩm định và gọi điện tư vấn chọn đơn hàng XKLĐ Nhật Bản phù hợp nhất.
+            </span>
+          </span>
+        </label>
+
+        <!-- ACTION BUTTONS ROW -->
+        <div class="form-final-actions">
+          <div class="action-note">
+            <i class="fas fa-cloud-arrow-down"></i>
+            <div>
+              <strong>{{ draftMessage }}</strong>
+              <small>Ảnh thẻ không lưu trong trình duyệt và cần chọn lại khi mở trang sau.</small>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button
+              type="button"
+              class="btn-reset"
+              (click)="clearData(studentForm)"
+              [disabled]="generating || sending"
+              title="Đặt lại toàn bộ dữ liệu đang nhập"
+            >
+              <i class="fas fa-trash-can"></i>
+              <span>Xóa nháp làm lại</span>
+            </button>
+
+            <button
+              type="submit"
+              class="btn-download"
+              [disabled]="generating || sending || pdfGenerating"
+              title="Tạo và tải file Excel gốc theo đúng chuẩn Nghiệp đoàn"
+            >
+              <i [class]="generating ? 'fas fa-spinner fa-spin' : 'fas fa-file-excel'"></i>
+              <span>{{ generating ? 'Đang tạo Excel...' : 'Tải xuống Excel' }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-download-pdf"
+              (click)="downloadPdfDoc(studentForm)"
+              [disabled]="generating || sending || pdfGenerating"
+              title="Xuất file PDF Sơ yếu lý lịch chuẩn 1 trang A4 vừa khung hình"
+            >
+              <i [class]="pdfGenerating ? 'fas fa-spinner fa-spin' : 'fas fa-file-pdf'"></i>
+              <span>{{ pdfGenerating ? 'Đang tạo PDF...' : 'Tải xuống PDF' }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-send"
+              (click)="sendForm(studentForm)"
+              [disabled]="generating || sending"
+              title="Gửi hồ sơ trực tuyến về hệ thống quản lý VieJap"
+            >
+              <i [class]="sending ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
+              <span>{{ sending ? 'Đang gửi hồ sơ...' : 'Gửi hồ sơ' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STATUS MESSAGES -->
+        <div class="status-banner error" *ngIf="errorMessage" role="alert">
+          <i class="fas fa-circle-exclamation"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <div class="status-banner success" *ngIf="downloadedFilename" role="status">
+          <i class="fas fa-circle-check"></i>
           <span>
-            {{ draftMessage }}
-            <small>Ảnh thẻ không lưu trong trình duyệt và cần chọn lại khi mở trang sau.</small>
+            Đã tạo và tải file thành công: <strong>{{ downloadedFilename }}</strong>
           </span>
         </div>
-        <div class="button-row">
-          <button
-            type="button"
-            class="btn-reset"
-            (click)="clearData(studentForm)"
-            [disabled]="generating || sending"
-          >
-            <i class="fas fa-trash-can"></i>
-            Xóa dữ liệu đang nhập
-          </button>
-          <button type="submit" class="btn-download" [disabled]="generating || sending">
-            <i [class]="generating ? 'fas fa-spinner fa-spin' : 'fas fa-file-excel'"></i>
-            {{ generating ? 'Đang tạo Excel...' : 'Tải xuống Excel' }}
-          </button>
-          <button
-            type="button"
-            class="btn-send"
-            (click)="sendForm(studentForm)"
-            [disabled]="generating || sending"
-          >
-            <i [class]="sending ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
-            {{ sending ? 'Đang gửi hồ sơ...' : 'Gửi hồ sơ' }}
-          </button>
+
+        <div class="status-banner success" *ngIf="submissionMessage" role="status">
+          <i class="fas fa-circle-check"></i>
+          <span>{{ submissionMessage }}</span>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <!-- STICKY BOTTOM ACTION BAR (MOBILE & DESKTOP) -->
+  <aside class="sticky-action-bar" aria-label="Thanh thao tác nhanh">
+    <div class="bar-inner">
+      <div class="bar-left">
+        <div class="bar-step-tag" *ngIf="viewMode === 'stepper'">
+          <span class="step-num">Bước {{ currentStep + 1 }}/5:</span>
+          <strong class="step-txt">{{ steps[currentStep].shortTitle }}</strong>
+        </div>
+        <div class="save-status" [title]="draftMessage">
+          <i class="fas fa-floppy-disk text-success"></i>
+          <span class="save-text">{{ shortDraftStatus }}</span>
         </div>
       </div>
 
-      <p class="status-message error" *ngIf="errorMessage">{{ errorMessage }}</p>
-      <p class="status-message success" *ngIf="downloadedFilename">
-        Đã tạo file <strong>{{ downloadedFilename }}</strong
-        >.
-      </p>
-      <p class="status-message success" *ngIf="submissionMessage">
-        {{ submissionMessage }}
-      </p>
-    </form>
+      <div class="bar-right">
+        <button
+          *ngIf="viewMode === 'stepper' && currentStep > 0"
+          type="button"
+          class="bar-btn bar-btn-prev"
+          (click)="prevStep()"
+          title="Quay lại bước trước"
+        >
+          <i class="fas fa-chevron-left"></i>
+          <span class="btn-text">Quay lại</span>
+        </button>
+
+        <button
+          *ngIf="viewMode === 'stepper' && currentStep < 4"
+          type="button"
+          class="bar-btn bar-btn-next"
+          (click)="nextStep()"
+          title="Sang bước tiếp theo"
+        >
+          <span class="btn-text">Tiếp tục</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <button
+          *ngIf="viewMode === 'full' || currentStep === 4"
+          type="button"
+          class="bar-btn bar-btn-download"
+          (click)="onSubmit(studentForm)"
+          [disabled]="generating || sending || pdfGenerating"
+          title="Tải file Excel gốc"
+        >
+          <i [class]="generating ? 'fas fa-spinner fa-spin' : 'fas fa-file-excel'"></i>
+          <span class="btn-text">{{ generating ? 'Đang tạo...' : 'Tải Excel' }}</span>
+        </button>
+
+        <button
+          *ngIf="viewMode === 'full' || currentStep === 4"
+          type="button"
+          class="bar-btn bar-btn-pdf"
+          (click)="downloadPdfDoc(studentForm)"
+          [disabled]="generating || sending || pdfGenerating"
+          title="Xuất & tải file PDF Sơ yếu lý lịch chuẩn 1 trang A4"
+        >
+          <i [class]="pdfGenerating ? 'fas fa-spinner fa-spin' : 'fas fa-file-pdf'"></i>
+          <span class="btn-text">{{ pdfGenerating ? 'Đang tạo...' : 'Tải PDF' }}</span>
+        </button>
+
+        <button
+          *ngIf="viewMode === 'full' || currentStep === 4"
+          type="button"
+          class="bar-btn bar-btn-send"
+          (click)="sendForm(studentForm)"
+          [disabled]="generating || sending"
+          title="Gửi hồ sơ trực tuyến"
+        >
+          <i [class]="sending ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
+          <span class="btn-text">{{ sending ? 'Đang gửi...' : 'Gửi hồ sơ' }}</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- SUCCESS MODAL (AUTO DOWNLOAD & RE-DOWNLOAD) -->
+  <div class="viejap-modal-backdrop" *ngIf="submittedSuccess" (click)="closeSuccessModal()">
+    <div class="viejap-modal-card success-modal" (click)="$event.stopPropagation()">
+      <div class="success-icon-banner">
+        <i class="fas fa-circle-check"></i>
+      </div>
+      <div class="success-body">
+        <h2>Gửi Hồ Sơ Thành Công!</h2>
+        <div class="code-pill">
+          <span>Mã học viên:</span>
+          <strong>{{ studentCode }}</strong>
+        </div>
+        <p class="success-desc">
+          Hồ sơ của bạn đã được tiếp nhận và lưu an toàn trong hệ thống VieJap. Hệ thống đã tự động tải các file hồ sơ xuống thiết bị của bạn.
+        </p>
+
+        <!-- FILE DOWNLOAD LIST -->
+        <div class="download-files-card">
+          <div class="files-title">
+            <i class="fas fa-cloud-arrow-down"></i>
+            <span>Các file hồ sơ của bạn (bấm để tải lại nếu bị chặn):</span>
+          </div>
+
+          <div class="file-item-row" *ngIf="submissionResult?.workbook">
+            <div class="file-item-info">
+              <i class="fas fa-file-excel text-success"></i>
+              <div>
+                <strong>{{ submissionResult?.workbook?.filename }}</strong>
+                <small>Sơ yếu lý lịch chuẩn form Nghiệp đoàn Nhật Bản (.xlsx)</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-redownload"
+              (click)="downloadSubmittedExcel()"
+            >
+              <i class="fas fa-download"></i> Tải lại Excel
+            </button>
+          </div>
+
+          <div class="file-item-row" *ngIf="submittedCvPdf">
+            <div class="file-item-info">
+              <i class="fas fa-file-pdf text-danger"></i>
+              <div>
+                <strong>{{ submittedCvPdf.filename }}</strong>
+                <small>Bản in PDF Sơ yếu lý lịch 1 trang A4 vừa khung hình (.pdf)</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-redownload"
+              (click)="downloadSubmittedCvPdf()"
+            >
+              <i class="fas fa-download"></i> Tải lại PDF Sơ yếu
+            </button>
+          </div>
+
+          <div class="file-item-row" *ngIf="documentPdf">
+            <div class="file-item-info">
+              <i class="fas fa-file-lines text-primary"></i>
+              <div>
+                <strong>{{ documentPdf.name }}</strong>
+                <small>Tài liệu đính kèm ({{ formatFileSize(documentPdf.size) }})</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-redownload"
+              (click)="downloadSubmittedAttachedPdf()"
+            >
+              <i class="fas fa-download"></i> Tải lại PDF đính kèm
+            </button>
+          </div>
+        </div>
+
+        <div class="consult-note">
+          <i class="fas fa-headset"></i>
+          <span>Chuyên viên tư vấn đơn hàng của VieJap sẽ liên hệ qua số điện thoại <b>{{ data.phone }}</b> trong vòng 24h làm việc.</span>
+        </div>
+      </div>
+      <div class="success-footer">
+        <button type="button" class="btn-success-close" (click)="closeSuccessModal()">
+          <i class="fas fa-check"></i> Hoàn tất & Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- PDF PREVIEW MODAL -->
+  <div class="viejap-modal-backdrop" *ngIf="showPdfModal" (click)="closePdfModal()">
+    <div class="viejap-modal-card pdf-preview-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4><i class="fas fa-file-pdf text-danger"></i> Xem trước: {{ documentPdf?.name }}</h4>
+        <button type="button" class="btn-close-x" (click)="closePdfModal()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body-pdf">
+        <iframe *ngIf="pdfPreviewUrl" [src]="pdfPreviewUrl" title="Xem trước tài liệu PDF"></iframe>
+      </div>
+      <div class="modal-footer">
+        <span class="file-size-note">Dung lượng: {{ documentPdf ? formatFileSize(documentPdf.size) : '' }}</span>
+        <button type="button" class="btn-secondary" (click)="closePdfModal()">Đóng xem trước</button>
+      </div>
+    </div>
   </div>
 </section>

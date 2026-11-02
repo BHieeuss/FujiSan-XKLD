@@ -1,232 +1,453 @@
 /* ============================================================
-   FOOTER STYLES - Styles cho footer FujiSan
+   VIEJAP FOOTER STYLES - CHUẨN THƯƠNG HIỆU NHẬT BẢN - VIỆT NAM
+   Thiết kế 4 cột Desktop · Accordion Mobile · Tối ưu SEO & UX
    ============================================================ */
 
-/* ============================================================
-   MAIN FOOTER STYLES
-   ============================================================ */
-.footer {
+.site-footer {
   position: relative;
   width: 100%;
+  background-color: #0c2345;
+  color: #f8fafc;
+  font-family: inherit;
+  overflow: hidden;
+  user-select: text;
 
-  // Main Footer Section
+  // Dải viền màu nhấn thương hiệu đỉnh footer
+  .footer-top-accent {
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 35%, #38bdf8 70%, #f43f5e 100%);
+  }
+
+  // Khối chính
   .footer-main {
-    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-    color: #ffffff;
-    padding: 4rem 0 2rem;
+    padding: 3.5rem 0 2.25rem;
     position: relative;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(30, 64, 175, 0.35) 0%, transparent 50%),
+      radial-gradient(circle at 88% 82%, rgba(2, 132, 199, 0.16) 0%, transparent 50%),
+      linear-gradient(180deg, #0e2a52 0%, #0a1f3d 100%);
 
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+    .footer-grid-container {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1.2fr 1.15fr;
+      gap: 36px;
+      align-items: start;
+    }
+  }
+}
+
+/* ============================================================
+   CỘT 1: THƯƠNG HIỆU & DOANH NGHIỆP
+   ============================================================ */
+.footer-col-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+
+  .brand-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+
+    .footer-logo-link {
+      display: inline-block;
+      line-height: 0;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+      background: #ffffff;
+      padding: 7px 16px;
+      border-radius: 10px;
+      width: fit-content;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+
+      &:hover {
+        transform: scale(1.02);
+      }
     }
 
-    .footer-section {
-      margin-bottom: 2rem;
+    .footer-brand-logo {
+      height: 48px;
+      width: auto;
+      max-width: 175px;
+      object-fit: contain;
+      display: block;
+    }
 
-      .footer-title {
-        margin: 0 0 1rem;
-        line-height: 0;
+    .brand-slogan {
+      margin: 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #fbbf24;
+      letter-spacing: 0.02em;
+    }
+  }
+
+  .brand-desc {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: #94a3b8;
+  }
+
+  // Thông tin doanh nghiệp chính thức (Trình bày tự nhiên, chuẩn thương hiệu)
+  .company-official-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 0.35rem;
+
+    .company-official-name {
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .company-meta-list {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .company-meta-item {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.45rem;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      margin: 0;
+
+      .meta-label {
+        font-weight: 500;
+        color: #94a3b8;
+        margin: 0;
+        flex-shrink: 0;
       }
 
-      .footer-logo {
-        height: 75px;
-        width: auto;
-        max-width: 230px;
-        display: block;
-        object-fit: contain;
-        filter: drop-shadow(1px 0 0 #ffffff)
-                drop-shadow(-1px 0 0 #ffffff)
-                drop-shadow(0 1px 0 #ffffff)
-                drop-shadow(0 -1px 0 #ffffff)
-                drop-shadow(1px 1px 0 #ffffff)
-                drop-shadow(-1px -1px 0 #ffffff)
-                drop-shadow(1px -1px 0 #ffffff)
-                drop-shadow(-1px 1px 0 #ffffff)
-                drop-shadow(0 0 4px rgba(255, 255, 255, 0.9));
-        transition: transform 0.2s ease, filter 0.2s ease;
+      .meta-value {
+        font-weight: 400;
+        color: #e2e8f0;
+        margin: 0;
 
-        &:hover {
-          transform: scale(1.03);
-          filter: drop-shadow(1px 0 0 #ffffff)
-                  drop-shadow(-1px 0 0 #ffffff)
-                  drop-shadow(0 1px 0 #ffffff)
-                  drop-shadow(0 -1px 0 #ffffff)
-                  drop-shadow(1px 1px 0 #ffffff)
-                  drop-shadow(-1px -1px 0 #ffffff)
-                  drop-shadow(1px -1px 0 #ffffff)
-                  drop-shadow(-1px 1px 0 #ffffff)
-                  drop-shadow(0 0 8px rgba(255, 255, 255, 1));
+        &.text-amber {
+          color: #fbbf24;
+          font-weight: 600;
+          letter-spacing: 0.02em;
         }
       }
 
-      .footer-desc {
-        font-size: 0.9375rem;
-        line-height: 1.6;
-      }
+      &.address-item {
+        flex-direction: column;
+        gap: 0.2rem;
 
-      .company-details {
-        p {
-          color: rgba(255, 255, 255, 0.85);
-          font-size: 0.875rem;
-          line-height: 1.8;
-
-          i {
-            color: #fbbf24;
-            width: 20px;
-          }
-
-          strong {
-            color: #ffffff;
-          }
+        .meta-value {
+          color: #cbd5e1;
+          line-height: 1.55;
         }
       }
     }
   }
+}
 
-  // Footer Heading
-  .footer-heading {
-    font-size: 1.125rem;
+/* ============================================================
+   CỘT 2 & 3: CÁC NHÓM LIÊN KẾT (KHÁM PHÁ & TIỆN ÍCH)
+   ============================================================ */
+.footer-col-links {
+  display: flex;
+  flex-direction: column;
+
+  .accordion-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+    cursor: default;
+    pointer-events: none; // Vô hiệu hóa click trên Desktop (luôn mở)
+  }
+
+  .col-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 1.25rem 0;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #ffffff;
-    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     position: relative;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.65rem;
 
     &::after {
       content: '';
       position: absolute;
       bottom: 0;
       left: 0;
-      width: 40px;
+      width: 32px;
       height: 3px;
       background: #fbbf24;
       border-radius: 2px;
     }
+
+    .heading-icon-wrap {
+      color: #38bdf8;
+      font-size: 0.95rem;
+    }
   }
 
-  // Footer Links
-  .footer-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  .accordion-chevron {
+    display: none; // Ẩn chevron trên Desktop
+  }
 
-    li {
-      margin-bottom: 0.75rem;
-    }
+  .footer-nav-content {
+    display: block;
 
-    .footer-link {
-      color: rgba(255, 255, 255, 0.85);
-      text-decoration: none;
-      font-size: 0.9375rem;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
+    .nav-links-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
 
-      i {
-        font-size: 0.75rem;
-        transition: transform 0.3s ease;
+      li {
+        margin: 0;
       }
 
-      &:hover {
-        color: #fbbf24;
-        padding-left: 5px;
+      .footer-nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.875rem;
+        line-height: 1.45;
+        transition: all 0.2s ease-in-out;
+        border-radius: 4px;
+        padding: 2px 0;
 
-        i {
-          transform: translateX(3px);
+        .link-bullet {
+          font-size: 0.65rem;
+          color: #475569;
+          transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .link-label {
+          transition: color 0.2s ease;
+        }
+
+        .link-badge {
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 1px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+
+          &.badge-amber {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+          }
+
+          &.badge-emerald {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+          }
+
+          &.badge-rose {
+            background: rgba(244, 63, 94, 0.2);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.4);
+          }
+        }
+
+        &:hover,
+        &:focus-visible {
+          color: #fbbf24;
+          transform: translateX(4px);
+          outline: none;
+
+          .link-bullet {
+            color: #fbbf24;
+            transform: translateX(2px);
+          }
         }
       }
     }
   }
+}
 
-  // Contact Links
-  .footer-contact {
-    list-style: none;
-    padding: 0;
+/* ============================================================
+   CỘT 4: LIÊN HỆ & MẠNG XÃ HỘI
+   ============================================================ */
+.footer-col-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .static-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
     margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    position: relative;
+    padding-bottom: 0.65rem;
 
-    li {
-      margin-bottom: 1rem;
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 32px;
+      height: 3px;
+      background: #fbbf24;
+      border-radius: 2px;
     }
 
-    .contact-link {
-      color: rgba(255, 255, 255, 0.85);
-      text-decoration: none;
-      font-size: 0.9375rem;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    .heading-icon-wrap {
+      color: #38bdf8;
+      font-size: 0.95rem;
+    }
+  }
 
-      i {
-        color: #fbbf24;
-        width: 24px;
-        font-size: 1rem;
+  // Danh sách thông tin kết nối & liên hệ tự nhiên, trang nhã (không khung bo viền AI)
+  .contact-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.25rem 0 0.5rem;
+
+    .contact-info-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.45rem;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+
+      .info-label {
+        color: #94a3b8;
+        font-weight: 500;
+        flex-shrink: 0;
       }
 
-      &:hover {
-        color: #fbbf24;
-        transform: translateX(5px);
+      .info-link {
+        text-decoration: none;
+        transition: color 0.18s ease;
+      }
+
+      .phone-link {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.02em;
+
+        &:hover {
+          color: #fca5a5;
+          text-decoration: underline;
+        }
+      }
+
+      .zalo-link {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.02em;
+
+        &:hover {
+          color: #38bdf8;
+          text-decoration: underline;
+        }
+      }
+
+      .mail-link {
+        color: #38bdf8;
+
+        &:hover {
+          color: #7dd3fc;
+          text-decoration: underline;
+        }
+      }
+
+      .info-text {
+        color: #cbd5e1;
       }
     }
   }
 
-  // Social Media
-  .social-media {
-    .social-heading {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #ffffff;
-      margin-bottom: 1rem;
+  // Khối mạng xã hội
+  .social-channels-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .social-title-label {
+      font-size: 0.8125rem;
+      color: #94a3b8;
+      font-weight: 500;
     }
 
-    .social-links {
+    .social-pills-row {
       display: flex;
-      gap: 0.75rem;
+      gap: 10px;
+      flex-wrap: wrap;
 
-      .social-link {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        color: #ffffff;
-        font-size: 1.125rem;
+      .social-icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        display: grid;
+        place-items: center;
+        color: #cbd5e1;
+        font-size: 1rem;
         text-decoration: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
+        transition: all 0.22s ease-in-out;
 
         &:hover {
-          background: #ffffff;
           transform: translateY(-3px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          color: #ffffff;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
         }
 
         &.facebook:hover {
-          color: #1877f2;
+          background: #1877f2;
           border-color: #1877f2;
         }
 
         &.tiktok:hover {
-          color: #000000;
-          border-color: #000000;
+          background: #000000;
+          border-color: #333333;
         }
 
         &.youtube:hover {
-          color: #ff0000;
+          background: #ff0000;
           border-color: #ff0000;
         }
 
         &.zalo:hover {
-          color: #0068ff;
+          background: #0068ff;
           border-color: #0068ff;
         }
       }
@@ -235,78 +456,223 @@
 }
 
 /* ============================================================
-   FOOTER BOTTOM STYLES
+   DẢI BẢN QUYỀN & PHÁP LÝ (BOTTOM STRIP)
    ============================================================ */
-.footer-bottom {
-  background: #0f1f47;
-  padding: 1.5rem 0;
-  color: rgba(255, 255, 255, 0.7);
+.footer-bottom-bar {
+  background-color: #07172e;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.15rem 0;
+  color: #64748b;
+  font-size: 0.8125rem;
 
-  .copyright {
-    font-size: 0.875rem;
+  .bottom-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+  }
+
+  .copyright-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #94a3b8;
 
     strong {
       color: #fbbf24;
+      font-weight: 600;
     }
   }
 
-  .footer-bottom-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem 1rem;
-
-    @media (min-width: 768px) {
-      justify-content: flex-end;
-    }
-
-    li {
+  .legal-nav-bar {
+    .legal-links-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
       display: inline-flex;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
 
-      .bottom-link {
-        color: rgba(255, 255, 255, 0.7);
+      li {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .legal-anchor {
+        color: #94a3b8;
         text-decoration: none;
-        font-size: 0.875rem;
-        transition: color 0.3s ease;
+        transition: color 0.18s ease;
 
-        &:hover {
+        &:hover,
+        &:focus-visible {
           color: #fbbf24;
+          text-decoration: underline;
+          outline: none;
         }
       }
 
-      .separator {
-        color: rgba(255, 255, 255, 0.3);
-        margin: 0 0.5rem;
+      .legal-divider {
+        color: #475569;
+        font-weight: 700;
       }
     }
   }
 }
 
 /* ============================================================
-   BACK TO TOP BUTTON
+   RESPONSIVE LAYOUT (TABLET & MOBILE ACCORDION)
+   ============================================================ */
+
+/* Tablet (Màn hình 768px - 1024px) */
+@media (max-width: 1024px) {
+  .site-footer {
+    .footer-main {
+      padding: 2.75rem 0 2rem;
+
+      .footer-grid-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 32px 28px;
+      }
+    }
+  }
+}
+
+/* Mobile (Màn hình <= 767.98px) */
+@media (max-width: 767.98px) {
+  .site-footer {
+    .footer-main {
+      padding: 2.25rem 0 1.5rem;
+
+      .footer-grid-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+
+    // Biến các cột liên kết thành Accordion trên Mobile
+    .footer-col-links {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      overflow: hidden;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+
+      &.is-expanded {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(251, 191, 36, 0.3);
+
+        .accordion-chevron {
+          transform: rotate(180deg);
+          color: #fbbf24;
+        }
+
+        .footer-nav-content {
+          max-height: 520px;
+          opacity: 1;
+          padding: 0 16px 16px;
+        }
+      }
+
+      .accordion-trigger {
+        pointer-events: auto;
+        cursor: pointer;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+
+        &:focus-visible {
+          outline: 2px solid #fbbf24;
+          outline-offset: -2px;
+        }
+      }
+
+      .col-heading {
+        margin: 0;
+        padding: 0;
+        font-size: 0.9rem;
+
+        &::after {
+          display: none; // Ẩn vạch gạch dưới trong Accordion trigger
+        }
+      }
+
+      .accordion-chevron {
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+      }
+
+      .footer-nav-content {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.28s ease;
+
+        .nav-links-list {
+          padding-top: 6px;
+          gap: 12px;
+
+          .footer-nav-link {
+            font-size: 0.875rem;
+            min-height: 38px;
+            display: flex;
+          }
+        }
+      }
+    }
+
+    // Cột thương hiệu & liên hệ trên Mobile
+    .footer-col-brand {
+      .footer-brand-logo {
+        height: 42px;
+      }
+    }
+
+    .footer-bottom-bar {
+      .bottom-bar-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .legal-nav-bar .legal-links-list {
+        justify-content: center;
+      }
+    }
+  }
+}
+
+/* ============================================================
+   GIỮ NGUYÊN TIỆN ÍCH QUICK ACCESS, MODAL & BACK TO TOP
    ============================================================ */
 .back-to-top {
   position: fixed;
   bottom: 30px;
   right: 30px;
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
   color: #ffffff;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   cursor: pointer;
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: all 0.24s ease-in-out;
+  display: grid;
+  place-items: center;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -321,22 +687,20 @@
 
   &:hover {
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #0f172a;
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.45);
   }
 
-  &:active {
-    transform: translateY(-2px);
-  }
-
-  i {
-    font-size: 1.125rem;
+  @media (max-width: 575.98px) {
+    width: 42px;
+    height: 42px;
+    right: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    font-size: 1rem;
   }
 }
 
-/* ============================================================
-   QUICK ACCESS BUTTON
-   ============================================================ */
 .quick-access {
   position: fixed;
   bottom: 30px;
@@ -357,6 +721,7 @@
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 18px 46px rgba(15, 31, 71, 0.2);
+    -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
     animation: quickAccessIn 0.22s ease-out;
   }
@@ -376,10 +741,7 @@
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition:
-      background-color 0.18s ease,
-      border-color 0.18s ease,
-      transform 0.18s ease;
+    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 
     &:hover,
     &:focus-visible {
@@ -388,10 +750,6 @@
       color: #17345f;
       outline: none;
       transform: translateY(-1px);
-    }
-
-    &:active {
-      transform: translateY(0);
     }
   }
 
@@ -444,11 +802,7 @@
     font-size: 1.125rem;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition:
-      background 0.18s ease,
-      color 0.3s ease,
-      transform 0.18s ease,
-      box-shadow 0.18s ease;
+    transition: background 0.18s ease, color 0.3s ease, transform 0.18s ease, box-shadow 0.18s ease;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -459,16 +813,27 @@
       transform: translateY(-2px);
       box-shadow: 0 8px 22px rgba(15, 31, 71, 0.3);
     }
-
-    &:active {
-      transform: translateY(-2px);
-    }
   }
 
   &.is-open {
     .quick-access-toggle {
       background: #f4b51c;
       color: #17345f;
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    bottom: max(16px, env(safe-area-inset-bottom));
+    left: 16px;
+
+    .quick-access-menu {
+      width: min(310px, calc(100vw - 32px));
+    }
+
+    .quick-access-toggle {
+      width: 45px;
+      height: 45px;
+      font-size: 1rem;
     }
   }
 }
@@ -481,6 +846,7 @@
   place-items: center;
   padding: clamp(0.75rem, 2vw, 1.5rem);
   background: rgba(8, 26, 54, 0.6);
+  -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
   animation: registrationBackdropIn 0.2s ease both;
 }
@@ -506,9 +872,7 @@
   gap: 1rem;
   padding: 1.1rem 1.15rem 0.95rem;
   border-bottom: 1px solid #dfe8f3;
-  background:
-    linear-gradient(135deg, rgba(255, 244, 216, 0.9), rgba(255, 255, 255, 0.96)),
-    #fff;
+  background: linear-gradient(135deg, rgba(255, 244, 216, 0.9), rgba(255, 255, 255, 0.96)), #fff;
 }
 
 .order-list-heading {
@@ -579,9 +943,7 @@
   color: #fff;
   font-size: 0.78rem;
   font-weight: 800;
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease;
+  transition: background-color 0.18s ease, transform 0.18s ease;
 
   &:hover,
   &:focus-visible {
@@ -599,9 +961,7 @@
   border-radius: 50%;
   background: #edf3fa;
   color: #40536e;
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease;
+  transition: background-color 0.18s ease, transform 0.18s ease;
 
   &:hover,
   &:focus-visible {
@@ -614,9 +974,7 @@
 .order-list-frame-wrap {
   position: relative;
   min-height: 320px;
-  background:
-    linear-gradient(135deg, rgba(23, 63, 133, 0.05), rgba(244, 181, 28, 0.08)),
-    #fff;
+  background: linear-gradient(135deg, rgba(23, 63, 133, 0.05), rgba(244, 181, 28, 0.08)), #fff;
 }
 
 .order-list-loading {
@@ -705,6 +1063,7 @@
   place-items: center;
   padding: 1rem;
   background: rgba(8, 26, 54, 0.58);
+  -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
   animation: registrationBackdropIn 0.2s ease both;
 }
@@ -757,9 +1116,7 @@
   background: #f1f5fa;
   color: #40536e;
   cursor: pointer;
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease;
+  transition: background-color 0.18s ease, transform 0.18s ease;
 
   &:hover,
   &:focus-visible {
@@ -800,10 +1157,7 @@
   border-radius: 14px;
   background: #f8fafc;
   color: #789;
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    box-shadow 0.18s ease;
+  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
 
   &:focus-within {
     border-color: #2854a2;
@@ -871,10 +1225,7 @@
   font-size: 0.9rem;
   font-weight: 800;
   cursor: pointer;
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease,
-    opacity 0.18s ease;
+  transition: background-color 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
 
   &:not(:disabled):hover {
     background: #12356f;
@@ -902,233 +1253,7 @@
   }
 }
 
-/* ============================================================
-   RESPONSIVE STYLES
-   ============================================================ */
-
-/* Tablet */
-@media (max-width: 991.98px) {
-  .footer {
-    .footer-main {
-      padding: 3rem 0 1.5rem;
-
-      .footer-section {
-        margin-bottom: 2.5rem;
-      }
-    }
-  }
-}
-
-/* Mobile */
-@media (max-width: 575.98px) {
-  .footer {
-    .footer-main {
-      padding: 2.5rem 0 1rem;
-
-      .footer-section {
-        .footer-title {
-          margin-bottom: 0.85rem;
-        }
-
-        .footer-logo {
-          width: 132px;
-          height: 50px;
-        }
-      }
-
-      .footer-heading {
-        font-size: 1rem;
-        margin-bottom: 1rem;
-      }
-
-      .footer-section {
-        margin-bottom: 1.75rem;
-      }
-
-      .footer-links {
-        .footer-link {
-          min-height: 40px;
-        }
-      }
-
-      .footer-contact {
-        .contact-link {
-          min-height: 42px;
-        }
-      }
-    }
-
-    .footer-bottom {
-      padding: 1.25rem 0;
-
-      .row > div {
-        margin-bottom: 1rem;
-
-        &:last-child {
-          margin-bottom: 0;
-        }
-      }
-    }
-
-    .back-to-top {
-      width: 45px;
-      height: 45px;
-      right: 16px;
-      bottom: max(16px, env(safe-area-inset-bottom));
-      font-size: 1.125rem;
-    }
-
-    .quick-access {
-      bottom: max(16px, env(safe-area-inset-bottom));
-      left: 16px;
-
-      .quick-access-menu {
-        width: min(310px, calc(100vw - 32px));
-        gap: 0.5rem;
-        padding: 0.45rem;
-      }
-
-      .quick-access-link {
-        grid-template-columns: 40px minmax(0, 1fr) 18px;
-        min-height: 62px;
-        padding: 0.6rem 0.65rem;
-      }
-
-      .quick-access-toggle {
-        width: 45px;
-        height: 45px;
-        font-size: 1rem;
-      }
-    }
-  }
-
-  .registration-gate {
-    align-items: center;
-    justify-items: center;
-    padding:
-      0.75rem
-      0.75rem
-      max(0.75rem, env(safe-area-inset-bottom));
-  }
-
-  .order-list-viewer {
-    padding:
-      0.75rem
-      0.75rem
-      max(0.75rem, env(safe-area-inset-bottom));
-  }
-
-  .order-list-card {
-    max-height: calc(100dvh - 1.5rem - env(safe-area-inset-bottom));
-    grid-template-rows: auto minmax(280px, 1fr) auto;
-    border-radius: 22px;
-  }
-
-  .order-list-header {
-    display: grid;
-    gap: 0.85rem;
-    padding: 0.95rem 0.9rem 0.85rem;
-  }
-
-  .order-list-heading {
-    gap: 0.65rem;
-
-    h2 {
-      font-size: 1.18rem;
-    }
-
-    p {
-      font-size: 0.8rem;
-    }
-  }
-
-  .order-list-icon {
-    width: 42px;
-    height: 42px;
-    flex-basis: 42px;
-    border-radius: 13px;
-  }
-
-  .order-list-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .order-list-open {
-    flex: 1 1 auto;
-    justify-content: center;
-  }
-
-  .order-list-frame {
-    height: 58dvh;
-    min-height: 300px;
-  }
-
-  .order-list-footer {
-    display: grid;
-    align-items: stretch;
-    padding: 0.75rem 0.9rem;
-    font-size: 0.72rem;
-
-    button {
-      justify-content: center;
-      padding: 0.65rem 0.75rem;
-      border-radius: 12px;
-      background: #eef5ff;
-    }
-  }
-
-  .registration-gate-card {
-    width: min(430px, 100%);
-    max-height: calc(100dvh - 1.5rem - env(safe-area-inset-bottom));
-    overflow-y: auto;
-    padding: 1.35rem 1rem 1.15rem;
-    border-radius: 22px;
-
-    > p {
-      margin-bottom: 1rem;
-      font-size: 0.85rem;
-    }
-  }
-
-  .registration-gate-icon {
-    width: 44px;
-    height: 44px;
-    margin-bottom: 0.75rem;
-  }
-
-  .registration-gate-close {
-    top: 0.75rem;
-    right: 0.75rem;
-  }
-
-  .registration-pin-field {
-    min-height: 56px;
-  }
-
-  .social-media .social-links {
-    justify-content: flex-start;
-  }
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.footer-section {
-  animation: fadeInUp 0.6s ease-out;
-}
-
+/* Animations */
 @keyframes quickAccessIn {
   from {
     opacity: 0;
@@ -1141,13 +1266,8 @@
 }
 
 @keyframes registrationBackdropIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes registrationCardIn {
@@ -1155,7 +1275,6 @@
     opacity: 0;
     transform: translateY(14px) scale(0.98);
   }
-
   to {
     opacity: 1;
     transform: translateY(0) scale(1);

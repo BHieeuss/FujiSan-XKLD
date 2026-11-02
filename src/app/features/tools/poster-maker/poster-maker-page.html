@@ -14,13 +14,59 @@
       </div>
       <div class="hero-format">
         <strong>{{ posterWidth }} × {{ posterHeight }} px</strong>
-        <span>PNG chất lượng cao</span>
+        <span>Story Facebook 9:16 (Chuẩn điện thoại)</span>
       </div>
     </div>
   </header>
 
   <div class="container poster-workspace">
+    <!-- Banner Tự Động Đọc Đơn Hàng -->
+    <div class="ai-banner-card">
+      <div class="ai-banner-left">
+        <div class="ai-icon-bubble">
+          <i class="fas fa-wand-magic-sparkles"></i>
+        </div>
+        <div>
+          <span class="ai-pill">✨ Tự động thông minh</span>
+          <h3>Tự Động Đọc Thông Tin Đơn Hàng</h3>
+          <p>Chỉ cần tải ảnh thông báo đơn hàng, hệ thống sẽ tự động đọc thông tin và điền sẵn vào mẫu poster cho bạn.</p>
+        </div>
+      </div>
+      <button type="button" class="btn-ai-launch" (click)="openAiImportModal()">
+        <i class="fas fa-camera me-1"></i>
+        ĐỌC ĐƠN TỰ ĐỘNG
+      </button>
+    </div>
+
     <form class="poster-form" (input)="scheduleRender()" (change)="scheduleRender()">
+      <!-- Template Selector Panel (6 Mẫu Thiết Kế Chuẩn VieJap) -->
+      <section class="form-panel template-selector-panel">
+        <div class="panel-heading">
+          <span>🎨</span>
+          <div>
+            <h2>Chọn mẫu thiết kế (3 Mẫu Chuẩn)</h2>
+            <p>Hệ thống 3 mẫu thiết kế chuyên nghiệp, tối ưu nhận diện thương hiệu VieJap.</p>
+          </div>
+        </div>
+
+        <div class="template-cards-grid">
+          <div
+            class="template-card"
+            *ngFor="let tpl of availableTemplates"
+            [class.active]="selectedTemplateId === tpl.id"
+            (click)="onTemplateChanged(tpl.id)"
+          >
+            <div class="tpl-name-row">
+              <span class="tpl-color-dot" [style.backgroundColor]="tpl.colors.primaryBrand"></span>
+              <strong class="tpl-name">{{ tpl.name }}</strong>
+            </div>
+            <span class="tpl-check" *ngIf="selectedTemplateId === tpl.id">
+              <i class="fas fa-check-circle"></i>
+            </span>
+          </div>
+        </div>
+      </section>
+
       <section class="form-panel">
         <div class="panel-heading">
           <span>01</span>
@@ -68,14 +114,14 @@
           </label>
 
           <label class="field field-full">
-            <span>Lương</span>
-            <input
-              type="text"
+            <span>Mức lương hiển thị (mỗi dòng một mục)</span>
+            <textarea
               name="salary"
               [(ngModel)]="data.salary"
-              maxlength="90"
-              placeholder="Lương cơ bản: 1.049 yên/giờ"
-            />
+              rows="2"
+              maxlength="160"
+              placeholder="Lương cơ bản: 192.000 yên&#10;Thực lĩnh: ~136.819 yên"
+            ></textarea>
           </label>
 
           <label class="field field-full">
@@ -97,7 +143,7 @@
           <span>02</span>
           <div>
             <h2>Mốc tuyển dụng</h2>
-            <p>Thông tin được trình bày bằng icon rõ nghĩa trong thẻ xanh.</p>
+            <p>Thông tin được trình bày bằng biểu tượng rõ nghĩa trong thẻ xanh.</p>
           </div>
         </div>
 
@@ -144,38 +190,191 @@
       <section class="form-panel">
         <div class="panel-heading">
           <span>03</span>
-          <div>
-            <h2>Ảnh đơn tuyển</h2>
-            <p>Ảnh ngang hoặc dọc đều được tự động cắt vừa khung.</p>
+          <div class="panel-heading-row">
+            <div>
+              <h2>Ảnh đơn tuyển</h2>
+              <p *ngIf="is3PhotoTemplate">
+                Mẫu thiết kế này yêu cầu cung cấp đủ <strong>3 ảnh riêng biệt</strong> để ghép cụm hình ảnh nghệ thuật.
+              </p>
+              <p *ngIf="!is3PhotoTemplate">
+                Ảnh ngang hoặc dọc đều được tự động cắt vừa khung.
+              </p>
+            </div>
+            <div *ngIf="is3PhotoTemplate" class="photo-quota-pill" [class.complete]="photoCountSelected === 3">
+              <i [class]="photoCountSelected === 3 ? 'fas fa-check-circle' : 'fas fa-triangle-exclamation'"></i>
+              <span>{{ photoCountSelected === 3 ? 'Đủ 3/3 ảnh' : 'Đã chọn ' + photoCountSelected + '/3 ảnh' }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="photo-grid">
-          <label class="photo-picker">
-            <span class="photo-number">Ảnh lớn</span>
-            <img [src]="assets.primaryPhotoSrc" alt="Ảnh chính đang chọn" />
-            <strong>{{ primaryPhotoName }}</strong>
-            <span class="pick-action"><i class="fas fa-image"></i> Chọn ảnh khác</span>
-            <input
-              #primaryPhotoInput
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              (change)="onPhotoSelected($event, 'primary')"
-            />
-          </label>
+        <div *ngIf="is3PhotoTemplate && photoCountSelected < 3" class="photo-warning-box">
+          <i class="fas fa-circle-info"></i>
+          <span>Vui lòng bổ sung đầy đủ 3 ảnh bắt buộc bên dưới để hệ thống dựng poster và mở khóa nút tải ảnh.</span>
+        </div>
 
-          <label class="photo-picker">
-            <span class="photo-number">Ảnh phụ</span>
-            <img [src]="assets.secondaryPhotoSrc" alt="Ảnh phụ đang chọn" />
-            <strong>{{ secondaryPhotoName }}</strong>
-            <span class="pick-action"><i class="fas fa-image"></i> Chọn ảnh khác</span>
-            <input
-              #secondaryPhotoInput
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              (change)="onPhotoSelected($event, 'secondary')"
-            />
-          </label>
+        <!-- 3-PHOTO SLOTS FOR EDITORIAL HIRING -->
+        <div class="photo-grid photo-grid-3" *ngIf="is3PhotoTemplate">
+          <!-- Slot 1: Ảnh công việc chính -->
+          <div class="photo-picker-card" [class.empty]="!assets.primaryPhotoSrc">
+            <div class="photo-card-header">
+              <span class="photo-number">Ảnh 1</span>
+              <span class="photo-required-badge">Bắt buộc</span>
+            </div>
+            <strong class="photo-role-label">Ảnh công việc chính</strong>
+
+            <div class="photo-thumb-wrap">
+              <img *ngIf="assets.primaryPhotoSrc" [src]="assets.primaryPhotoSrc" alt="Ảnh công việc chính" />
+              <div *ngIf="!assets.primaryPhotoSrc" class="photo-empty-placeholder">
+                <i class="fas fa-camera"></i>
+                <span>Chưa có ảnh</span>
+              </div>
+            </div>
+
+            <span class="photo-file-name" [title]="primaryPhotoName || 'Chưa chọn file'">
+              {{ primaryPhotoName || 'Chưa chọn file' }}
+            </span>
+
+            <div class="photo-card-actions">
+              <label class="btn-pick-file">
+                <i class="fas" [class.fa-image]="assets.primaryPhotoSrc" [class.fa-upload]="!assets.primaryPhotoSrc"></i>
+                {{ assets.primaryPhotoSrc ? 'Thay ảnh' : 'Chọn ảnh' }}
+                <input
+                  #primaryPhotoInput
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  (change)="onPhotoSelected($event, 'primary')"
+                />
+              </label>
+              <button
+                *ngIf="assets.primaryPhotoSrc"
+                type="button"
+                class="btn-remove-photo"
+                (click)="removePhoto('primary')"
+                title="Xóa ảnh này"
+              >
+                <i class="fas fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Slot 2: Ảnh môi trường làm việc -->
+          <div class="photo-picker-card" [class.empty]="!assets.secondaryPhotoSrc">
+            <div class="photo-card-header">
+              <span class="photo-number">Ảnh 2</span>
+              <span class="photo-required-badge">Bắt buộc</span>
+            </div>
+            <strong class="photo-role-label">Ảnh môi trường làm việc</strong>
+
+            <div class="photo-thumb-wrap">
+              <img *ngIf="assets.secondaryPhotoSrc" [src]="assets.secondaryPhotoSrc" alt="Ảnh môi trường làm việc" />
+              <div *ngIf="!assets.secondaryPhotoSrc" class="photo-empty-placeholder">
+                <i class="fas fa-building-wheat"></i>
+                <span>Chưa có ảnh</span>
+              </div>
+            </div>
+
+            <span class="photo-file-name" [title]="secondaryPhotoName || 'Chưa chọn file'">
+              {{ secondaryPhotoName || 'Chưa chọn file' }}
+            </span>
+
+            <div class="photo-card-actions">
+              <label class="btn-pick-file">
+                <i class="fas" [class.fa-image]="assets.secondaryPhotoSrc" [class.fa-upload]="!assets.secondaryPhotoSrc"></i>
+                {{ assets.secondaryPhotoSrc ? 'Thay ảnh' : 'Chọn ảnh' }}
+                <input
+                  #secondaryPhotoInput
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  (change)="onPhotoSelected($event, 'secondary')"
+                />
+              </label>
+              <button
+                *ngIf="assets.secondaryPhotoSrc"
+                type="button"
+                class="btn-remove-photo"
+                (click)="removePhoto('secondary')"
+                title="Xóa ảnh này"
+              >
+                <i class="fas fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Slot 3: Ảnh công việc bổ sung -->
+          <div class="photo-picker-card" [class.empty]="!assets.tertiaryPhotoSrc">
+            <div class="photo-card-header">
+              <span class="photo-number">Ảnh 3</span>
+              <span class="photo-required-badge">Bắt buộc</span>
+            </div>
+            <strong class="photo-role-label">Ảnh công việc bổ sung</strong>
+
+            <div class="photo-thumb-wrap">
+              <img *ngIf="assets.tertiaryPhotoSrc" [src]="assets.tertiaryPhotoSrc" alt="Ảnh công việc bổ sung" />
+              <div *ngIf="!assets.tertiaryPhotoSrc" class="photo-empty-placeholder">
+                <i class="fas fa-wrench"></i>
+                <span>Chưa có ảnh</span>
+              </div>
+            </div>
+
+            <span class="photo-file-name" [title]="tertiaryPhotoName || 'Chưa chọn file'">
+              {{ tertiaryPhotoName || 'Chưa chọn file' }}
+            </span>
+
+            <div class="photo-card-actions">
+              <label class="btn-pick-file">
+                <i class="fas" [class.fa-image]="assets.tertiaryPhotoSrc" [class.fa-upload]="!assets.tertiaryPhotoSrc"></i>
+                {{ assets.tertiaryPhotoSrc ? 'Thay ảnh' : 'Chọn ảnh' }}
+                <input
+                  #tertiaryPhotoInput
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  (change)="onPhotoSelected($event, 'tertiary')"
+                />
+              </label>
+              <button
+                *ngIf="assets.tertiaryPhotoSrc"
+                type="button"
+                class="btn-remove-photo"
+                (click)="removePhoto('tertiary')"
+                title="Xóa ảnh này"
+              >
+                <i class="fas fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STANDARD 2-PHOTO SLOTS FOR OTHER TEMPLATES -->
+        <div class="photo-grid" *ngIf="!is3PhotoTemplate">
+          <div class="photo-picker-container">
+            <label class="photo-picker">
+              <span class="photo-number">Ảnh lớn (Ảnh 1)</span>
+              <img [src]="assets.primaryPhotoSrc" alt="Ảnh chính đang chọn" />
+              <strong>{{ primaryPhotoName }}</strong>
+              <span class="pick-action"><i class="fas fa-upload"></i> Tải ảnh từ máy</span>
+              <input
+                #primaryPhotoInput
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                (change)="onPhotoSelected($event, 'primary')"
+              />
+            </label>
+          </div>
+
+          <div class="photo-picker-container">
+            <label class="photo-picker">
+              <span class="photo-number">Ảnh phụ (Ảnh 2)</span>
+              <img [src]="assets.secondaryPhotoSrc" alt="Ảnh phụ đang chọn" />
+              <strong>{{ secondaryPhotoName }}</strong>
+              <span class="pick-action"><i class="fas fa-upload"></i> Tải ảnh từ máy</span>
+              <input
+                #secondaryPhotoInput
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                (change)="onPhotoSelected($event, 'secondary')"
+              />
+            </label>
+          </div>
         </div>
         <p class="upload-note">Hỗ trợ JPG, PNG, WebP; tối đa 12 MB mỗi ảnh.</p>
       </section>
@@ -190,18 +389,8 @@
         </div>
 
         <div class="form-grid">
-          <label class="field">
-            <span>Nhãn phía trên QR</span>
-            <input
-              type="text"
-              name="registrationLabel"
-              [(ngModel)]="data.registrationLabel"
-              maxlength="30"
-            />
-          </label>
-
-          <label class="field field-wide">
-            <span>Đường dẫn đăng ký</span>
+          <label class="field field-full">
+            <span>Đường dẫn đăng ký (URL Zalo / Web quét QR)</span>
             <input
               type="url"
               name="registrationUrl"
@@ -245,6 +434,16 @@
       </p>
 
       <div class="preview-actions">
+        <button
+          type="button"
+          class="btn-create-order-action"
+          (click)="exportToJobOrder()"
+          [disabled]="rendering"
+          title="Chuyển dữ liệu và poster sang Form tạo đơn hàng tuyển dụng trên website"
+        >
+          <i class="fas fa-file-export"></i>
+          XUẤT ĐƠN HÀNG LÊN WEBSITE
+        </button>
         <button type="button" class="btn-reset" (click)="resetPoster()" [disabled]="rendering">
           <i class="fas fa-rotate-left"></i>
           Khôi phục mẫu
@@ -252,18 +451,54 @@
         <button
           type="button"
           class="btn-download"
-          (click)="downloadPoster()"
-          [disabled]="rendering"
+          (click)="downloadPoster('png')"
+          [disabled]="!canDownloadPoster()"
         >
           <i class="fas fa-download"></i>
-          Tải ảnh đơn hàng PNG
+          Tải PNG
+        </button>
+        <button
+          type="button"
+          class="btn-download btn-secondary-download"
+          (click)="downloadPoster('jpg')"
+          [disabled]="!canDownloadPoster()"
+        >
+          <i class="fas fa-image"></i>
+          Tải JPG
+        </button>
+        <button
+          type="button"
+          class="btn-download btn-secondary-download"
+          (click)="downloadPoster('pdf')"
+          [disabled]="!canDownloadPoster()"
+        >
+          <i class="fas fa-file-pdf"></i>
+          Tải PDF
         </button>
       </div>
+      <p class="photo-download-warning" *ngIf="is3PhotoTemplate && !hasAllRequiredPhotos">
+        <i class="fas fa-triangle-exclamation"></i>
+        Mẫu này yêu cầu đủ 3 ảnh bắt buộc trước khi tải ảnh poster.
+      </p>
 
       <small class="privacy-note">
         <i class="fas fa-shield-halved"></i>
-        Ảnh và dữ liệu không được tải lên máy chủ.
+        Ảnh và dữ liệu không được tải lên máy chủ ngoài ý muốn.
       </small>
     </aside>
   </div>
+
+  <!-- Modal Xác Nhận & Tạo Đơn Hàng Website từ Poster -->
+  <app-job-order-confirm-modal
+    *ngIf="showJobConfirmModal"
+    [posterData]="data"
+    [posterAssets]="assets"
+    [posterCanvas]="posterCanvas"
+    [posterBlob]="lastExportedBlob"
+    (modalClosed)="closeJobOrderConfirmModal()"
+    (orderCreated)="onJobOrderCreated($event)"
+    (backToPoster)="closeJobOrderConfirmModal()"
+    (resetForNewPoster)="resetPoster()"
+  ></app-job-order-confirm-modal>
 </section>
+

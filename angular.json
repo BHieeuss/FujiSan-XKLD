@@ -34,7 +34,15 @@
               }
             ],
           "styles": ["src/styles.scss", "src/ui-refinement.scss"],
-            "allowedCommonJsDependencies": ["jszip", "qrcode"]
+            "allowedCommonJsDependencies": [
+              "jszip",
+              "qrcode",
+              "canvg",
+              "html2canvas",
+              "core-js",
+              "rgbcolor",
+              "raf"
+            ]
           },
           "configurations": {
             "production": {

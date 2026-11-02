@@ -20,8 +20,11 @@ describe('HiraganaPage', () => {
   });
 
   it('should render a four-answer quiz and record an answer', () => {
+    component.switchView('practice');
+    component.setTab('quiz');
+    fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelectorAll('.answer-grid button').length).toBe(4);
+    expect(compiled.querySelectorAll('.hira-mc-option').length).toBe(4);
 
     const question = component.currentQuestion!;
     component.chooseAnswer(question.correctAnswer);
@@ -29,28 +32,33 @@ describe('HiraganaPage', () => {
 
     expect(component.answerLocked).toBeTrue();
     expect(component.quizScore).toBe(1);
-    expect(compiled.querySelector('.answer-feedback.is-correct')).toBeTruthy();
+    expect(compiled.querySelector('.hira-feedback-banner.is-correct')).toBeTruthy();
   });
 
   it('should render two ordered writing pads for a compound sound', () => {
+    component.switchView('practice');
     component.setTab('writing');
     component.selectWritingItem(HIRAGANA_ITEMS.find((item) => item.id === 'kya')!);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelectorAll('app-stroke-pad').length).toBe(2);
-    expect(compiled.querySelector('.writing-tool-header h2')?.textContent).toContain('きゃ');
+    expect(compiled.querySelector('.canvas-title-group h3')?.textContent).toContain('きゃ');
   });
 
   it('should show an empty weak state when no item needs review', () => {
+    component.switchView('practice');
+    component.setTab('quiz');
     component.selectGroup('weak');
     fixture.detectChanges();
 
     expect(component.questions.length).toBe(0);
-    expect(fixture.nativeElement.querySelector('.empty-state')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.hira-empty-state')).toBeTruthy();
   });
 
   it('should keep generating random quiz questions without an immediate repeat', () => {
+    component.switchView('practice');
+    component.setTab('quiz');
     component.setQuizMode('continuous');
     const firstQuestion = component.currentQuestion!;
 
@@ -66,6 +74,7 @@ describe('HiraganaPage', () => {
   });
 
   it('should continue with a different random writing item after completion', () => {
+    component.switchView('practice');
     component.setTab('writing');
     component.selectGroup('basic');
     component.setWritingMode('continuous');

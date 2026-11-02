@@ -1,32 +1,916 @@
 <main class="job-detail-page">
   @if (loading) {
-    <div class="job-detail-state"><i class="fas fa-spinner fa-spin"></i> Đang tải đơn hàng...</div>
-  } @else if (!order) {
     <div class="job-detail-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Đang tải thông tin đơn tuyển dụng...</p>
+    </div>
+  } @else if (!order) {
+    <div class="job-detail-state error">
       <i class="fas fa-circle-exclamation"></i>
-      <p>{{ errorMessage || 'Không tìm thấy đơn hàng.' }}</p>
-      <a routerLink="/don-hang">Quay lại danh sách đơn hàng</a>
+      <h3>Không tìm thấy đơn hàng</h3>
+      <p>{{ errorMessage || 'Đơn hàng này có thể đã dừng tuyển hoặc không tồn tại.' }}</p>
+      <a routerLink="/don-hang" class="btn-back-jobs">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách đơn hàng
+      </a>
     </div>
   } @else {
-    <section class="job-detail-poster">
-      <div class="container">
-        <a class="job-detail-back" routerLink="/don-hang"><i class="fas fa-arrow-left"></i> Danh sách đơn hàng</a>
-        <figure>
-          <div class="job-detail-media">
-            <img [src]="order.imageUrl" [alt]="'Ảnh ' + orderTitle(order)" />
+    <!-- Breadcrumb & Top Bar -->
+    <div class="job-detail-topbar">
+      <div class="container job-detail-container">
+        <div class="topbar-inner">
+          <nav class="job-detail-breadcrumb" aria-label="Breadcrumb">
+            <a routerLink="/" class="breadcrumb-link"><i class="fas fa-house"></i> Trang chủ</a>
+            <span class="breadcrumb-separator">/</span>
+            <a routerLink="/don-hang" class="breadcrumb-link">Đơn hàng Nhật Bản</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-category">{{ orderCategory(order).label }}</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">{{ orderTitle(order) }}</span>
+          </nav>
+
+          <a routerLink="/don-hang" class="btn-back-list">
+            <i class="fas fa-arrow-left"></i>
+            <span>Tất cả đơn hàng</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    @if (order.status === 'draft') {
+      <div class="container job-detail-container mb-3">
+        <div class="draft-warning-banner animate-fade-in">
+          <div class="draft-banner-content">
+            <i class="fas fa-triangle-exclamation"></i>
+            <div>
+              <strong>ĐƠN HÀNG Ở TRẠNG THÁI BẢN NHÁP (DRAFT PREVIEW)</strong>
+              <p>Đơn hàng này chưa được xuất bản công khai. Chỉ quản trị viên và những người có đường dẫn trực tiếp mới có thể xem trước nội dung này.</p>
+            </div>
           </div>
-          <figcaption>
-            <span class="job-detail-category">
-              <i [class]="orderCategory(order).icon"></i>
-              {{ orderCategory(order).label }}
-            </span>
-            <h1>{{ orderTitle(order) }}</h1>
-            @if (order.description) {
-              <div class="job-detail-description" [innerHTML]="order.description"></div>
+          <span class="draft-badge-tag"><i class="fas fa-eye"></i> Bản xem trước</span>
+        </div>
+      </div>
+    }
+
+    <!-- 1. HERO SECTION -->
+    <section class="job-hero-section">
+      <div class="container job-detail-container">
+        <div class="job-hero-card">
+          <!-- Left Column: Visual Showcase -->
+          <div class="job-hero-media">
+            <div class="media-aspect-box">
+              <img
+                [src]="displayImageUrl"
+                alt="Hình ảnh minh họa" [alt]="'Ảnh đơn hàng ' + orderTitle(order)"
+                class="job-hero-img"
+                (error)="useFallbackImage($event, order)"
+              />
+
+              <!-- Overlay Badges -->
+              <span class="hero-badge-category">
+                <i [class]="orderCategory(order).icon"></i>
+                <span>{{ orderCategory(order).label }}</span>
+              </span>
+
+              <span class="hero-badge-status" title="Đang mở nhận hồ sơ ứng tuyển">
+                <span class="status-pulse-dot" aria-hidden="true"></span>
+                <span>Đang nhận hồ sơ</span>
+              </span>
+
+              <span class="hero-badge-code">
+                <i class="fas fa-barcode"></i>
+                <span>Mã: {{ orderCode(order) }}</span>
+              </span>
+
+              <span class="hero-badge-location">
+                <i class="fas fa-location-dot"></i>
+                <span>{{ orderLocation(order) }}</span>
+              </span>
+            </div>
+
+            @if (hasPoster) {
+              <div class="poster-quick-bar">
+                <button type="button" class="btn-view-poster" (click)="openPosterModal()">
+                  <i class="fas fa-file-image"></i>
+                  <span>Xem Poster tuyển dụng chính thức</span>
+                  <i class="fas fa-magnifying-glass-plus"></i>
+                </button>
+              </div>
             }
-          </figcaption>
-        </figure>
+          </div>
+
+          <!-- Right Column: Hero Content & Conversion Panel -->
+          <div class="job-hero-info">
+            <div class="hero-kicker-row">
+              <span class="hero-kicker">
+                <i class="fas fa-shield-halved"></i> Đơn hàng xác thực VieJap
+              </span>
+              <span class="hero-country-badge">
+                <span class="jp-flag-dot" aria-hidden="true"></span>
+                <span>Nhật Bản</span>
+              </span>
+            </div>
+
+            <h1 class="hero-job-title">{{ orderTitle(order) }}</h1>
+
+            <!-- Clean, professional Japanese salary presentation -->
+            <div class="hero-salary-row">
+              <span class="salary-label">Mức lương cơ bản:</span>
+              <strong class="salary-amount">{{ orderSalary(order) }}</strong>
+              <span class="salary-note">Chưa tính làm thêm</span>
+            </div>
+
+            <!-- 4 Quick Key Highlights -->
+            <div class="hero-quick-specs">
+              <div class="quick-spec-item">
+                <i class="fas fa-map-location-dot"></i>
+                <div>
+                  <small>Địa điểm làm việc</small>
+                  <strong>{{ orderLocation(order) }}</strong>
+                </div>
+              </div>
+
+              <div class="quick-spec-item">
+                <i class="fas fa-business-time"></i>
+                <div>
+                  <small>Thời hạn hợp đồng</small>
+                  <strong>{{ orderDuration(order) }}</strong>
+                </div>
+              </div>
+
+              <div class="quick-spec-item">
+                <i class="fas fa-plane-departure"></i>
+                <div>
+                  <small>Dự kiến xuất cảnh</small>
+                  <strong>{{ orderDeparture(order) }}</strong>
+                </div>
+              </div>
+
+              <div class="quick-spec-item">
+                <i class="fas fa-user-check"></i>
+                <div>
+                  <small>Độ tuổi tiếp nhận</small>
+                  <strong>{{ orderAge(order) }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Primary Action Buttons -->
+            <div class="hero-action-buttons">
+              <button type="button" class="btn-hero-apply" (click)="scrollToConsultation()">
+                <i class="fas fa-paper-plane"></i>
+                <span>Đăng ký tư vấn ngay</span>
+              </button>
+
+              <a
+                [href]="contactInfo.consultationUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-hero-zalo"
+              >
+                <i class="fas fa-comment-dots"></i>
+                <span>Nhắn Zalo tư vấn</span>
+              </a>
+
+              <a [href]="'tel:' + contactInfo.hotline" class="btn-hero-call">
+                <i class="fas fa-phone-volume"></i>
+                <span>Hotline: {{ contactInfo.hotline }}</span>
+              </a>
+            </div>
+
+            <p class="hero-guarantee-note">
+              <i class="fas fa-circle-check"></i> Hồ sơ minh bạch, chi phí công khai, hỗ trợ thủ tục từ A–Z.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
+
+    <!-- 2. MAIN CONTENT SECTIONS -->
+    <div class="job-detail-body">
+      <div class="container job-detail-container">
+        <!-- 5-TAB NAVIGATION BAR -->
+        <nav class="detail-tabs-nav" aria-label="Nội dung chi tiết đơn hàng">
+          <button type="button" class="tab-btn" [class.active]="activeTab === 'overview'" (click)="selectTab('overview')">
+            <i class="fas fa-circle-info"></i>
+            <span>1. Tổng quan</span>
+          </button>
+          <button type="button" class="tab-btn" [class.active]="activeTab === 'specs'" (click)="selectTab('specs')">
+            <i class="fas fa-clipboard-list"></i>
+            <span>2. Thông tin tuyển dụng</span>
+          </button>
+          <button type="button" class="tab-btn" [class.active]="activeTab === 'poster'" (click)="selectTab('poster')">
+            <i class="fas fa-image"></i>
+            <span>3. Poster chính thức</span>
+          </button>
+          <button type="button" class="tab-btn" [class.active]="activeTab === 'gallery'" (click)="selectTab('gallery')">
+            <i class="fas fa-images"></i>
+            <span>4. Hình ảnh & KTX</span>
+          </button>
+          <button type="button" class="tab-btn" [class.active]="activeTab === 'process'" (click)="selectTab('process')">
+            <i class="fas fa-route"></i>
+            <span>5. Quy trình & Đăng ký</span>
+          </button>
+        </nav>
+
+        <div class="job-detail-grid-layout">
+          <!-- Main Content Column -->
+          <div class="job-detail-main-col">
+            <!-- TAB 1: TỔNG QUAN -->
+            @if (activeTab === 'overview') {
+              <!-- Section A: Structured Specifications Grid -->
+              <section class="detail-section detail-specs-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-clipboard-list text-primary"></i>
+                  <span>Tổng quan thông số đơn hàng</span>
+                </h2>
+
+                <div class="specs-grid">
+                  <div class="spec-card">
+                    <div class="spec-card-icon"><i class="fas fa-briefcase"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Ngành nghề</span>
+                      <strong>{{ orderCategory(order).label }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-card">
+                    <div class="spec-card-icon"><i class="fas fa-location-dot"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Nơi làm việc</span>
+                      <strong>{{ orderLocation(order) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-card">
+                    <div class="spec-card-icon"><i class="fas fa-venus-mars"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Giới tính & Chỉ tiêu</span>
+                      <strong>{{ orderGender(order) }} ({{ orderQuantity(order) }})</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-card">
+                    <div class="spec-card-icon"><i class="fas fa-calendar-days"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Độ tuổi tiếp nhận</span>
+                      <strong>{{ orderAge(order) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-card highlight">
+                    <div class="spec-card-icon"><i class="fas fa-yen-sign"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Lương cơ bản</span>
+                      <strong class="text-success">{{ orderSalary(order) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-card">
+                    <div class="spec-card-icon"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Thời hạn làm việc</span>
+                      <strong>{{ orderDuration(order) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-card">
+                    <div class="spec-card-icon"><i class="fas fa-plane-departure"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Thời gian xuất cảnh</span>
+                      <strong>{{ orderDeparture(order) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-card">
+                    <div class="spec-card-icon"><i class="fas fa-user-graduate"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Trình độ học vấn</span>
+                      <strong>{{ orderEducation(order) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-card">
+                    <div class="spec-card-icon"><i class="fas fa-wrench"></i></div>
+                    <div class="spec-card-meta">
+                      <span class="label">Yêu cầu tay nghề</span>
+                      <strong>{{ orderExperience(order) }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section B: Job Description & Tasks -->
+              <section class="detail-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-file-lines text-primary"></i>
+                  <span>Mô tả công việc & Nhà xưởng</span>
+                </h2>
+
+                <div class="job-description-content">
+                  @if (order.description) {
+                    <div class="formatted-description" [innerHTML]="order.description"></div>
+                  } @else {
+                    <p>Công việc thực tế tại nhà máy theo dây chuyền chuẩn Nhật Bản, được quản lý người Nhật và đồng hương hướng dẫn tận tình.</p>
+                  }
+                </div>
+
+                <!-- Factory Environment Highlights -->
+                <div class="factory-features-grid">
+                  <div class="factory-feature-item">
+                    <i class="fas fa-snowflake"></i>
+                    <div>
+                      <strong>Môi trường làm việc</strong>
+                      <p>{{ order.workEnvironment || 'Trong nhà máy hiện đại, sạch sẽ, hệ thống điều hòa nhiệt độ ổn định quanh năm.' }}</p>
+                    </div>
+                  </div>
+
+                  <div class="factory-feature-item">
+                    <i class="fas fa-vest"></i>
+                    <div>
+                      <strong>Trang thiết bị bảo hộ</strong>
+                      <p>Được xí nghiệp Nhật trang bị đầy đủ đồng phục, mũ, găng tay, giày chống trượt miễn phí.</p>
+                    </div>
+                  </div>
+
+                  <div class="factory-feature-item">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                      <strong>Thời gian làm việc</strong>
+                      <p>{{ order.workingHours || '8 giờ/ngày, 5 ngày/tuần. Nghỉ thứ 7, Chủ Nhật và tất cả các ngày lễ theo lịch Nhật Bản.' }}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section E: Work Location & Region -->
+              <section class="detail-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-map-location-dot text-primary"></i>
+                  <span>Địa điểm làm việc: {{ orderLocation(order) }}</span>
+                </h2>
+
+                <div class="location-overview-card">
+                  <div class="loc-icon-bubble">
+                    <i class="fas fa-building-circle-check"></i>
+                  </div>
+                  <div class="loc-text">
+                    <h4>Vùng kinh tế {{ orderLocation(order).split(' - ')[0] }}</h4>
+                    <p>{{ orderLocationDescription(order) }}</p>
+                  </div>
+                </div>
+              </section>
+            }
+
+            <!-- TAB 2: THÔNG TIN TUYỂN DỤNG & LƯƠNG -->
+            @if (activeTab === 'specs') {
+              <section class="detail-section salary-breakdown-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-sack-dollar text-primary"></i>
+                  <span>Chi tiết Lương cơ bản & Lương thực lĩnh</span>
+                </h2>
+
+                <div class="salary-breakdown-cards">
+                  <div class="salary-card-box basic-sal">
+                    <span class="sub-label">LƯƠNG CƠ BẢN (GROSS)</span>
+                    <strong>{{ order.basicSalary || orderSalary(order) }}</strong>
+                    <small>Theo hợp đồng lao động ký với xí nghiệp tiếp nhận Nhật Bản</small>
+                  </div>
+                  <div class="salary-card-box take-home-sal">
+                    <span class="sub-label">THỰC LĨNH DỰ KIẾN (NET)</span>
+                    <strong class="text-success">{{ order.takeHomeSalary || orderSalary(order) }}</strong>
+                    <small>Đã trừ tiền thuế, bảo hiểm xã hội Nenkin và tiền nhà ở ký túc xá</small>
+                  </div>
+                </div>
+
+                <div class="allowances-details-list">
+                  <div class="allowance-row">
+                    <span><i class="fas fa-clock"></i> Tiền làm thêm giờ (Tăng ca):</span>
+                    <strong>{{ order.overtime || 'Bình quân 25 - 40h/tháng, nhân hệ số 125% - 150%' }}</strong>
+                  </div>
+                  <div class="allowance-row">
+                    <span><i class="fas fa-hand-holding-dollar"></i> Trợ cấp & Phụ cấp:</span>
+                    <strong>{{ order.allowances || 'Trợ cấp đào tạo tháng đầu 60.000 Yên, phụ cấp chuyên cần' }}</strong>
+                  </div>
+                  <div class="allowance-row">
+                    <span><i class="fas fa-shield-heart"></i> Chế độ bảo hiểm:</span>
+                    <strong>{{ order.insurance || 'Đầy đủ BH Y tế, Nenkin, Thất nghiệp theo Luật Nhật Bản' }}</strong>
+                  </div>
+                  <div class="allowance-row">
+                    <span><i class="fas fa-house-chimney"></i> Ký túc xá & Nhà ở:</span>
+                    <strong>{{ order.accommodation || 'KTX đầy đủ điều hòa, máy giặt, bếp nấu, wifi, gần nơi làm' }}</strong>
+                  </div>
+                  <div class="allowance-row">
+                    <span><i class="fas fa-utensils"></i> Tiền ăn & Phương tiện:</span>
+                    <strong>{{ (order.meals || 'Tự nấu ăn tại KTX') + ' · ' + (order.transport || 'Cấp xe đạp / vé tháng') }}</strong>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section D: Requirements & Eligibility -->
+              <section class="detail-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-user-check text-primary"></i>
+                  <span>Điều kiện & Tiêu chí tuyển chọn</span>
+                </h2>
+
+                <div class="requirements-checklist">
+                  <div class="req-item">
+                    <i class="fas fa-circle-check text-success"></i>
+                    <div>
+                      <strong>Độ tuổi & Giới tính:</strong> {{ orderAge(order) }} ({{ orderGender(order) }}).
+                    </div>
+                  </div>
+
+                  <div class="req-item">
+                    <i class="fas fa-circle-check text-success"></i>
+                    <div>
+                      <strong>Trình độ học vấn:</strong> {{ order.education || orderEducation(order) }}.
+                    </div>
+                  </div>
+
+                  <div class="req-item">
+                    <i class="fas fa-circle-check text-success"></i>
+                    <div>
+                      <strong>Trình độ tiếng Nhật:</strong> {{ order.japaneseLevel || 'Không yêu cầu khi thi tuyển, trúng tuyển được đào tạo tại VieJap' }}.
+                    </div>
+                  </div>
+
+                  <div class="req-item">
+                    <i class="fas fa-circle-check text-success"></i>
+                    <div>
+                      <strong>Kinh nghiệm & Kỹ năng:</strong> {{ order.experience || orderExperience(order) }}.
+                    </div>
+                  </div>
+
+                  <div class="req-item">
+                    <i class="fas fa-circle-check text-success"></i>
+                    <div>
+                      <strong>Sức khỏe:</strong> {{ order.healthRequirements || 'Đạt tiêu chuẩn khám sức khỏe đi Nhật (không mắc viêm gan B, HIV và các bệnh truyền nhiễm cấm nhập cảnh)' }}.
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section C: Benefits & Welfare -->
+              <section class="detail-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-gift text-primary"></i>
+                  <span>Quyền lợi & Chế độ đãi ngộ</span>
+                </h2>
+
+                <div class="benefits-grid">
+                  <div class="benefit-card">
+                    <div class="benefit-icon-box"><i class="fas fa-hand-holding-dollar"></i></div>
+                    <h4>Tiền làm thêm & Tăng ca</h4>
+                    <p>Mức lương làm thêm giờ được nhân hệ số từ <strong>1.25x đến 1.5x</strong> theo đúng Luật lao động Nhật Bản, thanh toán sòng phẳng vào tài khoản ngân hàng.</p>
+                  </div>
+
+                  <div class="benefit-card">
+                    <div class="benefit-icon-box"><i class="fas fa-heart-pulse"></i></div>
+                    <h4>Bảo hiểm Shakai Hoken</h4>
+                    <p>Hưởng 100% chế độ bảo hiểm y tế, bảo hiểm tai nạn lao động và bảo hiểm hưu trí theo đúng chế độ dành cho công dân Nhật Bản.</p>
+                  </div>
+
+                  <div class="benefit-card highlight">
+                    <div class="benefit-icon-box"><i class="fas fa-piggy-bank"></i></div>
+                    <h4>Hoàn thuế Nenkin khi về nước</h4>
+                    <p>Sau 3 năm làm việc về nước, người lao động được nhận lại tiền bảo hiểm hưu trí Nenkin từ <strong>80 đến 120 triệu VNĐ</strong>. VieJap hỗ trợ làm thủ tục trọn gói.</p>
+                  </div>
+
+                  <div class="benefit-card">
+                    <div class="benefit-icon-box"><i class="fas fa-house-chimney"></i></div>
+                    <h4>Chỗ ở ký túc xá tiện nghi</h4>
+                    <p>Xí nghiệp bố trí chỗ ở gần nơi làm việc, trang bị sẵn điều hòa 2 chiều, máy giặt, tủ lạnh, bếp nấu và wifi tốc độ cao.</p>
+                  </div>
+
+                  <div class="benefit-card">
+                    <div class="benefit-icon-box"><i class="fas fa-arrow-up-right-dots"></i></div>
+                    <h4>Cơ hội gia hạn & Chuyển Tokutei</h4>
+                    <p>Sau khi hoàn thành hợp đồng, được hỗ trợ chuyển đổi sang visa Kỹ năng đặc định (Tokutei Gino) để tiếp tục làm việc thêm 5 năm với mức lương cao hơn.</p>
+                  </div>
+
+                  <div class="benefit-card">
+                    <div class="benefit-icon-box"><i class="fas fa-book-open-reader"></i></div>
+                    <h4>Đào tạo tiếng Nhật bài bản</h4>
+                    <p>Được học tiếng Nhật, kỹ năng giao tiếp và tác phong chuẩn Nhật tại Trung tâm VieJap cùng đội ngũ giáo viên giàu kinh nghiệm.</p>
+                  </div>
+                </div>
+              </section>
+            }
+
+            <!-- TAB 3: POSTER CHÍNH THỨC -->
+            @if (activeTab === 'poster') {
+              <section class="detail-section poster-tab-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-image text-primary"></i>
+                  <span>Poster tuyển dụng chính thức</span>
+                </h2>
+                <p class="section-subtitle">
+                  Poster tuyển dụng chính thức độ phân giải cao được xuất từ công cụ thiết kế poster của VieJap.
+                </p>
+
+                <div class="official-poster-display">
+                  <img
+                    [src]="order.posterUrl || displayImageUrl"
+                    alt="Poster tuyển dụng chính thức"
+                    (click)="openPosterModal()"
+                    title="Nhấn để phóng to poster"
+                  />
+                  <div class="poster-display-actions">
+                    <button type="button" class="btn btn-primary" (click)="openPosterModal()">
+                      <i class="fas fa-magnifying-glass-plus"></i> Xem phóng to poster
+                    </button>
+                    <a
+                      [href]="order.posterUrl || displayImageUrl"
+                      download="poster-tuyen-dung.png"
+                      target="_blank"
+                      class="btn btn-secondary"
+                    >
+                      <i class="fas fa-download"></i> Tải ảnh poster
+                    </a>
+                  </div>
+                </div>
+              </section>
+            }
+
+            <!-- TAB 4: HÌNH ẢNH & KTX -->
+            @if (activeTab === 'gallery') {
+              <section class="detail-section gallery-tab-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-images text-primary"></i>
+                  <span>Hình ảnh môi trường làm việc & Ký túc xá</span>
+                </h2>
+                <div class="job-gallery-grid">
+                  <div class="gallery-card">
+                    <img [src]="displayImageUrl" alt="Xưởng sản xuất" />
+                    <span>Môi trường làm việc thực tế</span>
+                  </div>
+                  <div class="gallery-card">
+                    <img src="assets/images/jobs/job-thuc-pham.jpg" alt="Dây chuyền" />
+                    <span>Dây chuyền sản xuất hiện đại</span>
+                  </div>
+                  <div class="gallery-card">
+                    <img src="assets/images/jobs/job-nong-nghiep.jpg" alt="Ký túc xá" />
+                    <span>Ký túc xá & Đời sống học viên</span>
+                  </div>
+                </div>
+              </section>
+            }
+
+            <!-- TAB 5: QUY TRÌNH & ĐĂNG KÝ -->
+            @if (activeTab === 'process') {
+              <!-- Section F: 6-Step Recruitment Timeline -->
+              <section class="detail-section timeline-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-route text-primary"></i>
+                  <span>Quy trình 6 bước ứng tuyển tại VieJap</span>
+                </h2>
+                <p class="section-subtitle">
+                  Quy trình rõ ràng, minh bạch, đồng hành cùng bạn từ khi đăng ký đến khi xuất cảnh sang Nhật.
+                </p>
+
+                <div class="timeline-container">
+                  @for (step of timelineSteps; track step.step) {
+                    <div class="timeline-step-card">
+                      <div class="step-badge-circle">
+                        <span>{{ step.step }}</span>
+                      </div>
+                      <div class="step-content">
+                        <div class="step-header">
+                          <span class="step-icon"><i [class]="step.icon"></i></span>
+                          <div>
+                            <h4 class="step-title">Bước {{ step.step }}: {{ step.title }}</h4>
+                            <span class="step-duration"><i class="fas fa-clock"></i> {{ step.duration }}</span>
+                          </div>
+                        </div>
+                        <p class="step-desc">{{ step.desc }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </section>
+
+              <!-- Section G: FAQ Accordion -->
+              <section class="detail-section faq-section animate-fade-in">
+                <h2 class="section-title">
+                  <i class="fas fa-circle-question text-primary"></i>
+                  <span>Câu hỏi thường gặp</span>
+                </h2>
+
+                <div class="faq-accordion">
+                  @for (faq of faqs; track $index) {
+                    <div class="faq-card" [class.open]="faqOpenState[$index]">
+                      <button
+                        type="button"
+                        class="faq-question-btn"
+                        (click)="toggleFaq($index)"
+                        [attr.aria-expanded]="faqOpenState[$index]"
+                      >
+                        <span class="faq-q-text">
+                          <i class="fas fa-circle-dot me-2"></i> {{ faq.q }}
+                        </span>
+                        <i class="fas fa-chevron-down faq-arrow"></i>
+                      </button>
+
+                      @if (faqOpenState[$index]) {
+                        <div class="faq-answer">
+                          <p>{{ faq.a }}</p>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </section>
+            }
+          </div>
+
+          <!-- Sticky Sidebar Column (Desktop) -->
+          <aside class="job-detail-sidebar-col">
+            <!-- Fast Lead Capture Form -->
+            <div class="sidebar-card consultation-sidebar-card" id="tu-van-don-hang">
+              <div class="consultation-card-header">
+                <span class="badge-direct"><i class="fas fa-bolt"></i> ĐĂNG KÝ TRỰC TIẾP</span>
+                <h3>Nhận tư vấn đơn hàng này</h3>
+                <p>Để lại số điện thoại để cán bộ tuyển dụng VieJap liên hệ hỗ trợ hồ sơ và điều kiện ứng tuyển.</p>
+              </div>
+
+              @if (consultationSuccess) {
+                <div class="consultation-success-box">
+                  <i class="fas fa-circle-check text-success"></i>
+                  <h4>Gửi thông tin thành công!</h4>
+                  <p>Cán bộ tuyển dụng VieJap sẽ liên hệ qua điện thoại/Zalo trong thời gian sớm nhất.</p>
+                  <a
+                    [href]="contactInfo.consultationUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn-open-zalo-now"
+                  >
+                    <i class="fas fa-comment-dots"></i> Nhắn Zalo ngay
+                  </a>
+                </div>
+              } @else {
+                <form (submit)="submitConsultation($event)" class="consultation-form">
+                  <div class="form-group">
+                    <label for="fullName">Họ và tên của bạn <span class="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      name="fullName"
+                      class="form-control"
+                      placeholder="Ví dụ: Nguyễn Văn A"
+                      [(ngModel)]="consultationForm.fullName"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="phone">Số điện thoại / Zalo <span class="text-danger">*</span></label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      class="form-control"
+                      placeholder="Ví dụ: 0912 345 678"
+                      [(ngModel)]="consultationForm.phone"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="birthYear">Năm sinh</label>
+                      <input
+                        type="text"
+                        id="birthYear"
+                        name="birthYear"
+                        class="form-control"
+                        placeholder="Ví dụ: 2002"
+                        [(ngModel)]="consultationForm.birthYear"
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label for="province">Tỉnh / Thành</label>
+                      <input
+                        type="text"
+                        id="province"
+                        name="province"
+                        class="form-control"
+                        placeholder="Ví dụ: Vĩnh Long"
+                        [(ngModel)]="consultationForm.province"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="note">Ghi chú hoặc câu hỏi</label>
+                    <textarea
+                      id="note"
+                      name="note"
+                      class="form-control"
+                      rows="2"
+                      placeholder="Bạn muốn hỏi về chi phí, tiếng Nhật hay lịch bay..."
+                      [(ngModel)]="consultationForm.note"
+                    ></textarea>
+                  </div>
+
+                  <button type="submit" class="btn-submit-consult" [disabled]="consultationSending">
+                    @if (consultationSending) {
+                      <i class="fas fa-spinner fa-spin"></i> Đang gửi thông tin...
+                    } @else {
+                      <i class="fas fa-paper-plane"></i> Gửi đăng ký tư vấn miễn phí
+                    }
+                  </button>
+
+                  <p class="form-security-note">
+                    <i class="fas fa-shield-halved"></i> VieJap cam kết bảo mật 100% thông tin cá nhân.
+                  </p>
+                </form>
+              }
+
+              <!-- Direct Hotline Pill -->
+              <div class="direct-contact-divider">
+                <span>Hoặc liên hệ trực tiếp</span>
+              </div>
+
+              <div class="sidebar-direct-buttons">
+                <a
+                  [href]="contactInfo.consultationUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn-sidebar-zalo"
+                >
+                  <i class="fas fa-comment-dots"></i>
+                  <span>Chat Zalo tư vấn 24/7</span>
+                </a>
+
+                <a [href]="'tel:' + contactInfo.hotline" class="btn-sidebar-phone">
+                  <i class="fas fa-phone"></i>
+                  <span>Hotline: {{ contactInfo.hotline }}</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- VieJap Quality Commitment Card -->
+            <div class="sidebar-card trust-sidebar-card">
+              <h4><i class="fas fa-award text-primary"></i> Cam kết từ VieJap</h4>
+              <ul class="trust-list">
+                <li><i class="fas fa-check"></i> Đơn hàng chính thức từ nghiệp đoàn Nhật Bản.</li>
+                <li><i class="fas fa-check"></i> Chi phí công khai minh bạch, không phát sinh.</li>
+                <li><i class="fas fa-check"></i> Đào tạo tiếng Nhật bài bản tại trung tâm.</li>
+                <li><i class="fas fa-check"></i> Hỗ trợ thủ tục COE & Visa tỷ lệ đậu cao.</li>
+                <li><i class="fas fa-check"></i> Đồng hành và hỗ trợ học viên suốt thời gian ở Nhật.</li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. RELATED JOBS SECTION -->
+    @if (relatedOrders.length) {
+      <section class="related-jobs-section">
+        <div class="container job-detail-container">
+          <div class="related-jobs-header">
+            <div>
+              <span class="related-kicker">CƠ HỘI NGHỀ NGHIỆP TƯƠNG TỰ</span>
+              <h2>Đơn hàng tuyển dụng liên quan</h2>
+            </div>
+            <a routerLink="/don-hang" class="btn-view-all-related">
+              <span>Xem tất cả đơn</span>
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="related-jobs-grid">
+            @for (related of relatedOrders; track related.id) {
+              <article class="related-card">
+                <a [routerLink]="['/don-hang', related.id]" class="related-card-visual">
+                  <img
+                    [src]="related.imageUrl || getJobOrderFallbackImage(related.category)"
+                    alt="Hình ảnh minh họa" [alt]="orderTitle(related)"
+                    loading="lazy"
+                    (error)="useFallbackImage($event, related)"
+                  />
+                  <span class="related-category-tag">
+                    <i [class]="orderCategory(related).icon"></i>
+                    {{ orderCategory(related).label }}
+                  </span>
+                  <span class="related-location-tag">
+                    <i class="fas fa-location-dot"></i>
+                    {{ orderLocation(related) }}
+                  </span>
+                </a>
+
+                <div class="related-card-body">
+                  <h3 class="related-card-title">
+                    <a [routerLink]="['/don-hang', related.id]">{{ orderTitle(related) }}</a>
+                  </h3>
+
+                  <div class="related-salary-box">
+                    <small>Mức lương:</small>
+                    <strong>{{ orderSalary(related) }}</strong>
+                  </div>
+
+                  <a [routerLink]="['/don-hang', related.id]" class="btn-related-detail">
+                    <span>Xem chi tiết</span>
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- 4. BOTTOM CTA CONVERSION BANNER -->
+    <section class="bottom-cta-banner">
+      <div class="container job-detail-container">
+        <div class="bottom-cta-card">
+          <div class="bottom-cta-text">
+            <span class="cta-kicker"><i class="fas fa-star"></i> BẮT ĐẦU HÀNH TRÌNH ĐI NHẬT CÙNG VIEJAP</span>
+            <h3>Bạn đã sẵn sàng ứng tuyển đơn hàng này?</h3>
+            <p>Liên hệ ngay với cán bộ tuyển dụng để được hướng dẫn nộp hồ sơ, kiểm tra điều kiện và đặt lịch phỏng vấn sớm nhất.</p>
+          </div>
+
+          <div class="bottom-cta-buttons">
+            <button type="button" class="btn-bottom-apply" (click)="scrollToConsultation()">
+              <i class="fas fa-paper-plane"></i>
+              <span>Đăng ký tư vấn ngay</span>
+            </button>
+
+            <a
+              [href]="contactInfo.consultationUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-bottom-zalo"
+            >
+              <i class="fas fa-comment-dots"></i>
+              <span>Nhắn Zalo</span>
+            </a>
+
+            <a [href]="'tel:' + contactInfo.hotline" class="btn-bottom-phone">
+              <i class="fas fa-phone-volume"></i>
+              <span>Hotline: {{ contactInfo.hotline }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. MOBILE STICKY BOTTOM ACTION BAR -->
+    <aside class="mobile-sticky-bar" aria-label="Thanh liên hệ nhanh">
+      <div class="mobile-sticky-inner">
+        <a [href]="'tel:' + contactInfo.hotline" class="btn-mobile-call">
+          <i class="fas fa-phone"></i>
+          <span>Gọi điện</span>
+        </a>
+
+        <a
+          [href]="contactInfo.consultationUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-mobile-zalo"
+        >
+          <i class="fas fa-comment-dots"></i>
+          <span>Nhắn Zalo</span>
+        </a>
+
+        <button type="button" class="btn-mobile-apply" (click)="scrollToConsultation()">
+          <i class="fas fa-paper-plane"></i>
+          <span>Ứng tuyển ngay</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 6. HIGH RESOLUTION POSTER LIGHTBOX MODAL -->
+    @if (showPosterModal) {
+      <div class="poster-modal-backdrop" role="presentation" (click)="closePosterModal()">
+        <div
+          class="poster-modal-card"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Poster tuyển dụng chính thức"
+          (click)="$event.stopPropagation()"
+          (keydown.escape)="closePosterModal()"
+          tabindex="0"
+        >
+          <button type="button" class="btn-close-poster" (click)="closePosterModal()" aria-label="Đóng">
+            <i class="fas fa-xmark"></i>
+          </button>
+
+          <div class="poster-modal-img-container">
+            <img [src]="displayPosterUrl" alt="Hình ảnh minh họa" [alt]="'Poster ' + orderTitle(order)" />
+          </div>
+
+          <div class="poster-modal-footer">
+            <button type="button" class="btn-modal-apply" (click)="closePosterModal(); scrollToConsultation()">
+              <i class="fas fa-paper-plane"></i> Đăng ký tư vấn đơn hàng này
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   }
 </main>

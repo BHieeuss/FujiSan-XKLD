@@ -1,213 +1,1457 @@
-<section class="orders-admin">
-  <div class="orders-summary">
-    <div class="orders-summary-copy">
-      <span class="orders-summary-kicker"><i class="fas fa-bullhorn"></i> Bài đăng tuyển dụng</span>
-      <strong>{{ publishedCount }} đơn đang hiển thị</strong>
-      <small>Chỉnh sửa nội dung trực tiếp và xem trước trước khi xuất bản.</small>
-    </div>
-    <button type="button" class="create-order-button" (click)="startCreate()">
-      <i class="fas fa-plus"></i> Thêm đơn hàng
-    </button>
-  </div>
-
-  <div class="orders-admin-layout">
-    <section class="orders-list-panel">
-      <div class="orders-filter-row">
-        <strong>Danh sách đơn hàng</strong>
-        <div class="status-filter" aria-label="Lọc trạng thái đơn hàng">
-          <button type="button" [class.active]="statusFilter === 'all'" (click)="setStatusFilter('all')">Tất cả</button>
-          <button type="button" [class.active]="statusFilter === 'published'" (click)="setStatusFilter('published')">Đang tuyển</button>
-          <button type="button" [class.active]="statusFilter === 'draft'" (click)="setStatusFilter('draft')">Nháp</button>
+<!-- ========================================================================= -->
+<!-- SUB-VIEW: WIZARD TẠO & CHỈNH SỬA ĐƠN HÀNG                                -->
+<!-- ========================================================================= -->
+@if (showWizard) {
+  <app-job-order-wizard
+    [initialData]="wizardInitialData"
+    [isEditing]="isEditingWizard"
+    [editingId]="wizardEditingId"
+    (orderSaved)="onWizardOrderSaved($event)"
+    (cancelled)="closeWizard()"
+  ></app-job-order-wizard>
+} @else if (selectedOrder) {
+  <!-- ======================================================================= -->
+  <!-- SUB-VIEW: CHI TIẾT ĐƠN HÀNG (FULL ADMIN TAB / DEDICATED VIEW)            -->
+  <!-- ======================================================================= -->
+  @let cat = getCategory(selectedOrder);
+  <div class="job-order-detail-view animate-fade-in">
+    <!-- Top Navigation & Action Bar -->
+    <div class="detail-view-topbar">
+      <div class="detail-topbar-left">
+        <button
+          type="button"
+          class="btn-back-to-list"
+          (click)="closeDetailModal()"
+          title="Quay lại danh sách đơn hàng"
+        >
+          <i class="fas fa-arrow-left"></i>
+          <span>Quay lại danh sách</span>
+        </button>
+        <div class="detail-breadcrumbs">
+          <span class="crumb-link" (click)="closeDetailModal()">Quản lý đơn hàng</span>
+          <i class="fas fa-chevron-right crumb-sep"></i>
+          <span class="crumb-current">Chi tiết đơn {{ selectedOrder.orderCode || selectedOrder.id }}</span>
         </div>
       </div>
 
-      @if (loading) {
-        <div class="orders-list-state"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
-      } @else if (!visibleOrders.length) {
-        <div class="orders-list-state"><i class="fas fa-image"></i> Chưa có đơn hàng trong mục này.</div>
-      } @else {
-        <div class="orders-list">
-          @for (order of visibleOrders; track order.id) {
-            @let category = getCategory(order);
-            <article class="admin-order-card" [class.selected]="editingId === order.id">
-              <img [src]="order.imageUrl" alt="Ảnh đơn hàng" (error)="useFallbackImage($event, order)" />
-              <div class="admin-order-card-content">
-                <div class="admin-order-card-head">
-                  <span class="admin-order-status" [class.draft]="order.status === 'draft'">
-                    {{ order.status === 'published' ? 'Đang tuyển' : 'Nháp' }}
-                  </span>
-                  <span class="admin-order-category"><i [class]="category.icon"></i> {{ category.shortLabel }}</span>
-                  @if (order.isFeatured) {
-                    <span class="admin-order-featured"><i class="fas fa-star"></i> Nổi bật</span>
-                  }
+      <div class="detail-topbar-actions">
+        @if (canUpdate()) {
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="openEditWizard(selectedOrder)"
+            title="Mở trình chỉnh sửa đơn hàng"
+          >
+            <i class="fas fa-pen-to-square"></i>
+            <span>Chỉnh sửa</span>
+          </button>
+        }
+
+        <a
+          [href]="'/don-hang/' + selectedOrder.id"
+          target="_blank"
+          class="btn btn-secondary"
+          title="Mở trang chi tiết học viên xem trên website"
+        >
+          <i class="fas fa-arrow-up-right-from-square"></i>
+          <span>Xem trang web</span>
+        </a>
+
+        @if (canApprove() || canUpdate()) {
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="toggleStatus(selectedOrder)"
+            [disabled]="statusChangingId === selectedOrder.id"
+            title="Đổi trạng thái xuất bản"
+          >
+            <i [class]="selectedOrder.status === 'published' ? 'fas fa-eye-slash text-warning' : 'fas fa-circle-check text-success'"></i>
+            <span>{{ selectedOrder.status === 'published' ? 'Chuyển về Bản nháp' : 'Xuất bản đơn hàng' }}</span>
+          </button>
+        }
+
+        @if (canCreate()) {
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="duplicateOrder(selectedOrder)"
+            [disabled]="duplicatingId === selectedOrder.id"
+            title="Nhân bản đơn hàng này"
+          >
+            <i class="fas fa-copy text-info"></i>
+            <span>Nhân bản</span>
+          </button>
+        }
+
+        @if (canDelete()) {
+          <button
+            type="button"
+            class="btn btn-outline-danger"
+            (click)="openDeleteConfirm(selectedOrder)"
+            title="Xóa đơn hàng"
+          >
+            <i class="fas fa-trash-can"></i>
+            <span>Xóa đơn</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="detail-view-hero">
+      <div class="hero-header-line">
+        <div class="hero-badges">
+          <span class="order-code-badge">{{ selectedOrder.orderCode || selectedOrder.id }}</span>
+          <span
+            class="status-pill"
+            [class.status-published]="selectedOrder.status === 'published'"
+            [class.status-draft]="selectedOrder.status === 'draft'"
+          >
+            <span class="status-dot"></span>
+            {{ selectedOrder.status === 'published' ? 'Đang tuyển' : 'Bản nháp' }}
+          </span>
+          <span class="cat-badge-modal">
+            <i [class]="cat.icon"></i> {{ cat.label }}
+          </span>
+          @if (selectedOrder.isFeatured) {
+            <span class="badge-featured"><i class="fas fa-star"></i> Nổi bật</span>
+          }
+        </div>
+        <div class="hero-meta-dates">
+          <span><i class="fas fa-calendar-plus"></i> Tạo: {{ selectedOrder.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+          <span><i class="fas fa-clock-rotate-left"></i> Sửa: {{ selectedOrder.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <h1 class="hero-title">{{ orderTitle(selectedOrder) }}</h1>
+
+      <!-- Key Highlights Strip -->
+      <div class="hero-stats-strip">
+        <div class="hero-stat-card">
+          <span class="stat-icon"><i class="fas fa-building"></i></span>
+          <div class="stat-data">
+            <small>CÔNG TY TIẾP NHẬN</small>
+            <strong>{{ selectedOrder.company || 'Đối tác VieJap' }}</strong>
+          </div>
+        </div>
+        <div class="hero-stat-card">
+          <span class="stat-icon text-danger"><i class="fas fa-location-dot"></i></span>
+          <div class="stat-data">
+            <small>ĐỊA ĐIỂM LÀM VIỆC</small>
+            <strong>{{ selectedOrder.location || 'Nhật Bản' }}</strong>
+          </div>
+        </div>
+        <div class="hero-stat-card">
+          <span class="stat-icon text-primary"><i class="fas fa-yen-sign"></i></span>
+          <div class="stat-data">
+            <small>LƯƠNG CƠ BẢN</small>
+            <strong>{{ selectedOrder.basicSalary || selectedOrder.salary || 'Chưa cập nhật' }}</strong>
+          </div>
+        </div>
+        <div class="hero-stat-card">
+          <span class="stat-icon text-success"><i class="fas fa-hand-holding-dollar"></i></span>
+          <div class="stat-data">
+            <small>THỰC LĨNH TAY</small>
+            <strong>{{ selectedOrder.takeHomeSalary || 'Khoảng 140K - 180K Yên' }}</strong>
+          </div>
+        </div>
+        <div class="hero-stat-card">
+          <span class="stat-icon text-info"><i class="fas fa-users"></i></span>
+          <div class="stat-data">
+            <small>SỐ LƯỢNG / GIỚI TÍNH</small>
+            <strong>{{ selectedOrder.quantity || '0' }} ({{ selectedOrder.gender || 'Nam/Nữ' }})</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Tabs Nav -->
+    <div class="detail-view-tabs-container">
+      <nav class="detail-nav-tabs">
+        <button
+          type="button"
+          class="detail-tab-btn"
+          [class.active]="detailActiveTab === 'overview'"
+          (click)="detailActiveTab = 'overview'"
+        >
+          <i class="fas fa-circle-info"></i>
+          <span>Tổng quan tuyển dụng</span>
+        </button>
+
+        <button
+          type="button"
+          class="detail-tab-btn"
+          [class.active]="detailActiveTab === 'work'"
+          (click)="detailActiveTab = 'work'"
+        >
+          <i class="fas fa-briefcase"></i>
+          <span>Công việc & Yêu cầu</span>
+        </button>
+
+        <button
+          type="button"
+          class="detail-tab-btn"
+          [class.active]="detailActiveTab === 'salary'"
+          (click)="detailActiveTab = 'salary'"
+        >
+          <i class="fas fa-hand-holding-dollar"></i>
+          <span>Lương & Phúc lợi</span>
+        </button>
+
+        <button
+          type="button"
+          class="detail-tab-btn"
+          [class.active]="detailActiveTab === 'poster'"
+          (click)="detailActiveTab = 'poster'"
+        >
+          <i class="fas fa-image"></i>
+          <span>Poster & Hình ảnh</span>
+        </button>
+
+        <button
+          type="button"
+          class="detail-tab-btn"
+          [class.active]="detailActiveTab === 'post'"
+          (click)="detailActiveTab = 'post'"
+        >
+          <i class="fab fa-facebook"></i>
+          <span>Nội dung bài đăng</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Body Content -->
+    <div class="detail-view-body">
+      <!-- TAB 1: TỔNG QUAN -->
+      @if (detailActiveTab === 'overview') {
+        <div class="tab-panel animate-fade-in">
+          <div class="info-grid-two">
+            <div class="info-item">
+              <span class="info-label">Mã đơn hàng:</span>
+              <strong class="info-val text-primary font-bold">{{ selectedOrder.orderCode || selectedOrder.id }}</strong>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Công ty tiếp nhận:</span>
+              <span class="info-val font-semibold">{{ selectedOrder.company || 'Đang cập nhật' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Ngành nghề chính:</span>
+              <span class="info-val"><i [class]="cat.icon" class="text-primary me-1"></i> {{ cat.label }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Địa điểm làm việc:</span>
+              <span class="info-val font-semibold text-danger">
+                <i class="fas fa-location-dot"></i> {{ selectedOrder.location || 'Nhật Bản' }}
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Số lượng tuyển dụng:</span>
+              <span class="info-val font-semibold">{{ selectedOrder.quantity || 'Không giới hạn' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Giới tính yêu cầu:</span>
+              <span class="info-val">{{ selectedOrder.gender || 'Nam/Nữ' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Độ tuổi tiếp nhận:</span>
+              <span class="info-val">{{ selectedOrder.ageRange || '18 - 35 tuổi' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Trình độ văn hóa:</span>
+              <span class="info-val">{{ selectedOrder.education || 'Tốt nghiệp THPT trở lên' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Trình độ tiếng Nhật:</span>
+              <span class="info-val font-semibold text-primary">{{ selectedOrder.japaneseLevel || 'Không yêu cầu khi thi tuyển' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Thời hạn hợp đồng:</span>
+              <span class="info-val font-semibold">{{ selectedOrder.contractTerm || '3 năm (Có thể gia hạn)' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Ngày phỏng vấn dự kiến:</span>
+              <span class="info-val text-primary font-semibold">{{ selectedOrder.interviewDate || 'Chưa ấn định' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Dự kiến xuất cảnh:</span>
+              <span class="info-val text-info font-semibold">{{ selectedOrder.departureMonth || 'Theo tiến độ hồ sơ' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Thời điểm tạo đơn:</span>
+              <span class="info-val text-muted">{{ selectedOrder.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Cập nhật gần nhất:</span>
+              <span class="info-val text-muted">{{ selectedOrder.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- TAB 2: CÔNG VIỆC & YÊU CẦU -->
+      @if (detailActiveTab === 'work') {
+        <div class="tab-panel animate-fade-in">
+          <div class="detail-block">
+            <h4 class="block-title"><i class="fas fa-hammer text-primary"></i> Công việc cụ thể</h4>
+            <div class="block-content rich-text-preview">
+              {{ selectedOrder.specificWork || stripHtml(selectedOrder.description) || 'Chưa có thông tin công việc cụ thể.' }}
+            </div>
+          </div>
+
+          <div class="detail-block">
+            <h4 class="block-title"><i class="fas fa-building text-primary"></i> Môi trường làm việc</h4>
+            <div class="block-content">
+              {{ selectedOrder.workEnvironment || 'Nhà máy hiện đại, môi trường sạch sẽ, trang thiết bị an toàn đạt chuẩn Nhật Bản.' }}
+            </div>
+          </div>
+
+          <div class="detail-block">
+            <h4 class="block-title"><i class="fas fa-clock text-primary"></i> Thời gian làm việc & Ngày nghỉ</h4>
+            <div class="info-grid-two">
+              <div class="info-item">
+                <span class="info-label">Giờ làm việc:</span>
+                <span class="info-val">{{ selectedOrder.workingHours || '08:00 - 17:00 (Nghỉ trưa 60 phút)' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Chế độ ngày nghỉ:</span>
+                <span class="info-val">{{ selectedOrder.holidays || 'Nghỉ Thứ 7, Chủ Nhật và các ngày Lễ theo lịch Nhật Bản' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-block">
+            <h4 class="block-title"><i class="fas fa-clipboard-check text-primary"></i> Yêu cầu tuyển chọn khác</h4>
+            <div class="info-grid-two">
+              <div class="info-item">
+                <span class="info-label">Kinh nghiệm:</span>
+                <span class="info-val">{{ selectedOrder.experience || 'Không yêu cầu kinh nghiệm, tiếp nhận đào tạo bài bản' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Yêu cầu sức khỏe:</span>
+                <span class="info-val">{{ selectedOrder.healthRequirements || 'Sức khỏe tốt, không mắc bệnh truyền nhiễm theo quy định đi Nhật' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- TAB 3: LƯƠNG & PHÚC LỢI -->
+      @if (detailActiveTab === 'salary') {
+        <div class="tab-panel animate-fade-in">
+          <div class="salary-highlight-card">
+            <div class="salary-pair">
+              <span class="salary-pair-label">LƯƠNG CƠ BẢN</span>
+              <strong class="salary-pair-val text-primary">
+                {{ selectedOrder.basicSalary || selectedOrder.salary || 'Theo quy định vùng' }}
+              </strong>
+            </div>
+            <div class="salary-pair-divider"></div>
+            <div class="salary-pair">
+              <span class="salary-pair-label">LƯƠNG THỰC LĨNH TAY</span>
+              <strong class="salary-pair-val text-success">
+                {{ selectedOrder.takeHomeSalary || selectedOrder.salary || 'Khoảng 140.000 - 180.000 Yên/tháng' }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="info-grid-two mt-4">
+            <div class="info-item">
+              <span class="info-label">Làm thêm giờ (Tăng ca):</span>
+              <span class="info-val">{{ selectedOrder.overtime || 'Bình quân 20 - 40 giờ/tháng, tính 125% - 150% lương cơ bản' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Các khoản phụ cấp:</span>
+              <span class="info-val">{{ selectedOrder.allowances || 'Phụ cấp ca kíp, chuyên cần, sinh hoạt phí tháng đầu' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Thưởng & Tăng lương:</span>
+              <span class="info-val">{{ selectedOrder.bonus || 'Xét tăng lương theo năng suất hàng năm' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Chế độ bảo hiểm:</span>
+              <span class="info-val">{{ selectedOrder.insurance || 'Đầy đủ BH Y tế, Nenkin, Thất nghiệp, Tai nạn theo Luật Nhật Bản' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Ký túc xá / Nhà ở:</span>
+              <span class="info-val">{{ selectedOrder.accommodation || 'Ký túc xá đầy đủ điều hòa, máy giặt, bếp nấu, wifi' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Hỗ trợ ăn uống & Đi lại:</span>
+              <span class="info-val">{{ selectedOrder.meals || selectedOrder.transport || 'Cung cấp xe đạp hoặc hỗ trợ 100% vé tàu điện' }}</span>
+            </div>
+
+            <div class="info-item field-full">
+              <span class="info-label">Quyền lợi khác:</span>
+              <span class="info-val">{{ selectedOrder.otherBenefits || 'Hỗ trợ thủ tục hoàn thuế Nenkin khi hoàn thành hợp đồng về nước' }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- TAB 4: POSTER & HÌNH ẢNH -->
+      @if (detailActiveTab === 'poster') {
+        <div class="tab-panel animate-fade-in">
+          <div class="media-viewer-grid">
+            <!-- Poster Column -->
+            <div class="poster-preview-card">
+              <h4 class="media-card-title">
+                <i class="fas fa-image text-primary"></i> Poster tuyển dụng chính thức
+              </h4>
+              @if (selectedOrder.posterUrl) {
+                <div class="poster-container">
+                  <img
+                    [src]="selectedOrder.posterUrl"
+                    alt="Poster tuyển dụng"
+                    class="poster-large-img"
+                    (click)="openPosterLightbox(selectedOrder.posterUrl)"
+                  />
                 </div>
-                <h3>{{ orderTitle(order) }}</h3>
-                <p>{{ stripHtml(order.description) || 'Chưa có mô tả.' }}</p>
-                <div class="admin-order-card-actions">
-                  <button type="button" (click)="startEdit(order)"><i class="fas fa-pen"></i> Sửa</button>
-                  <button type="button" class="delete" [disabled]="deletingId === order.id" (click)="remove(order)">
-                    <i [class]="deletingId === order.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash'"></i> Xóa
+                <div class="poster-actions-bar">
+                  <a
+                    [href]="selectedOrder.posterUrl"
+                    [download]="'Poster_' + (selectedOrder.orderCode || selectedOrder.id) + '.png'"
+                    class="btn btn-secondary btn-sm"
+                  >
+                    <i class="fas fa-download"></i> Tải poster về máy
+                  </a>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    (click)="openInPosterMaker(selectedOrder)"
+                  >
+                    <i class="fas fa-palette"></i> Mở công cụ Tạo Poster
                   </button>
                 </div>
+              } @else {
+                <div class="no-poster-notice">
+                  <i class="fas fa-image-slash fa-2x text-muted"></i>
+                  <p>Đơn hàng này chưa có Poster đồ họa.</p>
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    (click)="openInPosterMaker(selectedOrder)"
+                  >
+                    <i class="fas fa-wand-magic-sparkles"></i> Tạo poster cho đơn này
+                  </button>
+                </div>
+              }
+            </div>
+
+            <!-- Featured Image & Gallery -->
+            <div class="gallery-preview-card">
+              <h4 class="media-card-title">
+                <i class="fas fa-images text-primary"></i> Ảnh đại diện & Thư viện ảnh
+              </h4>
+
+              <div class="featured-img-wrap">
+                <span class="img-badge">Ảnh đại diện bài đăng</span>
+                <img
+                  [src]="selectedOrder.imageUrl"
+                  alt="Ảnh đại diện"
+                  class="featured-full-img"
+                  (error)="useFallbackImage($event, selectedOrder)"
+                />
+              </div>
+
+              @if (selectedOrder.galleryImages && selectedOrder.galleryImages.length > 0) {
+                <div class="gallery-thumbs-grid mt-3">
+                  @for (g of selectedOrder.galleryImages; track g) {
+                    <img
+                      [src]="g"
+                      alt="Ảnh thực tế"
+                      class="gallery-thumb-item"
+                      (click)="openPosterLightbox(g)"
+                    />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- TAB 5: BÀI ĐĂNG SOCIAL -->
+      @if (detailActiveTab === 'post') {
+        <div class="tab-panel animate-fade-in">
+          <div class="post-preview-card">
+            <div class="post-card-header">
+              <div>
+                <h4 class="media-card-title m-0">
+                  <i class="fab fa-facebook text-primary"></i> Mẫu bài đăng mạng xã hội (Facebook / Zalo)
+                </h4>
+                <p class="text-sm text-muted m-0">
+                  Nội dung được cấu trúc chuẩn hóa, sẵn sàng sao chép và chia sẻ lên fanpage, group tuyển dụng.
+                </p>
+              </div>
+              <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                (click)="copyPostContent(selectedOrder)"
+              >
+                <i class="fas fa-copy"></i>
+                <span>Sao chép toàn bộ bài đăng</span>
+              </button>
+            </div>
+
+            <div class="post-content-box">
+              <pre class="facebook-post-text">{{ selectedOrder.facebookContent || selectedOrder.description }}</pre>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Footer Action Bar -->
+    <div class="detail-view-footer">
+      <div class="footer-left">
+        <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Quay lại danh sách</span>
+        </button>
+
+        @if (canApprove() || canUpdate()) {
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="toggleStatus(selectedOrder)"
+            [disabled]="statusChangingId === selectedOrder.id"
+          >
+            <i [class]="selectedOrder.status === 'published' ? 'fas fa-eye-slash text-warning' : 'fas fa-circle-check text-success'"></i>
+            <span>{{ selectedOrder.status === 'published' ? 'Chuyển về Bản nháp' : 'Xuất bản đơn hàng' }}</span>
+          </button>
+        }
+
+        @if (canCreate()) {
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="duplicateOrder(selectedOrder)"
+            [disabled]="duplicatingId === selectedOrder.id"
+          >
+            <i class="fas fa-copy text-info"></i>
+            <span>Nhân bản</span>
+          </button>
+        }
+
+        @if (canDelete()) {
+          <button
+            type="button"
+            class="btn btn-outline-danger"
+            (click)="openDeleteConfirm(selectedOrder)"
+          >
+            <i class="fas fa-trash-can"></i>
+            <span>Xóa đơn hàng</span>
+          </button>
+        }
+      </div>
+
+      <div class="footer-right">
+        @if (canUpdate()) {
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="openEditWizard(selectedOrder)"
+          >
+            <i class="fas fa-pen-to-square"></i>
+            <span>Chỉnh sửa thông tin đơn</span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  <!-- ======================================================================= -->
+  <!-- MAIN VIEW: QUẢN LÝ ĐƠN HÀNG CHUẨN DOANH NGHIỆP                          -->
+  <!-- ======================================================================= -->
+  <div class="job-orders-admin-root animate-fade-in">
+
+    <!-- 1. HEADER SECTION -->
+    <header class="admin-section-header">
+      <div class="header-left">
+        <span class="section-badge">
+          <i class="fas fa-briefcase"></i> DỮ LIỆU ĐƠN HÀNG XKLĐ & KỸ SƯ
+        </span>
+        <h1 class="header-title">Quản lý đơn hàng tuyển dụng</h1>
+        <p class="header-desc">
+          Cập nhật đơn đang tuyển, theo dõi tiến độ tuyển dụng, xuất bản nội dung lên website và đồng bộ với công cụ thiết kế poster.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button
+          *ngIf="canExport()"
+          type="button"
+          class="btn btn-secondary btn-export"
+          (click)="exportOrdersToExcel()"
+          [disabled]="loading || orders.length === 0"
+          title="Xuất danh sách đơn hàng ra tệp Excel / CSV"
+        >
+          <i class="fas fa-file-excel text-success"></i>
+          <span>Xuất Excel</span>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-secondary btn-refresh"
+          (click)="reload()"
+          [disabled]="loading"
+          title="Tải lại dữ liệu mới nhất từ máy chủ"
+        >
+          <i [class]="loading ? 'fas fa-spinner fa-spin' : 'fas fa-rotate'"></i>
+          <span>Làm mới</span>
+        </button>
+
+        <button
+          *ngIf="canCreate()"
+          type="button"
+          class="btn btn-primary btn-create"
+          (click)="openCreateWizard()"
+          title="Tạo đơn hàng mới theo quy trình 5 bước"
+        >
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <span>Thêm đơn hàng mới</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. THỐNG KÊ TỔNG QUAN (STATS CARDS GRID) -->
+    <section class="stats-overview-grid" aria-label="Thống kê nhanh đơn hàng">
+      <!-- Tất cả đơn -->
+      <div
+        class="stat-card"
+        [class.active]="!hasActiveFilters"
+        (click)="selectQuickFilter('all')"
+        role="button"
+        tabindex="0"
+        title="Bấm để xem tất cả đơn hàng"
+      >
+        <div class="stat-icon-wrap stat-all">
+          <i class="fas fa-layer-group"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Tổng số đơn hàng</span>
+          <strong class="stat-number">{{ totalCount }}</strong>
+          <small class="stat-hint">Toàn bộ hồ sơ trong hệ thống</small>
+        </div>
+      </div>
+
+      <!-- Đang tuyển dụng -->
+      <div
+        class="stat-card"
+        [class.active]="statusFilter === 'published' && !searchTerm"
+        (click)="selectQuickFilter('published')"
+        role="button"
+        tabindex="0"
+        title="Bấm để lọc các đơn đang xuất bản tuyển dụng"
+      >
+        <div class="stat-icon-wrap stat-published">
+          <i class="fas fa-circle-check"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Đang tuyển dụng</span>
+          <strong class="stat-number text-success">{{ publishedCount }}</strong>
+          <small class="stat-hint">Hiển thị trực tiếp trên web</small>
+        </div>
+      </div>
+
+      <!-- Bản nháp -->
+      <div
+        class="stat-card"
+        [class.active]="statusFilter === 'draft' && !searchTerm"
+        (click)="selectQuickFilter('draft')"
+        role="button"
+        tabindex="0"
+        title="Bấm để lọc các đơn đang lưu nháp"
+      >
+        <div class="stat-icon-wrap stat-draft">
+          <i class="fas fa-file-pen"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Đơn hàng nháp</span>
+          <strong class="stat-number text-warning">{{ draftCount }}</strong>
+          <small class="stat-hint">Chưa công khai cho học viên</small>
+        </div>
+      </div>
+
+      <!-- Đơn nổi bật -->
+      <div
+        class="stat-card"
+        [class.active]="featuredFilter === 'yes' && !searchTerm"
+        (click)="selectQuickFilter('featured')"
+        role="button"
+        tabindex="0"
+        title="Bấm để lọc các đơn hàng HOT / Nổi bật"
+      >
+        <div class="stat-icon-wrap stat-featured">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Đơn HOT / Nổi bật</span>
+          <strong class="stat-number text-purple">{{ featuredCount }}</strong>
+          <small class="stat-hint">Ưu tiên hiển thị trang chủ</small>
+        </div>
+      </div>
+
+      <!-- Có Poster thiết kế -->
+      <div
+        class="stat-card"
+        [class.active]="hasPosterFilter === 'yes' && !searchTerm"
+        (click)="selectQuickFilter('poster')"
+        role="button"
+        tabindex="0"
+        title="Bấm để lọc các đơn đã có Poster đồ họa"
+      >
+        <div class="stat-icon-wrap stat-poster">
+          <i class="fas fa-image"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Đã gắn Poster</span>
+          <strong class="stat-number text-primary">{{ posterCount }}</strong>
+          <small class="stat-hint">Sẵn sàng đăng mạng xã hội</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SEARCH & FILTERS TOOLBAR -->
+    <section class="toolbar-panel">
+      <div class="toolbar-main-row">
+        <!-- Search Box -->
+        <div class="search-input-wrap">
+          <i class="fas fa-magnifying-glass search-icon"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onFilterChange()"
+            placeholder="Tìm theo mã đơn, tiêu đề, công ty, ngành nghề, địa điểm Nhật Bản..."
+            class="search-input"
+          />
+          @if (searchTerm) {
+            <button
+              type="button"
+              class="btn-clear-search"
+              (click)="searchTerm = ''; onFilterChange()"
+              title="Xóa tìm kiếm"
+            >
+              <i class="fas fa-xmark"></i>
+            </button>
+          }
+        </div>
+
+        <!-- Filter: Trạng thái -->
+        <div class="filter-select-wrap">
+          <label>Trạng thái:</label>
+          <select [(ngModel)]="statusFilter" (change)="onFilterChange()">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="published">Đang tuyển dụng</option>
+            <option value="draft">Bản nháp</option>
+          </select>
+        </div>
+
+        <!-- Filter: Ngành nghề -->
+        <div class="filter-select-wrap">
+          <label>Ngành nghề:</label>
+          <select [(ngModel)]="categoryFilter" (change)="onFilterChange()">
+            <option value="all">Tất cả ngành nghề</option>
+            @for (cat of categories; track cat.key) {
+              <option [value]="cat.key">{{ cat.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Sort Option -->
+        <div class="filter-select-wrap">
+          <label>Sắp xếp:</label>
+          <select [(ngModel)]="sortBy" (change)="onFilterChange()">
+            <option value="updated_desc">Mới cập nhật nhất</option>
+            <option value="updated_asc">Cũ nhất trước</option>
+            <option value="code_asc">Mã đơn hàng (A-Z)</option>
+            <option value="title_asc">Tiêu đề (A-Z)</option>
+          </select>
+        </div>
+
+        <!-- Advanced Filter Toggle Button -->
+        <button
+          type="button"
+          class="btn-filter-toggle"
+          [class.active]="showAdvancedFilters || hasPosterFilter !== 'all' || featuredFilter !== 'all' || genderFilter !== 'all' || locationFilter"
+          (click)="showAdvancedFilters = !showAdvancedFilters"
+          title="Mở rộng bộ lọc nâng cao"
+        >
+          <i class="fas fa-sliders"></i>
+          <span>Lọc thêm</span>
+          <i [class]="showAdvancedFilters ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+        </button>
+
+        <!-- View Mode Switcher -->
+        <div class="view-mode-switch" aria-label="Chuyển chế độ hiển thị">
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="viewMode === 'table'"
+            (click)="viewMode = 'table'"
+            title="Xem dạng Bảng dữ liệu"
+          >
+            <i class="fas fa-table-list"></i>
+          </button>
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="viewMode === 'cards'"
+            (click)="viewMode = 'cards'"
+            title="Xem dạng Lưới thẻ"
+          >
+            <i class="fas fa-grip"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Advanced Filter Drawer -->
+      @if (showAdvancedFilters) {
+        <div class="advanced-filters-drawer animate-fade-in">
+          <div class="drawer-grid">
+            <!-- Filter: Giới tính -->
+            <div class="drawer-field">
+              <label>Giới tính tuyển dụng:</label>
+              <select [(ngModel)]="genderFilter" (change)="onFilterChange()">
+                <option value="all">Tất cả giới tính</option>
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+                <option value="Nam/Nữ">Nam hoặc Nữ</option>
+              </select>
+            </div>
+
+            <!-- Filter: Tỉnh / Thành Nhật Bản -->
+            <div class="drawer-field">
+              <label>Tỉnh/Thành phố Nhật Bản:</label>
+              <input
+                type="text"
+                [(ngModel)]="locationFilter"
+                (ngModelChange)="onFilterChange()"
+                placeholder="Ví dụ: Tokyo, Aichi, Osaka, Fukuoka..."
+              />
+            </div>
+
+            <!-- Filter: Poster đồ họa -->
+            <div class="drawer-field">
+              <label>Poster tuyển dụng:</label>
+              <select [(ngModel)]="hasPosterFilter" (change)="onFilterChange()">
+                <option value="all">Tất cả</option>
+                <option value="yes">Chỉ đơn ĐÃ CÓ Poster</option>
+                <option value="no">Chưa gắn Poster</option>
+              </select>
+            </div>
+
+            <!-- Filter: Nổi bật -->
+            <div class="drawer-field">
+              <label>Độ ưu tiên:</label>
+              <select [(ngModel)]="featuredFilter" (change)="onFilterChange()">
+                <option value="all">Tất cả</option>
+                <option value="yes">Chỉ đơn Nổi bật (Ưu tiên ⭐)</option>
+                <option value="no">Đơn hàng thông thường</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Active Filters Bar -->
+      @if (hasActiveFilters) {
+        <div class="active-filters-bar animate-fade-in">
+          <span class="active-filters-label">
+            <i class="fas fa-filter text-primary"></i> Đang lọc:
+          </span>
+          <div class="filter-badges-wrap">
+            @for (badge of activeFilterBadges; track badge.id) {
+              <span class="filter-badge-chip">
+                {{ badge.label }}
+                <button type="button" (click)="badge.remove()" title="Xóa điều kiện này">
+                  <i class="fas fa-xmark"></i>
+                </button>
+              </span>
+            }
+            <button type="button" class="btn-clear-all-filters" (click)="clearAllFilters()">
+              <i class="fas fa-trash-can"></i> Xóa tất cả
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- 4. DATA LIST SECTION -->
+    <section class="orders-data-section">
+      <!-- LOADING STATE -->
+      @if (loading) {
+        <div class="state-container loading-state">
+          <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+          <h3>Đang tải danh sách đơn hàng...</h3>
+          <p>Hệ thống đang truy xuất thông tin tuyển dụng từ cơ sở dữ liệu VieJap.</p>
+        </div>
+      }
+
+      <!-- EMPTY STATE -->
+      @else if (!filteredOrders.length) {
+        <div class="state-container empty-state">
+          <div class="empty-icon-wrap">
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <h3>Không tìm thấy đơn hàng nào phù hợp</h3>
+          <p>
+            @if (hasActiveFilters) {
+              Không có đơn hàng nào khớp với các tiêu chí tìm kiếm hoặc bộ lọc hiện tại.
+            } @else {
+              Hệ thống hiện chưa có đơn hàng nào. Hãy bấm nút dưới đây để tạo đơn hàng đầu tiên!
+            }
+          </p>
+          <div class="empty-actions">
+            @if (hasActiveFilters) {
+              <button type="button" class="btn btn-secondary" (click)="clearAllFilters()">
+                <i class="fas fa-rotate"></i> Xóa toàn bộ bộ lọc
+              </button>
+            }
+            @if (canCreate()) {
+              <button type="button" class="btn btn-primary" (click)="openCreateWizard()">
+                <i class="fas fa-plus"></i> Thêm đơn hàng mới ngay
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- TABLE VIEW -->
+      @else if (viewMode === 'table') {
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="orders-modern-table">
+              <thead>
+                <tr>
+                  <th class="col-code">MÃ ĐƠN & ẢNH</th>
+                  <th class="col-title">ĐƠN HÀNG & CÔNG TY</th>
+                  <th class="col-category">NGÀNH NGHỀ & ĐỊA ĐIỂM</th>
+                  <th class="col-recruitment">TUYỂN DỤNG & LƯƠNG</th>
+                  <th class="col-schedule">TIẾN ĐỘ</th>
+                  <th class="col-status">TRẠNG THÁI</th>
+                  <th class="col-actions text-right">THAO TÁC</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (order of pagedOrders; track order.id) {
+                  @let cat = getCategory(order);
+                  <tr
+                    class="order-table-row clickable-row"
+                    (click)="openDetailModal(order)"
+                    [class.featured-row]="order.isFeatured"
+                  >
+                    <!-- MÃ ĐƠN & ẢNH -->
+                    <td class="col-code">
+                      <div class="code-and-thumb">
+                        <div class="order-thumb-wrap">
+                          <img
+                            [src]="order.imageUrl"
+                            alt="Ảnh đơn hàng"
+                            class="order-thumb"
+                            (error)="useFallbackImage($event, order)"
+                          />
+                          @if (order.posterUrl) {
+                            <span
+                              class="poster-indicator"
+                              title="Có Poster đồ họa chất lượng cao"
+                              (click)="openPosterLightbox(order.posterUrl, $event)"
+                            >
+                              <i class="fas fa-image"></i>
+                            </span>
+                          }
+                        </div>
+                        <div class="code-meta">
+                          <strong class="order-code-badge">{{ order.orderCode || order.id.slice(0, 8) }}</strong>
+                          @if (order.isFeatured) {
+                            <span class="badge-featured-mini" title="Đơn hàng nổi bật (HOT)">
+                              <i class="fas fa-star"></i> HOT
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- ĐƠN HÀNG & CÔNG TY -->
+                    <td class="col-title">
+                      <div class="title-cell-wrap">
+                        <h4 class="order-title-text" [title]="orderTitle(order)">
+                          {{ orderTitle(order) }}
+                        </h4>
+                        @if (order.company) {
+                          <div class="company-text" [title]="order.company">
+                            <i class="fas fa-building text-muted"></i> {{ order.company }}
+                          </div>
+                        }
+                        <div class="job-short-desc">
+                          {{ order.specificWork || stripHtml(order.description) || 'Chưa cập nhật mô tả chi tiết.' }}
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- NGÀNH NGHỀ & ĐỊA ĐIỂM -->
+                    <td class="col-category">
+                      <div class="category-and-loc">
+                        <span class="cat-badge">
+                          <i [class]="cat.icon"></i> {{ cat.shortLabel }}
+                        </span>
+                        <div class="location-text">
+                          <i class="fas fa-location-dot text-danger"></i>
+                          <span>{{ order.location || 'Nhật Bản' }}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- TUYỂN DỤNG & LƯƠNG -->
+                    <td class="col-recruitment">
+                      <div class="recruitment-cell">
+                        <div class="salary-highlight">
+                          <i class="fas fa-yen-sign"></i>
+                          <strong>{{ order.takeHomeSalary || order.basicSalary || order.salary || 'Thỏa thuận' }}</strong>
+                        </div>
+                        <div class="headcount-meta">
+                          <i class="fas fa-users text-muted"></i>
+                          <span>{{ order.quantity || 'Đang tuyển' }} ({{ order.gender || 'Nam/Nữ' }})</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- TIẾN ĐỘ -->
+                    <td class="col-schedule">
+                      <div class="schedule-cell">
+                        @if (order.interviewDate) {
+                          <div class="schedule-item" title="Ngày phỏng vấn dự kiến">
+                            <i class="fas fa-calendar-check text-primary"></i>
+                            <span>PV: {{ order.interviewDate }}</span>
+                          </div>
+                        }
+                        @if (order.departureMonth) {
+                          <div class="schedule-item" title="Thời gian xuất cảnh dự kiến">
+                            <i class="fas fa-plane-departure text-info"></i>
+                            <span>XC: {{ order.departureMonth }}</span>
+                          </div>
+                        }
+                        @if (!order.interviewDate && !order.departureMonth) {
+                          <span class="text-muted text-sm">Theo lịch công ty</span>
+                        }
+                      </div>
+                    </td>
+
+                    <!-- TRẠNG THÁI -->
+                    <td class="col-status">
+                      <span
+                        class="status-pill"
+                        [class.status-published]="order.status === 'published'"
+                        [class.status-draft]="order.status === 'draft'"
+                      >
+                        <span class="status-dot"></span>
+                        {{ order.status === 'published' ? 'Đang tuyển' : 'Bản nháp' }}
+                      </span>
+                    </td>
+
+                    <!-- THAO TÁC -->
+                    <td class="col-actions text-right" (click)="$event.stopPropagation()">
+                      <div class="row-actions-group">
+                        <!-- Primary Action: Xem chi tiết -->
+                        <button
+                          type="button"
+                          class="btn-row-action btn-view"
+                          (click)="openDetailModal(order, $event)"
+                          title="Xem toàn bộ thông tin chi tiết đơn hàng"
+                        >
+                          <i class="fas fa-eye"></i>
+                          <span class="action-label">Chi tiết</span>
+                        </button>
+
+                        <!-- Edit Action -->
+                        @if (canUpdate()) {
+                          <button
+                            type="button"
+                            class="btn-row-action btn-edit"
+                            (click)="openEditWizard(order, $event)"
+                            title="Mở trình soạn thảo 5 bước để chỉnh sửa"
+                          >
+                            <i class="fas fa-pen-to-square"></i>
+                          </button>
+                        }
+
+                        <!-- Quick Delete Action -->
+                        @if (canDelete()) {
+                          <button
+                            type="button"
+                            class="btn-row-action btn-delete"
+                            (click)="openDeleteConfirm(order, $event)"
+                            title="Xóa đơn hàng này"
+                          >
+                            <i class="fas fa-trash-can"></i>
+                          </button>
+                        }
+
+                        <!-- Menu More Dropdown -->
+                        <div class="dropdown-wrap">
+                          <button
+                            type="button"
+                            class="btn-row-action btn-more"
+                            (click)="toggleDropdown(order.id, $event)"
+                            title="Thao tác nâng cao"
+                          >
+                            <i class="fas fa-ellipsis-vertical"></i>
+                          </button>
+
+                          @if (activeDropdownId === order.id) {
+                            <div class="dropdown-menu animate-fade-in" (click)="$event.stopPropagation()">
+                              <!-- Xem trang web công khai -->
+                              <a
+                                [href]="'/don-hang/' + order.id"
+                                target="_blank"
+                                class="dropdown-item"
+                                (click)="closeDropdowns()"
+                              >
+                                <i class="fas fa-arrow-up-right-from-square"></i>
+                                <span>Xem trên website</span>
+                              </a>
+
+                              <!-- Đổi trạng thái tuyển dụng -->
+                              @if (canApprove() || canUpdate()) {
+                                <button
+                                  type="button"
+                                  class="dropdown-item"
+                                  (click)="toggleStatus(order, $event)"
+                                  [disabled]="statusChangingId === order.id"
+                                >
+                                  <i [class]="order.status === 'published' ? 'fas fa-eye-slash text-warning' : 'fas fa-circle-check text-success'"></i>
+                                  <span>{{ order.status === 'published' ? 'Chuyển về Bản nháp' : 'Xuất bản (Đang tuyển)' }}</span>
+                                </button>
+                              }
+
+                              <!-- Đổi cờ Nổi bật -->
+                              @if (canUpdate()) {
+                                <button
+                                  type="button"
+                                  class="dropdown-item"
+                                  (click)="toggleFeatured(order, $event)"
+                                >
+                                  <i [class]="order.isFeatured ? 'fas fa-star-half-stroke text-muted' : 'fas fa-star text-purple'"></i>
+                                  <span>{{ order.isFeatured ? 'Bỏ cờ Nổi bật' : 'Đánh dấu Nổi bật (HOT ⭐)' }}</span>
+                                </button>
+                              }
+
+                              <!-- Nhân bản đơn hàng -->
+                              @if (canCreate()) {
+                                <button
+                                  type="button"
+                                  class="dropdown-item"
+                                  (click)="duplicateOrder(order, $event)"
+                                  [disabled]="duplicatingId === order.id"
+                                >
+                                  <i [class]="duplicatingId === order.id ? 'fas fa-spinner fa-spin' : 'fas fa-copy text-info'"></i>
+                                  <span>Nhân bản đơn hàng</span>
+                                </button>
+                              }
+
+                              <!-- Thiết kế Poster -->
+                              <button
+                                type="button"
+                                class="dropdown-item"
+                                (click)="openInPosterMaker(order, $event)"
+                              >
+                                <i class="fas fa-palette text-primary"></i>
+                                <span>Thiết kế Poster tuyển dụng</span>
+                              </button>
+
+                              <!-- Sao chép bài đăng FB -->
+                              <button
+                                type="button"
+                                class="dropdown-item"
+                                (click)="copyPostContent(order, $event)"
+                              >
+                                <i class="fab fa-facebook text-primary"></i>
+                                <span>Sao chép nội dung bài đăng</span>
+                              </button>
+
+                              <div class="dropdown-divider"></div>
+
+                              <!-- Xóa đơn hàng -->
+                              @if (canDelete()) {
+                                <button
+                                  type="button"
+                                  class="dropdown-item item-danger"
+                                  (click)="openDeleteConfirm(order, $event)"
+                                >
+                                  <i class="fas fa-trash-can"></i>
+                                  <span>Xóa đơn hàng</span>
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- CARDS GRID VIEW -->
+      @else if (viewMode === 'cards') {
+        <div class="orders-cards-grid">
+          @for (order of pagedOrders; track order.id) {
+            @let cat = getCategory(order);
+            <article
+              class="order-card-item"
+              (click)="openDetailModal(order)"
+              [class.featured-card]="order.isFeatured"
+            >
+              <!-- Card Image Banner -->
+              <div class="card-banner-wrap">
+                <img
+                  [src]="order.imageUrl"
+                  alt="Ảnh đơn hàng"
+                  class="card-banner-img"
+                  (error)="useFallbackImage($event, order)"
+                />
+                <div class="card-banner-overlay">
+                  <span
+                    class="status-pill status-pill-glass"
+                    [class.status-published]="order.status === 'published'"
+                    [class.status-draft]="order.status === 'draft'"
+                  >
+                    <span class="status-dot"></span>
+                    {{ order.status === 'published' ? 'Đang tuyển' : 'Nháp' }}
+                  </span>
+
+                  <span class="card-order-code">
+                    {{ order.orderCode || order.id.slice(0, 8) }}
+                  </span>
+                </div>
+
+                @if (order.isFeatured) {
+                  <span class="card-featured-badge">
+                    <i class="fas fa-star"></i> NỔI BẬT
+                  </span>
+                }
+
+                @if (order.posterUrl) {
+                  <button
+                    type="button"
+                    class="card-poster-btn"
+                    title="Xem Poster tuyển dụng"
+                    (click)="openPosterLightbox(order.posterUrl, $event)"
+                  >
+                    <i class="fas fa-image"></i> Poster
+                  </button>
+                }
+              </div>
+
+              <!-- Card Body -->
+              <div class="card-body">
+                <div class="card-cat-and-loc">
+                  <span class="cat-badge-sm">
+                    <i [class]="cat.icon"></i> {{ cat.shortLabel }}
+                  </span>
+                  <span class="card-loc">
+                    <i class="fas fa-location-dot text-danger"></i> {{ order.location || 'Nhật Bản' }}
+                  </span>
+                </div>
+
+                <h3 class="card-title" [title]="orderTitle(order)">
+                  {{ orderTitle(order) }}
+                </h3>
+
+                @if (order.company) {
+                  <div class="card-company">
+                    <i class="fas fa-building text-muted"></i> {{ order.company }}
+                  </div>
+                }
+
+                <p class="card-desc">
+                  {{ order.specificWork || stripHtml(order.description) || 'Chưa cập nhật mô tả chi tiết.' }}
+                </p>
+
+                <!-- Salary Highlight Box -->
+                <div class="card-salary-box">
+                  <span class="salary-label">Lương thực lĩnh:</span>
+                  <strong class="salary-val">
+                    {{ order.takeHomeSalary || order.basicSalary || order.salary || 'Thỏa thuận' }}
+                  </strong>
+                </div>
+
+                <div class="card-meta-row">
+                  <span><i class="fas fa-users"></i> {{ order.quantity || '---' }} ({{ order.gender || 'Nam/Nữ' }})</span>
+                  @if (order.interviewDate) {
+                    <span><i class="fas fa-calendar-check"></i> PV: {{ order.interviewDate }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Card Footer Actions -->
+              <div class="card-footer" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="btn-card-action btn-card-primary"
+                  (click)="openDetailModal(order, $event)"
+                >
+                  <i class="fas fa-eye"></i> Chi tiết
+                </button>
+
+                @if (canUpdate()) {
+                  <button
+                    type="button"
+                    class="btn-card-action btn-card-edit"
+                    (click)="openEditWizard(order, $event)"
+                    title="Chỉnh sửa đơn hàng"
+                  >
+                    <i class="fas fa-pen-to-square"></i> Sửa
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  class="btn-card-action btn-card-more"
+                  (click)="toggleDropdown(order.id, $event)"
+                  title="Thao tác khác"
+                >
+                  <i class="fas fa-ellipsis-vertical"></i>
+                </button>
+
+                <!-- Card Dropdown -->
+                @if (activeDropdownId === order.id) {
+                  <div class="dropdown-menu card-dropdown-menu animate-fade-in" (click)="$event.stopPropagation()">
+                    <a [href]="'/don-hang/' + order.id" target="_blank" class="dropdown-item" (click)="closeDropdowns()">
+                      <i class="fas fa-arrow-up-right-from-square"></i> Xem trên web
+                    </a>
+                    @if (canApprove() || canUpdate()) {
+                      <button type="button" class="dropdown-item" (click)="toggleStatus(order, $event)">
+                        <i [class]="order.status === 'published' ? 'fas fa-eye-slash text-warning' : 'fas fa-circle-check text-success'"></i>
+                        {{ order.status === 'published' ? 'Về bản nháp' : 'Xuất bản đơn' }}
+                      </button>
+                    }
+                    @if (canUpdate()) {
+                      <button type="button" class="dropdown-item" (click)="toggleFeatured(order, $event)">
+                        <i [class]="order.isFeatured ? 'fas fa-star-half-stroke text-muted' : 'fas fa-star text-purple'"></i>
+                        {{ order.isFeatured ? 'Bỏ cờ nổi bật' : 'Bật cờ nổi bật' }}
+                      </button>
+                    }
+                    @if (canCreate()) {
+                      <button type="button" class="dropdown-item" (click)="duplicateOrder(order, $event)">
+                        <i class="fas fa-copy text-info"></i> Nhân bản đơn
+                      </button>
+                    }
+                    <button type="button" class="dropdown-item" (click)="openInPosterMaker(order, $event)">
+                      <i class="fas fa-palette text-primary"></i> Tạo poster
+                    </button>
+                    <button type="button" class="dropdown-item" (click)="copyPostContent(order, $event)">
+                      <i class="fab fa-facebook text-primary"></i> Chép bài đăng
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    @if (canDelete()) {
+                      <button type="button" class="dropdown-item item-danger" (click)="openDeleteConfirm(order, $event)">
+                        <i class="fas fa-trash-can"></i> Xóa đơn
+                      </button>
+                    }
+                  </div>
+                }
               </div>
             </article>
           }
         </div>
       }
+
+      <!-- 5. PAGINATION -->
+      @if (!loading && filteredOrders.length > 0) {
+        <app-admin-pagination
+          [currentPage]="currentPage"
+          [pageSize]="pageSize"
+          [totalItems]="filteredOrders.length"
+          [disabled]="loading"
+          itemLabel="đơn hàng"
+          (pageChange)="onPageChange($event)"
+        ></app-admin-pagination>
+      }
     </section>
-
-    <form class="order-editor" (ngSubmit)="save()">
-      <div class="order-editor-heading">
-        <span><i [class]="editingId ? 'fas fa-pen-to-square' : 'fas fa-image'"></i></span>
-        <div>
-          <h2>{{ editingId ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới' }}</h2>
-          <p>Đặt tiêu đề rõ ràng, soạn nội dung như một bài đăng và kiểm tra bản xem trước.</p>
-        </div>
-      </div>
-
-      <div class="order-form-grid">
-        <label class="field-full title-field">
-          <span>Tiêu đề bài đăng <b>*</b></span>
-          <input
-            name="title"
-            [(ngModel)]="draft.title"
-            autocomplete="off"
-            required
-            placeholder="Ví dụ: Kỹ sư cơ khí tại Aichi - phỏng vấn tháng 09"
-          />
-        </label>
-
-        <div class="field-full category-selector">
-          <div class="field-label-row">
-            <span>Nhóm đơn hàng <b>*</b></span>
-            <small>Chọn một nhóm</small>
-          </div>
-          <div class="category-choice-grid">
-            @for (category of categories; track category.key) {
-              <button type="button" [class.active]="draft.category === category.key" (click)="draft.category = category.key">
-                <i [class]="category.icon"></i>
-                <span><strong>{{ category.label }}</strong></span>
-              </button>
-            }
-          </div>
-        </div>
-
-        <label class="field-full image-upload-field">
-          <span>Ảnh đơn hàng <b>*</b></span>
-          <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onImageSelected($event)" />
-          <small>Chọn JPG, PNG hoặc WebP, tối đa 10 MB. Ảnh đơn hàng dạng dọc sẽ hiển thị đẹp nhất.</small>
-          @if (previewImage) {
-            <figure class="poster-preview">
-              <img [src]="previewImage" alt="Xem trước đơn hàng" />
-              <figcaption>{{ selectedImage ? 'Ảnh mới sẽ được tải lên khi bấm lưu.' : 'Đơn hàng đang hiển thị.' }}</figcaption>
-            </figure>
-          }
-        </label>
-
-        <div class="field-full description-field">
-          <div class="field-label-row">
-            <span>Nội dung bài đăng <b>*</b></span>
-            <small class="editor-unlimited"><i class="fas fa-infinity"></i> Không giới hạn</small>
-          </div>
-
-          <div class="description-workspace">
-            <div class="rich-editor" [class.invalid]="descriptionEmpty && saving">
-              <div class="editor-toolbar" role="toolbar" aria-label="Định dạng nội dung bài đăng">
-                <button type="button" title="In đậm" aria-label="In đậm" (mousedown)="onEditorToolbarMouseDown($event)" (click)="formatDescription('bold')">
-                  <i class="fas fa-bold"></i>
-                </button>
-                <button type="button" title="In nghiêng" aria-label="In nghiêng" (mousedown)="onEditorToolbarMouseDown($event)" (click)="formatDescription('italic')">
-                  <i class="fas fa-italic"></i>
-                </button>
-                <button type="button" title="Gạch chân" aria-label="Gạch chân" (mousedown)="onEditorToolbarMouseDown($event)" (click)="formatDescription('underline')">
-                  <i class="fas fa-underline"></i>
-                </button>
-                <span class="toolbar-divider" aria-hidden="true"></span>
-                <button type="button" title="Danh sách chấm" aria-label="Danh sách chấm" (mousedown)="onEditorToolbarMouseDown($event)" (click)="formatDescription('insertUnorderedList')">
-                  <i class="fas fa-list-ul"></i>
-                </button>
-                <button type="button" title="Danh sách số" aria-label="Danh sách số" (mousedown)="onEditorToolbarMouseDown($event)" (click)="formatDescription('insertOrderedList')">
-                  <i class="fas fa-list-ol"></i>
-                </button>
-                <button type="button" title="Trích dẫn" aria-label="Trích dẫn" (mousedown)="onEditorToolbarMouseDown($event)" (click)="formatDescription('formatBlock', 'blockquote')">
-                  <i class="fas fa-quote-left"></i>
-                </button>
-                <span class="toolbar-divider" aria-hidden="true"></span>
-                <button type="button" title="Xóa định dạng" aria-label="Xóa định dạng" (mousedown)="onEditorToolbarMouseDown($event)" (click)="formatDescription('removeFormat')">
-                  <i class="fas fa-eraser"></i>
-                </button>
-              </div>
-              <div
-                #descriptionEditor
-                class="rich-editor-surface"
-                contenteditable="true"
-                role="textbox"
-                aria-multiline="true"
-                aria-label="Nội dung bài đăng"
-                [class.is-empty]="descriptionEmpty"
-                data-placeholder="Viết nội dung đơn hàng tại đây..."
-                (input)="onDescriptionInput($event)"
-              ></div>
-            </div>
-
-            <aside class="post-preview" aria-label="Xem trước bài đăng">
-              <div class="post-preview-heading">
-                <span><i class="fas fa-eye"></i> Xem trước trên trang chủ</span>
-              </div>
-              <div class="post-preview-card">
-                @if (previewImage) {
-                  <img [src]="previewImage" alt="Ảnh xem trước đơn hàng" (error)="useFallbackImage($event, draft)" />
-                } @else {
-                  <div class="post-preview-placeholder"><i class="fas fa-image"></i></div>
-                }
-                <div class="post-preview-body">
-                  <div class="post-preview-meta">
-                    <span><i [class]="previewCategory.icon"></i> {{ previewCategory.label }}</span>
-                  </div>
-                  <h3>{{ previewTitle }}</h3>
-                  @if (draft.description) {
-                    <div class="post-preview-description" [innerHTML]="draft.description"></div>
-                  } @else {
-                    <p class="post-preview-empty">Nội dung sẽ hiển thị ở đây.</p>
-                  }
-                </div>
-              </div>
-            </aside>
-          </div>
-          <small class="field-hint">Nội dung có thể xuống dòng, in đậm, in nghiêng, gạch chân, tạo danh sách và trích dẫn.</small>
-        </div>
-      </div>
-
-      <div class="order-editor-options">
-        <label>
-          <span>Trạng thái hiển thị</span>
-          <select name="status" [(ngModel)]="draft.status">
-            <option value="draft">Lưu nháp</option>
-            <option value="published">Đang tuyển (hiển thị công khai)</option>
-          </select>
-        </label>
-        <label class="featured-option">
-          <input type="checkbox" name="isFeatured" [(ngModel)]="draft.isFeatured" />
-          <span><strong>Đơn nổi bật</strong><small>Hiện popup khi người dùng truy cập trang chủ.</small></span>
-        </label>
-      </div>
-
-      @if (errorMessage) {
-        <p class="order-form-message error"><i class="fas fa-circle-exclamation"></i>{{ errorMessage }}</p>
-      }
-      @if (successMessage) {
-        <p class="order-form-message success"><i class="fas fa-circle-check"></i>{{ successMessage }}</p>
-      }
-
-      <div class="order-editor-actions">
-        <button class="save-order-button" type="submit" [disabled]="saving">
-          <i [class]="saving ? 'fas fa-spinner fa-spin' : 'fas fa-floppy-disk'"></i>
-          {{ saving ? 'Đang lưu...' : editingId ? 'Lưu thay đổi' : 'Đăng đơn hàng' }}
-        </button>
-        @if (editingId) {
-          <button class="cancel-edit-button" type="button" (click)="startCreate()">Thêm đơn hàng khác</button>
-        }
-      </div>
-    </form>
   </div>
-</section>
+}
+
+<!-- ======================================================================= -->
+<!-- MODAL: XÁC NHẬN XÓA ĐƠN HÀNG AN TOÀN                                    -->
+<!-- ======================================================================= -->
+@if (showDeleteConfirmModal && orderToDelete) {
+  <div class="modal-backdrop animate-fade-in" (click)="closeDeleteConfirm()">
+    <div class="modal-dialog modal-sm delete-dialog animate-scale-up" (click)="$event.stopPropagation()">
+      <div class="delete-icon-circle">
+        <i class="fas fa-triangle-exclamation"></i>
+      </div>
+
+      <h3>Xác nhận xóa đơn hàng?</h3>
+      <p class="delete-desc">
+        Bạn có chắc chắn muốn xóa đơn hàng <strong>"{{ orderTitle(orderToDelete) }}"</strong> (Mã: {{ orderToDelete.orderCode || orderToDelete.id }})?
+      </p>
+      <p class="delete-warning">
+        <i class="fas fa-circle-exclamation"></i>
+        Thao tác này sẽ xóa vĩnh viễn đơn hàng khỏi cơ sở dữ liệu và không thể hoàn tác.
+      </p>
+
+      <div class="delete-actions-row">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeDeleteConfirm()"
+          [disabled]="deletingId === orderToDelete.id"
+        >
+          Hủy bỏ
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="executeDelete()"
+          [disabled]="deletingId === orderToDelete.id"
+        >
+          <i [class]="deletingId === orderToDelete.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+          <span>{{ deletingId === orderToDelete.id ? 'Đang xóa...' : 'Xóa vĩnh viễn' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ======================================================================= -->
+<!-- LIGHTBOX: XEM ẢNH POSTER TOÀN MÀN HÌNH                                 -->
+<!-- ======================================================================= -->
+@if (showPosterLightbox && lightboxImageUrl) {
+  <div class="lightbox-backdrop animate-fade-in" (click)="closePosterLightbox()">
+    <button type="button" class="btn-close-lightbox" (click)="closePosterLightbox()">
+      <i class="fas fa-xmark"></i>
+    </button>
+    <div class="lightbox-img-wrapper" (click)="$event.stopPropagation()">
+      <img [src]="lightboxImageUrl" alt="Poster phóng to" class="lightbox-img" />
+      <a
+        [href]="lightboxImageUrl"
+        download="Poster_VieJap.png"
+        class="btn-lightbox-download"
+      >
+        <i class="fas fa-download"></i> Tải poster gốc
+      </a>
+    </div>
+  </div>
+}

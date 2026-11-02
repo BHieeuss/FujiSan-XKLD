@@ -1,0 +1,61 @@
+@if (shouldShow) {
+  <nav class="admin-pagination-container" aria-label="Điều hướng phân trang">
+    <div class="pagination-info">
+      <span>Hiển thị</span>
+      <strong>{{ startItem }}–{{ endItem }}</strong>
+      <span>trên tổng số</span>
+      <strong>{{ totalItems }}</strong>
+      <span>{{ itemLabel }}</span>
+    </div>
+
+    <ul class="pagination-controls">
+      <!-- Nút Trước -->
+      <li>
+        <button
+          type="button"
+          class="btn-page btn-prev"
+          [disabled]="isFirstPage || disabled"
+          (click)="prevPage()"
+          aria-label="Trang trước"
+        >
+          <i class="fas fa-arrow-left"></i>
+          <span class="btn-text">Trước</span>
+        </button>
+      </li>
+
+      <!-- Danh sách số trang -->
+      <li *ngFor="let page of pages">
+        @if (page === '...') {
+          <span class="page-ellipsis" aria-hidden="true">&hellip;</span>
+        } @else {
+          <button
+            type="button"
+            class="btn-page btn-number"
+            [class.active]="page === currentPage"
+            [disabled]="disabled"
+            (click)="goToPage(page)"
+            [attr.aria-current]="page === currentPage ? 'page' : null"
+            [attr.aria-label]="'Trang ' + page"
+          >
+            {{ page }}
+          </button>
+        }
+      </li>
+
+      <!-- Nút Sau -->
+      <li>
+        <button
+          type="button"
+          class="btn-page btn-next"
+          [disabled]="isLastPage || disabled"
+          (click)="nextPage()"
+          aria-label="Trang sau"
+        >
+          <span class="btn-text">Sau</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </li>
+    </ul>
+  </nav>
+}
+

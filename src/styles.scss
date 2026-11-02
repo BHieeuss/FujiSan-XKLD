@@ -379,3 +379,11 @@ a {
     display: none !important;
   }
 }
+
+/* Ẩn nút liên kết nhanh và nút cuộn trang cố định trên trang Khai sơ yếu lý lịch để không che thanh thao tác */
+body:has(app-student-form-page) {
+  .quick-access,
+  .back-to-top {
+    display: none !important;
+  }
+}

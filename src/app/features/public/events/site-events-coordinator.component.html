@@ -1,0 +1,284 @@
+<!-- =================================================================== -->
+<!-- 1. TOP ANNOUNCEMENT BAR                                             -->
+<!-- =================================================================== -->
+@if (topBarEvent) {
+  <div
+    class="site-top-announcement-bar"
+    role="banner"
+    [style.backgroundColor]="topBarEvent.displayConfig.topBar.bgColor"
+    [style.color]="topBarEvent.displayConfig.topBar.textColor"
+  >
+    <div class="container bar-inner">
+      <div class="bar-message">
+        <i [class]="topBarEvent.displayConfig.topBar.icon" class="bar-icon" aria-hidden="true"></i>
+        <strong class="bar-title">{{ topBarEvent.displayTitle || topBarEvent.title }}</strong>
+        @if (topBarEvent.summary) {
+          <span class="bar-summary d-none d-md-inline">— {{ topBarEvent.summary }}</span>
+        }
+      </div>
+
+      <div class="bar-actions">
+        @if (topBarEvent.cta.enabled) {
+          <a
+            class="bar-cta-btn"
+            [href]="topBarEvent.cta.url"
+            [target]="topBarEvent.cta.target"
+            (click)="onCtaClick(topBarEvent, 'top_bar')"
+          >
+            <span>{{ topBarEvent.cta.label }}</span>
+            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        }
+
+        @if (topBarEvent.displayConfig.topBar.isClosable) {
+          <button
+            type="button"
+            class="bar-close-btn"
+            (click)="closeTopBar()"
+            aria-label="Đóng thanh thông báo"
+          >
+            <i class="fas fa-xmark" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =================================================================== -->
+<!-- 2. CENTER MODAL POPUP                                               -->
+<!-- =================================================================== -->
+@if (centerPopupEvent && isCenterPopupOpen) {
+  <div
+    class="site-center-popup-backdrop"
+    (click)="centerPopupEvent.displayConfig.popupCenter.backdropClickClose ? closeCenterPopup() : null"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="centerPopupEvent.displayTitle || centerPopupEvent.title"
+  >
+    <div
+      class="site-center-popup-dialog"
+      [class.layout-horizontal]="centerPopupEvent.displayConfig.popupCenter.layout === 'horizontal'"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Close Button -->
+      <button
+        type="button"
+        class="popup-close-btn"
+        (click)="closeCenterPopup()"
+        aria-label="Đóng thông báo"
+      >
+        <i class="fas fa-xmark" aria-hidden="true"></i>
+      </button>
+
+      <!-- Visual Cover / Banner -->
+      <div class="popup-visual">
+        <img
+          [src]="centerPopupEvent.coverImage || 'assets/images/logo.png'"
+          alt="Hình ảnh minh họa" [alt]="centerPopupEvent.title"
+          loading="lazy"
+        />
+        <span class="popup-cat-badge">
+          {{ centerPopupEvent.categoryName }}
+        </span>
+      </div>
+
+      <!-- Popup Content -->
+      <div class="popup-content">
+        <h3 class="popup-title">
+          {{ centerPopupEvent.displayTitle || centerPopupEvent.title }}
+        </h3>
+
+        @if (centerPopupEvent.summary) {
+          <p class="popup-summary">
+            {{ centerPopupEvent.summary }}
+          </p>
+        }
+
+        @if (centerPopupEvent.content) {
+          <p class="popup-detail">
+            {{ centerPopupEvent.content }}
+          </p>
+        }
+
+        <!-- Actions -->
+        <div class="popup-actions-row">
+          @if (centerPopupEvent.cta.enabled) {
+            <a
+              class="popup-cta-btn"
+              [href]="centerPopupEvent.cta.url"
+              [target]="centerPopupEvent.cta.target"
+              (click)="onCtaClick(centerPopupEvent, 'popup_center')"
+            >
+              <span>{{ centerPopupEvent.cta.label }}</span>
+              <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          }
+
+          <button
+            type="button"
+            class="popup-dismiss-btn"
+            (click)="closeCenterPopup()"
+          >
+            Đóng thông báo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =================================================================== -->
+<!-- 3. CORNER POPUP TOAST                                               -->
+<!-- =================================================================== -->
+@if (cornerPopupEvent && isCornerPopupOpen) {
+  <div
+    class="site-corner-toast"
+    [class.corner-left]="cornerPopupEvent.displayConfig.popupCorner.position === 'bottom_left'"
+    [class.is-minimized]="isCornerMinimized"
+    role="region"
+    aria-label="Thông báo nổi"
+  >
+    @if (!isCornerMinimized) {
+      <div class="corner-toast-card">
+        <!-- Close & Minimize controls -->
+        <div class="corner-controls">
+          <button type="button" class="ctrl-btn" (click)="toggleCornerMinimize()" title="Thu nhỏ">
+            <i class="fas fa-window-minimize"></i>
+          </button>
+          <button type="button" class="ctrl-btn" (click)="closeCornerPopup()" title="Đóng">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="corner-body">
+          <div class="corner-thumb">
+            <img [src]="cornerPopupEvent.coverImage || 'assets/images/logo.png'" alt="Hình ảnh minh họa" [alt]="cornerPopupEvent.title" />
+          </div>
+
+          <div class="corner-info">
+            <span class="corner-cat">{{ cornerPopupEvent.categoryName }}</span>
+            <strong class="corner-title">{{ cornerPopupEvent.displayTitle || cornerPopupEvent.title }}</strong>
+            <p class="corner-desc">{{ cornerPopupEvent.summary }}</p>
+
+            @if (cornerPopupEvent.cta.enabled) {
+              <a
+                class="corner-cta-link"
+                [href]="cornerPopupEvent.cta.url"
+                [target]="cornerPopupEvent.cta.target"
+                (click)="onCtaClick(cornerPopupEvent, 'popup_corner')"
+              >
+                <span>{{ cornerPopupEvent.cta.label }}</span>
+                <i class="fas fa-arrow-right"></i>
+              </a>
+            }
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- Minimized pill -->
+      <button type="button" class="corner-minimized-pill" (click)="toggleCornerMinimize()">
+        <i class="fas fa-bell"></i>
+        <span>{{ cornerPopupEvent.displayTitle || cornerPopupEvent.title }}</span>
+      </button>
+    }
+  </div>
+}
+
+<!-- =================================================================== -->
+<!-- 4. FLOATING EVENT BUTTON (FAB)                                      -->
+<!-- =================================================================== -->
+@if (fabEventsCount > 0) {
+  <aside class="site-events-fab-container" aria-label="Sự kiện đang diễn ra">
+    <button
+      type="button"
+      class="site-events-fab-btn"
+      (click)="toggleDrawer()"
+      [attr.aria-expanded]="isDrawerOpen"
+      aria-haspopup="dialog"
+      aria-label="Xem các sự kiện đang diễn ra tại VieJap"
+    >
+      <span class="fab-pulse" aria-hidden="true"></span>
+      <i class="fas fa-gift fab-icon" aria-hidden="true"></i>
+      <span class="fab-text">Sự kiện</span>
+      <span class="fab-count-badge">{{ fabEventsCount }}</span>
+    </button>
+  </aside>
+}
+
+<!-- =================================================================== -->
+<!-- 5. EVENTS SLIDE-OVER DRAWER                                         -->
+<!-- =================================================================== -->
+@if (isDrawerOpen) {
+  <div class="events-drawer-backdrop" (click)="closeDrawer()" role="dialog" aria-modal="true" aria-label="Danh sách sự kiện">
+    <div class="events-drawer-panel" (click)="$event.stopPropagation()">
+      <!-- Drawer Header -->
+      <div class="drawer-header">
+        <div>
+          <span class="drawer-eyebrow"><i class="fas fa-bullhorn text-primary"></i> VieJap Thông Báo</span>
+          <h2 class="drawer-title">Sự kiện & Ưu đãi đang diễn ra</h2>
+          <small class="drawer-sub">Có {{ allActiveEvents.length }} chương trình và hoạt động đặc biệt</small>
+        </div>
+
+        <button type="button" class="drawer-close-btn" (click)="closeDrawer()" aria-label="Đóng danh sách sự kiện">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Drawer Events List -->
+      <div class="drawer-body">
+        @if (allActiveEvents.length === 0) {
+          <div class="drawer-empty text-center py-5">
+            <i class="fas fa-calendar-xmark fa-2x text-muted mb-2"></i>
+            <p>Hiện tại chưa có sự kiện nào đang diễn ra.</p>
+          </div>
+        } @else {
+          <div class="drawer-events-list">
+            @for (event of allActiveEvents; track event.id) {
+              <article class="drawer-event-card">
+                <div class="drawer-card-img">
+                  <img [src]="event.coverImage || 'assets/images/logo.png'" alt="Hình ảnh minh họa" [alt]="event.title" loading="lazy" />
+                  <span class="drawer-card-badge">{{ event.categoryName }}</span>
+                </div>
+
+                <div class="drawer-card-info">
+                  <h3 class="drawer-card-title">{{ event.displayTitle || event.title }}</h3>
+                  <p class="drawer-card-summary">{{ event.summary || event.content }}</p>
+
+                  <div class="drawer-card-meta">
+                    <span><i class="fas fa-clock"></i> Diễn ra đến: {{ event.schedule.endDate ? (event.schedule.endDate | date:'dd/MM/yyyy') : 'Không thời hạn' }}</span>
+                  </div>
+
+                  <div class="drawer-card-actions">
+                    @if (event.cta.enabled) {
+                      <a
+                        class="btn-drawer-cta"
+                        [href]="event.cta.url"
+                        [target]="event.cta.target"
+                        (click)="onCtaClick(event, 'list')"
+                      >
+                        <span>{{ event.cta.label }}</span>
+                        <i class="fas fa-arrow-right"></i>
+                      </a>
+                    }
+
+                    @if (event.linkToActivity && event.activityId) {
+                      <a
+                        routerLink="/hoat-dong"
+                        class="btn-drawer-activity"
+                        (click)="closeDrawer()"
+                      >
+                        <i class="fas fa-newspaper"></i> Xem góc hoạt động
+                      </a>
+                    }
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+

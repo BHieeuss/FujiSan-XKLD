@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AdminAuthService } from './admin-auth.service';
+import { AdminAuthService } from '../services/admin-auth.service';
 import { AdminLoginPage } from './admin-login-page';
 
 describe('AdminLoginPage', () => {

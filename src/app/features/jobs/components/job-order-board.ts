@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { APP_CONTACT_INFO } from '../../../core/config/app.config';
 import {
   getJobOrderCategory,
@@ -18,7 +19,7 @@ type JobOrderFilter = 'all' | JobOrderCategory;
 @Component({
   selector: 'app-job-order-board',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './job-order-board.html',
   styleUrl: './job-order-board.scss',
 })
@@ -29,16 +30,22 @@ export class JobOrderBoard implements OnInit {
   @Input() pageSize = 8;
 
   readonly categories = JOB_ORDER_CATEGORIES;
+  readonly getJobOrderFallbackImage = getJobOrderFallbackImage;
+  readonly displayCategories = JOB_ORDER_CATEGORIES.filter((c) =>
+    ['nong-nghiep', 'thuc-pham', 'co-khi', 'xay-dung', 'dien-tu', 'khac'].includes(c.key),
+  );
   activeFilter: JobOrderFilter = 'all';
   currentPage = 1;
   orders: JobOrder[] = [];
-  selectedOrder?: JobOrder;
   loading = true;
   errorMessage = '';
+
+  favorites = signal<Set<string>>(new Set());
 
   constructor(private readonly ordersApi: JobOrdersApiService) {}
 
   async ngOnInit(): Promise<void> {
+    this.loadFavorites();
     try {
       this.orders = await this.ordersApi.listPublic();
     } catch (error) {
@@ -92,14 +99,6 @@ export class JobOrderBoard implements OnInit {
     return Math.max(1, this.pageSize || 8);
   }
 
-  openOrder(order: JobOrder): void {
-    this.selectedOrder = order;
-  }
-
-  closeOrder(): void {
-    this.selectedOrder = undefined;
-  }
-
   setFilter(filter: JobOrderFilter): void {
     this.activeFilter = filter;
     this.currentPage = 1;
@@ -119,10 +118,26 @@ export class JobOrderBoard implements OnInit {
 
   useFallbackImage(event: Event, order: JobOrder): void {
     const image = event.target as HTMLImageElement;
-    const fallback = getJobOrderFallbackImage(order.category);
-    if (!image.src.endsWith(fallback)) {
-      image.src = fallback;
+    const categoryFallbacks: Record<JobOrderCategory, string> = {
+      'nong-nghiep': 'assets/images/jobs/job-nong-nghiep.jpg',
+      'thuc-pham': 'assets/images/jobs/job-thuc-pham.jpg',
+      'co-khi': 'assets/images/jobs/job-co-khi.jpg',
+      'xay-dung': 'assets/images/jobs/job-xay-dung.jpg',
+      'dien-tu': 'assets/images/jobs/job-dien-tu.jpg',
+      'khac': 'assets/images/jobs/job-khac.jpg',
+      'ky-su': 'assets/images/jobs/job-co-khi.jpg',
+      'thuc-tap-sinh': 'assets/images/jobs/job-thuc-pham.jpg',
+      'tokutei': 'assets/images/jobs/job-thuc-pham.jpg',
+      'du-hoc': 'assets/images/DHS/dhs.png',
+    };
+    const targetSrc = categoryFallbacks[order.category] || getJobOrderFallbackImage(order.category);
+    if (!image.src.endsWith(targetSrc)) {
+      image.src = targetSrc;
     }
+  }
+
+  hasBakedVisual(_order: JobOrder): boolean {
+    return false;
   }
 
   categoryCount(category: JobOrderCategory): number {
@@ -137,8 +152,160 @@ export class JobOrderBoard implements OnInit {
     return getJobOrderCategory(order.category);
   }
 
-  /** Strip HTML tags for plain-text preview on cards */
   stripHtml(html: string): string {
     return stripJobOrderHtml(html);
+  }
+
+  /* ── Specification & metadata extractors for rich card view ── */
+
+  orderLocation(order: JobOrder): string {
+    const text = `${order.title || ''} ${order.description || ''}`;
+    const cities = [
+      'Tokyo', 'Chiba', 'Aichi', 'Kagoshima', 'Osaka', 'Kanagawa', 
+      'Saitama', 'Fukuoka', 'Hiroshima', 'Shizuoka', 'Hyogo', 'Kyoto',
+      'Ibaraki', 'Gunma', 'Mie', 'Gifu', 'Tochigi', 'Nagano', 'Okayama'
+    ];
+    for (const city of cities) {
+      if (new RegExp(`\\b${city}\\b`, 'i').test(text)) {
+        return `${city} - Nhật Bản`;
+      }
+    }
+    // Category sensible defaults in Japan
+    const defaults: Record<JobOrderCategory, string> = {
+      'nong-nghiep': 'Kagoshima - Nhật Bản',
+      'thuc-pham': 'Chiba - Nhật Bản',
+      'co-khi': 'Aichi - Nhật Bản',
+      'xay-dung': 'Tokyo - Nhật Bản',
+      'dien-tu': 'Osaka - Nhật Bản',
+      'khac': 'Fukuoka - Nhật Bản',
+      'ky-su': 'Tokyo - Nhật Bản',
+      'tokutei': 'Aichi - Nhật Bản',
+      'thuc-tap-sinh': 'Kagoshima - Nhật Bản',
+      'du-hoc': 'Osaka - Nhật Bản',
+    };
+    return defaults[order.category] || 'Nhật Bản';
+  }
+
+  orderHighlight(order: JobOrder): string {
+    const text = `${order.title || ''} ${order.description || ''}`.toLowerCase();
+    if (text.includes('lương cao') || text.includes('thu nhập cao')) {
+      return 'Lương cao';
+    }
+    if (text.includes('tay nghề') || text.includes('chuyên môn')) {
+      return 'Tay nghề cao';
+    }
+    if (text.includes('nhà máy') || text.includes('ổn định')) {
+      return 'Lương ổn định';
+    }
+    if (text.includes('hấp dẫn') || text.includes('đãi ngộ')) {
+      return 'Thu nhập hấp dẫn';
+    }
+    const defaults: Record<JobOrderCategory, string> = {
+      'nong-nghiep': 'Lương cao',
+      'thuc-pham': 'Lương ổn định',
+      'co-khi': 'Tay nghề cao',
+      'xay-dung': 'Thu nhập hấp dẫn',
+      'dien-tu': 'Môi trường tốt',
+      'khac': 'Đãi ngộ tốt',
+      'ky-su': 'Tay nghề cao',
+      'tokutei': 'Thu nhập hấp dẫn',
+      'thuc-tap-sinh': 'Lương ổn định',
+      'du-hoc': 'Lộ trình tốt',
+    };
+    return defaults[order.category] || 'Tuyển chọn';
+  }
+
+  orderSalary(order: JobOrder): string {
+    let val = (order.basicSalary || order.salary || '').trim();
+    if (val) {
+      val = val.replace(/\s*\([^)]*(?:triệu|vnđ|vnd|đồng)[^)]*\)/gi, '').trim();
+      if (val.match(/(?:yên|¥|man|vạn)/i)) {
+        return val;
+      }
+    }
+    const text = order.description || '';
+    const matchYen = text.match(/(\d{1,3}(?:[.,]\d{3})*|\d+[\s–-]+\d+)\s*(?:yên|¥|man|vạn)(?:\/tháng)?/i);
+    if (matchYen) {
+      return matchYen[0].trim();
+    }
+    const defaults: Record<JobOrderCategory, string> = {
+      'nong-nghiep': '165.000 ~ 180.000 Yên/tháng',
+      'thuc-pham': '175.000 ~ 195.000 Yên/tháng',
+      'co-khi': '190.000 ~ 230.000 Yên/tháng',
+      'xay-dung': '185.000 ~ 220.000 Yên/tháng',
+      'dien-tu': '170.000 ~ 195.000 Yên/tháng',
+      'khac': '165.000 ~ 185.000 Yên/tháng',
+      'ky-su': '220.000 ~ 300.000 Yên/tháng',
+      'tokutei': '195.000 ~ 250.000 Yên/tháng',
+      'thuc-tap-sinh': '170.000 ~ 195.000 Yên/tháng',
+      'du-hoc': '120.000 ~ 150.000 Yên/tháng',
+    };
+    return defaults[order.category] || '175.000 ~ 200.000 Yên/tháng';
+  }
+
+  orderDuration(order: JobOrder): string {
+    const text = order.description || '';
+    const match = text.match(/([1-5]\s*năm)/i);
+    if (match) {
+      return match[1].trim();
+    }
+    const defaults: Record<JobOrderCategory, string> = {
+      'nong-nghiep': '3 năm',
+      'thuc-pham': '3 năm',
+      'co-khi': '3 năm',
+      'xay-dung': '3 năm',
+      'dien-tu': '3 năm',
+      'khac': '3 năm',
+      'ky-su': 'Dài hạn',
+      'tokutei': '5 năm',
+      'thuc-tap-sinh': '3 năm',
+      'du-hoc': '1 - 2 năm',
+    };
+    return defaults[order.category] || '3 năm';
+  }
+
+  orderDeparture(order: JobOrder): string {
+    const text = order.description || '';
+    const match = text.match(/(202[5-7])/);
+    if (match) {
+      return `Dự kiến ${match[1]}`;
+    }
+    return 'Dự kiến 2025';
+  }
+
+  /* ── Functional favorites system ── */
+
+  toggleFavorite(orderId: string, event: Event): void {
+    event.stopPropagation();
+    const current = new Set(this.favorites());
+    if (current.has(orderId)) {
+      current.delete(orderId);
+    } else {
+      current.add(orderId);
+    }
+    this.favorites.set(current);
+    this.saveFavorites(current);
+  }
+
+  isFavorite(orderId: string): boolean {
+    return this.favorites().has(orderId);
+  }
+
+  private loadFavorites(): void {
+    try {
+      const stored = localStorage.getItem('viejap_fav_orders');
+      if (stored) {
+        const arr = JSON.parse(stored);
+        if (Array.isArray(arr)) {
+          this.favorites.set(new Set(arr));
+        }
+      }
+    } catch {}
+  }
+
+  private saveFavorites(favs: Set<string>): void {
+    try {
+      localStorage.setItem('viejap_fav_orders', JSON.stringify(Array.from(favs)));
+    } catch {}
   }
 }

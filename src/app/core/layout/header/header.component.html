@@ -80,7 +80,7 @@
             <a
               *ngIf="!item.hasDropdown"
               class="nav-link"
-              [href]="'/#' + (menuSectionMap[item.label] || 'trang-chu')"
+              [href]="item.link && item.link !== '/' ? item.link : '/#' + (menuSectionMap[item.label] || 'trang-chu')"
               [class.active]="item.active"
               (click)="onMenuClick($event, item)"
             >
@@ -199,7 +199,7 @@
 
         <div class="navbar-actions d-flex align-items-center">
           <a
-            class="btn btn-outline-primary btn-hotline me-lg-3 d-inline-flex align-items-center"
+            class="btn btn-outline-primary btn-hotline me-lg-3 d-none d-md-inline-flex align-items-center"
             [href]="'tel:' + contactInfo.hotline"
           >
             <i class="fas fa-phone-alt me-2"></i>
@@ -208,7 +208,7 @@
 
           <button class="btn btn-primary btn-consultation" (click)="onRegisterConsultation()">
             <i class="fas fa-comment-dots me-2"></i>
-            Tư vấn qua Zalo
+            Tư vấn Zalo
           </button>
         </div>
       </div>

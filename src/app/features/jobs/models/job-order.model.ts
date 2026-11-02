@@ -1,14 +1,89 @@
 export type JobOrderStatus = 'draft' | 'published';
-export type JobOrderCategory = 'ky-su' | 'tokutei' | 'thuc-tap-sinh' | 'du-hoc';
+
+export type JobOrderCategory =
+  | 'nong-nghiep'
+  | 'thuc-pham'
+  | 'co-khi'
+  | 'xay-dung'
+  | 'dien-tu'
+  | 'khac'
+  | 'ky-su'
+  | 'tokutei'
+  | 'thuc-tap-sinh'
+  | 'du-hoc';
+
+export interface JobPostContentBlock {
+  id: string;
+  key: string;
+  title: string;
+  icon: string;
+  content: string;
+  enabled: boolean;
+  order: number;
+}
+
+export interface JobPostTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  badge: string;
+  icon: string;
+  initialBlocks: Omit<JobPostContentBlock, 'id'>[];
+  facebookFormat: (data: Partial<JobOrder>) => string;
+}
 
 export interface JobOrder {
   id: string;
   title?: string;
   category: JobOrderCategory;
   imageUrl: string;
+  posterUrl?: string;
   description: string;
   status: JobOrderStatus;
   isFeatured: boolean;
+  orderCode?: string;
+  location?: string;
+  salary?: string;
+  ageRange?: string;
+  requirements?: string;
+  departureMonth?: string;
+
+  // Trường mở rộng chi tiết
+  company?: string;
+  jobType?: string;
+  quantity?: string;
+  gender?: string;
+  education?: string;
+  japaneseLevel?: string;
+  contractTerm?: string;
+  interviewDate?: string;
+  specificWork?: string;
+  workEnvironment?: string;
+  workingHours?: string;
+  holidays?: string;
+  experience?: string;
+  healthRequirements?: string;
+
+  // Lương & Quyền lợi phân tách
+  basicSalary?: string;
+  takeHomeSalary?: string;
+  overtime?: string;
+  allowances?: string;
+  bonus?: string;
+  insurance?: string;
+  accommodation?: string;
+  meals?: string;
+  transport?: string;
+  otherBenefits?: string;
+
+  // Trình thiết kế bài đăng & Media
+  postContent?: string;
+  facebookContent?: string;
+  postTemplateId?: string;
+  postBlocks?: JobPostContentBlock[];
+  galleryImages?: string[];
+
   createdAt: string;
   updatedAt: string;
 }
@@ -25,37 +100,79 @@ export interface JobOrderCategoryMeta {
 
 export const JOB_ORDER_CATEGORIES: readonly JobOrderCategoryMeta[] = [
   {
+    key: 'nong-nghiep',
+    label: 'Nông nghiệp',
+    shortLabel: 'Nông nghiệp',
+    icon: 'fas fa-leaf',
+    description: 'Trồng trọt, thu hoạch nông sản trong nhà kính và trang trại Nhật Bản.',
+  },
+  {
+    key: 'thuc-pham',
+    label: 'Chế biến thực phẩm',
+    shortLabel: 'Thực phẩm',
+    icon: 'fas fa-utensils',
+    description: 'Chế biến thủy hải sản, cơm hộp, thực phẩm đóng gói trong nhà máy.',
+  },
+  {
+    key: 'co-khi',
+    label: 'Cơ khí',
+    shortLabel: 'Cơ khí',
+    icon: 'fas fa-gear',
+    description: 'Vận hành máy CNC, tiện, phay, hàn, bảo trì máy móc công nghiệp.',
+  },
+  {
+    key: 'xay-dung',
+    label: 'Xây dựng',
+    shortLabel: 'Xây dựng',
+    icon: 'fas fa-building',
+    description: 'Thi công xây dựng, cốt pha, hoàn thiện công trình, giám sát kỹ thuật.',
+  },
+  {
+    key: 'dien-tu',
+    label: 'Điện tử',
+    shortLabel: 'Điện tử',
+    icon: 'fas fa-microchip',
+    description: 'Lắp ráp linh kiện, sản xuất bo mạch và thiết bị điện tử chính xác.',
+  },
+  {
+    key: 'khac',
+    label: 'Khác',
+    shortLabel: 'Khác',
+    icon: 'fas fa-ellipsis',
+    description: 'Các ngành nghề dịch vụ, đóng gói công nghiệp và logistics.',
+  },
+  {
     key: 'ky-su',
     label: 'Kỹ sư',
     shortLabel: 'Kỹ sư',
     icon: 'fas fa-compass-drafting',
-    description: 'Đơn theo chuyên môn và phát triển nghề nghiệp.',
+    description: 'Đơn theo chuyên môn kỹ thuật và phát triển nghề nghiệp lâu dài.',
   },
   {
     key: 'tokutei',
     label: 'Tokutei',
     shortLabel: 'Tokutei',
     icon: 'fas fa-screwdriver-wrench',
-    description: 'Chương trình kỹ năng đặc định.',
+    description: 'Chương trình kỹ năng đặc định với mức lương tương đương người Nhật.',
   },
   {
     key: 'thuc-tap-sinh',
     label: 'Thực tập sinh',
     shortLabel: 'TTS',
     icon: 'fas fa-helmet-safety',
-    description: 'Đơn thực tập sinh Nhật Bản.',
+    description: 'Chương trình thực tập sinh kỹ năng Nhật Bản chuẩn 3 - 5 năm.',
   },
   {
     key: 'du-hoc',
     label: 'Du học',
     shortLabel: 'Du học',
     icon: 'fas fa-graduation-cap',
-    description: 'Lộ trình học tập tại Nhật Bản.',
+    description: 'Lộ trình du học vừa học vừa làm tại các trường Nhật ngữ uy tín.',
   },
 ];
 
 export function getJobOrderCategory(category: JobOrderCategory): JobOrderCategoryMeta {
-  return JOB_ORDER_CATEGORIES.find((item) => item.key === category) ?? JOB_ORDER_CATEGORIES[2];
+  return JOB_ORDER_CATEGORIES.find((item) => item.key === category) ?? JOB_ORDER_CATEGORIES[0];
 }
 
 export function getJobOrderTitle(order: Pick<JobOrder, 'title' | 'category'>): string {
@@ -65,14 +182,25 @@ export function getJobOrderTitle(order: Pick<JobOrder, 'title' | 'category'>): s
 
 export function getJobOrderFallbackImage(category: JobOrderCategory): string {
   switch (category) {
+    case 'nong-nghiep':
+      return 'assets/images/jobs/job-nong-nghiep.jpg';
+    case 'thuc-pham':
+      return 'assets/images/jobs/job-thuc-pham.jpg';
+    case 'co-khi':
     case 'ky-su':
-      return '/assets/images/KySu/ks.png';
+      return 'assets/images/jobs/job-co-khi.jpg';
+    case 'xay-dung':
+      return 'assets/images/jobs/job-xay-dung.jpg';
+    case 'dien-tu':
+      return 'assets/images/jobs/job-dien-tu.jpg';
     case 'tokutei':
-      return '/assets/images/TKT/tkt.png';
+      return 'assets/images/jobs/job-thuc-pham.jpg';
+    case 'thuc-tap-sinh':
+      return 'assets/images/jobs/job-thuc-pham.jpg';
     case 'du-hoc':
-      return '/assets/images/DHS/dhs.png';
+      return 'assets/images/DHS/dhs.png';
     default:
-      return '/assets/images/TTS/tts.png';
+      return 'assets/images/jobs/job-thuc-pham.jpg';
   }
 }
 
@@ -82,7 +210,7 @@ export function stripJobOrderHtml(html: string): string {
   }
 
   return html
-    .replace(/<br\s*\/?\s*>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, ' ')
     .replace(/<\/p>|<\/div>|<\/li>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
@@ -95,8 +223,44 @@ export function createEmptyJobOrder(): JobOrderPayload {
     title: '',
     category: 'thuc-tap-sinh',
     imageUrl: '',
+    posterUrl: '',
     description: '',
     status: 'draft',
     isFeatured: false,
+    orderCode: '',
+    location: '',
+    salary: '',
+    ageRange: '',
+    requirements: '',
+    departureMonth: '',
+    company: '',
+    jobType: '',
+    quantity: '',
+    gender: 'Nam/Nữ',
+    education: 'Tốt nghiệp THPT trở lên',
+    japaneseLevel: 'Không yêu cầu khi thi tuyển',
+    contractTerm: '3 năm',
+    interviewDate: '',
+    specificWork: '',
+    workEnvironment: 'Trong nhà xưởng sạch sẽ, điều hòa, an toàn lao động',
+    workingHours: '08:00 - 17:00 (Nghỉ trưa 60 phút, có tăng ca)',
+    holidays: 'Nghỉ Thứ 7, Chủ Nhật và các ngày Lễ theo lịch Nhật Bản',
+    experience: 'Không yêu cầu kinh nghiệm, được đào tạo bài bản',
+    healthRequirements: 'Sức khỏe tốt, không mắc bệnh truyền nhiễm, thị lực tốt',
+    basicSalary: '',
+    takeHomeSalary: '',
+    overtime: 'Nhiều việc làm thêm, bình quân 25 - 40 giờ/tháng',
+    allowances: 'Trợ cấp đào tạo tháng đầu 60.000 Yên, phụ cấp ca kíp, chuyên cần',
+    bonus: 'Xét tăng lương hàng năm, thưởng theo năng suất làm việc',
+    insurance: 'Đầy đủ BH Y tế, Nenkin, Thất nghiệp theo Luật Lao động Nhật Bản',
+    accommodation: 'Ký túc xá đầy đủ tiện nghi: điều hòa, máy giặt, bếp nấu, wifi',
+    meals: 'Bếp tự nấu ăn tại KTX, hỗ trợ bữa ăn ca tại nhà máy',
+    transport: 'Cung cấp xe đạp hoặc hỗ trợ 100% vé tháng tàu điện',
+    otherBenefits: 'Hỗ trợ thủ tục hoàn thuế Nenkin khi hết hạn hợp đồng về nước',
+    postContent: '',
+    facebookContent: '',
+    postTemplateId: 'standard_general',
+    postBlocks: [],
+    galleryImages: [],
   };
 }

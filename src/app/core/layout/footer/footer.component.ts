@@ -5,11 +5,13 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   APP_COMPANY_INFO,
   APP_CONTACT_INFO,
+  APP_FOOTER_CONFIG,
   APP_QUICK_LINKS,
   APP_PROGRAM_LINKS,
   APP_SUPPORT_LINKS,
   APP_SOCIAL_MEDIA,
   APP_ORDER_LIST,
+  FooterLinkItem,
 } from '../../config/app.config';
 
 @Component({
@@ -22,26 +24,77 @@ import {
 export class FooterComponent implements OnDestroy {
   @ViewChild('registrationPinField') registrationPinInputRef?: ElementRef<HTMLInputElement>;
 
-  // Năm hiện tại
-  currentYear = new Date().getFullYear();
+  // Năm hiện tại tự động
+  readonly currentYear = new Date().getFullYear();
 
-  // Thông tin công ty - từ config
-  companyInfo = APP_COMPANY_INFO;
+  // Thông tin cấu hình chung
+  readonly companyInfo = APP_COMPANY_INFO;
+  readonly contactInfo = APP_CONTACT_INFO;
+  readonly footerConfig = APP_FOOTER_CONFIG;
+  readonly socialMedia = APP_SOCIAL_MEDIA;
 
-  // Thông tin liên hệ - từ config
-  contactInfo = APP_CONTACT_INFO;
+  // Accordion Mobile State (null = all collapsed, or group key = expanded)
+  expandedAccordion: string | null = null;
 
-  // Menu liên kết nhanh - từ config
+  // Định dạng số điện thoại tự nhiên (0966 966 284)
+  formatPhone(phone: string): string {
+    if (!phone) return '';
+    const clean = phone.replace(/\D/g, '');
+    if (clean.length === 10) {
+      return `${clean.slice(0, 4)} ${clean.slice(4, 7)} ${clean.slice(7)}`;
+    }
+    return phone;
+  }
+
+  // Tự động đồng bộ các nhóm liên kết hợp lệ
+  get exploreLinks(): FooterLinkItem[] {
+    return this.footerConfig.groups.explore.links
+      .filter((l) => l.isPublic !== false && l.showInFooter !== false)
+      .sort((a, b) => a.order - b.order);
+  }
+
+  get programAndToolLinks(): FooterLinkItem[] {
+    return this.footerConfig.groups.programsAndTools.links
+      .filter((l) => l.isPublic !== false && l.showInFooter !== false)
+      .sort((a, b) => a.order - b.order);
+  }
+
+  get legalLinks(): FooterLinkItem[] {
+    return this.footerConfig.groups.supportAndLegal.links
+      .filter((l) => l.isPublic !== false && l.showInFooter !== false)
+      .sort((a, b) => a.order - b.order);
+  }
+
+  // Danh sách mạng xã hội có URL hợp lệ
+  get validSocialMediaList(): { key: string; url: string; icon: string; label: string }[] {
+    const list: { key: string; url: string; icon: string; label: string }[] = [];
+    if (this.contactInfo.facebook) {
+      list.push({ key: 'facebook', url: this.contactInfo.facebook, icon: 'fab fa-facebook-f', label: 'Facebook' });
+    }
+    if (this.contactInfo.tiktok) {
+      list.push({ key: 'tiktok', url: this.contactInfo.tiktok, icon: 'fab fa-tiktok', label: 'TikTok' });
+    }
+    if (this.contactInfo.youtube) {
+      list.push({ key: 'youtube', url: this.contactInfo.youtube, icon: 'fab fa-youtube', label: 'YouTube' });
+    }
+    if (this.contactInfo.zaloUrl) {
+      list.push({ key: 'zalo', url: this.contactInfo.zaloUrl, icon: 'fas fa-comment-dots', label: 'Zalo Chat' });
+    }
+    return list;
+  }
+
+  toggleAccordion(key: string): void {
+    this.expandedAccordion = this.expandedAccordion === key ? null : key;
+  }
+
+  isAccordionOpen(key: string): boolean {
+    return this.expandedAccordion === key;
+  }
+
+  // Backwards compatibility
   quickLinks = APP_QUICK_LINKS;
-
-  // Chương trình - từ config
   programLinks = APP_PROGRAM_LINKS;
-
-  // Hỗ trợ - từ config
   supportLinks = APP_SUPPORT_LINKS;
-
-  // Social media - từ config
-  socialMedia = APP_SOCIAL_MEDIA;
 
   isQuickAccessOpen = false;
   isOrderListOpen = false;
@@ -70,14 +123,14 @@ export class FooterComponent implements OnDestroy {
   quickAccessLinks = [
     {
       label: 'Danh sách đơn hàng',
-      url: this.orderListUrl,
+      url: '/don-hang',
       icon: 'fas fa-list-check',
       kind: 'orders',
       requiresPin: false,
     },
     {
-      label: 'Đăng ký thông tin',
-      url: this.registrationUrl,
+      label: 'Khai form học viên',
+      url: '/form-hoc-vien',
       icon: 'fas fa-file-signature',
       kind: 'registration',
       requiresPin: true,
@@ -113,6 +166,12 @@ export class FooterComponent implements OnDestroy {
     if (link.kind === 'orders') {
       this.closeQuickAccess();
       void this.router.navigate(['/don-hang']);
+      return;
+    }
+
+    if (link.kind === 'registration') {
+      this.closeQuickAccess();
+      void this.router.navigate(['/form-hoc-vien']);
       return;
     }
 

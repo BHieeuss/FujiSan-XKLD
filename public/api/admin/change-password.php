@@ -37,9 +37,29 @@ try {
     }
 
     $account['passwordHash'] = password_hash($newPassword, PASSWORD_DEFAULT);
-    $account['passwordChangedAt'] = gmdate(DATE_ATOM);
+    $account['passwordChangedAt'] = date('c');
     admin_save_account($account);
     admin_create_session($account['username']);
+
+    require_once __DIR__ . '/_notifications.php';
+    admin_notification_create([
+        'eventType' => 'security.password_changed',
+        'category' => 'system',
+        'title' => 'Bảo mật: Mật khẩu quản trị vừa được cập nhật',
+        'message' => 'Tài khoản quản trị viên ' . $account['username'] . ' vừa đổi mật khẩu thành công.',
+        'actor' => ['id' => 'admin', 'name' => $account['username'], 'role' => 'Admin'],
+        'target' => ['type' => 'system', 'id' => '', 'code' => 'SECURITY', 'name' => 'Bảo mật', 'url' => '/quan-tri-viejap?section=security'],
+        'priority' => 'high',
+    ]);
+    admin_activity_log_create([
+        'actorName' => $account['username'],
+        'actorRole' => 'Quản trị viên',
+        'action' => 'Đổi mật khẩu tài khoản quản trị',
+        'targetType' => 'system',
+        'targetId' => $account['username'],
+        'targetName' => 'Tài khoản Admin',
+        'details' => 'Đổi mật khẩu và làm mới phiên đăng nhập an toàn.',
+    ]);
 
     $refreshed = admin_current_session();
     admin_respond(200, [

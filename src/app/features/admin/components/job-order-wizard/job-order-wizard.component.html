@@ -1,0 +1,1401 @@
+<div class="job-wizard-container">
+  <!-- SUCCESS STATE -->
+  @if (successOrder) {
+    <div class="wizard-success-panel animate-fade-in">
+      <div class="success-icon-wrap">
+        <i class="fas fa-circle-check"></i>
+      </div>
+      <h2>{{ successOrder.status === 'published' ? 'Đã xuất bản đơn hàng thành công!' : 'Đã lưu bản nháp đơn hàng thành công!' }}</h2>
+      <p class="success-desc">
+        Đơn hàng <strong>"{{ successOrder.title }}"</strong> (Mã: {{ successOrder.orderCode || successOrder.id }}) đã được lưu trữ an toàn trong hệ thống.
+      </p>
+
+      <div class="success-action-row">
+        <button type="button" class="btn btn-primary" (click)="viewPublishedOrder()">
+          <i class="fas fa-arrow-up-right-from-square"></i> Xem trang chi tiết đơn hàng
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">
+          <i class="fas fa-list-check"></i> Quay lại danh sách quản trị
+        </button>
+      </div>
+    </div>
+  } @else {
+    <!-- WIZARD STEPPER HEADER -->
+    <header class="wizard-header">
+      <div class="wizard-title-bar">
+        <div>
+          <span class="wizard-badge">
+            <i class="fas fa-wand-magic-sparkles"></i> {{ isEditing ? 'CẬP NHẬT ĐƠN HÀNG' : 'TẠO MỚI ĐƠN HÀNG' }}
+          </span>
+          <h1>{{ isEditing ? 'Chỉnh sửa đơn hàng tuyển dụng' : 'Khởi tạo & Thiết kế bài đăng đơn hàng' }}</h1>
+          <p>Quy trình 5 bước chuẩn hóa dữ liệu, poster và nội dung bài đăng tuyển dụng Nhật Bản.</p>
+        </div>
+
+        <div class="wizard-header-actions">
+          <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSaving">
+            <i class="fas fa-xmark"></i> Hủy bỏ
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP PROGRESS TABS -->
+      <nav class="stepper-nav" aria-label="Quy trình tạo đơn hàng">
+        @for (s of wizardSteps; track s.step) {
+          <button
+            type="button"
+            class="stepper-tab"
+            [class.active]="currentStep === s.step"
+            [class.completed]="currentStep > s.step"
+            (click)="goToStep(s.step)"
+            [disabled]="isSaving"
+          >
+            <div class="step-num">
+              @if (currentStep > s.step) {
+                <i class="fas fa-check"></i>
+              } @else {
+                <span>{{ s.step }}</span>
+              }
+            </div>
+            <div class="step-text">
+              <strong class="step-title">{{ s.title }}</strong>
+              <small class="step-sub">{{ s.subtitle }}</small>
+            </div>
+          </button>
+        }
+      </nav>
+    </header>
+
+    <!-- ERROR BANNER -->
+    @if (errorMessage) {
+      <div class="wizard-alert error animate-shake">
+        <i class="fas fa-circle-exclamation"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <!-- STEP 1: THÔNG TIN CHUNG -->
+    @if (currentStep === 1) {
+      <div class="wizard-step-panel animate-fade-in">
+        <div class="step-section-heading">
+          <h2><i class="fas fa-circle-info"></i> Bước 1: Thông tin chung & Định danh đơn hàng</h2>
+          <p>Thiết lập mã đơn hàng, công ty tuyển dụng và ngành nghề tiếp nhận.</p>
+        </div>
+
+        <div class="form-grid">
+          <!-- Mã đơn hàng -->
+          <div class="form-group">
+            <label for="orderCode">
+              <span>Mã đơn hàng <b>*</b></span>
+              <button type="button" class="btn-suggest-code" (click)="generateSuggestedCode()">
+                <i class="fas fa-rotate"></i> Tạo mã tự động
+              </button>
+            </label>
+            <div class="input-with-status">
+              <input
+                id="orderCode"
+                type="text"
+                [(ngModel)]="draft.orderCode"
+                (input)="onOrderCodeInput()"
+                placeholder="Ví dụ: TP-2026, CK-8899"
+                maxlength="40"
+              />
+              @if (codeCheckStatus === 'checking') {
+                <span class="status-badge checking"><i class="fas fa-spinner fa-spin"></i> Kiểm tra...</span>
+              } @else if (codeCheckStatus === 'duplicate') {
+                <span class="status-badge duplicate"><i class="fas fa-xmark"></i> Trùng mã</span>
+              } @else if (codeCheckStatus === 'valid') {
+                <span class="status-badge valid"><i class="fas fa-check"></i> Hợp lệ</span>
+              }
+            </div>
+            @if (codeCheckMessage) {
+              <small class="field-feedback" [class.text-danger]="codeCheckStatus === 'duplicate'" [class.text-success]="codeCheckStatus === 'valid'">
+                {{ codeCheckMessage }}
+              </small>
+            }
+          </div>
+
+          <!-- Tiêu đề đơn hàng -->
+          <div class="form-group field-span-2">
+            <label for="orderTitle">Tiêu đề bài đăng đơn hàng <b>*</b></label>
+            <input
+              id="orderTitle"
+              type="text"
+              [(ngModel)]="draft.title"
+              placeholder="Ví dụ: Chế biến thực phẩm và đóng hộp cơm hộp tại Chiba"
+              maxlength="160"
+              required
+            />
+          </div>
+
+          <!-- Công ty tiếp nhận -->
+          <div class="form-group">
+            <label for="company">Xí nghiệp / Công ty tiếp nhận</label>
+            <input
+              id="company"
+              type="text"
+              [(ngModel)]="draft.company"
+              placeholder="Ví dụ: Tập đoàn Chế biến Thực phẩm Tokyo Food"
+              maxlength="160"
+            />
+          </div>
+
+          <!-- Nhóm ngành nghề (10 category selector) -->
+          <div class="form-group field-span-3">
+            <label>Ngành nghề tuyển dụng <b>*</b></label>
+            <div class="category-grid">
+              @for (cat of categories; track cat.key) {
+                <button
+                  type="button"
+                  class="category-btn"
+                  [class.active]="draft.category === cat.key"
+                  (click)="draft.category = cat.key"
+                >
+                  <i [class]="cat.icon"></i>
+                  <span>{{ cat.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Vị trí cụ thể -->
+          <div class="form-group">
+            <label for="jobType">Loại công việc / Vị trí cụ thể</label>
+            <input
+              id="jobType"
+              type="text"
+              [(ngModel)]="draft.jobType"
+              placeholder="Ví dụ: Vận hành máy đóng gói, Phay CNC, Thu hoạch dưa"
+              maxlength="120"
+            />
+          </div>
+
+          <!-- Địa điểm Nhật Bản -->
+          <div class="form-group">
+            <label for="location">Địa điểm làm việc (Tỉnh / Thành phố) <b>*</b></label>
+            <input
+              id="location"
+              type="text"
+              [(ngModel)]="draft.location"
+              placeholder="Ví dụ: Aichi, Tokyo, Chiba, Osaka, Fukuoka"
+              maxlength="100"
+            />
+          </div>
+
+          <!-- Số lượng tuyển -->
+          <div class="form-group">
+            <label for="quantity">Số lượng tuyển dụng</label>
+            <input
+              id="quantity"
+              type="text"
+              [(ngModel)]="draft.quantity"
+              placeholder="Ví dụ: 03 Nam, 02 Nữ hoặc 06 ứng viên"
+              maxlength="80"
+            />
+          </div>
+
+          <!-- Giới tính -->
+          <div class="form-group">
+            <label for="gender">Giới tính yêu cầu</label>
+            <select id="gender" [(ngModel)]="draft.gender">
+              <option value="Nam/Nữ">Nam / Nữ đều được</option>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+              <option value="Không yêu cầu">Không yêu cầu</option>
+            </select>
+          </div>
+
+          <!-- Độ tuổi -->
+          <div class="form-group">
+            <label for="ageRange">Độ tuổi</label>
+            <input
+              id="ageRange"
+              type="text"
+              [(ngModel)]="draft.ageRange"
+              placeholder="Ví dụ: 18 - 30 tuổi, 19 - 35 tuổi"
+              maxlength="60"
+            />
+          </div>
+
+          <!-- Học vấn -->
+          <div class="form-group">
+            <label for="education">Trình độ học vấn</label>
+            <input
+              id="education"
+              type="text"
+              [(ngModel)]="draft.education"
+              placeholder="Ví dụ: Tốt nghiệp THPT trở lên, Cao đẳng/Đại học"
+              maxlength="120"
+            />
+          </div>
+
+          <!-- Tiếng Nhật -->
+          <div class="form-group">
+            <label for="japaneseLevel">Yêu cầu tiếng Nhật</label>
+            <input
+              id="japaneseLevel"
+              type="text"
+              [(ngModel)]="draft.japaneseLevel"
+              placeholder="Ví dụ: Không yêu cầu khi thi tuyển, N4 trở lên"
+              maxlength="120"
+            />
+          </div>
+
+          <!-- Thời hạn hợp đồng -->
+          <div class="form-group">
+            <label for="contractTerm">Thời hạn hợp đồng</label>
+            <input
+              id="contractTerm"
+              type="text"
+              [(ngModel)]="draft.contractTerm"
+              placeholder="Ví dụ: 3 năm, 5 năm, Gia hạn Tokutei"
+              maxlength="60"
+            />
+          </div>
+
+          <!-- Ngày phỏng vấn -->
+          <div class="form-group">
+            <label for="interviewDate">Hạn nhận hồ sơ / Dự kiến phỏng vấn</label>
+            <input
+              id="interviewDate"
+              type="text"
+              [(ngModel)]="draft.interviewDate"
+              placeholder="Ví dụ: 25/11/2026 hoặc Cuối tháng 11"
+              maxlength="60"
+            />
+          </div>
+
+          <!-- Dự kiến xuất cảnh -->
+          <div class="form-group">
+            <label for="departureMonth">Dự kiến xuất cảnh</label>
+            <input
+              id="departureMonth"
+              type="text"
+              [(ngModel)]="draft.departureMonth"
+              placeholder="Ví dụ: Tháng 05/2027"
+              maxlength="48"
+            />
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 2: CÔNG VIỆC & YÊU CẦU -->
+    @if (currentStep === 2) {
+      <div class="wizard-step-panel animate-fade-in">
+        <div class="step-section-heading">
+          <h2><i class="fas fa-screwdriver-wrench"></i> Bước 2: Chi tiết công việc & Yêu cầu ứng viên</h2>
+          <p>Mô tả rõ ràng thao tác hàng ngày, môi trường nhà máy và các tiêu chuẩn tuyển chọn.</p>
+        </div>
+
+        <div class="form-grid">
+          <!-- Mô tả tóm tắt -->
+          <div class="form-group field-span-3">
+            <label for="desc">Mô tả tóm tắt đơn hàng <b>*</b></label>
+            <textarea
+              id="desc"
+              rows="3"
+              [(ngModel)]="draft.description"
+              placeholder="Tóm tắt ngắn gọn đơn hàng để hiển thị trên danh sách và thẻ tìm kiếm..."
+            ></textarea>
+          </div>
+
+          <!-- Chi tiết công việc -->
+          <div class="form-group field-span-3">
+            <label for="specificWork">Chi tiết nội dung công việc hàng ngày</label>
+            <textarea
+              id="specificWork"
+              rows="4"
+              [(ngModel)]="draft.specificWork"
+              placeholder="Chi tiết các công đoạn làm việc: chuẩn bị nguyên liệu, vận hành dây chuyền, kiểm tra chất lượng..."
+            ></textarea>
+          </div>
+
+          <!-- Môi trường làm việc -->
+          <div class="form-group field-span-2">
+            <label for="workEnv">Môi trường làm việc</label>
+            <input
+              id="workEnv"
+              type="text"
+              [(ngModel)]="draft.workEnvironment"
+              placeholder="Ví dụ: Nhà xưởng sạch sẽ, điều hòa, phòng sạch, an toàn lao động"
+            />
+          </div>
+
+          <!-- Thời gian làm việc -->
+          <div class="form-group">
+            <label for="workingHours">Thời gian làm việc & Ca kíp</label>
+            <input
+              id="workingHours"
+              type="text"
+              [(ngModel)]="draft.workingHours"
+              placeholder="Ví dụ: 08:00 - 17:00 (Nghỉ trưa 60 phút)"
+            />
+          </div>
+
+          <!-- Chế độ ngày nghỉ -->
+          <div class="form-group field-span-2">
+            <label for="holidays">Chế độ ngày nghỉ</label>
+            <input
+              id="holidays"
+              type="text"
+              [(ngModel)]="draft.holidays"
+              placeholder="Ví dụ: Nghỉ Thứ 7, Chủ Nhật và các ngày lễ theo lịch Nhật Bản (105-115 ngày/năm)"
+            />
+          </div>
+
+          <!-- Yêu cầu kinh nghiệm -->
+          <div class="form-group field-span-2">
+            <label for="exp">Yêu cầu kinh nghiệm & Tay nghề</label>
+            <input
+              id="exp"
+              type="text"
+              [(ngModel)]="draft.experience"
+              placeholder="Ví dụ: Không yêu cầu kinh nghiệm, tiếp nhận đào tạo bài bản từ đầu"
+            />
+          </div>
+
+          <!-- Yêu cầu sức khỏe -->
+          <div class="form-group field-span-2">
+            <label for="health">Yêu cầu sức khỏe</label>
+            <input
+              id="health"
+              type="text"
+              [(ngModel)]="draft.healthRequirements"
+              placeholder="Ví dụ: Sức khỏe tốt, không mắc bệnh truyền nhiễm (viêm gan B, HIV), thị lực tốt"
+            />
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 3: LƯƠNG & QUYỀN LỢI -->
+    @if (currentStep === 3) {
+      <div class="wizard-step-panel animate-fade-in">
+        <div class="step-section-heading">
+          <h2><i class="fas fa-sack-dollar"></i> Bước 3: Lương & Quyền lợi đãi ngộ</h2>
+          <p>Phân tách minh bạch giữa mức lương cơ bản và lương thực lĩnh dự kiến sau các khoản khấu trừ.</p>
+        </div>
+
+        <div class="form-grid">
+          <!-- Lương cơ bản -->
+          <div class="form-group field-highlight-blue">
+            <label for="basicSal">
+              <span>Lương cơ bản (Gross) <b>*</b></span>
+              <small>Trước khi trừ thuế, BH, KTX</small>
+            </label>
+            <input
+              id="basicSal"
+              type="text"
+              [(ngModel)]="draft.basicSalary"
+              placeholder="Ví dụ: 185.000 Yên/tháng (~ 31.500.000 VNĐ)"
+              required
+            />
+          </div>
+
+          <!-- Lương thực lĩnh -->
+          <div class="form-group field-highlight-green">
+            <label for="takeHomeSal">
+              <span>Lương thực lĩnh dự kiến (Net)</span>
+              <small>Thực tế cầm về tay</small>
+            </label>
+            <input
+              id="takeHomeSal"
+              type="text"
+              [(ngModel)]="draft.takeHomeSalary"
+              placeholder="Ví dụ: 135.000 - 145.000 Yên/tháng (~ 23 - 25 triệu)"
+            />
+          </div>
+
+          <!-- Tăng ca -->
+          <div class="form-group">
+            <label for="overtime">Chế độ làm thêm giờ (Tăng ca)</label>
+            <input
+              id="overtime"
+              type="text"
+              [(ngModel)]="draft.overtime"
+              placeholder="Ví dụ: Nhiều việc làm thêm, bình quân 25 - 40h/tháng (nhân 125%)"
+            />
+          </div>
+
+          <!-- Trợ cấp tháng đầu & Phụ cấp -->
+          <div class="form-group field-span-2">
+            <label for="allowances">Trợ cấp tháng đầu & Các khoản phụ cấp</label>
+            <input
+              id="allowances"
+              type="text"
+              [(ngModel)]="draft.allowances"
+              placeholder="Ví dụ: Trợ cấp đào tạo tháng đầu 60.000 Yên, phụ cấp ca đêm, chuyên cần"
+            />
+          </div>
+
+          <!-- Thưởng & Tăng lương -->
+          <div class="form-group">
+            <label for="bonus">Thưởng & Tăng lương định kỳ</label>
+            <input
+              id="bonus"
+              type="text"
+              [(ngModel)]="draft.bonus"
+              placeholder="Ví dụ: Xét tăng lương hàng năm, thưởng theo hiệu quả công việc"
+            />
+          </div>
+
+          <!-- Bảo hiểm -->
+          <div class="form-group field-span-2">
+            <label for="insurance">Chế độ bảo hiểm theo Luật Nhật Bản</label>
+            <input
+              id="insurance"
+              type="text"
+              [(ngModel)]="draft.insurance"
+              placeholder="Ví dụ: Đầy đủ BH Y tế, Nenkin hưu trí, Tai nạn lao động, Thất nghiệp"
+            />
+          </div>
+
+          <!-- Nhà ở / Ký túc xá -->
+          <div class="form-group field-span-2">
+            <label for="accom">Nhà ở & Tiện nghi ký túc xá</label>
+            <input
+              id="accom"
+              type="text"
+              [(ngModel)]="draft.accommodation"
+              placeholder="Ví dụ: KTX tiện nghi, đầy đủ điều hòa, máy giặt, bếp nấu, wifi, gần công ty"
+            />
+          </div>
+
+          <!-- Ăn uống -->
+          <div class="form-group">
+            <label for="meals">Chế độ ăn uống</label>
+            <input
+              id="meals"
+              type="text"
+              [(ngModel)]="draft.meals"
+              placeholder="Ví dụ: Bếp tự nấu tại KTX, hỗ trợ suất ăn ca tại nhà máy"
+            />
+          </div>
+
+          <!-- Phương tiện đi lại -->
+          <div class="form-group">
+            <label for="transport">Phương tiện đi lại</label>
+            <input
+              id="transport"
+              type="text"
+              [(ngModel)]="draft.transport"
+              placeholder="Ví dụ: Cung cấp xe đạp hoặc hỗ trợ 100% vé tháng tàu điện"
+            />
+          </div>
+
+          <!-- Quyền lợi khác -->
+          <div class="form-group field-span-2">
+            <label for="otherBen">Quyền lợi hỗ trợ khác</label>
+            <input
+              id="otherBen"
+              type="text"
+              [(ngModel)]="draft.otherBenefits"
+              placeholder="Ví dụ: Hỗ trợ thủ tục nhận lại tiền Nenkin (khoảng 80 - 120 triệu) khi về nước"
+            />
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 4: HÌNH ẢNH & TRÌNH THIẾT KẾ BÀI ĐĂNG -->
+    @if (currentStep === 4) {
+      <div class="wizard-step-panel designer-panel animate-fade-in">
+        <div class="step-section-heading">
+          <h2><i class="fas fa-palette"></i> Bước 4: Hình ảnh & Trình thiết kế bài đăng tuyển dụng</h2>
+          <p>Lựa chọn mẫu bài đăng chuyên nghiệp, kiểm soát hình ảnh và xem trước giao diện thực tế đa thiết bị.</p>
+        </div>
+
+        <!-- MEDIA MANAGEMENT BAR -->
+        <div class="media-upload-strip">
+          <div class="media-box">
+            <div class="media-box-label">
+              <span>Ảnh Thumbnail danh sách</span>
+              <label class="btn-upload-file">
+                <i class="fas fa-upload"></i> Đổi ảnh
+                <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onThumbnailSelected($event)" />
+              </label>
+            </div>
+            <div class="media-preview-box">
+              <img [src]="thumbnailPreview || draft.imageUrl || 'assets/images/jobs/job-thuc-pham.jpg'" alt="Thumbnail" />
+            </div>
+          </div>
+
+          <div class="media-box">
+            <div class="media-box-label">
+              <span>Poster tuyển dụng chính thức</span>
+              <label class="btn-upload-file">
+                <i class="fas fa-upload"></i> Đổi poster
+                <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onPosterSelected($event)" />
+              </label>
+            </div>
+            <div class="media-preview-box poster-box">
+              @if (posterPreview || draft.posterUrl) {
+                <img
+                  [src]="posterPreview || draft.posterUrl"
+                  alt="Poster"
+                  (click)="openLightbox(posterPreview || draft.posterUrl!)"
+                  title="Nhấn để phóng to"
+                />
+              } @else {
+                <div class="no-poster-msg">
+                  <i class="fas fa-image"></i>
+                  <span>Chưa gắn poster. Poster từ công cụ tạo poster sẽ tự động gắn tại đây.</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- NỘI DUNG BÀI ĐĂNG THAM KHẢO (AI BIÊN TẬP & KIỂM TRA CHÍNH SÁCH META) -->
+        <div class="reference-post-container" [class.is-collapsed]="isReferenceSectionCollapsed">
+          <div class="reference-post-main-header">
+            <div class="main-header-title">
+              <span class="badge-tag live-badge"><i class="fas fa-sparkles"></i> AI SMART POST</span>
+              <h3>Nội dung bài đăng tham khảo</h3>
+              <p>AI hỗ trợ biên tập nội dung tuyển dụng từ thông tin đơn hàng, giúp bài đăng rõ ràng, hấp dẫn và phù hợp với tiêu chuẩn cộng đồng.</p>
+            </div>
+
+            <div class="main-header-controls">
+              <!-- Mục đích bài đăng: Organic vs Meta Paid Ads -->
+              <div class="ads-mode-toggle" title="Chọn loại bài đăng để AI áp dụng bộ quy tắc kiểm duyệt phù hợp">
+                <button
+                  type="button"
+                  class="btn-mode-pill"
+                  [class.active]="!isPaidAdsMode"
+                  (click)="isPaidAdsMode = false; runRiskCheck()"
+                >
+                  <i class="fab fa-facebook"></i> Fanpage thường
+                </button>
+                <button
+                  type="button"
+                  class="btn-mode-pill ads-mode"
+                  [class.active]="isPaidAdsMode"
+                  (click)="isPaidAdsMode = true; runRiskCheck()"
+                >
+                  <i class="fas fa-bullhorn"></i> Chạy Ads (HEC)
+                </button>
+              </div>
+
+              <!-- Nút Thu gọn / Mở rộng -->
+              <button
+                type="button"
+                class="btn-toggle-collapse"
+                (click)="toggleReferenceSectionCollapse()"
+                [title]="isReferenceSectionCollapsed ? 'Mở rộng khu vực' : 'Thu gọn khu vực'"
+              >
+                <i [class]="isReferenceSectionCollapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up'"></i>
+                <span>{{ isReferenceSectionCollapsed ? 'Mở rộng' : 'Thu gọn' }}</span>
+              </button>
+            </div>
+          </div>
+
+          @if (!isReferenceSectionCollapsed) {
+            <!-- BỘ CHỌN 5 MẪU BỐ CỤC BÀI ĐĂNG (FACEBOOK & MẠNG XÃ HỘI) -->
+            <div class="composer-layouts-section">
+              <div class="composer-section-header">
+                <div class="header-title">
+                  <span class="badge-tag"><i class="fas fa-shapes"></i> BỐ CỤC CHUẨN</span>
+                  <h4>5 Mẫu bố cục bài đăng tuyển dụng</h4>
+                  <p>Chọn cách sắp xếp cấu trúc thông tin phù hợp với mục tiêu tuyển dụng của đơn hàng.</p>
+                </div>
+                <span class="active-layout-indicator">
+                  Đang chọn: <strong>{{ composer.getLayout(selectedLayoutId).shortName }}</strong>
+                </span>
+              </div>
+
+              <!-- 5 LAYOUT CARDS GRID -->
+              <div class="layout-cards-grid">
+                @for (l of layoutTemplates; track l.id) {
+                  <div
+                    class="layout-card"
+                    [class.active]="selectedLayoutId === l.id"
+                    (click)="onSelectLayout(l.id)"
+                  >
+                    <div class="layout-card-badge">{{ l.badge }}</div>
+                    <div class="layout-card-thumbnail" [innerHTML]="l.wireframeSvg"></div>
+                    <div class="layout-card-info">
+                      <h5 class="layout-title">{{ l.name }}</h5>
+                      <p class="layout-desc">{{ l.description }}</p>
+                      <div class="layout-purpose">
+                        <i class="fas fa-bullseye"></i> <span>{{ l.purpose }}</span>
+                      </div>
+                    </div>
+                    <div class="layout-card-actions">
+                      <button
+                        type="button"
+                        class="btn-select-layout"
+                        [class.btn-selected]="selectedLayoutId === l.id"
+                        (click)="onSelectLayout(l.id)"
+                      >
+                        @if (selectedLayoutId === l.id) {
+                          <i class="fas fa-check-circle"></i> Đang chọn
+                        } @else {
+                          <i class="fas fa-mouse-pointer"></i> Chọn mẫu này
+                        }
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-view-outline"
+                        title="Xem trước cấu trúc các phần"
+                        (click)="openOutlineModal(l, $event)"
+                      >
+                        <i class="fas fa-list-ol"></i> Cấu trúc
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- BỘ CHỌN 5 PHONG CÁCH VIẾT BÀI -->
+            <div class="composer-styles-section">
+              <div class="composer-section-header compact">
+                <div class="header-title">
+                  <span class="badge-tag style-tag"><i class="fas fa-pen-nib"></i> VĂN PHONG AI</span>
+                  <h4>5 Phong cách viết kết hợp:</h4>
+                </div>
+                <div class="style-tone-hint">
+                  <i class="fas fa-info-circle"></i>
+                  <span>{{ composer.getStyle(selectedStyleId).tone }}</span>
+                </div>
+              </div>
+
+              <div class="styles-chips-row">
+                @for (st of writingStyles; track st.id) {
+                  <button
+                    type="button"
+                    class="style-chip"
+                    [class.active]="selectedStyleId === st.id"
+                    (click)="onSelectStyle(st.id)"
+                  >
+                    <i [class]="st.icon"></i>
+                    <span class="style-name">{{ st.name }}</span>
+                    <span class="style-badge">{{ st.badge }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- ACTION TOOLBAR -->
+            <div class="composer-toolbar">
+              <div class="toolbar-left">
+                <!-- NÚT KIỂM TRA NỘI DUNG -->
+                <button
+                  type="button"
+                  class="toolbar-btn btn-risk"
+                  (click)="runRiskCheck()"
+                  title="Kiểm tra an toàn nội dung & tiêu chuẩn cộng đồng Meta"
+                >
+                  <i class="fas fa-shield-halved"></i>
+                  <span>Kiểm tra nội dung</span>
+                  @if (riskResult) {
+                    <span
+                      class="risk-score-pill"
+                      [class.risk-good]="riskResult.overallRisk === 'low'"
+                      [class.risk-warn]="riskResult.overallRisk === 'medium'"
+                      [class.risk-danger]="riskResult.overallRisk === 'high'"
+                    >
+                      {{ riskResult.overallLabel }} ({{ riskResult.score }}/100)
+                    </span>
+                  }
+                </button>
+
+                <!-- NÚT AI ĐỀ XUẤT CHỈNH SỬA -->
+                <button
+                  type="button"
+                  class="toolbar-btn btn-proposal"
+                  (click)="requestAiProposal()"
+                  title="AI tự động biên tập và đề xuất bản sửa tối ưu hóa"
+                >
+                  <i class="fas fa-wand-magic-sparkles"></i>
+                  <span>AI đề xuất chỉnh sửa</span>
+                </button>
+
+                <!-- NÚT LƯU PHIÊN BẢN MỚI -->
+                <button
+                  type="button"
+                  class="toolbar-btn btn-save-ver"
+                  (click)="saveNewVersion()"
+                  title="Lưu bản hiện tại thành phiên bản mới vào lịch sử"
+                >
+                  <i class="fas fa-bookmark"></i>
+                  <span>Lưu phiên bản mới</span>
+                </button>
+
+                @if (postVersions.length > 0) {
+                  <div class="versions-history-wrap">
+                    <span class="history-label"><i class="fas fa-clock-rotate-left"></i> Lịch sử ({{ postVersions.length }}):</span>
+                    <div class="history-pills">
+                      @for (v of postVersions; track v.id) {
+                        <button
+                          type="button"
+                          class="history-pill"
+                          [title]="'Tạo lúc ' + v.createdAt + ' - Bố cục: ' + composer.getLayout(v.layoutId).shortName"
+                          (click)="restoreVersion(v)"
+                        >
+                          #{{ v.versionNumber }} <small>({{ v.createdAt }})</small>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <div class="toolbar-right">
+                <!-- NÚT SAO CHÉP NỘI DUNG 1-CLICK -->
+                <button
+                  type="button"
+                  class="toolbar-btn btn-copy"
+                  (click)="copyFacebookText()"
+                  [disabled]="!draft.facebookContent"
+                  title="Sao chép toàn bộ nội dung bài đăng tham khảo chuẩn Emoji"
+                >
+                  <i class="fas fa-copy"></i>
+                  <span>Sao chép nội dung</span>
+                </button>
+                @if (copyFeedback) {
+                  <div class="copy-fb-toast animate-fade-in"><i class="fas fa-check"></i> {{ copyFeedback }}</div>
+                }
+              </div>
+            </div>
+
+            <!-- DESIGNER WORKSPACE (2 Columns Desktop, 2 Tabs Mobile) -->
+            <div class="designer-workspace">
+              <!-- MOBILE TAB TOGGLE -->
+              <div class="designer-mobile-tabs">
+                <button
+                  type="button"
+                  [class.active]="mobileDesignerTab === 'edit'"
+                  (click)="setMobileDesignerTab('edit')"
+                >
+                  <i class="fas fa-pen-to-square"></i> Soạn thảo nội dung
+                </button>
+                <button
+                  type="button"
+                  [class.active]="mobileDesignerTab === 'preview'"
+                  (click)="setMobileDesignerTab('preview')"
+                >
+                  <i class="fas fa-eye"></i> Xem trước bài đăng
+                </button>
+              </div>
+
+              <!-- COLUMN 1: EDITOR -->
+              <div class="designer-editor-col" [class.hidden-mobile]="mobileDesignerTab === 'preview'">
+                <!-- EDITOR MODE TABS -->
+                <div class="editor-subtabs">
+                  <button
+                    type="button"
+                    [class.active]="activeSectionTab === 'sections'"
+                    (click)="activeSectionTab = 'sections'"
+                  >
+                    <i class="fas fa-list-check"></i> Sửa từng đoạn ({{ currentSections.length }})
+                  </button>
+                  <button
+                    type="button"
+                    [class.active]="activeSectionTab === 'fulltext'"
+                    (click)="activeSectionTab = 'fulltext'"
+                  >
+                    <i class="fab fa-facebook"></i> Toàn văn bài đăng
+                  </button>
+                  <button
+                    type="button"
+                    [class.active]="activeSectionTab === 'risk'"
+                    (click)="runRiskCheck()"
+                  >
+                    <i class="fas fa-shield-halved"></i> Kiểm tra nội dung
+                    @if (riskResult) {
+                      <span
+                        class="tab-badge"
+                        [class.badge-pass]="riskResult.overallRisk === 'low'"
+                        [class.badge-warn]="riskResult.overallRisk === 'medium'"
+                        [class.badge-danger]="riskResult.overallRisk === 'high'"
+                      >
+                        {{ riskResult.overallLabel }}
+                      </span>
+                    }
+                  </button>
+                  @if (aiProposal) {
+                    <button
+                      type="button"
+                      class="tab-proposal-btn"
+                      [class.active]="activeSectionTab === 'proposal'"
+                      (click)="activeSectionTab = 'proposal'"
+                    >
+                      <i class="fas fa-wand-magic-sparkles"></i> AI Đề xuất (So sánh)
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    [class.active]="activeSectionTab === 'html'"
+                    (click)="activeSectionTab = 'html'"
+                  >
+                    <i class="fas fa-code"></i> HTML Website
+                  </button>
+                </div>
+
+                <!-- TAB 1: SỬA TỪNG ĐOẠN (SECTION EDIT) -->
+                @if (activeSectionTab === 'sections') {
+                  <div class="sections-editor-list animate-fade-in">
+                    <div class="sections-guide-banner">
+                      <i class="fas fa-circle-info"></i>
+                      <span>Người quản trị có thể chỉnh sửa trực tiếp từng đoạn hoặc bấm <strong>"Viết lại đoạn này"</strong> để làm mới riêng đoạn được chọn. Dữ liệu gốc trong form luôn được bảo toàn.</span>
+                    </div>
+
+                    @for (sec of currentSections; track sec.id) {
+                      <div class="section-editor-card" [class.is-modified]="sec.isModified">
+                        <div class="sec-card-header">
+                          <div class="sec-title">
+                            <i [class]="sec.icon"></i>
+                            <strong>{{ sec.label }}</strong>
+                            @if (sec.isModified) {
+                              <span class="badge-modified"><i class="fas fa-pen"></i> Đã sửa</span>
+                            }
+                          </div>
+                          <button
+                            type="button"
+                            class="btn-regen-sec"
+                            (click)="regenerateSection(sec)"
+                            title="Tạo lại riêng đoạn này theo văn phong mới"
+                          >
+                            <i class="fas fa-rotate"></i> Viết lại đoạn này
+                          </button>
+                        </div>
+                        <textarea
+                          class="sec-textarea"
+                          rows="3"
+                          [ngModel]="sec.content"
+                          (ngModelChange)="onSectionTextChange(sec, $event)"
+                          placeholder="Nội dung cho đoạn này..."
+                        ></textarea>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- TAB 2: SOẠN THẢO TOÀN VĂN -->
+                @if (activeSectionTab === 'fulltext') {
+                  <div class="fulltext-editor-wrap animate-fade-in">
+                    <div class="editor-header">
+                      <strong><i class="fab fa-facebook"></i> Toàn văn bài đăng (Tự động đồng bộ với các đoạn)</strong>
+                      <button type="button" class="btn-copy-fb" (click)="copyFacebookText()">
+                        <i class="fas fa-copy"></i> Sao chép
+                      </button>
+                    </div>
+                    <textarea
+                      class="fb-editor-textarea"
+                      rows="16"
+                      [(ngModel)]="draft.facebookContent"
+                      placeholder="Văn bản toàn bài Facebook..."
+                    ></textarea>
+                  </div>
+                }
+
+                <!-- TAB 3: KIỂM TRA NỘI DUNG & CHÍNH SÁCH META -->
+                @if (activeSectionTab === 'risk') {
+                  <div class="risk-audit-wrap animate-fade-in">
+                    @if (riskResult) {
+                      <!-- OVERALL RISK BANNER -->
+                      <div
+                        class="risk-score-banner"
+                        [class.score-pass]="riskResult.overallRisk === 'low'"
+                        [class.score-warn]="riskResult.overallRisk === 'medium'"
+                        [class.score-danger]="riskResult.overallRisk === 'high'"
+                      >
+                        <div class="score-badge-circle">
+                          @if (riskResult.overallRisk === 'low') {
+                            <i class="fas fa-circle-check"></i>
+                          } @else if (riskResult.overallRisk === 'medium') {
+                            <i class="fas fa-triangle-exclamation"></i>
+                          } @else {
+                            <i class="fas fa-circle-xmark"></i>
+                          }
+                        </div>
+                        <div class="score-desc">
+                          <div class="score-title-row">
+                            <h4>Đánh giá: {{ riskResult.overallLabel }}</h4>
+                            <span class="score-number">{{ riskResult.score }}<span>/100</span></span>
+                          </div>
+                          <p>
+                            Hệ thống kiểm tra ngữ cảnh từ ngữ nhạy cảm, rà soát cam kết tuyệt đối và đối chiếu tính nhất quán với form đơn hàng.
+                            <small class="disclaimer-note">(*Lưu ý: Công cụ hỗ trợ hạn chế rủi ro, không thay thế quyết định kiểm duyệt cuối cùng của Meta).</small>
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- CHECKLIST CHẠY QUẢNG CÁO META ADS (HEC) -->
+                      @if (isPaidAdsMode && riskResult.paidAdsChecklist) {
+                        <div class="paid-ads-checklist-card">
+                          <h5><i class="fas fa-bullhorn text-primary"></i> Checklist Quảng cáo Việc làm Meta (Special Ad Category: HEC)</h5>
+                          <div class="checklist-items">
+                            @for (item of riskResult.paidAdsChecklist; track item.item) {
+                              <div class="check-item" [class.passed]="item.passed" [class.warned]="!item.passed">
+                                <i [class]="item.passed ? 'fas fa-check-circle text-success' : 'fas fa-exclamation-circle text-warning'"></i>
+                                <div>
+                                  <strong>{{ item.item }}</strong>
+                                  <small>{{ item.detail }}</small>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      <!-- DANH SÁCH VẤN ĐỀ CẦN XỬ LÝ (ISSUES) -->
+                      @if (riskResult.issues.length > 0) {
+                        <div class="risk-issues-list">
+                          <h5><i class="fas fa-list-ul"></i> Chi tiết các điểm cần lưu ý ({{ riskResult.issues.length }}):</h5>
+                          @for (issue of riskResult.issues; track issue.id) {
+                            <div class="risk-issue-item" [class.risk-high]="issue.riskLevel === 'high'" [class.risk-medium]="issue.riskLevel === 'medium'">
+                              <div class="issue-item-header">
+                                <span class="issue-category">{{ issue.categoryLabel }}</span>
+                                <span class="issue-risk-tag" [class.tag-high]="issue.riskLevel === 'high'" [class.tag-medium]="issue.riskLevel === 'medium'">
+                                  {{ issue.riskLabel }}
+                                </span>
+                              </div>
+                              <div class="issue-flagged-row">
+                                <span class="flag-label">Cụm từ phát hiện:</span>
+                                <span class="flag-text">"{{ issue.flaggedText }}"</span>
+                              </div>
+                              <p class="issue-reason">{{ issue.reason }}</p>
+                              <div class="issue-suggestion-box">
+                                <div class="suggestion-text">
+                                  <strong>Gợi ý thay thế:</strong> {{ issue.suggestion }}
+                                </div>
+                                <button type="button" class="btn-apply-suggestion" (click)="applyIssueSuggestion(issue)">
+                                  <i class="fas fa-check"></i> Áp dụng gợi ý này
+                                </button>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+
+                      <!-- DANH SÁCH TIÊU CHÍ ĐÃ ĐẠT -->
+                      @if (riskResult.passedChecks.length > 0) {
+                        <div class="risk-group passed">
+                          <h5><i class="fas fa-circle-check text-success"></i> Tiêu chí đã đạt chuẩn ({{ riskResult.passedChecks.length }}):</h5>
+                          <ul>
+                            <li *ngFor="let p of riskResult.passedChecks"><i class="fas fa-check"></i> {{ p }}</li>
+                          </ul>
+                        </div>
+                      }
+
+                      <!-- ĐỀ XUẤT CẢI THIỆN THÊM -->
+                      @if (riskResult.recommendations.length > 0) {
+                        <div class="risk-group recommendations">
+                          <h5><i class="fas fa-lightbulb text-info"></i> Đề xuất hoàn thiện:</h5>
+                          <ul>
+                            <li *ngFor="let r of riskResult.recommendations"><i class="fas fa-arrow-right"></i> {{ r }}</li>
+                          </ul>
+                        </div>
+                      }
+                    } @else {
+                      <div class="risk-empty-state">
+                        <i class="fas fa-shield-halved"></i>
+                        <p>Nhấn nút "Kiểm tra nội dung" để bắt đầu phân tích rủi ro và đối chiếu dữ liệu đơn hàng.</p>
+                        <button type="button" class="btn-run-audit" (click)="runRiskCheck()">
+                          Bắt đầu kiểm tra ngay
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- TAB 4: SO SÁNH ĐỀ XUẤT CỦA AI (AI PROPOSAL DIFF) -->
+                @if (activeSectionTab === 'proposal' && aiProposal) {
+                  <div class="proposal-diff-wrap animate-fade-in">
+                    <div class="proposal-header-card">
+                      <div class="header-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                      <div class="header-content">
+                        <h4>Bản đề xuất chỉnh sửa tối ưu hóa từ AI</h4>
+                        <p>AI đã tự động tinh chỉnh câu chữ tự nhiên, gỡ bỏ từ ngữ cam kết tuyệt đối, giữ nguyên 100% dữ liệu thực tế.</p>
+                      </div>
+                      <div class="header-actions">
+                        <button type="button" class="btn-accept-proposal" (click)="acceptFullAiProposal()">
+                          <i class="fas fa-check-double"></i> Chấp nhận toàn bộ
+                        </button>
+                        <button type="button" class="btn-discard-proposal" (click)="discardAiProposal()">
+                          <i class="fas fa-xmark"></i> Giữ bản hiện tại
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- TÓM TẮT CẢI TIẾN -->
+                    <div class="proposal-summary-card">
+                      <h5><i class="fas fa-sparkles text-warning"></i> Các điểm AI đã tối ưu hóa:</h5>
+                      <ul>
+                        <li *ngFor="let imp of aiProposal.improvementsSummary"><i class="fas fa-circle-check text-success"></i> {{ imp }}</li>
+                      </ul>
+                    </div>
+
+                    <!-- BẢNG SO SÁNH TỪNG ĐOẠN -->
+                    <div class="proposal-sections-compare">
+                      <h5><i class="fas fa-columns"></i> So sánh chi tiết từng đoạn:</h5>
+                      @for (pSec of aiProposal.proposedSections; track pSec.id; let idx = $index) {
+                        <div class="compare-row">
+                          <div class="compare-col current">
+                            <div class="col-badge current-badge">Bản hiện tại: {{ currentSections[idx].label }}</div>
+                            <pre>{{ currentSections[idx].content || '(Trống)' }}</pre>
+                          </div>
+                          <div class="compare-col proposed">
+                            <div class="col-badge proposed-badge">
+                              <span>AI Đề xuất</span>
+                              <button type="button" class="btn-accept-single-sec" (click)="acceptProposalSection(idx)">
+                                <i class="fas fa-check"></i> Áp dụng đoạn này
+                              </button>
+                            </div>
+                            <pre>{{ pSec.content }}</pre>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- TAB 5: HTML WEBSITE -->
+                @if (activeSectionTab === 'html') {
+                  <div class="html-editor-wrap animate-fade-in">
+                    <div class="editor-header">
+                      <strong><i class="fas fa-code"></i> Mã HTML bài đăng trên Website</strong>
+                      <button type="button" class="btn-refresh-tpl" (click)="generatePostWithComposer(selectedLayoutId, selectedStyleId, true)">
+                        <i class="fas fa-rotate"></i> Tạo lại HTML
+                      </button>
+                    </div>
+                    <textarea
+                      class="html-editor-textarea"
+                      rows="16"
+                      [(ngModel)]="draft.postContent"
+                      placeholder="Mã HTML bài đăng..."
+                    ></textarea>
+                  </div>
+                }
+              </div>
+
+              <!-- COLUMN 2: LIVE PREVIEW -->
+              <div class="designer-preview-col" [class.hidden-mobile]="mobileDesignerTab === 'edit'">
+                <div class="preview-header">
+                  <span class="preview-title"><i class="fas fa-eye"></i> Bản xem trước trực tiếp:</span>
+
+                  <div class="device-switch" aria-label="Chọn thiết bị xem trước">
+                    <button
+                      type="button"
+                      [class.active]="previewDevice === 'facebook'"
+                      (click)="setPreviewDevice('facebook')"
+                      title="Xem dạng bài đăng Facebook"
+                    >
+                      <i class="fab fa-facebook"></i> Facebook Post
+                    </button>
+                    <button
+                      type="button"
+                      [class.active]="previewDevice === 'mobile'"
+                      (click)="setPreviewDevice('mobile')"
+                      title="Giao diện Điện thoại"
+                    >
+                      <i class="fas fa-mobile-screen"></i> Mobile
+                    </button>
+                    <button
+                      type="button"
+                      [class.active]="previewDevice === 'website'"
+                      (click)="setPreviewDevice('website')"
+                      title="Giao diện Website"
+                    >
+                      <i class="fas fa-desktop"></i> Website
+                    </button>
+                  </div>
+                </div>
+
+                <!-- PREVIEW FRAME -->
+                <div class="preview-viewport" [class.viewport-mobile]="previewDevice === 'mobile'" [class.viewport-fb]="previewDevice === 'facebook'">
+                  @if (previewDevice === 'facebook') {
+                    <div class="fb-post-mockup">
+                      <div class="fb-mockup-header">
+                        <img src="assets/images/logo.png" alt="VieJap" class="fb-avatar" />
+                        <div class="fb-header-text">
+                          <div class="fb-page-name">
+                            <strong>VieJap - Xuất Khẩu Lao Động Nhật Bản</strong>
+                            <i class="fas fa-circle-check text-primary" title="Trang chính thức"></i>
+                          </div>
+                          <small class="fb-timestamp">Vừa xong · <i class="fas fa-earth-asia"></i></small>
+                        </div>
+                      </div>
+                      <div class="fb-mockup-content">
+                        <pre>{{ draft.facebookContent || 'Chưa có nội dung bài đăng...' }}</pre>
+                      </div>
+                      @if (posterPreview || draft.posterUrl) {
+                        <div class="fb-mockup-image">
+                          <img [src]="posterPreview || draft.posterUrl" alt="Poster FB" />
+                        </div>
+                      } @else if (thumbnailPreview || draft.imageUrl) {
+                        <div class="fb-mockup-image">
+                          <img [src]="thumbnailPreview || draft.imageUrl" alt="Thumbnail FB" />
+                        </div>
+                      }
+                      <div class="fb-mockup-engagements">
+                        <div class="fb-eng-item"><i class="far fa-thumbs-up"></i> Thích</div>
+                        <div class="fb-eng-item"><i class="far fa-comment"></i> Bình luận</div>
+                        <div class="fb-eng-item"><i class="fas fa-share"></i> Chia sẻ</div>
+                      </div>
+                    </div>
+                    <div class="preview-disclaimer">
+                      <i class="fas fa-info-circle"></i>
+                      <span>Bản xem trước bố cục tham khảo, hiển thị thực tế có thể thay đổi tùy phiên bản ứng dụng Facebook của người dùng.</span>
+                    </div>
+                  } @else {
+                    <div class="website-post-mockup">
+                      <div class="mockup-header-row">
+                        <span class="mockup-tag"><i [class]="currentCategory.icon"></i> {{ currentCategory.label }}</span>
+                        <span class="mockup-code">Mã: {{ draft.orderCode || 'VJ-XXXX' }}</span>
+                      </div>
+                      <div class="mockup-rendered-html" [innerHTML]="draft.postContent"></div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- STEP 5: KIỂM TRA & LƯU -->
+    @if (currentStep === 5) {
+      <div class="wizard-step-panel animate-fade-in">
+        <div class="step-section-heading">
+          <h2><i class="fas fa-clipboard-check"></i> Bước 5: Bảng đối chiếu & Xác nhận lưu đơn hàng</h2>
+          <p>Kiểm tra kỹ lưỡng các thông số tuyển dụng trước khi xuất bản hoặc lưu nháp.</p>
+        </div>
+
+        <!-- SUMMARY TABLE -->
+        <div class="summary-card">
+          <div class="summary-header">
+            <div>
+              <span class="category-pill"><i [class]="currentCategory.icon"></i> {{ currentCategory.label }}</span>
+              <h3>{{ draft.title || 'Chưa đặt tiêu đề' }}</h3>
+              <p>Mã đơn hàng: <strong>{{ draft.orderCode || 'Chưa có mã' }}</strong> | Xí nghiệp: {{ draft.company || 'Doanh nghiệp Nhật Bản' }}</p>
+            </div>
+            <div class="summary-thumb">
+              <img [src]="thumbnailPreview || draft.imageUrl || 'assets/images/jobs/job-thuc-pham.jpg'" alt="Xem trước ảnh" />
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span>Địa điểm làm việc</span>
+              <strong>{{ draft.location || 'Nhật Bản' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Lương cơ bản</span>
+              <strong class="text-danger">{{ draft.basicSalary || draft.salary || 'Chưa nhập' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Lương thực lĩnh dự kiến</span>
+              <strong class="text-success">{{ draft.takeHomeSalary || 'Theo quy định' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Số lượng & Giới tính</span>
+              <strong>{{ draft.quantity || '05' }} ({{ draft.gender || 'Nam/Nữ' }})</strong>
+            </div>
+            <div class="summary-item">
+              <span>Độ tuổi yêu cầu</span>
+              <strong>{{ draft.ageRange || '18 - 35 tuổi' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Thời hạn hợp đồng</span>
+              <strong>{{ draft.contractTerm || '3 năm' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Dự kiến phỏng vấn</span>
+              <strong>{{ draft.interviewDate || 'Theo lịch' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Dự kiến xuất cảnh</span>
+              <strong>{{ draft.departureMonth || 'Khoảng 4-6 tháng' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Poster tuyển dụng</span>
+              <strong>{{ (posterPreview || draft.posterUrl) ? 'Đã đính kèm Poster chuẩn' : 'Chưa có poster' }}</strong>
+            </div>
+            <div class="summary-item">
+              <span>Đơn nổi bật (Featured)</span>
+              <label class="featured-toggle">
+                <input type="checkbox" [(ngModel)]="draft.isFeatured" />
+                <span>Ghim vị trí nổi bật trang chủ</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAVE ACTIONS BAR -->
+        <div class="final-actions-panel">
+          <div class="action-info">
+            <i class="fas fa-shield-halved"></i>
+            <div>
+              <strong>Lựa chọn hình thức lưu:</strong>
+              <p>Bạn có thể lưu dưới dạng Bản nháp để hoàn thiện sau, hoặc Đăng chính thức để hiển thị ngay trên website.</p>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button
+              type="button"
+              class="btn-save-draft"
+              (click)="saveOrder('draft')"
+              [disabled]="isSaving"
+            >
+              <i class="fas fa-floppy-disk"></i>
+              Lưu bản nháp
+            </button>
+
+            <button
+              type="button"
+              class="btn-publish-order"
+              (click)="saveOrder('published')"
+              [disabled]="isSaving"
+            >
+              <i class="fas fa-paper-plane"></i>
+              {{ isEditing ? 'Cập nhật & Đăng đơn' : 'Đăng đơn hàng chính thức' }}
+            </button>
+          </div>
+        </div>
+
+        @if (isSaving) {
+          <div class="saving-overlay animate-fade-in">
+            <div class="saving-card">
+              <i class="fas fa-spinner fa-spin"></i>
+              <h3>{{ savingStatusText || 'Đang xử lý...' }}</h3>
+              <p>Vui lòng đợi trong giây lát, hệ thống đang đồng bộ dữ liệu và hình ảnh.</p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- WIZARD FOOTER NAVIGATION -->
+    <footer class="wizard-footer">
+      <button
+        type="button"
+        class="btn-prev"
+        (click)="prevStep()"
+        [disabled]="currentStep === 1 || isSaving"
+      >
+        <i class="fas fa-arrow-left"></i> Quay lại
+      </button>
+
+      <div class="step-indicator-dots">
+        <span>Bước {{ currentStep }} / 5</span>
+      </div>
+
+      @if (currentStep < 5) {
+        <button
+          type="button"
+          class="btn-next"
+          (click)="nextStep()"
+          [disabled]="isSaving"
+        >
+          Tiếp theo <i class="fas fa-arrow-right"></i>
+        </button>
+      }
+    </footer>
+  }
+
+  <!-- LIGHTBOX MODAL -->
+  @if (lightboxImage) {
+    <div class="lightbox-overlay animate-fade-in" (click)="closeLightbox()">
+      <div class="lightbox-content" (click)="$event.stopPropagation()">
+        <button type="button" class="btn-close-lightbox" (click)="closeLightbox()"><i class="fas fa-xmark"></i></button>
+        <img [src]="lightboxImage" alt="Phóng to" />
+      </div>
+    </div>
+  }
+
+  <!-- CONFIRM OVERWRITE / KEEP MODIFIED MODAL -->
+  @if (confirmChangeModal.isOpen) {
+    <div class="modal-overlay animate-fade-in" (click)="confirmModalCancel()">
+      <div class="confirm-change-dialog" (click)="$event.stopPropagation()">
+        <div class="dialog-icon-wrap">
+          <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <div class="dialog-body">
+          <h3>Bản thảo đã có chỉnh sửa thủ công!</h3>
+          <p>
+            Bạn đang có các đoạn nội dung đã chỉnh sửa. Khi đổi sang
+            <strong>
+              @if (confirmChangeModal.pendingLayoutId) {
+                bố cục "{{ composer.getLayout(confirmChangeModal.pendingLayoutId).shortName }}"
+              } @else if (confirmChangeModal.pendingStyleId) {
+                phong cách "{{ composer.getStyle(confirmChangeModal.pendingStyleId).name }}"
+              }
+            </strong>,
+            bạn muốn xử lý nội dung hiện tại như thế nào?
+          </p>
+        </div>
+        <div class="dialog-actions-vertical">
+          <button type="button" class="btn-dialog-keep" (click)="confirmModalKeepAndChange()">
+            <i class="fas fa-bookmark"></i>
+            <div>
+              <strong>Lưu thành phiên bản mới rồi đổi mẫu</strong>
+              <small>Bản sửa hiện tại được cất an toàn vào Lịch sử để có thể khôi phục bất cứ lúc nào</small>
+            </div>
+          </button>
+          <button type="button" class="btn-dialog-overwrite" (click)="confirmModalOverwrite()">
+            <i class="fas fa-rotate"></i>
+            <div>
+              <strong>Ghi đè bằng nội dung mẫu mới</strong>
+              <small>Thay thế các đoạn bằng văn phong của mẫu vừa chọn</small>
+            </div>
+          </button>
+          <button type="button" class="btn-dialog-cancel" (click)="confirmModalCancel()">
+            <i class="fas fa-arrow-left"></i> Giữ nguyên (Hủy thao tác đổi)
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- OUTLINE PREVIEW MODAL -->
+  @if (viewingOutlineLayout) {
+    <div class="modal-overlay animate-fade-in" (click)="closeOutlineModal()">
+      <div class="outline-dialog" (click)="$event.stopPropagation()">
+        <div class="outline-dialog-header">
+          <div>
+            <span class="badge-tag">{{ viewingOutlineLayout.badge }}</span>
+            <h3>{{ viewingOutlineLayout.name }}</h3>
+            <p>{{ viewingOutlineLayout.purpose }}</p>
+          </div>
+          <button type="button" class="btn-close-dialog" (click)="closeOutlineModal()">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="outline-dialog-body">
+          <div class="outline-wireframe-preview" [innerHTML]="viewingOutlineLayout.wireframeSvg"></div>
+          <div class="outline-steps-list">
+            <h4><i class="fas fa-layer-group"></i> Cấu trúc {{ viewingOutlineLayout.sectionKeys.length }} phần của bài đăng:</h4>
+            <ol>
+              <li *ngFor="let key of viewingOutlineLayout.sectionKeys; let idx = index">
+                <div class="step-num">{{ idx + 1 }}</div>
+                <div class="step-info">
+                  <strong><i [class]="getSectionIcon(key)"></i> {{ getSectionLabel(key) }}</strong>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="outline-dialog-footer">
+          <button type="button" class="btn-outline-cancel" (click)="closeOutlineModal()">
+            Đóng
+          </button>
+          <button
+            type="button"
+            class="btn-outline-apply"
+            (click)="onSelectLayout(viewingOutlineLayout.id); closeOutlineModal()"
+          >
+            <i class="fas fa-check"></i> Áp dụng mẫu này ngay
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

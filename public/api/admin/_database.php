@@ -143,6 +143,11 @@ function admin_database_ensure_schema(PDO $database): void
         $database->exec("ALTER TABLE job_orders ADD COLUMN image_url VARCHAR(255) NOT NULL DEFAULT '' AFTER id");
     }
 
+    $posterUrlColumn = $database->query("SHOW COLUMNS FROM job_orders LIKE 'poster_url'")->fetch();
+    if (!is_array($posterUrlColumn)) {
+        $database->exec("ALTER TABLE job_orders ADD COLUMN poster_url VARCHAR(255) NOT NULL DEFAULT '' AFTER image_url");
+    }
+
     // Existing installations may still have the original bounded text columns.
     $titleColumn = $database->query("SHOW COLUMNS FROM job_orders LIKE 'title'")->fetch();
     if (is_array($titleColumn) && strtolower((string) ($titleColumn['Type'] ?? '')) !== 'text') {
@@ -159,6 +164,61 @@ function admin_database_ensure_schema(PDO $database): void
             metadata_key VARCHAR(64) NOT NULL PRIMARY KEY,
             metadata_value VARCHAR(255) NOT NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS job_order_idempotency (
+            idem_key CHAR(40) NOT NULL PRIMARY KEY,
+            order_id CHAR(24) NOT NULL,
+            created_at DATETIME NOT NULL,
+            INDEX job_order_idempotency_created_index (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS student_profiles (
+            id VARCHAR(36) NOT NULL PRIMARY KEY,
+            student_code VARCHAR(32) NOT NULL UNIQUE,
+            full_name VARCHAR(120) NOT NULL,
+            birth_date VARCHAR(20) NOT NULL DEFAULT \'\',
+            phone VARCHAR(30) NOT NULL,
+            id_number VARCHAR(30) NOT NULL,
+            address TEXT NOT NULL,
+            data_json LONGTEXT NOT NULL,
+            status VARCHAR(32) NOT NULL DEFAULT \'tiep_nhan\',
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            INDEX student_profiles_status_index (status, updated_at),
+            INDEX student_profiles_phone_index (phone),
+            INDEX student_profiles_code_index (student_code)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS student_profile_files (
+            id VARCHAR(36) NOT NULL PRIMARY KEY,
+            profile_id VARCHAR(36) NOT NULL,
+            file_type VARCHAR(32) NOT NULL,
+            version INT NOT NULL DEFAULT 1,
+            file_name VARCHAR(255) NOT NULL,
+            file_path VARCHAR(255) NOT NULL,
+            file_size BIGINT NOT NULL DEFAULT 0,
+            mime_type VARCHAR(100) NOT NULL DEFAULT \'\',
+            created_at DATETIME NOT NULL,
+            INDEX student_profile_files_profile_index (profile_id, file_type, version)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS student_profile_audit_logs (
+            id VARCHAR(36) NOT NULL PRIMARY KEY,
+            profile_id VARCHAR(36) NOT NULL,
+            action VARCHAR(64) NOT NULL,
+            actor VARCHAR(80) NOT NULL DEFAULT \'Học viên\',
+            details TEXT NOT NULL,
+            created_at DATETIME NOT NULL,
+            INDEX student_profile_audit_logs_profile_index (profile_id, created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
 
@@ -295,8 +355,8 @@ function admin_database_datetime(string $value): ?string
     }
 
     try {
-        return (new DateTimeImmutable($value))->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        return (new DateTimeImmutable($value))->setTimezone(new DateTimeZone('Asia/Ho_Chi_Minh'))->format('Y-m-d H:i:s');
     } catch (Throwable) {
-        return gmdate('Y-m-d H:i:s');
+        return date('Y-m-d H:i:s');
     }
 }

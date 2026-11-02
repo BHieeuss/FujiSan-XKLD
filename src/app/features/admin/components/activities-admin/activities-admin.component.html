@@ -1,0 +1,1591 @@
+<div class="activities-admin-wrapper">
+  <!-- ========================================================= -->
+  <!-- 1. MANAGEMENT LIST VIEW                                   -->
+  <!-- ========================================================= -->
+  @if (currentMode === 'list') {
+    <div class="list-view-container">
+      <!-- Header Banner & Actions -->
+      <header class="section-header">
+        <div class="header-left">
+          <div class="breadcrumb">
+            <span class="text-muted">Quản trị</span>
+            <i class="fas fa-chevron-right separator"></i>
+            <span class="active">Góc hoạt động & Truyền thông</span>
+          </div>
+          <h1 class="page-title">
+            <i class="fas fa-newspaper text-primary"></i>
+            Quản Lý Góc Hoạt Động VieJap
+          </h1>
+          <p class="page-subtitle">
+            Hệ thống quản lý nội dung đa khối, phân cấp hoạt động và tự động phân phối hiển thị trên toàn website.
+          </p>
+        </div>
+
+        <div class="header-actions">
+          @if (auth.hasPermission('activities.manage_templates')) {
+            <button type="button" class="btn btn-outline" (click)="showTemplateModal = true">
+              <i class="fas fa-layer-group"></i>
+              Mẫu thiết kế ({{ templates.length }})
+            </button>
+          }
+          @if (auth.hasPermission('activities.create')) {
+            <button type="button" class="btn btn-primary" (click)="openCreate()">
+              <i class="fas fa-plus-circle"></i>
+              Tạo hoạt động mới
+            </button>
+          }
+        </div>
+      </header>
+
+      <!-- Quick Metrics Counters Bar -->
+      <div class="metrics-grid">
+        <div class="metric-card" [class.active]="filterStatus === 'all'" (click)="filterStatus = 'all'; onFilterChange()">
+          <div class="metric-icon bg-blue-subtle text-blue">
+            <i class="fas fa-boxes-stacked"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Tất cả hoạt động</span>
+            <span class="metric-value">{{ counts.all }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card" [class.active]="filterStatus === 'published'" (click)="filterStatus = 'published'; onFilterChange()">
+          <div class="metric-icon bg-green-subtle text-green">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Đã xuất bản</span>
+            <span class="metric-value">{{ counts.published }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card" [class.active]="filterStatus === 'draft'" (click)="filterStatus = 'draft'; onFilterChange()">
+          <div class="metric-icon bg-amber-subtle text-amber">
+            <i class="fas fa-file-pen"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Bản nháp</span>
+            <span class="metric-value">{{ counts.draft }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card" [class.active]="filterStatus === 'pending'" (click)="filterStatus = 'pending'; onFilterChange()">
+          <div class="metric-icon bg-purple-subtle text-purple">
+            <i class="fas fa-hourglass-half"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Chờ phê duyệt</span>
+            <span class="metric-value">{{ counts.pending }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card" [class.active]="filterBadge === 'hot'" (click)="filterBadge = (filterBadge === 'hot' ? 'all' : 'hot'); onFilterChange()">
+          <div class="metric-icon bg-red-subtle text-red">
+            <i class="fas fa-fire"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Đang gắn HOT</span>
+            <span class="metric-value">{{ counts.hot }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card" [class.active]="filterLevel === 'special'" (click)="filterLevel = (filterLevel === 'special' ? 'all' : 'special'); onFilterChange()">
+          <div class="metric-icon bg-gold-subtle text-gold">
+            <i class="fas fa-crown"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Sự kiện đặc biệt</span>
+            <span class="metric-value">{{ counts.special }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="filter-toolbar">
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Tìm theo tiêu đề, mã số, địa điểm, từ khóa..."
+            [ngModel]="searchQuery"
+            (ngModelChange)="onSearchInput($event)"
+          />
+          @if (searchQuery) {
+            <button type="button" class="btn-clear" (click)="onSearchInput('')" aria-label="Xóa tìm kiếm">
+              <i class="fas fa-times"></i>
+            </button>
+          }
+        </div>
+
+        <div class="filter-group">
+          <!-- Category Filter -->
+          <select class="filter-select" [(ngModel)]="filterCategory" (ngModelChange)="onFilterChange()">
+            <option value="all">Tất cả danh mục</option>
+            @for (cat of categories; track cat.id) {
+              <option [value]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+
+          <!-- Level Filter -->
+          <select class="filter-select" [(ngModel)]="filterLevel" (ngModelChange)="onFilterChange()">
+            <option value="all">Tất cả cấp độ</option>
+            <option value="standard">Tiêu chuẩn</option>
+            <option value="featured">Nổi bật</option>
+            <option value="hot">HOT</option>
+            <option value="special">Đặc biệt</option>
+          </select>
+
+          <!-- Status Filter -->
+          <select class="filter-select" [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="published">Đã xuất bản</option>
+            <option value="draft">Bản nháp</option>
+            <option value="pending">Chờ duyệt</option>
+            <option value="approved">Đã duyệt</option>
+            <option value="archived">Đã lưu trữ</option>
+          </select>
+
+          <!-- Position Filter -->
+          <select class="filter-select" [(ngModel)]="filterPosition" (ngModelChange)="onFilterChange()">
+            <option value="all">Mọi vị trí hiển thị</option>
+            <option value="featured">Banner Nổi bật</option>
+            <option value="hot">Dải tin HOT</option>
+            <option value="homepage">Trang chủ & Giới thiệu</option>
+            <option value="latest">Góc hoạt động mới</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Main Data Table Container -->
+      <div class="table-card">
+        @if (isLoading) {
+          <div class="loading-state">
+            <i class="fas fa-spinner fa-spin text-primary spinner-icon"></i>
+            <p>Đang tải dữ liệu hoạt động...</p>
+          </div>
+        } @else if (activities.length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-folder-open"></i>
+            </div>
+            <h3>Không tìm thấy hoạt động nào</h3>
+            <p>Không có kết quả phù hợp với điều kiện tìm kiếm và bộ lọc hiện tại.</p>
+            @if (searchQuery || filterStatus !== 'all' || filterCategory !== 'all') {
+              <button
+                type="button"
+                class="btn btn-outline"
+                (click)="searchQuery = ''; filterStatus = 'all'; filterCategory = 'all'; filterLevel = 'all'; onFilterChange()"
+              >
+                Đặt lại bộ lọc
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="table-responsive">
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">Ảnh bìa</th>
+                  <th style="min-width: 280px;">Tiêu đề & Danh mục</th>
+                  <th style="width: 120px;">Cấp độ</th>
+                  <th style="width: 130px;">Trạng thái</th>
+                  <th style="width: 180px;">Vị trí hiển thị</th>
+                  <th style="width: 110px;">Lượt xem</th>
+                  <th style="width: 130px;">Thời gian</th>
+                  <th style="width: 140px; text-align: right;">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of activities; track item.id) {
+                  <tr class="activity-row">
+                    <!-- Ảnh bìa thu nhỏ -->
+                    <td class="col-thumb">
+                      <div class="thumb-wrapper">
+                        <img [src]="getCoverImageUrl(item.coverImage)" (error)="onImageError($event)" alt="Ảnh hoạt động" [alt]="item.title" class="thumb-img" />
+                        @if (item.hotBadge.enabled) {
+                          <span class="badge-hot-tag" title="Đang gắn HOT">
+                            <i class="fas fa-fire"></i>
+                          </span>
+                        }
+                      </div>
+                    </td>
+
+                    <!-- Tiêu đề, Mã & Danh mục -->
+                    <td class="col-main">
+                      <div class="activity-title-group">
+                        <a href="javascript:void(0)" class="activity-title-link" (click)="openEdit(item)">
+                          {{ item.title }}
+                        </a>
+                        <div class="activity-submeta">
+                          <span class="code-pill">{{ item.code }}</span>
+                          <span class="category-pill">
+                            <i class="fas fa-tag"></i> {{ item.categoryName || item.category }}
+                          </span>
+                          @if (item.location) {
+                            <span class="location-pill">
+                              <i class="fas fa-map-marker-alt"></i> {{ item.location }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Cấp độ độc lập -->
+                    <td class="col-level">
+                      <span class="badge-level" [ngClass]="getLevelBadgeClass(item.level)">
+                        {{ getLevelLabel(item.level) }}
+                      </span>
+                    </td>
+
+                    <!-- Trạng thái độc lập -->
+                    <td class="col-status">
+                      <span class="badge-status" [ngClass]="getStatusBadgeClass(item.status)">
+                        {{ getStatusLabel(item.status) }}
+                      </span>
+                    </td>
+
+                    <!-- Vị trí hiển thị -->
+                    <td class="col-positions">
+                      <div class="positions-pill-list">
+                        @for (pos of item.displayConfig.positions; track pos) {
+                          <span class="pos-badge" [class.pos-featured]="pos === 'featured'" [class.pos-hot]="pos === 'hot'">
+                            {{ getPositionLabel(pos) }}
+                          </span>
+                        }
+                      </div>
+                    </td>
+
+                    <!-- Lượt xem -->
+                    <td class="col-metrics">
+                      <div class="metric-counter">
+                        <i class="fas fa-eye text-muted"></i>
+                        <span>{{ item.metrics?.viewCount || item.viewCount || 0 | number }}</span>
+                      </div>
+                    </td>
+
+                    <!-- Ngày sự kiện / Tạo -->
+                    <td class="col-date">
+                      <span class="date-text">{{ item.eventDate || item.createdAt }}</span>
+                    </td>
+
+                    <!-- Nút thao tác -->
+                    <td class="col-actions">
+                      <div class="action-buttons-group">
+                        <!-- Sửa / Mở Designer -->
+                        @if (auth.hasPermission('activities.update')) {
+                          <button
+                            type="button"
+                            class="btn-icon btn-action-edit"
+                            (click)="openEdit(item)"
+                            title="Mở Trình thiết kế nội dung"
+                          >
+                            <i class="fas fa-pen-to-square"></i>
+                          </button>
+                        }
+
+                        <!-- Nhân bản -->
+                        @if (auth.hasPermission('activities.create')) {
+                          <button
+                            type="button"
+                            class="btn-icon btn-action-duplicate"
+                            (click)="openDuplicateModal(item)"
+                            title="Nhân bản hoạt động này"
+                          >
+                            <i class="fas fa-copy"></i>
+                          </button>
+                        }
+
+                        <!-- Phê duyệt (nếu đang pending) -->
+                        @if (item.status === 'pending' && auth.hasPermission('activities.approve')) {
+                          <button
+                            type="button"
+                            class="btn-icon btn-action-approve"
+                            (click)="openApproval(item, 'approve')"
+                            title="Phê duyệt hoạt động"
+                          >
+                            <i class="fas fa-check"></i>
+                          </button>
+                        }
+
+                        <!-- Xuất bản nhanh -->
+                        @if (item.status === 'draft' && auth.hasPermission('activities.publish')) {
+                          <button
+                            type="button"
+                            class="btn-icon btn-action-publish"
+                            (click)="quickPublish(item)"
+                            title="Xuất bản ngay"
+                          >
+                            <i class="fas fa-globe"></i>
+                          </button>
+                        }
+
+                        <!-- Lưu trữ -->
+                        @if (item.status === 'published' && auth.hasPermission('activities.update')) {
+                          <button
+                            type="button"
+                            class="btn-icon btn-action-archive"
+                            (click)="quickArchive(item)"
+                            title="Chuyển vào kho lưu trữ"
+                          >
+                            <i class="fas fa-box-archive"></i>
+                          </button>
+                        }
+
+                        <!-- Xóa -->
+                        @if (auth.hasPermission('activities.delete')) {
+                          <button
+                            type="button"
+                            class="btn-icon btn-action-delete"
+                            (click)="confirmDelete(item)"
+                            title="Xóa hoạt động"
+                          >
+                            <i class="fas fa-trash-can"></i>
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Strict 10 items/page Standard Pagination -->
+          <div class="pagination-footer">
+            <app-admin-pagination
+              [currentPage]="currentPage"
+              [pageSize]="pageSize"
+              [totalItems]="totalItems"
+              [itemLabel]="'hoạt động'"
+              (pageChange)="onPageChange($event)"
+            ></app-admin-pagination>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- 2. VISUAL CONTENT DESIGNER VIEW (3-PANEL EXPERIENCE)     -->
+  <!-- ========================================================= -->
+  @if (currentMode === 'designer') {
+    <div class="designer-container">
+      <!-- Designer Navigation Bar -->
+      <header class="designer-topbar">
+        <div class="topbar-left">
+          <button type="button" class="btn btn-outline btn-sm" (click)="exitDesigner()">
+            <i class="fas fa-arrow-left"></i>
+            Quay lại danh sách
+          </button>
+          <div class="designer-title-info">
+            <span class="badge-status" [ngClass]="getStatusBadgeClass(activityForm.status || 'draft')">
+              {{ getStatusLabel(activityForm.status || 'draft') }}
+            </span>
+            <h2 class="designer-heading">
+              {{ activityForm.title || 'Hoạt động chưa đặt tiêu đề' }}
+            </h2>
+          </div>
+        </div>
+
+        <div class="topbar-center">
+          <div class="device-switch">
+            <button
+              type="button"
+              class="device-btn"
+              [class.active]="previewDevice === 'desktop'"
+              (click)="previewDevice = 'desktop'"
+              title="Xem giao diện trên máy tính"
+            >
+              <i class="fas fa-desktop"></i>
+              Máy tính
+            </button>
+            <button
+              type="button"
+              class="device-btn"
+              [class.active]="previewDevice === 'mobile'"
+              (click)="previewDevice = 'mobile'"
+              title="Xem giao diện trên điện thoại"
+            >
+              <i class="fas fa-mobile-screen"></i>
+              Điện thoại
+            </button>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            (click)="showQualityDrawer = true; runQualityCheck()"
+            title="Kiểm định chất lượng trước khi xuất bản"
+          >
+            <i class="fas fa-shield-halved text-primary"></i>
+            Chấm điểm ({{ qualityReport?.score || '--' }}/100)
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            [disabled]="isSaving"
+            (click)="saveDraft()"
+          >
+            <i class="fas fa-floppy-disk"></i>
+            Lưu nháp
+          </button>
+
+          @if (auth.hasPermission('activities.publish')) {
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              [disabled]="isSaving"
+              (click)="saveAndPublish()"
+            >
+              <i class="fas fa-paper-plane"></i>
+              {{ activityForm.status === 'published' ? 'Lưu & Cập nhật' : 'Xuất bản ngay' }}
+            </button>
+          }
+        </div>
+      </header>
+
+      <!-- Designer Main Body (Editor on Left, Live Preview on Right) -->
+      <div class="designer-body">
+        <!-- LEFT PANEL: Editor Tabs & Controls -->
+        <div class="designer-editor-panel">
+          <!-- Editor Sub-Tabs -->
+          <div class="editor-tabs">
+            <button
+              type="button"
+              class="editor-tab"
+              [class.active]="activeDesignerTab === 'blocks'"
+              (click)="activeDesignerTab = 'blocks'"
+            >
+              <i class="fas fa-cubes"></i>
+              Khối nội dung ({{ activityForm.blocks?.length || 0 }})
+            </button>
+
+            <button
+              type="button"
+              class="editor-tab"
+              [class.active]="activeDesignerTab === 'meta'"
+              (click)="activeDesignerTab = 'meta'"
+            >
+              <i class="fas fa-sliders"></i>
+              Thông tin cơ bản
+            </button>
+
+            <button
+              type="button"
+              class="editor-tab"
+              [class.active]="activeDesignerTab === 'display'"
+              (click)="activeDesignerTab = 'display'"
+            >
+              <i class="fas fa-bullhorn"></i>
+              Cấp độ & Hiển thị
+            </button>
+
+            <button
+              type="button"
+              class="editor-tab"
+              [class.active]="activeDesignerTab === 'seo'"
+              (click)="activeDesignerTab = 'seo'"
+            >
+              <i class="fas fa-magnifying-glass"></i>
+              SEO & Mạng xã hội
+            </button>
+          </div>
+
+          <!-- TAB 1: BLOCKS EDITOR -->
+          @if (activeDesignerTab === 'blocks') {
+            <div class="blocks-editor-container">
+              <!-- Add Block Palette Section -->
+              <div class="block-palette-box">
+                <h4 class="palette-title">
+                  <i class="fas fa-plus"></i> Thêm khối nội dung mới:
+                </h4>
+                <div class="palette-buttons-grid">
+                  @for (blk of availableBlocks; track blk.type) {
+                    <button
+                      type="button"
+                      class="palette-btn"
+                      (click)="addBlock(blk.type)"
+                      [title]="blk.desc"
+                    >
+                      <i [class]="blk.icon"></i>
+                      <span>{{ blk.name }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Blocks List (Reorderable) -->
+              <div class="active-blocks-list">
+                @if (!activityForm.blocks || activityForm.blocks.length === 0) {
+                  <div class="empty-blocks-notice">
+                    <i class="fas fa-layer-group"></i>
+                    <p>Chưa có khối nội dung nào. Hãy chọn từ danh sách trên để bắt đầu thiết kế bài viết!</p>
+                  </div>
+                }
+
+                @for (block of activityForm.blocks; track block.id; let idx = $index) {
+                  <div class="block-card" [class.is-hidden]="!block.isVisible">
+                    <!-- Block Header -->
+                    <div class="block-card-header">
+                      <div class="block-card-info">
+                        <span class="block-order-badge">#{{ idx + 1 }}</span>
+                        <i [class]="getBlockTypeIcon(block.type) + ' block-type-icon'"></i>
+                        <span class="block-type-title">{{ getBlockTypeName(block.type) }}</span>
+                      </div>
+
+                      <div class="block-card-actions">
+                        <button
+                          type="button"
+                          class="btn-blk-tool"
+                          [disabled]="idx === 0"
+                          (click)="moveBlock(idx, 'up')"
+                          title="Di chuyển lên"
+                        >
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="btn-blk-tool"
+                          [disabled]="idx === (activityForm.blocks?.length || 0) - 1"
+                          (click)="moveBlock(idx, 'down')"
+                          title="Di chuyển xuống"
+                        >
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="btn-blk-tool"
+                          (click)="toggleBlockVisibility(block)"
+                          [title]="block.isVisible ? 'Ẩn khối này' : 'Hiện khối này'"
+                        >
+                          <i [class]="block.isVisible ? 'fas fa-eye' : 'fas fa-eye-slash text-muted'"></i>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="btn-blk-tool btn-blk-del"
+                          (click)="removeBlock(idx)"
+                          title="Xóa khối này"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Block Body Form by Type -->
+                    <div class="block-card-body">
+                      <!-- 1. HEADING -->
+                      @if (block.type === 'heading') {
+                        <div class="form-group">
+                          <label class="form-label">Tiêu đề đề mục:</label>
+                          <input type="text" class="form-control" [(ngModel)]="block.content" placeholder="Nhập tiêu đề..." />
+                          <div class="block-color-selector-row mt-2">
+                            <span class="color-row-label"><i class="fas fa-palette"></i> Màu chữ:</span>
+                            <input type="color" class="color-mini-swatch" [ngModel]="block.meta?.textColor || '#0f172a'" (ngModelChange)="setBlockTextColor(block, $event)" />
+                            <div class="color-mini-palette">
+                              <button type="button" class="mini-swatch-btn" style="background:#0f172a;" (click)="setBlockTextColor(block, '#0f172a')" title="Đen than"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#1e3a8a;" (click)="setBlockTextColor(block, '#1e3a8a')" title="Xanh navy"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#0284c7;" (click)="setBlockTextColor(block, '#0284c7')" title="Xanh biển"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#16a34a;" (click)="setBlockTextColor(block, '#16a34a')" title="Xanh lá"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#dc2626;" (click)="setBlockTextColor(block, '#dc2626')" title="Đỏ"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#d97706;" (click)="setBlockTextColor(block, '#d97706')" title="Vàng hổ phách"></button>
+                              @if (block.meta?.textColor) {
+                                <button type="button" class="btn-clear-block-color" (click)="setBlockTextColor(block, '')" title="Xóa màu tùy chỉnh">
+                                  <i class="fas fa-xmark"></i> Mặc định
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- 2. SUBHEADING -->
+                      @if (block.type === 'subheading') {
+                        <div class="form-group">
+                          <label class="form-label">Tiêu đề phụ:</label>
+                          <input type="text" class="form-control" [(ngModel)]="block.content" placeholder="Nhập đề mục phụ..." />
+                          <div class="block-color-selector-row mt-2">
+                            <span class="color-row-label"><i class="fas fa-palette"></i> Màu chữ:</span>
+                            <input type="color" class="color-mini-swatch" [ngModel]="block.meta?.textColor || '#1e293b'" (ngModelChange)="setBlockTextColor(block, $event)" />
+                            <div class="color-mini-palette">
+                              <button type="button" class="mini-swatch-btn" style="background:#1e293b;" (click)="setBlockTextColor(block, '#1e293b')" title="Đen xám"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#1e3a8a;" (click)="setBlockTextColor(block, '#1e3a8a')" title="Xanh navy"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#0284c7;" (click)="setBlockTextColor(block, '#0284c7')" title="Xanh biển"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#16a34a;" (click)="setBlockTextColor(block, '#16a34a')" title="Xanh lá"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#dc2626;" (click)="setBlockTextColor(block, '#dc2626')" title="Đỏ"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#d97706;" (click)="setBlockTextColor(block, '#d97706')" title="Vàng hổ phách"></button>
+                              @if (block.meta?.textColor) {
+                                <button type="button" class="btn-clear-block-color" (click)="setBlockTextColor(block, '')" title="Xóa màu tùy chỉnh">
+                                  <i class="fas fa-xmark"></i> Mặc định
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- 3. PARAGRAPH -->
+                      @if (block.type === 'paragraph') {
+                        <div class="form-group">
+                          <label class="form-label">Đoạn văn xuôi:</label>
+                          <textarea
+                            class="form-control"
+                            rows="4"
+                            [(ngModel)]="block.content"
+                            placeholder="Nhập nội dung chia sẻ cảm nghĩ, câu chuyện hoạt động..."
+                          ></textarea>
+                          <div class="block-color-selector-row mt-2">
+                            <span class="color-row-label"><i class="fas fa-palette"></i> Màu chữ đoạn này:</span>
+                            <input type="color" class="color-mini-swatch" [ngModel]="block.meta?.textColor || '#334155'" (ngModelChange)="setBlockTextColor(block, $event)" />
+                            <div class="color-mini-palette">
+                              <button type="button" class="mini-swatch-btn" style="background:#334155;" (click)="setBlockTextColor(block, '#334155')" title="Xám đậm"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#0f172a;" (click)="setBlockTextColor(block, '#0f172a')" title="Đen tuyền"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#1e3a8a;" (click)="setBlockTextColor(block, '#1e3a8a')" title="Xanh navy"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#0284c7;" (click)="setBlockTextColor(block, '#0284c7')" title="Xanh biển"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#16a34a;" (click)="setBlockTextColor(block, '#16a34a')" title="Xanh lá"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#dc2626;" (click)="setBlockTextColor(block, '#dc2626')" title="Đỏ"></button>
+                              @if (block.meta?.textColor) {
+                                <button type="button" class="btn-clear-block-color" (click)="setBlockTextColor(block, '')" title="Xóa màu tùy chỉnh (theo màu chung)">
+                                  <i class="fas fa-xmark"></i> Mặc định
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- 4. IMAGE -->
+                      @if (block.type === 'image') {
+                        <div class="form-group">
+                          <label class="form-label">Hình ảnh minh họa:</label>
+                          <div class="block-image-uploader">
+                            @if (block.meta?.url) {
+                              <div class="block-img-preview-box mb-2">
+                                <img [src]="block.meta!.url" alt="Block Image" class="block-thumb-preview" />
+                              </div>
+                            }
+                            <div class="d-flex align-items-center gap-2">
+                              <input
+                                #blockFileInput
+                                type="file"
+                                accept="image/*"
+                                style="display: none"
+                                (change)="onBlockFileSelected(block, $event)"
+                              />
+                              <button
+                                type="button"
+                                class="btn btn-outline-primary btn-sm"
+                                [disabled]="isUploadingBlock[block.id]"
+                                (click)="blockFileInput.click()"
+                              >
+                                <i [class]="isUploadingBlock[block.id] ? 'fas fa-spinner fa-spin' : 'fas fa-upload'"></i>
+                                {{ isUploadingBlock[block.id] ? 'Đang tải...' : 'Tải ảnh từ máy' }}
+                              </button>
+                              <input
+                                type="text"
+                                class="form-control form-control-sm"
+                                [(ngModel)]="block.meta!.url"
+                                placeholder="Dán URL ảnh hoặc assets/images/..."
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Chú thích ảnh:</label>
+                          <input
+                            type="text"
+                            class="form-control"
+                            [(ngModel)]="block.content"
+                            placeholder="Mô tả bức ảnh..."
+                          />
+                        </div>
+                      }
+
+                      <!-- 5. GALLERY -->
+                      @if (block.type === 'gallery') {
+                        <div class="form-group">
+                          <label class="form-label">Tiêu đề bộ sưu tập:</label>
+                          <input type="text" class="form-control" [(ngModel)]="block.content" placeholder="Bộ sưu tập ảnh..." />
+                        </div>
+                        <div class="gallery-builder-box">
+                          <label class="form-label">Thêm ảnh vào bộ sưu tập:</label>
+                          <div class="d-flex align-items-center gap-2 mb-2">
+                            <input
+                              #galleryFileInput
+                              type="file"
+                              accept="image/*"
+                              style="display: none"
+                              (change)="onGalleryFileSelected(block, $event)"
+                            />
+                            <button
+                              type="button"
+                              class="btn btn-outline-primary btn-sm"
+                              [disabled]="isUploadingBlock[block.id]"
+                              (click)="galleryFileInput.click()"
+                            >
+                              <i [class]="isUploadingBlock[block.id] ? 'fas fa-spinner fa-spin' : 'fas fa-cloud-arrow-up'"></i>
+                              Tải ảnh lên
+                            </button>
+                            <div class="input-with-btn flex-1">
+                              <input
+                                #galleryInput
+                                type="text"
+                                class="form-control form-control-sm"
+                                placeholder="Hoặc dán URL ảnh / assets/images/..."
+                              />
+                              <button
+                                type="button"
+                                class="btn btn-primary btn-sm"
+                                (click)="addGalleryImageToBlock(block, galleryInput.value); galleryInput.value = ''"
+                              >
+                                Thêm
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="gallery-thumbs-row">
+                            @for (img of block.meta?.images; track img.url; let imgIdx = $index) {
+                              <div class="gallery-thumb-item">
+                                <img [src]="img.url" alt="Thumb" class="mini-thumb" />
+                                <button
+                                  type="button"
+                                  class="del-thumb-btn"
+                                  (click)="removeGalleryImageFromBlock(block, imgIdx)"
+                                >
+                                  <i class="fas fa-times"></i>
+                                </button>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      <!-- 6. VIDEO -->
+                      @if (block.type === 'video') {
+                        <div class="form-group">
+                          <label class="form-label">Đường dẫn video (MP4 hoặc nhúng):</label>
+                          <input
+                            type="text"
+                            class="form-control"
+                            [(ngModel)]="block.meta!.url"
+                            placeholder="assets/images/HoatDong/VideoHoatDong/video.mp4"
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Tiêu đề video:</label>
+                          <input type="text" class="form-control" [(ngModel)]="block.content" placeholder="Tiêu đề clip..." />
+                        </div>
+                      }
+
+                      <!-- 7. QUOTE -->
+                      @if (block.type === 'quote') {
+                        <div class="form-group">
+                          <label class="form-label">Lời phát biểu / Trích dẫn:</label>
+                          <textarea
+                            class="form-control"
+                            rows="2"
+                            [(ngModel)]="block.content"
+                            placeholder="Nhập nội dung trích dẫn..."
+                          ></textarea>
+                          <div class="block-color-selector-row mt-2">
+                            <span class="color-row-label"><i class="fas fa-palette"></i> Màu chữ trích dẫn:</span>
+                            <input type="color" class="color-mini-swatch" [ngModel]="block.meta?.textColor || '#1e3a8a'" (ngModelChange)="setBlockTextColor(block, $event)" />
+                            <div class="color-mini-palette">
+                              <button type="button" class="mini-swatch-btn" style="background:#1e3a8a;" (click)="setBlockTextColor(block, '#1e3a8a')" title="Xanh navy"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#0284c7;" (click)="setBlockTextColor(block, '#0284c7')" title="Xanh biển"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#0f172a;" (click)="setBlockTextColor(block, '#0f172a')" title="Đen than"></button>
+                              <button type="button" class="mini-swatch-btn" style="background:#b45309;" (click)="setBlockTextColor(block, '#b45309')" title="Nâu hổ phách"></button>
+                              @if (block.meta?.textColor) {
+                                <button type="button" class="btn-clear-block-color" (click)="setBlockTextColor(block, '')" title="Xóa màu tùy chỉnh">
+                                  <i class="fas fa-xmark"></i> Mặc định
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                        <div class="form-row-2">
+                          <div class="form-group">
+                            <label class="form-label">Người phát biểu:</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              [(ngModel)]="block.meta!.author"
+                              placeholder="Tên đại biểu / học viên..."
+                            />
+                          </div>
+                          <div class="form-group">
+                            <label class="form-label">Chức vụ / Đơn vị:</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              [(ngModel)]="block.meta!.role"
+                              placeholder="Ban lãnh đạo / Học viên lớp..."
+                            />
+                          </div>
+                        </div>
+                      }
+
+                      <!-- 8. CALLOUT -->
+                      @if (block.type === 'callout') {
+                        <div class="form-group">
+                          <label class="form-label">Loại hộp thông báo:</label>
+                          <select class="form-control" [(ngModel)]="block.meta!.calloutType">
+                            <option value="info">Thông tin (Xanh dương)</option>
+                            <option value="tip">Mẹo / Ý nghĩa (Xanh lá)</option>
+                            <option value="warning">Lưu ý (Vàng cam)</option>
+                            <option value="success">Thành công (Tím)</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Nội dung thông điệp:</label>
+                          <textarea class="form-control" rows="2" [(ngModel)]="block.content"></textarea>
+                        </div>
+                      }
+
+                      <!-- 9. EVENT INFO -->
+                      @if (block.type === 'event_info') {
+                        <div class="form-group">
+                          <label class="form-label">Tiêu đề hộp thông tin:</label>
+                          <input type="text" class="form-control" [(ngModel)]="block.content" />
+                        </div>
+                        <div class="form-row-2">
+                          <div class="form-group">
+                            <label class="form-label">Thời gian sự kiện:</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              [(ngModel)]="block.meta!.eventDate"
+                              placeholder="Ví dụ: 08:30 - Ngày 15/08/2026"
+                            />
+                          </div>
+                          <div class="form-group">
+                            <label class="form-label">Địa điểm tổ chức:</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              [(ngModel)]="block.meta!.eventLocation"
+                              placeholder="Ví dụ: Hội trường Trung tâm VieJap"
+                            />
+                          </div>
+                        </div>
+                      }
+
+                      <!-- 10. BULLET LIST -->
+                      @if (block.type === 'bullet_list') {
+                        <div class="form-group">
+                          <label class="form-label">Danh sách các ý chính:</label>
+                          <div class="input-with-btn">
+                            <input #bulletInput type="text" class="form-control" placeholder="Nhập ý chính cần thêm..." />
+                            <button
+                              type="button"
+                              class="btn btn-outline btn-sm"
+                              (click)="addBulletItem(block, bulletInput.value); bulletInput.value = ''"
+                            >
+                              Thêm ý
+                            </button>
+                          </div>
+                          <ul class="bullet-list-builder">
+                            <li *ngFor="let item of block.meta?.items; let itemIdx = index">
+                              <span>{{ item }}</span>
+                              <button type="button" class="del-item-btn" (click)="removeBulletItem(block, itemIdx)">
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      }
+
+                      <!-- 11. BUTTON CTA -->
+                      @if (block.type === 'button') {
+                        <div class="form-row-2">
+                          <div class="form-group">
+                            <label class="form-label">Chữ trên nút bấm:</label>
+                            <input type="text" class="form-control" [(ngModel)]="block.content" placeholder="Ví dụ: Đăng ký tham gia..." />
+                          </div>
+                          <div class="form-group">
+                            <label class="form-label">Địa chỉ liên kết web:</label>
+                            <input type="text" class="form-control" [(ngModel)]="block.meta!.buttonLink" placeholder="/lien-he hoặc URL..." />
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- TAB 2: METADATA -->
+          @if (activeDesignerTab === 'meta') {
+            <div class="metadata-form-container">
+              <div class="form-group">
+                <label class="form-label required">Tiêu đề hoạt động:</label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg"
+                  [(ngModel)]="activityForm.title"
+                  (blur)="onTitleBlur()"
+                  placeholder="Nhập tiêu đề hoạt động ấn tượng, rõ nghĩa..."
+                />
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label">Đường dẫn bài viết (Link web):</label>
+                  <input type="text" class="form-control" [(ngModel)]="activityForm.slug" placeholder="duong-dan-than-thien" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Danh mục hoạt động:</label>
+                  <select class="form-control" [(ngModel)]="activityForm.category">
+                    @for (cat of categories; track cat.id) {
+                      <option [value]="cat.id">{{ cat.name }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <!-- TÙY CHỌN MÀU SẮC TIÊU ĐỀ & CHỮ -->
+              <div class="color-config-card">
+                <div class="color-config-header">
+                  <i class="fas fa-palette text-primary"></i>
+                  <div>
+                    <h5 class="color-config-title">Tùy chỉnh màu sắc tiêu đề bìa & chữ nội dung</h5>
+                    <p class="color-config-desc">Chọn màu sắc tương phản cao với ảnh bìa để tiêu đề và chữ luôn sáng đẹp, sắc nét trên mọi thiết bị.</p>
+                  </div>
+                </div>
+
+                <div class="color-config-grid">
+                  <!-- Title Color Picker -->
+                  <div class="color-picker-box">
+                    <label class="form-label d-flex align-items-center justify-content-between">
+                      <span><i class="fas fa-heading"></i> Màu tiêu đề bìa (Hero Title):</span>
+                      <button type="button" class="btn-reset-swatch" (click)="activityForm.titleColor = '#ffffff'" title="Đặt lại màu trắng mặc định">
+                        <i class="fas fa-rotate-left"></i> Về trắng
+                      </button>
+                    </label>
+                    <div class="color-input-combo">
+                      <input type="color" class="color-wheel-input" [(ngModel)]="activityForm.titleColor" />
+                      <input type="text" class="form-control form-control-sm color-hex-input" [(ngModel)]="activityForm.titleColor" placeholder="#ffffff" />
+                      <div class="color-palette-swatches">
+                        @for (preset of titleColorPresets; track preset.value) {
+                          <button
+                            type="button"
+                            class="palette-swatch-dot"
+                            [style.background]="preset.value"
+                            [class.active]="activityForm.titleColor === preset.value"
+                            [title]="preset.label + ' (' + preset.value + ')'"
+                            (click)="activityForm.titleColor = preset.value"
+                          ></button>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Text Color Picker -->
+                  <div class="color-picker-box">
+                    <label class="form-label d-flex align-items-center justify-content-between">
+                      <span><i class="fas fa-font"></i> Màu chữ nội dung (Lead & Body):</span>
+                      <button type="button" class="btn-reset-swatch" (click)="activityForm.textColor = '#334155'" title="Đặt lại xám đậm mặc định">
+                        <i class="fas fa-rotate-left"></i> Mặc định
+                      </button>
+                    </label>
+                    <div class="color-input-combo">
+                      <input type="color" class="color-wheel-input" [(ngModel)]="activityForm.textColor" />
+                      <input type="text" class="form-control form-control-sm color-hex-input" [(ngModel)]="activityForm.textColor" placeholder="#334155" />
+                      <div class="color-palette-swatches">
+                        @for (preset of textColorPresets; track preset.value) {
+                          <button
+                            type="button"
+                            class="palette-swatch-dot"
+                            [style.background]="preset.value"
+                            [class.active]="activityForm.textColor === preset.value"
+                            [title]="preset.label + ' (' + preset.value + ')'"
+                            (click)="activityForm.textColor = preset.value"
+                          ></button>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Ảnh bìa đại diện (Tỷ lệ 16:9):</label>
+                <div class="cover-uploader-card">
+                  @if (activityForm.coverImage) {
+                    <div class="cover-preview-box">
+                      <img [src]="getCoverImageUrl(activityForm.coverImage)" (error)="onImageError($event)" alt="Cover Preview" class="cover-img-preview" />
+                      <button type="button" class="btn-remove-cover" (click)="activityForm.coverImage = ''" title="Xóa ảnh bìa">
+                        <i class="fas fa-trash-can"></i>
+                      </button>
+                    </div>
+                  }
+                  <div class="cover-upload-actions">
+                    <input
+                      #coverFileInput
+                      type="file"
+                      accept="image/*"
+                      style="display: none"
+                      (change)="onCoverFileSelected($event)"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-sm"
+                      [disabled]="isUploadingCover"
+                      (click)="coverFileInput.click()"
+                    >
+                      <i [class]="isUploadingCover ? 'fas fa-spinner fa-spin' : 'fas fa-cloud-arrow-up'"></i>
+                      {{ isUploadingCover ? 'Đang tải ảnh...' : 'Tải ảnh từ máy' }}
+                    </button>
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      [(ngModel)]="activityForm.coverImage"
+                      placeholder="Hoặc dán URL ảnh / assets/images/..."
+                    />
+                  </div>
+                  <!-- Quick preset picker from library -->
+                  <div class="quick-sample-photos mt-2">
+                    <span class="sample-label"><i class="fas fa-images"></i> Chọn nhanh từ thư viện có sẵn:</span>
+                    <div class="sample-photo-pills">
+                      @for (sImg of sampleMediaLibrary.slice(0, 6); track sImg) {
+                        <img [src]="sImg" alt="Sample" class="sample-photo-thumb" (click)="activityForm.coverImage = sImg" title="Chọn ảnh này" />
+                      }
+                    </div>
+                  </div>
+                </div>
+                <span class="form-hint">Khuyến nghị tỉ lệ 16:9 chuẩn HD để hiển thị đẹp mắt trên banner và thẻ.</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Tóm tắt ngắn gọn nội dung:</label>
+                <textarea
+                  class="form-control"
+                  rows="3"
+                  [(ngModel)]="activityForm.summary"
+                  placeholder="Mô tả tóm tắt nội dung chính trong 2-3 câu ngắn gọn..."
+                ></textarea>
+              </div>
+
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label class="form-label">Ngày diễn ra:</label>
+                  <input type="date" class="form-control" [(ngModel)]="activityForm.eventDate" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Địa điểm tổ chức:</label>
+                  <input type="text" class="form-control" [(ngModel)]="activityForm.location" placeholder="Trà Vinh, TP.HCM, Tokyo..." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Đơn vị chủ trì:</label>
+                  <input type="text" class="form-control" [(ngModel)]="activityForm.organizer" placeholder="VieJap Education..." />
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label">Chỉ số nổi bật:</label>
+                  <input type="text" class="form-control" [(ngModel)]="activityForm.metric" placeholder="Ví dụ: 100%, 500+, 24..." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Đơn vị / Ý nghĩa chỉ số:</label>
+                  <input type="text" class="form-control" [(ngModel)]="activityForm.metricLabel" placeholder="Ví dụ: Học viên tham dự..." />
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- TAB 3: DISPLAY & DISTRIBUTION -->
+          @if (activeDesignerTab === 'display') {
+            <div class="display-form-container">
+              <!-- Cấp độ hoạt động -->
+              <div class="card-setting-box">
+                <h4 class="setting-title">
+                  <i class="fas fa-layer-group text-primary"></i>
+                  Cấp độ ưu tiên hoạt động
+                </h4>
+                <p class="setting-desc">Quy định mức độ quan trọng về mặt biên tập, độc lập với nhãn dán.</p>
+                <div class="radio-cards-grid">
+                  <label class="radio-card" [class.selected]="activityForm.level === 'standard'">
+                    <input type="radio" name="actLevel" value="standard" [(ngModel)]="activityForm.level" />
+                    <span class="radio-label">Tiêu chuẩn</span>
+                    <span class="radio-sub">Tin bài thông thường</span>
+                  </label>
+
+                  <label class="radio-card" [class.selected]="activityForm.level === 'featured'">
+                    <input type="radio" name="actLevel" value="featured" [(ngModel)]="activityForm.level" />
+                    <span class="radio-label">Nổi bật</span>
+                    <span class="radio-sub">Ưu tiên hiển thị lớn</span>
+                  </label>
+
+                  <label class="radio-card" [class.selected]="activityForm.level === 'hot'">
+                    <input type="radio" name="actLevel" value="hot" [(ngModel)]="activityForm.level" />
+                    <span class="radio-label">Tin nóng</span>
+                    <span class="radio-sub">Sự kiện có sức hút cao</span>
+                  </label>
+
+                  <label class="radio-card" [class.selected]="activityForm.level === 'special'">
+                    <input type="radio" name="actLevel" value="special" [(ngModel)]="activityForm.level" />
+                    <span class="radio-label">Đặc biệt</span>
+                    <span class="radio-sub">Đại lễ, sự kiện quy mô lớn</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Nhãn HOT (Độc lập, có tự động hết hạn) -->
+              <div class="card-setting-box">
+                <div class="setting-toggle-header">
+                  <div>
+                    <h4 class="setting-title">
+                      <i class="fas fa-fire text-red"></i>
+                      Gắn huy hiệu Nổi bật / Tin nóng
+                    </h4>
+                    <p class="setting-desc">Gắn huy hiệu kèm ngọn lửa. Tự động thu hồi khi hết hạn mà không ảnh hưởng cấp độ bài viết.</p>
+                  </div>
+                  <label class="switch-control">
+                    <input type="checkbox" [(ngModel)]="activityForm.hotBadge!.enabled" />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
+                @if (activityForm.hotBadge?.enabled) {
+                  <div class="setting-subfields">
+                    <div class="form-row-2">
+                      <div class="form-group">
+                        <label class="form-label">Thời gian hết hạn tự động:</label>
+                        <input
+                          type="datetime-local"
+                          class="form-control"
+                          [(ngModel)]="activityForm.hotBadge!.expiresAt"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Tiêu đề nhãn:</label>
+                        <input type="text" class="form-control" [(ngModel)]="activityForm.hotBadge!.title" />
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Vị trí hiển thị trên Website -->
+              <div class="card-setting-box">
+                <h4 class="setting-title">
+                  <i class="fas fa-map-pin text-primary"></i>
+                  Vị trí hiển thị trên website
+                </h4>
+                <p class="setting-desc">Chọn một hoặc nhiều vị trí mà hoạt động này sẽ xuất hiện trên hệ thống.</p>
+
+                <div class="positions-checkbox-grid">
+                  <label class="pos-checkbox-card" [class.checked]="hasPosition('featured')">
+                    <input type="checkbox" [checked]="hasPosition('featured')" (change)="togglePosition('featured')" />
+                    <div class="pos-info">
+                      <span class="pos-name">Biểu ngữ tiêu điểm lớn (Đầu trang)</span>
+                      <span class="pos-sub">Nằm ở đầu trang Góc hoạt động với ảnh khổ rộng 16:9</span>
+                    </div>
+                  </label>
+
+                  <label class="pos-checkbox-card" [class.checked]="hasPosition('hot')">
+                    <input type="checkbox" [checked]="hasPosition('hot')" (change)="togglePosition('hot')" />
+                    <div class="pos-info">
+                      <span class="pos-name">Dải sự kiện tin nóng</span>
+                      <span class="pos-sub">Hiển thị trong thanh sự kiện đang diễn ra sôi nổi</span>
+                    </div>
+                  </label>
+
+                  <label class="pos-checkbox-card" [class.checked]="hasPosition('latest')">
+                    <input type="checkbox" [checked]="hasPosition('latest')" (change)="togglePosition('latest')" />
+                    <div class="pos-info">
+                      <span class="pos-name">Danh sách bài viết mới</span>
+                      <span class="pos-sub">Lưới bài viết chính trên trang Góc hoạt động</span>
+                    </div>
+                  </label>
+
+                  <label class="pos-checkbox-card" [class.checked]="hasPosition('homepage')">
+                    <input type="checkbox" [checked]="hasPosition('homepage')" (change)="togglePosition('homepage')" />
+                    <div class="pos-info">
+                      <span class="pos-name">Trang chủ và Trang Giới thiệu</span>
+                      <span class="pos-sub">Được kéo tự động về hiển thị tại mục Hoạt động trang chủ</span>
+                    </div>
+                  </label>
+
+                  <label class="pos-checkbox-card" [class.checked]="hasPosition('category')">
+                    <input type="checkbox" [checked]="hasPosition('category')" (change)="togglePosition('category')" />
+                    <div class="pos-info">
+                      <span class="pos-name">Mục phân loại theo chủ đề</span>
+                      <span class="pos-sub">Hiển thị khi người dùng lọc theo tab chuyên mục tương ứng</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- TAB 4: SEO -->
+          @if (activeDesignerTab === 'seo') {
+            <div class="seo-form-container">
+              <div class="form-group">
+                <label class="form-label">Tiêu đề tìm kiếm (SEO):</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="activityForm.seo!.title"
+                  placeholder="Tiêu đề hiển thị trên kết quả tìm kiếm Google..."
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Mô tả tìm kiếm (SEO):</label>
+                <textarea
+                  class="form-control"
+                  rows="3"
+                  [(ngModel)]="activityForm.seo!.description"
+                  placeholder="Mô tả ngắn gọn từ 140 - 160 ký tự..."
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Từ khóa tìm kiếm:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="activityForm.seo!.keywords"
+                  placeholder="viejap, hoạt động, nhật bản, thực tập sinh..."
+                />
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- RIGHT PANEL: Reactive Live Preview -->
+        <div class="designer-preview-panel">
+          <div class="preview-device-frame" [class.frame-mobile]="previewDevice === 'mobile'">
+            <div class="preview-mock-screen">
+              <!-- Live Preview Header Banner -->
+              <div class="mock-cover-section">
+                <img
+                  [src]="getCoverImageUrl(activityForm.coverImage)"
+                  (error)="onImageError($event)"
+                  alt="Live Cover"
+                  class="mock-cover-img"
+                />
+                <div class="mock-cover-overlay">
+                  <div class="mock-badges">
+                    <span class="mock-cat-badge">
+                      <i class="fas fa-tag"></i> {{ activityForm.categoryName || activityForm.category }}
+                    </span>
+                    @if (activityForm.hotBadge?.enabled) {
+                      <span class="mock-hot-badge">
+                        <i class="fas fa-fire"></i> HOT
+                      </span>
+                    }
+                    @if (activityForm.level === 'special') {
+                      <span class="mock-special-badge">
+                        <i class="fas fa-crown"></i> ĐẶC BIỆT
+                      </span>
+                    }
+                  </div>
+                  <h1 class="mock-title" [style.color]="activityForm.titleColor || '#ffffff'">{{ activityForm.title || 'Tiêu đề hoạt động mẫu' }}</h1>
+                  <div class="mock-meta-strip">
+                    <span><i class="fas fa-calendar-alt"></i> {{ activityForm.eventDate }}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> {{ activityForm.location }}</span>
+                    @if (activityForm.metric) {
+                      <span class="mock-metric-pill">
+                        <strong>{{ activityForm.metric }}</strong> {{ activityForm.metricLabel }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Preview Content Render -->
+              <div class="mock-content-body" [style.color]="activityForm.textColor || '#334155'">
+                @if (activityForm.summary) {
+                  <p class="mock-lead" [style.color]="activityForm.textColor || '#334155'">{{ activityForm.summary }}</p>
+                }
+
+                @for (block of activityForm.blocks; track block.id) {
+                  @if (block.isVisible) {
+                    <!-- Heading -->
+                    @if (block.type === 'heading') {
+                      <h2 class="mock-heading" [style.color]="block.meta?.textColor || activityForm.textColor || '#0f172a'">{{ block.content }}</h2>
+                    }
+                    <!-- Subheading -->
+                    @if (block.type === 'subheading') {
+                      <h3 class="mock-subheading" [style.color]="block.meta?.textColor || activityForm.textColor || '#1e293b'">{{ block.content }}</h3>
+                    }
+                    <!-- Paragraph -->
+                    @if (block.type === 'paragraph') {
+                      <p class="mock-p" [style.color]="block.meta?.textColor || activityForm.textColor || '#334155'">{{ block.content }}</p>
+                    }
+                    <!-- Image -->
+                    @if (block.type === 'image') {
+                      <figure class="mock-figure">
+                        <img [src]="block.meta?.url || 'assets/images/logo.png'" alt="Ảnh bài viết" [alt]="block.content || 'Ảnh bài viết'" class="mock-img" />
+                        @if (block.content) {
+                          <figcaption class="mock-caption">{{ block.content }}</figcaption>
+                        }
+                      </figure>
+                    }
+                    <!-- Gallery -->
+                    @if (block.type === 'gallery') {
+                      <div class="mock-gallery-box">
+                        @if (block.content) {
+                          <h4 class="mock-gallery-title">{{ block.content }}</h4>
+                        }
+                        <div class="mock-gallery-grid">
+                          @for (img of block.meta?.images; track img.url) {
+                            <img [src]="img.url" alt="Photo" class="mock-gallery-img" />
+                          }
+                        </div>
+                      </div>
+                    }
+                    <!-- Video -->
+                    @if (block.type === 'video') {
+                      <div class="mock-video-box">
+                        <div class="mock-video-placeholder">
+                          <i class="fas fa-circle-play text-red fa-3x"></i>
+                          <span>Video Clip: {{ block.content || block.meta?.url }}</span>
+                        </div>
+                      </div>
+                    }
+                    <!-- Quote -->
+                    @if (block.type === 'quote') {
+                      <blockquote class="mock-quote" [style.color]="block.meta?.textColor || activityForm.textColor || null">
+                        <p>“{{ block.content }}”</p>
+                        <cite>— {{ block.meta?.author }} <small>({{ block.meta?.role }})</small></cite>
+                      </blockquote>
+                    }
+                    <!-- Callout -->
+                    @if (block.type === 'callout') {
+                      <div class="mock-callout" [ngClass]="'callout-' + (block.meta?.calloutType || 'info')">
+                        <i class="fas fa-info-circle callout-icon"></i>
+                        <div class="callout-text">{{ block.content }}</div>
+                      </div>
+                    }
+                    <!-- Event Info -->
+                    @if (block.type === 'event_info') {
+                      <div class="mock-event-card">
+                        <h4><i class="fas fa-calendar-day"></i> {{ block.content }}</h4>
+                        <div class="event-details">
+                          <div><strong>Thời gian:</strong> {{ block.meta?.eventDate || activityForm.eventDate }}</div>
+                          <div><strong>Địa điểm:</strong> {{ block.meta?.eventLocation || activityForm.location }}</div>
+                        </div>
+                      </div>
+                    }
+                    <!-- Bullet list -->
+                    @if (block.type === 'bullet_list') {
+                      <ul class="mock-bullet-list">
+                        <li *ngFor="let it of block.meta?.items">{{ it }}</li>
+                      </ul>
+                    }
+                    <!-- Button -->
+                    @if (block.type === 'button') {
+                      <div class="mock-btn-wrapper">
+                        <span class="mock-cta-btn">{{ block.content }}</span>
+                      </div>
+                    }
+                    <!-- Divider -->
+                    @if (block.type === 'divider') {
+                      <hr class="mock-divider" />
+                    }
+                  }
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- 3. TEMPLATES MODAL                                        -->
+  <!-- ========================================================= -->
+  @if (showTemplateModal) {
+    <div class="modal-backdrop" (click)="showTemplateModal = false">
+      <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <i class="fas fa-layer-group text-primary"></i>
+            <h3>Kho Mẫu Thiết Kế Hoạt Động VieJap (8 Mẫu Chuẩn)</h3>
+          </div>
+          <button type="button" class="btn-close" (click)="showTemplateModal = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-subtitle">
+            Chọn mẫu cấu trúc có sẵn để tự động thiết lập các khối nội dung, bố cục và hình ảnh mẫu phù hợp với từng chủ đề.
+          </p>
+
+          <div class="templates-grid">
+            @for (tpl of templates; track tpl.id) {
+              <div class="template-card" (click)="openCreateFromTemplate(tpl)">
+                <div class="tpl-card-top">
+                  <span class="tpl-badge">{{ tpl.badge }}</span>
+                  <span class="tpl-ratio">Tỉ lệ {{ tpl.recommendedCoverRatio }}</span>
+                </div>
+                <h4 class="tpl-name">{{ tpl.name }}</h4>
+                <p class="tpl-desc">{{ tpl.description }}</p>
+                <div class="tpl-blocks-count">
+                  <i class="fas fa-cubes"></i> Gồm {{ tpl.blocks.length }} khối nội dung mẫu
+                </div>
+                <button type="button" class="btn btn-primary btn-sm btn-block">
+                  Áp dụng mẫu này
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- 4. QUALITY AUDIT CHECKLIST DRAWER                         -->
+  <!-- ========================================================= -->
+  @if (showQualityDrawer) {
+    <div class="drawer-backdrop" (click)="showQualityDrawer = false">
+      <div class="quality-drawer" (click)="$event.stopPropagation()">
+        <div class="drawer-header">
+          <div class="drawer-title">
+            <i class="fas fa-shield-halved text-primary"></i>
+            <h3>Kiểm Định Chất Lượng Bài Viết</h3>
+          </div>
+          <button type="button" class="btn-close" (click)="showQualityDrawer = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="drawer-body">
+          @if (qualityReport) {
+            <div class="score-banner" [class.score-pass]="qualityReport.score >= 80" [class.score-warn]="qualityReport.score < 80">
+              <div class="score-circle">
+                <span class="score-num">{{ qualityReport.score }}</span>
+                <span class="score-max">/100</span>
+              </div>
+              <div class="score-text">
+                <h4>{{ qualityReport.canPublish ? 'Đạt chuẩn xuất bản!' : 'Cần hoàn thiện thêm' }}</h4>
+                <p>
+                  {{ qualityReport.errorsCount }} lỗi bắt buộc · {{ qualityReport.warningsCount }} cảnh báo khuyến nghị
+                </p>
+              </div>
+            </div>
+
+            <div class="rules-list">
+              @for (rule of qualityReport.rules; track rule.code) {
+                <div class="rule-item" [class.rule-passed]="rule.passed" [class.rule-error]="!rule.passed && rule.severity === 'error'">
+                  <div class="rule-icon">
+                    <i [class]="rule.passed ? 'fas fa-circle-check text-green' : 'fas fa-circle-xmark text-red'"></i>
+                  </div>
+                  <div class="rule-info">
+                    <span class="rule-title">{{ rule.title }}</span>
+                    <p class="rule-msg">{{ rule.message }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="loading-state">
+              <i class="fas fa-spinner fa-spin text-primary"></i>
+              <p>Đang chấm điểm bài viết...</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- 5. DUPLICATE CONFIRMATION MODAL                           -->
+  <!-- ========================================================= -->
+  @if (showDuplicateModal) {
+    <div class="modal-backdrop" (click)="showDuplicateModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <i class="fas fa-copy text-primary"></i>
+            <h3>Nhân Bản Hoạt Động</h3>
+          </div>
+          <button type="button" class="btn-close" (click)="showDuplicateModal = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p>
+            Hệ thống sẽ tạo một bản sao mới từ hoạt động:
+            <strong>"{{ duplicateTarget?.title }}"</strong>.
+          </p>
+          <ul class="duplicate-notes">
+            <li>Trạng thái tự động đặt về: <strong>Bản nháp</strong></li>
+            <li>Tạo mã định danh mới và sinh lại slug an toàn</li>
+            <li>Số lượt xem và dữ liệu thống kê được làm mới về 0</li>
+            <li>Toàn bộ khối nội dung và hình ảnh được sao chép nguyên vẹn</li>
+          </ul>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="showDuplicateModal = false">Hủy bỏ</button>
+          <button type="button" class="btn btn-primary" (click)="executeDuplicate()">
+            <i class="fas fa-check"></i> Xác nhận nhân bản
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- 6. APPROVAL WORKFLOW MODAL                                -->
+  <!-- ========================================================= -->
+  @if (showApprovalModal) {
+    <div class="modal-backdrop" (click)="showApprovalModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <i [class]="approvalAction === 'approve' ? 'fas fa-check-circle text-green' : 'fas fa-ban text-red'"></i>
+            <h3>{{ approvalAction === 'approve' ? 'Phê Duyệt Hoạt Động' : 'Từ Chối Phê Duyệt' }}</h3>
+          </div>
+          <button type="button" class="btn-close" (click)="showApprovalModal = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p>
+            Hoạt động: <strong>"{{ approvalTarget?.title }}"</strong>
+          </p>
+          <div class="form-group">
+            <label class="form-label">Ghi chú phê duyệt / Phản hồi biên tập:</label>
+            <textarea
+              class="form-control"
+              rows="3"
+              [(ngModel)]="approvalNote"
+              placeholder="Nhập nhận xét hoặc yêu cầu chỉnh sửa nếu có..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="showApprovalModal = false">Hủy</button>
+          <button
+            type="button"
+            class="btn"
+            [ngClass]="approvalAction === 'approve' ? 'btn-primary' : 'btn-danger'"
+            (click)="executeApproval()"
+          >
+            {{ approvalAction === 'approve' ? 'Xác nhận Duyệt' : 'Từ chối' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

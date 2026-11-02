@@ -1,70 +1,189 @@
 <section class="job-board" [class.job-board-home]="home" id="don-hang">
-  <div class="container">
-    <div class="job-board-heading">
-      <div>
-        <span class="job-board-kicker"><i class="fas fa-arrow-up-right-from-square"></i> Cơ hội tại Nhật</span>
-        <h2>{{ home ? 'Một lựa chọn tốt bắt đầu từ lộ trình phù hợp' : 'Cơ hội làm việc và học tập tại Nhật' }}</h2>
-        <p>Chọn nhóm chương trình, xem thông tin từng đơn và bắt đầu cuộc trò chuyện với VieJap khi bạn đã sẵn sàng.</p>
-      </div>
+  <!-- Japanese Landscape Artistic Background Layer -->
+  <div class="job-board-bg-layer" aria-hidden="true">
+    <picture>
+      <source media="(min-width: 768px)" srcset="assets/images/jobs/job-board-bg-desktop.webp" type="image/webp" />
+      <source media="(min-width: 768px)" srcset="assets/images/jobs/job-board-bg-desktop.png" type="image/png" />
+      <source srcset="assets/images/jobs/job-board-bg-mobile.webp" type="image/webp" />
+      <img
+        src="assets/images/jobs/job-board-bg-desktop.png"
+        alt=""
+        class="job-board-bg-img"
+        loading="lazy"
+      />
+    </picture>
+  </div>
 
-      @if (home) {
-        <a class="job-board-all-link" href="/don-hang">
-          Xem tiếp <i class="fas fa-arrow-right"></i>
-        </a>
-      }
-    </div>
+  <div class="container job-board-container">
+    @if (!home) {
+      <div class="job-board-heading">
+        <div class="job-heading-content">
+          <span class="job-board-kicker">
+            <i class="fas fa-briefcase"></i> ĐƠN HÀNG TUYỂN DỤNG TẠI NHẬT BẢN
+          </span>
+          <h2>Cơ hội làm việc và học tập tại Nhật</h2>
+          <p>Chọn nhóm chương trình, xem thông tin từng đơn và bắt đầu cuộc trò chuyện với VieJap khi bạn đã sẵn sàng.</p>
+        </div>
+      </div>
+    } @else {
+      <h2 class="visually-hidden">Đơn hàng tuyển dụng tại Nhật Bản</h2>
+    }
 
     @if (loading) {
       <div class="job-board-state"><i class="fas fa-spinner fa-spin"></i> Đang tải đơn hàng...</div>
     } @else if (errorMessage) {
       <div class="job-board-state error"><i class="fas fa-circle-exclamation"></i> {{ errorMessage }}</div>
     } @else {
-      <div class="job-category-grid" role="tablist" aria-label="Chọn nhóm chương trình">
-        <button type="button" role="tab" class="job-category-tile all" [attr.aria-selected]="activeFilter === 'all'" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">
-          <i class="fas fa-border-all"></i>
-          <span><strong>Tất cả đơn</strong><small>{{ orders.length }} đang tuyển</small></span>
+      <!-- Category Filter Row -->
+      <div class="job-category-row" role="tablist" aria-label="Bộ lọc ngành nghề tuyển dụng">
+        <button
+          type="button"
+          role="tab"
+          class="job-category-btn all"
+          [attr.aria-selected]="activeFilter === 'all'"
+          [class.active]="activeFilter === 'all'"
+          (click)="setFilter('all')">
+          <span class="category-icon-box"><i class="fas fa-th-large"></i></span>
+          <span class="category-meta">
+            <strong>Tất cả đơn hàng</strong>
+            <small>{{ orders.length }} đơn hàng</small>
+          </span>
         </button>
-        @for (category of categories; track category.key) {
-          <button type="button" role="tab" class="job-category-tile" [attr.aria-selected]="activeFilter === category.key" [class.active]="activeFilter === category.key" (click)="setFilter(category.key)">
-            <i [class]="category.icon"></i>
-            <span><strong>{{ category.label }}</strong><small>{{ categoryCount(category.key) }} đang tuyển</small></span>
+
+        @for (category of displayCategories; track category.key) {
+          <button
+            type="button"
+            role="tab"
+            class="job-category-btn"
+            [attr.aria-selected]="activeFilter === category.key"
+            [class.active]="activeFilter === category.key"
+            (click)="setFilter(category.key)">
+            <span class="category-icon-box"><i [class]="category.icon"></i></span>
+            <span class="category-meta">
+              <strong>{{ category.label }}</strong>
+              <small>{{ categoryCount(category.key) }} đơn</small>
+            </span>
           </button>
         }
       </div>
 
       @if (!orders.length) {
-        <div class="job-board-state"><i class="fas fa-image"></i> Chưa có đơn tuyển.</div>
+        <div class="job-board-state"><i class="fas fa-briefcase"></i> Hiện tại chưa có đơn tuyển dụng nào được công bố.</div>
       } @else if (!visibleOrders.length) {
-        <div class="job-board-state"><i class="fas fa-filter-circle-xmark"></i> Chưa có đơn tuyển thuộc chương trình này.</div>
+        <div class="job-board-state"><i class="fas fa-filter-circle-xmark"></i> Chưa có đơn tuyển dụng thuộc chương trình này.</div>
       } @else {
-        <div class="job-order-grid">
+        <!-- Job Orders Grid -->
+        <div
+          class="job-order-grid"
+          [class.job-order-grid--single]="visibleOrders.length === 1"
+          [class.job-order-grid--few]="visibleOrders.length === 2"
+        >
           @for (order of visibleOrders; track order.id) {
-            <button type="button" class="job-order-card" [class.featured]="order.isFeatured" (click)="openOrder(order)">
-              <span class="job-order-visual">
-                <img [src]="order.imageUrl" [alt]="'Ảnh ' + orderTitle(order)" loading="lazy" (error)="useFallbackImage($event, order)" />
-                @if (order.isFeatured) {
-                  <span class="job-featured-badge"><i class="fas fa-star"></i> Nổi bật</span>
-                }
-                <span class="job-order-category-tag">
+            <article class="job-order-card" [class.featured]="order.isFeatured">
+              <!-- Visual Card Header (Direct Navigation) -->
+              <a [routerLink]="['/don-hang', order.id]" class="job-card-visual" [attr.aria-label]="orderTitle(order)">
+                <img
+                  [src]="order.imageUrl || getJobOrderFallbackImage(order.category)"
+                  alt="Hình ảnh minh họa" [alt]="'Ảnh đơn hàng ' + orderTitle(order)"
+                  loading="lazy"
+                  (error)="useFallbackImage($event, order)"
+                />
+
+                <!-- Top-Left: Category badge pill -->
+                <span class="card-badge-category">
                   <i [class]="orderCategory(order).icon"></i>
-                  {{ orderCategory(order).shortLabel }}
+                  <span>{{ orderCategory(order).label }}</span>
                 </span>
-                <span class="job-order-expand"><i class="fas fa-up-right-and-down-left-from-center"></i> Xem đơn hàng</span>
-              </span>
-              <span class="job-order-info">
-                <span class="job-order-title">{{ orderTitle(order) }}</span>
-                @if (order.description) {
-                  <span class="job-order-description">{{ stripHtml(order.description) }}</span>
-                  <span class="job-order-more-hint"><i class="fas fa-hand-pointer"></i> Ấn vào để xem chi tiết</span>
-                }
-              </span>
-            </button>
+
+                <!-- Top-Right: Active recruiting badge -->
+                <span class="card-badge-status" title="Đang nhận hồ sơ tuyển dụng">
+                  <span class="status-pulse-dot" aria-hidden="true"></span>
+                  <span>Đang tuyển</span>
+                </span>
+
+                <!-- Bottom-Left: Highlight badge -->
+                <span class="card-badge-highlight">
+                  <i class="fas fa-bolt"></i>
+                  <span>{{ orderHighlight(order) }}</span>
+                </span>
+
+                <!-- Bottom-Right: Location badge -->
+                <span class="card-badge-location">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>{{ orderLocation(order) }}</span>
+                </span>
+              </a>
+
+              <!-- Card Body Content -->
+              <div class="job-card-body">
+                <h3 class="job-card-title">
+                  <a [routerLink]="['/don-hang', order.id]" [title]="orderTitle(order)">
+                    {{ orderTitle(order) }}
+                  </a>
+                </h3>
+
+                <p class="job-card-desc">
+                  {{ stripHtml(order.description) || 'Môi trường làm việc chuẩn Nhật Bản, có hướng dẫn công việc rõ ràng và hỗ trợ toàn diện từ VieJap.' }}
+                </p>
+
+                <!-- Specifications with prominent salary -->
+                <div class="job-card-specs">
+                  <div class="spec-item spec-item--salary">
+                    <i class="fas fa-sack-dollar spec-icon" aria-hidden="true"></i>
+                    <div class="spec-info">
+                      <span class="spec-label">Mức lương dự kiến</span>
+                      <strong class="spec-value spec-value--salary">{{ orderSalary(order) }}</strong>
+                    </div>
+                  </div>
+
+                  <div class="spec-sub-row">
+                    <div class="spec-item">
+                      <i class="fas fa-calendar-alt spec-icon" aria-hidden="true"></i>
+                      <div class="spec-info">
+                        <span class="spec-label">Thời hạn</span>
+                        <strong class="spec-value">{{ orderDuration(order) }}</strong>
+                      </div>
+                    </div>
+
+                    <div class="spec-item">
+                      <i class="fas fa-plane-departure spec-icon" aria-hidden="true"></i>
+                      <div class="spec-info">
+                        <span class="spec-label">Xuất cảnh</span>
+                        <strong class="spec-value">{{ orderDeparture(order) }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card Footer Actions -->
+                <div class="job-card-footer">
+                  <a [routerLink]="['/don-hang', order.id]" class="btn-card-detail">
+                    <span>Xem chi tiết</span>
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+
+                  <button
+                    type="button"
+                    class="btn-card-heart"
+                    [class.active]="isFavorite(order.id)"
+                    (click)="toggleFavorite(order.id, $event)"
+                    [title]="isFavorite(order.id) ? 'Bỏ lưu đơn' : 'Lưu đơn này'"
+                    [attr.aria-label]="isFavorite(order.id) ? 'Bỏ lưu đơn' : 'Lưu đơn này'">
+                    <i [class]="isFavorite(order.id) ? 'fas fa-heart' : 'far fa-heart'"></i>
+                  </button>
+                </div>
+              </div>
+            </article>
           }
         </div>
 
-        @if (hasHiddenOrders) {
-          <div class="job-board-more">
-            <a href="/don-hang">Xem tiếp các đơn đang tuyển <i class="fas fa-arrow-right"></i></a>
+        @if (home) {
+          <div class="job-board-more-wrap">
+            <a routerLink="/don-hang" class="job-board-more-btn">
+              <i class="fas fa-search"></i>
+              <span>Xem thêm các đơn hàng tuyển chọn</span>
+              <i class="fas fa-arrow-right"></i>
+            </a>
           </div>
         }
 
@@ -72,7 +191,7 @@
           <div class="job-pagination-wrap">
             <span>{{ paginationSummary }}</span>
             <nav class="job-pagination" aria-label="Phân trang đơn hàng">
-              <button type="button" (click)="previousPage()" [disabled]="currentPage === 1">
+              <button type="button" (click)="previousPage()" [disabled]="currentPage === 1" aria-label="Trang trước">
                 <i class="fas fa-chevron-left"></i>
               </button>
               @for (page of paginationPages; track page) {
@@ -80,7 +199,7 @@
                   {{ page }}
                 </button>
               }
-              <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">
+              <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages" aria-label="Trang sau">
                 <i class="fas fa-chevron-right"></i>
               </button>
             </nav>
@@ -90,27 +209,3 @@
     }
   </div>
 </section>
-
-@if (selectedOrder) {
-  <div class="poster-lightbox" role="presentation" (click)="closeOrder()">
-    <section class="poster-lightbox-card" role="dialog" aria-modal="true" aria-label="Xem đơn hàng" tabindex="0" (click)="$event.stopPropagation()" (keydown.escape)="closeOrder()">
-      <button type="button" class="poster-close-button" (click)="closeOrder()" aria-label="Đóng"><i class="fas fa-xmark"></i></button>
-      <div class="poster-lightbox-media">
-        <img [src]="selectedOrder.imageUrl" [alt]="'Ảnh ' + orderTitle(selectedOrder)" (error)="useFallbackImage($event, selectedOrder)" />
-      </div>
-      <div class="poster-lightbox-info">
-        <span class="poster-lightbox-category">
-          <i [class]="orderCategory(selectedOrder).icon"></i>
-          {{ orderCategory(selectedOrder).label }}
-        </span>
-        <h3 class="poster-lightbox-title">{{ orderTitle(selectedOrder) }}</h3>
-        @if (selectedOrder.description) {
-          <div class="poster-lightbox-description" [innerHTML]="selectedOrder.description"></div>
-        }
-        <div class="poster-lightbox-footer">
-          <a [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer"><i class="fas fa-comment-dots"></i> Trao đổi với VieJap</a>
-        </div>
-      </div>
-    </section>
-  </div>
-}

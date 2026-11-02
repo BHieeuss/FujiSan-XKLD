@@ -36,6 +36,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     'Giới thiệu': 'gioi-thieu',
     'Chương trình': 'chuong-trinh',
     'Quyền lợi': 'chinh-sach',
+    'Góc hoạt động': 'hoat-dong',
     'Liên hệ': 'lien-he',
   };
 
@@ -127,14 +128,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onMenuClick(event: Event, item: any): void {
-    event.preventDefault();
     this.closeMobileMenu();
 
-    if (item.link.startsWith('/hoc-')) {
+    if (item.link && item.link !== '/' && !item.link.startsWith('/#')) {
+      event.preventDefault();
       void this.router.navigate([item.link]);
       return;
     }
 
+    event.preventDefault();
     const sectionId = this.menuSectionMap[item.label] ?? 'trang-chu';
     void this.router.navigate(['/'], { fragment: sectionId }).then(() => {
       this.scrollToSection(sectionId);
@@ -202,10 +204,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.mainMenuItems.forEach((item) => {
       item.active =
         item.dropdownKey === 'learning'
-          ? path.startsWith('/hoc-')
+          ? path.startsWith('/hoc-') || path.startsWith('/luyen-')
           : item.dropdownKey === 'programs'
-            ? path === '/form-hoc-vien'
-            : false;
+            ? path.startsWith('/chuong-trinh')
+            : item.link === path;
     });
 
     if (this.isHomePage) {

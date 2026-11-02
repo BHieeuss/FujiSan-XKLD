@@ -1,0 +1,1416 @@
+<div class="ops-center-container">
+  <!-- 1. TOP HEADER (CLEAN & MODERN) -->
+  <header class="ops-header">
+    <div class="ops-header-main">
+      <div class="ops-header-title-box">
+        <div class="ops-header-badge">
+          <i class="fas fa-tower-broadcast"></i>
+          <span>Trung tâm điều hành</span>
+        </div>
+        <h1 class="ops-title">Trung tâm thông báo & Phân công</h1>
+        <p class="ops-desc">
+          Theo dõi thông tin hoạt động, phê duyệt hồ sơ và phân công nhiệm vụ tập trung.
+        </p>
+      </div>
+
+      <div class="ops-header-actions">
+        @if (dashboard()?.unreadCount) {
+          <span class="unread-pill-pulse" title="Số thông báo chưa đọc">
+            <span class="pulse-dot"></span>
+            <strong>{{ dashboard()?.unreadCount }}</strong> chưa đọc
+          </span>
+        }
+
+        <button
+          type="button"
+          class="btn-header btn-refresh"
+          (click)="loadDashboard(false)"
+          [disabled]="refreshing()"
+          title="Làm mới dữ liệu từ máy chủ"
+        >
+          <i [class]="refreshing() ? 'fas fa-arrows-rotate fa-spin' : 'fas fa-arrows-rotate'"></i>
+          <span>Làm mới</span>
+        </button>
+
+        @if (dashboard()?.unreadCount) {
+          <button
+            type="button"
+            class="btn-header btn-mark-all"
+            (click)="markAllAsRead()"
+            title="Đánh dấu tất cả thông báo là đã đọc"
+          >
+            <i class="fas fa-check-double"></i>
+            <span>Đã đọc hết</span>
+          </button>
+        }
+
+        <button
+          type="button"
+          class="btn-header btn-create-task"
+          (click)="openCreateTaskModal()"
+          title="Giao việc mới cho nhân viên"
+        >
+          <i class="fas fa-plus"></i>
+          <span>Giao việc mới</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PRIMARY VIEW SWITCHER TABS -->
+    <nav class="ops-main-nav-tabs" aria-label="Điều hướng phân khu điều hành">
+      <button
+        type="button"
+        class="nav-tab-item"
+        [class.active]="viewMode() === 'feed' || viewMode() === 'detail'"
+        (click)="switchViewMode('feed')"
+      >
+        <i class="fas fa-bell"></i>
+        <span>Thông báo & Hoạt động</span>
+        @if (dashboard()?.unreadCount) {
+          <span class="badge-count unread">{{ dashboard()?.unreadCount }}</span>
+        } @else if (dashboard()?.total) {
+          <span class="badge-count">{{ dashboard()?.total }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-tab-item tab-trash"
+        [class.active]="viewMode() === 'trash'"
+        (click)="switchViewMode('trash')"
+        title="Thùng rác thông báo (tự động xóa sau 30 ngày)"
+      >
+        <i class="fas fa-trash-can"></i>
+        <span>Thùng rác</span>
+        @if (dashboard()?.trashCount) {
+          <span class="badge-count trash-badge">{{ dashboard()?.trashCount }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-tab-item"
+        [class.active]="viewMode() === 'tasks'"
+        (click)="switchViewMode('tasks')"
+      >
+        <i class="fas fa-list-check"></i>
+        <span>Việc cần làm</span>
+        @if (dashboard()?.stats?.pendingTasks) {
+          <span class="badge-count">{{ dashboard()?.stats?.pendingTasks }}</span>
+        }
+        @if ((dashboard()?.stats?.overdueTasks || 0) > 0) {
+          <span class="badge-count overdue" title="Công việc quá hạn!">
+            {{ dashboard()?.stats?.overdueTasks }} quá hạn
+          </span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-tab-item"
+        [class.active]="viewMode() === 'pending_profiles'"
+        (click)="switchViewMode('pending_profiles')"
+      >
+        <i class="fas fa-user-graduate"></i>
+        <span>Hồ sơ chờ duyệt</span>
+        @if (dashboard()?.stats?.pendingProfiles) {
+          <span class="badge-count highlight">{{ dashboard()?.stats?.pendingProfiles }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-tab-item"
+        [class.active]="viewMode() === 'audit_logs'"
+        (click)="switchViewMode('audit_logs')"
+      >
+        <i class="fas fa-clock-rotate-left"></i>
+        <span>Lịch sử thay đổi</span>
+        @if (dashboard()?.activities?.length) {
+          <span class="badge-count">{{ dashboard()?.activities?.length }}</span>
+        }
+      </button>
+    </nav>
+  </header>
+
+  <!-- 2. CENTRAL CONTENT AREA (REPLACES FULL WORKSPACE BASED ON ACTIVE MODE) -->
+  <main class="ops-main-content">
+
+    <!-- ================================================================= -->
+    <!-- VIEW MODE 1: NOTIFICATIONS FEED                                  -->
+    <!-- ================================================================= -->
+    @if (viewMode() === 'feed') {
+      <div class="ops-feed-view">
+        <!-- Sub-filter bar -->
+        <div class="feed-filter-bar">
+          <div class="filter-categories-scroll">
+            <button
+              type="button"
+              class="cat-chip"
+              [class.active]="activeTab === 'all' && selectedPriority === 'all'"
+              (click)="selectTab('all'); selectPriority('all')"
+            >
+              <span>Tất cả</span>
+              <small>{{ dashboard()?.total || 0 }}</small>
+            </button>
+
+            <button
+              type="button"
+              class="cat-chip unread"
+              [class.active]="activeTab === 'unread'"
+              (click)="selectTab('unread')"
+            >
+              <i class="fas fa-circle-dot"></i>
+              <span>Chưa đọc</span>
+              @if (dashboard()?.unreadCount) {
+                <span class="chip-badge red">{{ dashboard()?.unreadCount }}</span>
+              }
+            </button>
+
+            <button
+              type="button"
+              class="cat-chip priority-high"
+              [class.active]="selectedPriority === 'high'"
+              (click)="selectPriority(selectedPriority === 'high' ? 'all' : 'high')"
+            >
+              <i class="fas fa-circle-exclamation"></i>
+              <span>Khẩn cấp</span>
+            </button>
+
+            <button
+              type="button"
+              class="cat-chip"
+              [class.active]="activeTab === 'students'"
+              (click)="selectTab('students')"
+            >
+              <i class="fas fa-user-graduate"></i>
+              <span>Học viên</span>
+            </button>
+
+            <button
+              type="button"
+              class="cat-chip"
+              [class.active]="activeTab === 'documents'"
+              (click)="selectTab('documents')"
+            >
+              <i class="fas fa-file-pdf"></i>
+              <span>Tài liệu & PDF</span>
+            </button>
+
+            <button
+              type="button"
+              class="cat-chip"
+              [class.active]="activeTab === 'orders'"
+              (click)="selectTab('orders')"
+            >
+              <i class="fas fa-briefcase"></i>
+              <span>Đơn hàng</span>
+            </button>
+
+            <button
+              type="button"
+              class="cat-chip"
+              [class.active]="activeTab === 'tasks'"
+              (click)="selectTab('tasks')"
+            >
+              <i class="fas fa-list-check"></i>
+              <span>Nhiệm vụ</span>
+            </button>
+
+            <button
+              type="button"
+              class="cat-chip"
+              [class.active]="activeTab === 'staff'"
+              (click)="selectTab('staff')"
+            >
+              <i class="fas fa-users-gear"></i>
+              <span>Nhân sự</span>
+            </button>
+          </div>
+
+          <!-- Search box -->
+          <div class="feed-search-box">
+            <i class="fas fa-magnifying-glass search-icon"></i>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Tìm thông báo, người gửi, mã số..."
+              [(ngModel)]="searchQuery"
+              (keydown.enter)="onSearchSubmit()"
+            />
+            @if (searchQuery) {
+              <button type="button" class="btn-clear-search" (click)="clearSearch()" title="Xóa tìm kiếm">
+                <i class="fas fa-xmark"></i>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Batch Action Toolbar -->
+        @if (selectedNotificationIds().size > 0) {
+          <div class="ops-bulk-toolbar">
+            <div class="bulk-select-all">
+              <input
+                type="checkbox"
+                id="selectAllInbox"
+                [checked]="isAllSelectedOnPage()"
+                (change)="toggleSelectAllOnPage()"
+              />
+              <label for="selectAllInbox">Chọn tất cả trên trang này</label>
+            </div>
+            <div class="bulk-selected-count">
+              Đã chọn <strong>{{ selectedNotificationIds().size }}</strong> thông báo
+            </div>
+            <div class="bulk-actions-group">
+              <button
+                type="button"
+                class="btn-bulk btn-bulk-trash"
+                (click)="bulkMoveToTrash()"
+                title="Đưa các thông báo đã chọn vào thùng rác"
+              >
+                <i class="fas fa-trash-can"></i>
+                <span>Đưa vào thùng rác</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-bulk btn-bulk-read"
+                (click)="bulkMarkAsRead()"
+                title="Đánh dấu các thông báo đã chọn là đã đọc"
+              >
+                <i class="fas fa-check-double"></i>
+                <span>Đánh dấu đã đọc</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-bulk btn-bulk-clear"
+                (click)="clearSelection()"
+                title="Bỏ chọn toàn bộ"
+              >
+                <i class="fas fa-xmark"></i>
+                <span>Bỏ chọn</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Feed List -->
+        <div class="feed-items-container">
+          @if (loading()) {
+            <div class="feed-state-box loading">
+              <i class="fas fa-circle-notch fa-spin"></i>
+              <span>Đang tải thông báo từ máy chủ...</span>
+            </div>
+          } @else if (!dashboard()?.notifications?.length) {
+            <div class="feed-state-box empty">
+              <div class="empty-icon-circle"><i class="fas fa-inbox"></i></div>
+              <h3>Không có thông báo nào</h3>
+              <p>Hiện tại không có thông báo mới hoặc bộ lọc không khớp với kết quả nào.</p>
+              @if (activeTab !== 'all' || selectedPriority !== 'all' || searchQuery) {
+                <button
+                  type="button"
+                  class="btn-reset-filters"
+                  (click)="activeTab = 'all'; selectedPriority = 'all'; clearSearch()"
+                >
+                  Xóa bộ lọc & xem tất cả
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="notif-cards-list">
+              @for (item of pagedNotifications; track item.id) {
+                <article
+                  class="notif-card"
+                  [class.is-unread]="!item.isRead"
+                  [class.is-urgent]="item.priority === 'high'"
+                  [class.is-selected]="isSelected(item.id)"
+                  (click)="openNotificationDetail(item)"
+                  tabindex="0"
+                  role="button"
+                >
+                  <!-- Card Selection Checkbox -->
+                  <div class="notif-card-checkbox" (click)="$event.stopPropagation()">
+                    <input
+                      type="checkbox"
+                      [checked]="isSelected(item.id)"
+                      (change)="toggleSelect(item.id, $event)"
+                      title="Chọn thông báo"
+                    />
+                  </div>
+
+                  <!-- Left: Icon & Unread Indicator -->
+                  <div class="notif-card-icon-col">
+                    <div class="icon-avatar" [class]="getCategoryMeta(item.category).badgeClass">
+                      <i [class]="getCategoryMeta(item.category).icon"></i>
+                    </div>
+                    @if (!item.isRead) {
+                      <span class="unread-dot" title="Chưa đọc"></span>
+                    }
+                  </div>
+
+                  <!-- Center: Main details -->
+                  <div class="notif-card-body">
+                    <div class="notif-card-meta">
+                      <span class="pill-category" [class]="getCategoryMeta(item.category).badgeClass">
+                        {{ getCategoryMeta(item.category).label }}
+                      </span>
+
+                      @if (item.priority !== 'low') {
+                        <span class="pill-priority" [class]="getPriorityMeta(item.priority).badgeClass">
+                          <i [class]="getPriorityMeta(item.priority).icon"></i>
+                          <span>{{ getPriorityMeta(item.priority).label }}</span>
+                        </span>
+                      }
+
+                      <time class="notif-timestamp" [title]="item.createdAt">
+                        <i class="far fa-clock"></i> {{ timeAgo(item.createdAt) }}
+                      </time>
+                    </div>
+
+                    <h2 class="notif-card-title">{{ item.title }}</h2>
+                    <p class="notif-card-desc">{{ item.message }}</p>
+
+                    <!-- Meta Tags (Actor, Target) -->
+                    <div class="notif-card-tags">
+                      @if (item.actor.name) {
+                        <span class="tag-chip actor">
+                          <i class="fas fa-user-circle"></i>
+                          <span>Thực hiện: <strong>{{ item.actor.name }}</strong></span>
+                        </span>
+                      }
+
+                      @if (item.target.name) {
+                        <span class="tag-chip target">
+                          <i class="fas fa-bullseye"></i>
+                          <span>Đối tượng: <strong>{{ item.target.name }}</strong></span>
+                        </span>
+                      }
+
+                      @if (item.target.code) {
+                        <span class="tag-chip code">
+                          <i class="fas fa-barcode"></i>
+                          <span>{{ item.target.code }}</span>
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Right: Actions -->
+                  <div class="notif-card-actions" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      class="btn-card-action view"
+                      (click)="openNotificationDetail(item)"
+                      title="Xem chi tiết thông báo"
+                    >
+                      <span>Chi tiết</span>
+                      <i class="fas fa-chevron-right"></i>
+                    </button>
+
+                    @if (item.target.type && item.target.type !== 'system') {
+                      <button
+                        type="button"
+                        class="btn-card-action target-link"
+                        (click)="navigateToTarget(item, $event)"
+                        title="Đi thẳng tới mục cần xử lý"
+                      >
+                        <i class="fas fa-arrow-up-right-from-square"></i>
+                        <span>Xử lý</span>
+                      </button>
+                    }
+
+                    <button
+                      type="button"
+                      class="btn-card-action toggle-read"
+                      (click)="toggleMarkRead(item, $event)"
+                      [title]="item.isRead ? 'Đánh dấu chưa đọc' : 'Đánh dấu đã đọc'"
+                    >
+                      <i [class]="item.isRead ? 'fas fa-envelope' : 'fas fa-check'"></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-card-action btn-move-trash"
+                      (click)="moveToTrash(item, $event)"
+                      title="Đưa vào thùng rác (lưu 30 ngày)"
+                    >
+                      <i class="fas fa-trash-can"></i>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+
+            <app-admin-pagination
+              [currentPage]="feedPage"
+              [pageSize]="pageSize"
+              [totalItems]="dashboard()?.total ?? 0"
+              [disabled]="loading()"
+              itemLabel="thông báo"
+              (pageChange)="onFeedPageChange($event)"
+            ></app-admin-pagination>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- VIEW MODE 2: NOTIFICATION DETAIL (FULL WIDTH, DEDICATED VIEW)    -->
+    <!-- ================================================================= -->
+    @if (viewMode() === 'detail' && selectedNotification()) {
+      <div class="ops-detail-view">
+        <!-- Top Nav Bar -->
+        <div class="detail-top-nav">
+          <button type="button" class="btn-back-to-feed" (click)="backToFeed()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Quay lại danh sách thông báo</span>
+          </button>
+
+          <div class="detail-top-meta">
+            <span class="status-indicator-chip" [class.read]="selectedNotification()?.isRead">
+              <i [class]="selectedNotification()?.isRead ? 'fas fa-check-circle' : 'fas fa-circle-dot'"></i>
+              <span>{{ selectedNotification()?.isRead ? 'Đã xem' : 'Chưa đọc' }}</span>
+            </span>
+
+            <span class="detail-time-chip">
+              <i class="far fa-clock"></i>
+              <span>{{ selectedNotification()?.createdAt }}</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Detail Main Card -->
+        <article class="detail-main-card">
+          <header class="detail-card-header">
+            <div class="detail-card-pills">
+              <span class="pill-category" [class]="getCategoryMeta(selectedNotification()!.category).badgeClass">
+                <i [class]="getCategoryMeta(selectedNotification()!.category).icon"></i>
+                {{ getCategoryMeta(selectedNotification()!.category).label }}
+              </span>
+
+              <span class="pill-priority" [class]="getPriorityMeta(selectedNotification()!.priority).badgeClass">
+                <i [class]="getPriorityMeta(selectedNotification()!.priority).icon"></i>
+                <span>{{ getPriorityMeta(selectedNotification()!.priority).label }}</span>
+              </span>
+
+              <span class="pill-event-type">
+                <code>{{ selectedNotification()!.eventType }}</code>
+              </span>
+            </div>
+
+            <h1 class="detail-title">{{ selectedNotification()!.title }}</h1>
+          </header>
+
+          <!-- Message Body -->
+          <div class="detail-message-box">
+            <p>{{ selectedNotification()!.message }}</p>
+          </div>
+
+          <!-- Metadata Grid -->
+          <div class="detail-metadata-grid">
+            <div class="meta-item">
+              <span class="meta-label"><i class="fas fa-user-circle"></i> Người thực hiện</span>
+              <strong class="meta-value">{{ selectedNotification()!.actor.name || 'Hệ thống tự động' }}</strong>
+              <small class="meta-sub">{{ selectedNotification()!.actor.role || 'Hệ thống' }}</small>
+            </div>
+
+            <div class="meta-item">
+              <span class="meta-label"><i class="fas fa-bullseye"></i> Đối tượng liên quan</span>
+              <strong class="meta-value">{{ selectedNotification()!.target.name || 'Không xác định' }}</strong>
+              @if (selectedNotification()!.target.code) {
+                <small class="meta-sub">Mã: {{ selectedNotification()!.target.code }}</small>
+              }
+            </div>
+
+            <div class="meta-item">
+              <span class="meta-label"><i class="fas fa-folder-tree"></i> Phân loại sự kiện</span>
+              <strong class="meta-value">{{ getCategoryMeta(selectedNotification()!.category).label }}</strong>
+              <small class="meta-sub">Loại đối tượng: {{ selectedNotification()!.target.type }}</small>
+            </div>
+
+            <div class="meta-item">
+              <span class="meta-label"><i class="far fa-calendar-check"></i> Thời gian ghi nhận</span>
+              <strong class="meta-value">{{ selectedNotification()!.createdAt }}</strong>
+              <small class="meta-sub">{{ timeAgo(selectedNotification()!.createdAt) }}</small>
+            </div>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="detail-actions-bar">
+            @if (selectedNotification()!.target.type && selectedNotification()!.target.type !== 'system') {
+              <button
+                type="button"
+                class="btn-detail-cta"
+                (click)="navigateToTarget(selectedNotification()!)"
+              >
+                <i class="fas fa-arrow-up-right-from-square"></i>
+                <span>Xử lý ngay (Đi tới {{ selectedNotification()!.target.name }})</span>
+              </button>
+            }
+
+            <button
+              type="button"
+              class="btn-detail-secondary"
+              (click)="toggleMarkRead(selectedNotification()!)"
+            >
+              <i [class]="selectedNotification()!.isRead ? 'fas fa-envelope' : 'fas fa-check'"></i>
+              <span>{{ selectedNotification()!.isRead ? 'Đánh dấu chưa đọc' : 'Đánh dấu đã đọc' }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-detail-delete"
+              (click)="moveToTrash(selectedNotification()!)"
+            >
+              <i class="fas fa-trash-can"></i>
+              <span>Đưa vào thùng rác</span>
+            </button>
+          </div>
+        </article>
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- VIEW MODE: TRASH CAN (THÙNG RÁC - TỰ ĐỘNG XÓA VĨNH VIỄN SAU 30 NGÀY) -->
+    <!-- ================================================================= -->
+    @if (viewMode() === 'trash') {
+      <div class="ops-trash-view">
+        <!-- Trash Notice Banner -->
+        <div class="trash-notice-banner">
+          <div class="trash-banner-icon">
+            <i class="fas fa-trash-can-arrow-up"></i>
+          </div>
+          <div class="trash-banner-text">
+            <h3>Thùng rác thông báo (Lưu trữ độc lập 30 ngày)</h3>
+            <p>
+              Các thông báo bạn xóa sẽ được lưu trữ an toàn trong <strong>30 ngày</strong> kể từ thời điểm xóa. 
+              Sau 30 ngày, hệ thống sẽ tự động dọn dẹp vĩnh viễn khỏi tài khoản của bạn mà không ảnh hưởng đến người nhận khác.
+            </p>
+          </div>
+          <div class="trash-banner-actions">
+            @if (dashboard()?.notifications?.length) {
+              <button
+                type="button"
+                class="btn-trash-action btn-empty-trash"
+                (click)="emptyAllTrash()"
+                title="Xóa vĩnh viễn tất cả thông báo trong thùng rác"
+              >
+                <i class="fas fa-fire"></i>
+                <span>Dọn sạch thùng rác</span>
+              </button>
+            }
+            <button
+              type="button"
+              class="btn-trash-action btn-purge-sync"
+              (click)="purgeExpiredTrash()"
+              title="Quét dọn các thông báo quá hạn 30 ngày ngay lập tức"
+            >
+              <i class="fas fa-clock-rotate-left"></i>
+              <span>Quét dọn 30 ngày</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Trash Batch Action Toolbar -->
+        @if (selectedNotificationIds().size > 0) {
+          <div class="ops-bulk-toolbar trash-toolbar">
+            <div class="bulk-select-all">
+              <input
+                type="checkbox"
+                id="selectAllTrash"
+                [checked]="isAllSelectedOnPage()"
+                (change)="toggleSelectAllOnPage()"
+              />
+              <label for="selectAllTrash">Chọn tất cả trên trang này</label>
+            </div>
+            <div class="bulk-selected-count">
+              Đã chọn <strong>{{ selectedNotificationIds().size }}</strong> thông báo đã xóa
+            </div>
+            <div class="bulk-actions-group">
+              <button
+                type="button"
+                class="btn-bulk btn-bulk-restore"
+                (click)="bulkRestoreFromTrash()"
+                title="Khôi phục các thông báo đã chọn về hộp thư đến"
+              >
+                <i class="fas fa-rotate-left"></i>
+                <span>Khôi phục đã chọn</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-bulk btn-bulk-permanent-delete"
+                (click)="bulkPermanentDelete()"
+                title="Xóa vĩnh viễn các thông báo đã chọn"
+              >
+                <i class="fas fa-trash-can"></i>
+                <span>Xóa vĩnh viễn đã chọn</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-bulk btn-bulk-clear"
+                (click)="clearSelection()"
+                title="Bỏ chọn"
+              >
+                <i class="fas fa-xmark"></i>
+                <span>Bỏ chọn</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Trash List -->
+        <div class="feed-items-container">
+          @if (loading()) {
+            <div class="feed-state-box loading">
+              <i class="fas fa-circle-notch fa-spin"></i>
+              <span>Đang tải danh sách thùng rác...</span>
+            </div>
+          } @else if (!dashboard()?.notifications?.length) {
+            <div class="feed-state-box empty">
+              <div class="empty-icon-circle"><i class="fas fa-trash-can"></i></div>
+              <h3>Thùng rác trống</h3>
+              <p>Hiện tại bạn không có thông báo nào trong thùng rác.</p>
+              <button type="button" class="btn-reset-filters" (click)="switchViewMode('feed')">
+                <i class="fas fa-arrow-left"></i> Quay lại hộp thư đến
+              </button>
+            </div>
+          } @else {
+            <div class="notif-cards-list">
+              @for (item of pagedTrashNotifications; track item.id) {
+                <article
+                  class="notif-card is-in-trash"
+                  [class.is-selected]="isSelected(item.id)"
+                >
+                  <!-- Card Selection Checkbox -->
+                  <div class="notif-card-checkbox" (click)="$event.stopPropagation()">
+                    <input
+                      type="checkbox"
+                      [checked]="isSelected(item.id)"
+                      (change)="toggleSelect(item.id, $event)"
+                      title="Chọn thông báo"
+                    />
+                  </div>
+
+                  <!-- Left: Icon -->
+                  <div class="notif-card-icon-col">
+                    <div class="icon-avatar" [class]="getCategoryMeta(item.category).badgeClass">
+                      <i [class]="getCategoryMeta(item.category).icon"></i>
+                    </div>
+                  </div>
+
+                  <!-- Center: Main details -->
+                  <div class="notif-card-body">
+                    <div class="notif-card-meta">
+                      <span class="pill-category" [class]="getCategoryMeta(item.category).badgeClass">
+                        {{ getCategoryMeta(item.category).label }}
+                      </span>
+
+                      <!-- Countdown Expiry Badge -->
+                      <span
+                        class="pill-expiry"
+                        [class.danger]="(item.daysRemaining ?? 30) <= 3"
+                        [class.warning]="(item.daysRemaining ?? 30) > 3 && (item.daysRemaining ?? 30) <= 7"
+                        title="Thời hạn còn lại trước khi hệ thống xóa vĩnh viễn"
+                      >
+                        <i class="fas fa-clock"></i>
+                        <span>{{ item.humanExpiryLabel || ('Còn ' + item.daysRemaining + ' ngày') }}</span>
+                      </span>
+
+                      <time class="notif-timestamp trash-date" [title]="item.trashedAt">
+                        <i class="fas fa-calendar-xmark"></i> Đã xóa: {{ item.trashedAt }}
+                      </time>
+                    </div>
+
+                    <h2 class="notif-card-title">{{ item.title }}</h2>
+                    <p class="notif-card-desc">{{ item.message }}</p>
+
+                    <!-- Meta Tags -->
+                    <div class="notif-card-tags">
+                      @if (item.actor.name) {
+                        <span class="tag-chip actor">
+                          <i class="fas fa-user-circle"></i>
+                          <span>Thực hiện: <strong>{{ item.actor.name }}</strong></span>
+                        </span>
+                      }
+                      @if (item.target.name) {
+                        <span class="tag-chip target">
+                          <i class="fas fa-bullseye"></i>
+                          <span>Đối tượng: <strong>{{ item.target.name }}</strong></span>
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Right: Actions in Trash -->
+                  <div class="notif-card-actions" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      class="btn-card-action restore"
+                      (click)="restoreFromTrash(item, $event)"
+                      title="Khôi phục thông báo về hộp thư đến"
+                    >
+                      <i class="fas fa-rotate-left"></i>
+                      <span>Khôi phục</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-card-action permanent-delete"
+                      (click)="permanentDelete(item, $event)"
+                      title="Xóa vĩnh viễn không thể khôi phục"
+                    >
+                      <i class="fas fa-trash-can"></i>
+                      <span>Xóa vĩnh viễn</span>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+
+            <app-admin-pagination
+              [currentPage]="trashPage"
+              [pageSize]="pageSize"
+              [totalItems]="dashboard()?.total ?? 0"
+              [disabled]="loading()"
+              itemLabel="thông báo trong thùng rác"
+              (pageChange)="onTrashPageChange($event)"
+            ></app-admin-pagination>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- VIEW MODE 3: TASKS WORKFLOW (FULL WIDTH)                         -->
+    <!-- ================================================================= -->
+    @if (viewMode() === 'tasks') {
+      <div class="ops-tasks-view">
+        <!-- Top Nav & Actions Bar -->
+        <div class="view-header-bar">
+          <div class="header-left">
+            <button type="button" class="btn-back-to-feed" (click)="backToFeed()">
+              <i class="fas fa-arrow-left"></i>
+              <span>Thông báo</span>
+            </button>
+            <div class="header-titles">
+              <h2>Quản lý công việc & Phân công</h2>
+              <p>Theo dõi tiến độ, thời hạn hoàn thành và nhân viên chịu trách nhiệm</p>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <div class="task-filter-pills">
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="taskFilter === 'all'"
+                (click)="taskFilter = 'all'"
+              >
+                Tất cả ({{ dashboard()?.tasks?.length || 0 }})
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="taskFilter === 'pending'"
+                (click)="taskFilter = 'pending'"
+              >
+                Đang chờ ({{ dashboard()?.stats?.pendingTasks || 0 }})
+              </button>
+              <button
+                type="button"
+                class="filter-pill overdue"
+                [class.active]="taskFilter === 'overdue'"
+                (click)="taskFilter = 'overdue'"
+              >
+                Quá hạn ({{ dashboard()?.stats?.overdueTasks || 0 }})
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="btn-add-task-primary"
+              (click)="openCreateTaskModal()"
+            >
+              <i class="fas fa-plus"></i>
+              <span>Giao việc mới</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tasks Cards List -->
+        <div class="tasks-list-container">
+          @if (!filteredTasks.length) {
+            <div class="feed-state-box empty">
+              <div class="empty-icon-circle"><i class="fas fa-circle-check text-success"></i></div>
+              <h3>Tuyệt vời! Không có công việc nào tồn đọng</h3>
+              <p>Tất cả các nhiệm vụ đã được xử lý hoặc không có công việc nào theo bộ lọc này.</p>
+              @if (taskFilter !== 'all') {
+                <button type="button" class="btn-reset-filters" (click)="taskFilter = 'all'">
+                  Xem tất cả công việc
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="tasks-grid">
+              @for (task of pagedTasks; track task.id) {
+                <div
+                  class="task-card"
+                  [class.is-overdue]="task.isOverdue"
+                  [class.is-completed]="task.status === 'hoan_thanh'"
+                >
+                  <div class="task-card-header">
+                    <button
+                      type="button"
+                      class="btn-task-checkbox"
+                      [class.checked]="task.status === 'hoan_thanh'"
+                      (click)="toggleTaskStatus(task, $event)"
+                      [title]="task.status === 'hoan_thanh' ? 'Mở lại công việc' : 'Đánh dấu đã hoàn thành'"
+                    >
+                      <i [class]="task.status === 'hoan_thanh' ? 'fas fa-square-check' : 'far fa-square'"></i>
+                    </button>
+
+                    <div class="task-title-group">
+                      <h3 class="task-title" [class.line-through]="task.status === 'hoan_thanh'">
+                        {{ task.title }}
+                      </h3>
+                      <p class="task-desc">{{ task.description }}</p>
+                    </div>
+
+                    <span class="task-status-pill" [class]="getTaskStatusMeta(task.status).badgeClass">
+                      {{ getTaskStatusMeta(task.status).label }}
+                    </span>
+                  </div>
+
+                  <div class="task-card-footer">
+                    <div class="task-meta-chips">
+                      <span
+                        class="chip-due"
+                        [class.overdue]="formatDueCountdown(task.dueAt).isOverdue"
+                      >
+                        <i class="far fa-clock"></i>
+                        <span>{{ formatDueCountdown(task.dueAt).text }}</span>
+                      </span>
+
+                      <span class="chip-staff">
+                        <i class="fas fa-user-tag"></i>
+                        <span>Phụ trách: <strong>{{ task.assignedToName }}</strong></span>
+                      </span>
+
+                      @if (task.targetName) {
+                        <span class="chip-target">
+                          <i class="fas fa-bullseye"></i>
+                          <span>{{ task.targetName }}</span>
+                        </span>
+                      }
+                    </div>
+
+                    <div class="task-actions-group">
+                      <button
+                        type="button"
+                        class="btn-reassign"
+                        (click)="openAssignModal('task', task.id, task.title, $event)"
+                        title="Đổi nhân viên phụ trách"
+                      >
+                        <i class="fas fa-user-pen"></i>
+                        <span>Đổi người</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <app-admin-pagination
+              [currentPage]="tasksPage"
+              [pageSize]="pageSize"
+              [totalItems]="filteredTasks.length"
+              [disabled]="loading()"
+              itemLabel="công việc"
+              (pageChange)="onTasksPageChange($event)"
+            ></app-admin-pagination>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- VIEW MODE 4: PENDING PROFILES SPOTLIGHT (FULL WIDTH)             -->
+    <!-- ================================================================= -->
+    @if (viewMode() === 'pending_profiles') {
+      <div class="ops-profiles-view">
+        <!-- Top Nav & Actions Bar -->
+        <div class="view-header-bar">
+          <div class="header-left">
+            <button type="button" class="btn-back-to-feed" (click)="backToFeed()">
+              <i class="fas fa-arrow-left"></i>
+              <span>Thông báo</span>
+            </button>
+            <div class="header-titles">
+              <h2>Hồ sơ học viên chờ duyệt</h2>
+              <p>Danh sách học viên vừa nộp sơ yếu lý lịch, file Excel và PDF cần kiểm tra</p>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <button
+              type="button"
+              class="btn-view-all-section"
+              (click)="navigateSection.emit({ section: 'students' })"
+            >
+              <span>Mở toàn bộ trang Hồ Sơ Học Viên</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Profiles List -->
+        <div class="profiles-list-container">
+          @if (!dashboard()?.pendingProfiles?.length) {
+            <div class="feed-state-box empty">
+              <div class="empty-icon-circle"><i class="fas fa-circle-check text-success"></i></div>
+              <h3>Không có hồ sơ nào đang chờ duyệt</h3>
+              <p>Tất cả sơ yếu lý lịch học viên đã được kiểm tra và xử lý xong.</p>
+            </div>
+          } @else {
+            <div class="profiles-grid">
+              @for (profile of pagedPendingProfiles; track profile.id) {
+                <div class="profile-card">
+                  <div class="profile-card-top">
+                    <div class="profile-name-box">
+                      <h3 class="student-name">{{ profile.fullName }}</h3>
+                      <span class="student-code">{{ profile.studentCode }}</span>
+                    </div>
+
+                    <span class="profile-time">
+                      <i class="far fa-clock"></i> {{ timeAgo(profile.createdAt) }}
+                    </span>
+                  </div>
+
+                  <div class="profile-contact-line">
+                    <span><i class="fas fa-phone"></i> {{ profile.phone }}</span>
+                    <span><i class="fas fa-user-shield"></i> {{ profile.assignedStaffName || 'Chưa phân công' }}</span>
+                  </div>
+
+                  <!-- File pills -->
+                  <div class="profile-files-line">
+                    @for (f of profile.files; track f.fileName) {
+                      <span class="file-pill" [class]="f.fileType">
+                        <i [class]="f.fileType === 'pdf' ? 'fas fa-file-pdf' : f.fileType === 'excel' ? 'fas fa-file-excel' : 'fas fa-file-image'"></i>
+                        <span>{{ f.fileType.toUpperCase() }} (v{{ f.version }})</span>
+                      </span>
+                    }
+                  </div>
+
+                  <div class="profile-card-footer">
+                    <button
+                      type="button"
+                      class="btn-profile-assign"
+                      (click)="openAssignModal('student', profile.id, profile.fullName, $event)"
+                    >
+                      <i class="fas fa-user-plus"></i>
+                      <span>Phân công</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-profile-check"
+                      (click)="navigateSection.emit({ section: 'students', id: profile.id })"
+                    >
+                      <i class="fas fa-eye"></i>
+                      <span>Kiểm tra hồ sơ</span>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <app-admin-pagination
+              [currentPage]="profilesPage"
+              [pageSize]="pageSize"
+              [totalItems]="dashboard()?.pendingProfiles?.length ?? 0"
+              [disabled]="loading()"
+              itemLabel="hồ sơ"
+              (pageChange)="onProfilesPageChange($event)"
+            ></app-admin-pagination>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ================================================================= -->
+    <!-- VIEW MODE 5: AUDIT ACTIVITY LOGS (FULL WIDTH)                    -->
+    <!-- ================================================================= -->
+    @if (viewMode() === 'audit_logs') {
+      <div class="ops-audit-view">
+        <!-- Top Nav & Actions Bar -->
+        <div class="view-header-bar">
+          <div class="header-left">
+            <button type="button" class="btn-back-to-feed" (click)="backToFeed()">
+              <i class="fas fa-arrow-left"></i>
+              <span>Thông báo</span>
+            </button>
+            <div class="header-titles">
+              <h2>Lịch sử thay đổi & Kiểm toán</h2>
+              <p>Ghi nhận nhật ký cập nhật hồ sơ, đơn hàng và đối chiếu dữ liệu Before / After</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Timeline List -->
+        <div class="audit-list-container">
+          @if (!dashboard()?.activities?.length) {
+            <div class="feed-state-box empty">
+              <div class="empty-icon-circle"><i class="fas fa-history"></i></div>
+              <h3>Chưa có nhật ký hoạt động nào</h3>
+              <p>Hệ thống sẽ tự động ghi nhận khi quản trị viên thực hiện chỉnh sửa dữ liệu.</p>
+            </div>
+          } @else {
+            <div class="audit-timeline">
+              @for (act of pagedActivities; track act.id) {
+                <div class="audit-card">
+                  <div class="audit-card-top">
+                    <div class="audit-action-group">
+                      <strong class="act-action">{{ act.action }}</strong>
+                      <span class="act-target-chip">{{ act.targetName }}</span>
+                    </div>
+
+                    <time class="act-time">
+                      <i class="far fa-clock"></i> {{ timeAgo(act.createdAt) }} ({{ act.createdAt }})
+                    </time>
+                  </div>
+
+                  <p class="act-details">{{ act.details }}</p>
+
+                  <div class="audit-card-footer">
+                    <span class="act-actor-info">
+                      <i class="fas fa-user-pen"></i> Thực hiện bởi: <strong>{{ act.actorName }}</strong> ({{ act.actorRole }})
+                    </span>
+
+                    @if (act.changes && act.changes.length > 0) {
+                      <button
+                        type="button"
+                        class="btn-view-diff"
+                        (click)="openDiffModal(act, $event)"
+                      >
+                        <i class="fas fa-code-compare"></i>
+                        <span>Xem đối chiếu Before / After ({{ act.changes.length }} trường)</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <app-admin-pagination
+              [currentPage]="activitiesPage"
+              [pageSize]="pageSize"
+              [totalItems]="dashboard()?.activities?.length ?? 0"
+              [disabled]="loading()"
+              itemLabel="hoạt động"
+              (pageChange)="onActivitiesPageChange($event)"
+            ></app-admin-pagination>
+          }
+        </div>
+      </div>
+    }
+
+  </main>
+</div>
+
+<!-- ============================================================= -->
+<!-- MODAL 1: THÊM CÔNG VIỆC MỚI & PHÂN CÔNG                        -->
+<!-- ============================================================= -->
+@if (showCreateTaskModal) {
+  <div class="ops-modal-backdrop" (click)="closeCreateTaskModal()" role="presentation">
+    <div
+      class="ops-modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Tạo công việc và phân công"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <i class="fas fa-plus-circle text-primary"></i>
+          <div>
+            <h3>Giao việc mới cho nhân viên</h3>
+            <p>Hệ thống sẽ thông báo và theo dõi thời hạn hoàn thành công việc.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeCreateTaskModal()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <form (submit)="submitCreateTask()" class="modal-body">
+        <div class="form-group mb-3">
+          <label for="taskTitle">Tiêu đề công việc <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            id="taskTitle"
+            class="form-control"
+            placeholder="Ví dụ: Kiểm tra hồ sơ học viên Nguyễn Văn A..."
+            [(ngModel)]="newTask.title"
+            name="taskTitle"
+            required
+          />
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="taskDesc">Mô tả chi tiết nội dung cần xử lý</label>
+          <textarea
+            id="taskDesc"
+            class="form-control"
+            rows="3"
+            placeholder="Ghi chú hướng dẫn cụ thể cho cán bộ phụ trách..."
+            [(ngModel)]="newTask.description"
+            name="taskDesc"
+          ></textarea>
+        </div>
+
+        <div class="form-row-2 mb-3">
+          <div class="form-group">
+            <label for="taskCat">Phân loại công việc</label>
+            <select id="taskCat" class="form-select" [(ngModel)]="newTask.category" name="taskCat">
+              <option value="student_check">Kiểm tra hồ sơ học viên</option>
+              <option value="document_verify">Thẩm định tài liệu scan / PDF</option>
+              <option value="supplement_followup">Theo dõi bổ sung giấy tờ</option>
+              <option value="order_review">Kiểm tra đơn hàng tuyển dụng</option>
+              <option value="general">Công việc quản trị chung</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="taskPrio">Mức độ ưu tiên</label>
+            <select id="taskPrio" class="form-select" [(ngModel)]="newTask.priority" name="taskPrio">
+              <option value="high">🔴 Khẩn cấp (Xử lý trong 24h)</option>
+              <option value="medium">🟠 Quan trọng (Trong 2 - 3 ngày)</option>
+              <option value="low">🔵 Tiêu chuẩn</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2 mb-3">
+          <div class="form-group">
+            <label for="taskStaff">Nhân viên phụ trách <span class="text-danger">*</span></label>
+            <select id="taskStaff" class="form-select" [(ngModel)]="newTask.assignedTo" name="taskStaff">
+              @for (st of dashboard()?.staff; track st.id) {
+                <option [value]="st.id">{{ st.name }} ({{ st.role }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="taskDue">Thời hạn hoàn thành (Deadline)</label>
+            <input
+              type="datetime-local"
+              id="taskDue"
+              class="form-control"
+              [(ngModel)]="newTask.dueDate"
+              name="taskDue"
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeCreateTaskModal()">
+            Hủy bỏ
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="submittingTask">
+            <i [class]="submittingTask ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
+            <span>Tạo & Giao việc</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ============================================================= -->
+<!-- MODAL 2: PHÂN CÔNG NHÂN SỰ CHO HỒ SƠ / CÔNG VIỆC               -->
+<!-- ============================================================= -->
+@if (showAssignStaffModal) {
+  <div class="ops-modal-backdrop" (click)="closeAssignModal()" role="presentation">
+    <div
+      class="ops-modal-card modal-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Phân công nhân sự"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <i class="fas fa-user-plus text-primary"></i>
+          <div>
+            <h3>Phân công cán bộ phụ trách</h3>
+            <p>{{ selectedTargetForAssign?.name }}</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeAssignModal()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label for="assignStaffSelect">Chọn nhân viên chịu trách nhiệm</label>
+          <select
+            id="assignStaffSelect"
+            class="form-select"
+            [(ngModel)]="selectedStaffIdForAssign"
+          >
+            @for (st of dashboard()?.staff; track st.id) {
+              <option [value]="st.id">{{ st.name }} - {{ st.role }} ({{ st.phone }})</option>
+            }
+          </select>
+        </div>
+
+        <div class="assignment-note-box">
+          <i class="fas fa-circle-info"></i>
+          <span>Khi phân công, hệ thống sẽ tự động cập nhật tên cán bộ phụ trách và tạo lời nhắc công việc tương ứng.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAssignModal()">
+          Hủy bỏ
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="submitAssignStaff()"
+          [disabled]="submittingAssign"
+        >
+          <i [class]="submittingAssign ? 'fas fa-spinner fa-spin' : 'fas fa-check'"></i>
+          <span>Xác nhận phân công</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============================================================= -->
+<!-- MODAL 3: SO SÁNH LỊCH SỬ THAY ĐỔI (TRƯỚC VÀ SAU CẬP NHẬT)       -->
+<!-- ============================================================= -->
+@if (showDiffModal && selectedDiffLog) {
+  <div class="ops-modal-backdrop" (click)="closeDiffModal()" role="presentation">
+    <div
+      class="ops-modal-card modal-lg"
+      role="dialog"
+      aria-modal="true"
+      aria-label="So sánh thay đổi trước và sau"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <i class="fas fa-code-compare text-primary"></i>
+          <div>
+            <h3>Chi tiết thay đổi dữ liệu (Trước và Sau)</h3>
+            <p>{{ selectedDiffLog.action }} - {{ selectedDiffLog.targetName }}</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeDiffModal()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="diff-meta-strip mb-3">
+          <span><i class="fas fa-user-circle"></i> Người thực hiện: <strong>{{ selectedDiffLog.actorName }}</strong></span>
+          <span><i class="far fa-clock"></i> Thời gian: <strong>{{ selectedDiffLog.createdAt }}</strong></span>
+        </div>
+
+        <div class="diff-table-responsive">
+          <table class="table-diff">
+            <thead>
+              <tr>
+                <th>Nội dung thông tin</th>
+                <th class="col-before">Giá trị ban đầu</th>
+                <th class="col-after">Giá trị mới cập nhật</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (change of selectedDiffLog.changes; track change.field) {
+                <tr>
+                  <td class="field-name">
+                    <strong>{{ change.fieldLabel || change.field }}</strong>
+                    <small><code>{{ change.field }}</code></small>
+                  </td>
+                  <td class="val-before">
+                    <span class="diff-pill before">
+                      {{ change.before || '(Trống / Chưa có)' }}
+                    </span>
+                  </td>
+                  <td class="val-after">
+                    <span class="diff-pill after">
+                      {{ change.after || '(Đã xóa)' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDiffModal()">
+          Đóng đối chiếu
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============================================================= -->
+<!-- MODAL 4: XÁC NHẬN HÀNH ĐỘNG XÓA VĨNH VIỄN                     -->
+<!-- ============================================================= -->
+@if (showConfirmModal) {
+  <div class="ops-modal-backdrop" (click)="closeConfirmModal()" role="presentation">
+    <div
+      class="ops-modal-card confirm-dialog-card"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Xác nhận hành động"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header confirm-header" [class.danger]="confirmDanger">
+        <div class="modal-title-box">
+          <i class="fas fa-triangle-exclamation text-danger"></i>
+          <div>
+            <h3>{{ confirmTitle }}</h3>
+            <span>Thao tác xóa vĩnh viễn không thể khôi phục</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeConfirmModal()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body confirm-body">
+        <p class="confirm-text">{{ confirmMessage }}</p>
+        <div class="confirm-warning-alert">
+          <i class="fas fa-circle-exclamation"></i>
+          <span>Dữ liệu bị xóa vĩnh viễn sẽ bị loại bỏ khỏi hệ thống ngay lập tức và không có khả năng phục hồi.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer confirm-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeConfirmModal()">
+          Hủy bỏ
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger btn-confirm-submit"
+          (click)="executeConfirmAction()"
+        >
+          <i class="fas fa-trash-can"></i>
+          <span>{{ confirmBtnText }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}

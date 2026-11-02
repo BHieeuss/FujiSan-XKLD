@@ -3,15 +3,18 @@
     <div class="brand">
       <img src="assets/images/logo.png" alt="VieJap" />
       <div>
-        <strong>VieJap Admin</strong>
-        <span>Trung tâm công cụ nội bộ</span>
+        <strong>VieJap Quản Trị</strong>
+        <span>Hệ thống quản lý nội bộ</span>
       </div>
     </div>
 
     <div class="account-actions">
       <span class="signed-in-user">
         <i class="fas fa-circle-user"></i>
-        {{ auth.session()?.username }}
+        {{ auth.session()?.fullName || auth.session()?.username }}
+        @if (auth.isSuperAdminUser()) {
+          <span class="topbar-super-badge">Quản trị cấp cao</span>
+        }
       </span>
       <button type="button" (click)="logout()" [disabled]="loggingOut">
         <i [class]="loggingOut ? 'fas fa-spinner fa-spin' : 'fas fa-arrow-right-from-bracket'"></i>
@@ -23,33 +26,140 @@
   <div class="admin-layout">
     <aside class="admin-navigation" aria-label="Điều hướng quản trị">
       <div class="nav-heading">
-        <span>Không gian làm việc</span>
-        <strong>Quản trị</strong>
+        <span>Tổng Quan & Hoạt Động</span>
+        <strong>Điều Hành</strong>
       </div>
 
-      <button
-        type="button"
-        [class.active]="activeSection === 'poster'"
-        (click)="selectSection('poster')"
-      >
-        <span class="nav-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
-        <span>
-          <strong>Tạo đơn hàng</strong>
-          <small>Đơn tuyển dụng</small>
-        </span>
-      </button>
+      @if (hasAccessToSection('operations')) {
+        <button
+          type="button"
+          class="nav-btn-with-badge"
+          [class.active]="activeSection === 'operations'"
+          (click)="selectSection('operations')"
+        >
+          <span class="nav-icon"><i class="fas fa-tower-broadcast"></i></span>
+          <span class="nav-text">
+            <strong class="nav-title">Trung tâm điều hành</strong>
+            <small class="nav-sub">Thông báo & nhắc việc</small>
+          </span>
+          @if (unreadCount() > 0) {
+            <span class="nav-badge-count">{{ unreadCount() }}</span>
+          }
+        </button>
+      }
 
-      <button
-        type="button"
-        [class.active]="activeSection === 'orders'"
-        (click)="selectSection('orders')"
-      >
-        <span class="nav-icon"><i class="fas fa-list-check"></i></span>
-        <span>
-          <strong>Quản lý đơn hàng</strong>
-          <small>Thêm, sửa, xóa và xuất bản</small>
-        </span>
-      </button>
+      <div class="nav-heading mt-3">
+        <span>Học tập & Tài khoản</span>
+        <strong>Học Viên</strong>
+      </div>
+
+      @if (hasAccessToSection('students')) {
+        <button
+          type="button"
+          [class.active]="activeSection === 'students'"
+          (click)="selectSection('students')"
+        >
+          <span class="nav-icon"><i class="fas fa-file-invoice"></i></span>
+          <span class="nav-text">
+            <strong class="nav-title">Hồ sơ học viên</strong>
+            <small class="nav-sub">Sơ yếu lý lịch, Excel, PDF & Ảnh</small>
+          </span>
+        </button>
+      }
+
+      @if (hasAccessToSection('users')) {
+        <button
+          type="button"
+          [class.active]="activeSection === 'users'"
+          (click)="selectSection('users')"
+        >
+          <span class="nav-icon"><i class="fas fa-user-shield"></i></span>
+          <span class="nav-text">
+            <strong class="nav-title">Người dùng & Phân quyền</strong>
+            <small class="nav-sub">Tài khoản, vai trò & quyền hạn</small>
+          </span>
+        </button>
+      }
+
+      @if (hasAccessToSection('codes')) {
+        <button
+          type="button"
+          [class.active]="activeSection === 'codes'"
+          (click)="selectSection('codes')"
+        >
+          <span class="nav-icon"><i class="fas fa-key"></i></span>
+          <span class="nav-text">
+            <strong class="nav-title">Mã đăng ký học viên</strong>
+            <small class="nav-sub">Cấp và quản lý mã đăng ký</small>
+          </span>
+        </button>
+      }
+
+      <div class="nav-heading mt-3">
+        <span>Đơn hàng & Tiện ích</span>
+        <strong>Tuyển Dụng</strong>
+      </div>
+
+      @if (hasAccessToSection('orders')) {
+        <button
+          type="button"
+          [class.active]="activeSection === 'orders'"
+          (click)="selectSection('orders')"
+        >
+          <span class="nav-icon"><i class="fas fa-list-check"></i></span>
+          <span class="nav-text">
+            <strong class="nav-title">Quản lý đơn hàng</strong>
+            <small class="nav-sub">Thêm, sửa, xóa và xuất bản</small>
+          </span>
+        </button>
+      }
+
+      @if (hasAccessToSection('poster')) {
+        <button
+          type="button"
+          [class.active]="activeSection === 'poster'"
+          (click)="selectSection('poster')"
+        >
+          <span class="nav-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+          <span class="nav-text">
+            <strong class="nav-title">Tạo Poster tự động</strong>
+            <small class="nav-sub">Thiết kế poster tuyển dụng</small>
+          </span>
+        </button>
+      }
+
+      @if (hasAccessToSection('activities')) {
+        <button
+          type="button"
+          [class.active]="activeSection === 'activities'"
+          (click)="selectSection('activities')"
+        >
+          <span class="nav-icon"><i class="fas fa-newspaper"></i></span>
+          <span class="nav-text">
+            <strong class="nav-title">Góc hoạt động</strong>
+            <small class="nav-sub">Quản lý bài viết & sự kiện</small>
+          </span>
+        </button>
+      }
+
+      @if (hasAccessToSection('events')) {
+        <button
+          type="button"
+          [class.active]="activeSection === 'events'"
+          (click)="selectSection('events')"
+        >
+          <span class="nav-icon"><i class="fas fa-bullhorn"></i></span>
+          <span class="nav-text">
+            <strong class="nav-title">Quản lý sự kiện</strong>
+            <small class="nav-sub">Popup, banner & thông báo</small>
+          </span>
+        </button>
+      }
+
+      <div class="nav-heading mt-3">
+        <span>Hệ thống</span>
+        <strong>Cài Đặt</strong>
+      </div>
 
       <button
         type="button"
@@ -57,9 +167,9 @@
         (click)="selectSection('security')"
       >
         <span class="nav-icon"><i class="fas fa-shield-halved"></i></span>
-        <span>
-          <strong>Bảo mật</strong>
-          <small>Đổi mật khẩu</small>
+        <span class="nav-text">
+          <strong class="nav-title">Bảo mật</strong>
+          <small class="nav-sub">Đổi mật khẩu tài khoản</small>
         </span>
       </button>
 
@@ -69,125 +179,166 @@
       </div>
     </aside>
 
-    <main class="admin-content">
-      @if (activeSection === 'poster') {
+    <main id="admin-main-content" class="admin-content">
+      @if (!hasAccessToSection(activeSection)) {
+        <div class="access-denied-panel">
+          <i class="fas fa-ban"></i>
+          <h3>Bạn không có quyền truy cập chức năng này</h3>
+          <p>Tài khoản của bạn chưa được cấp quyền để truy cập phân hệ này. Vui lòng liên hệ Quản trị viên cấp cao để được hỗ trợ phân quyền phù hợp.</p>
+          <button type="button" class="btn btn-primary mt-3" (click)="selectSection('security')">
+            <i class="fas fa-arrow-left"></i> Quay lại trang Bảo mật
+          </button>
+        </div>
+      } @else if (activeSection === 'operations') {
+        <app-operations-center (navigateSection)="onOperationsNavigate($event)"></app-operations-center>
+      } @else if (activeSection === 'students') {
+        <app-student-profiles-admin></app-student-profiles-admin>
+      } @else if (activeSection === 'users') {
+        <app-users-admin></app-users-admin>
+      } @else if (activeSection === 'codes') {
         <div class="content-heading">
           <div>
-            <span class="eyebrow">Công cụ 01</span>
-            <h1>Tạo đơn hàng tuyển dụng</h1>
-            <p>Nhập nội dung, thêm ảnh và xuất file PNG ngay trên thiết bị.</p>
+            <span class="eyebrow">Cấp mã & Xác thực</span>
+            <h1>Mã đăng ký học viên</h1>
+            <p>Cấp và quản lý mã 6 chữ số để học viên khai sơ yếu lý lịch trực tuyến.</p>
           </div>
           <span class="privacy-badge">
-            <i class="fas fa-laptop"></i>
-            Xử lý cục bộ
+            <i class="fas fa-key"></i>
+            Mã 6 chữ số
+          </span>
+        </div>
+
+        <app-registration-codes-admin></app-registration-codes-admin>
+      } @else if (activeSection === 'orders') {
+        <app-job-orders-admin></app-job-orders-admin>
+      } @else if (activeSection === 'poster') {
+        <div class="content-heading">
+          <div>
+            <span class="eyebrow">Công cụ thiết kế</span>
+            <h1>Tạo Poster tự động</h1>
+            <p>Đọc thông tin đơn tuyển dụng và thiết kế ảnh poster chuyên nghiệp.</p>
+          </div>
+          <span class="privacy-badge">
+            <i class="fas fa-shield-halved"></i>
+            An toàn dữ liệu
           </span>
         </div>
 
         <app-poster-maker-page [embedded]="true"></app-poster-maker-page>
-      } @else if (activeSection === 'orders') {
+      } @else if (activeSection === 'activities') {
+        <app-activities-admin></app-activities-admin>
+      } @else if (activeSection === 'events') {
+        <app-events-admin></app-events-admin>
+      } @else if (activeSection === 'security') {
         <div class="content-heading">
           <div>
-            <span class="eyebrow">Dữ liệu tuyển dụng</span>
-            <h1>Quản lý đơn hàng</h1>
-            <p>Cập nhật đơn đang tuyển để người dùng thấy ngay trên trang chủ và trang danh sách.</p>
-          </div>
-          <span class="privacy-badge">
-            <i class="fas fa-shield-halved"></i>
-            Chỉ quản trị viên
-          </span>
-        </div>
-
-        <app-job-orders-admin></app-job-orders-admin>
-      } @else {
-        <div class="content-heading">
-          <div>
-            <span class="eyebrow">Tài khoản</span>
-            <h1>Bảo mật đăng nhập</h1>
-            <p>Đổi mật khẩu định kỳ và không chia sẻ tài khoản quản trị.</p>
+            <span class="eyebrow">Tài khoản quản trị</span>
+            <h1>Bảo mật & mật khẩu</h1>
+            <p>Đổi mật khẩu tài khoản quản trị hiện tại để bảo vệ quyền truy cập.</p>
           </div>
         </div>
 
-        <section class="security-grid">
-          <form class="security-card" (ngSubmit)="changePassword()">
-            <div class="card-heading">
-              <span><i class="fas fa-key"></i></span>
-              <div>
-                <h2>Đổi mật khẩu</h2>
-                <p>Tối thiểu 12 ký tự, có chữ hoa, chữ thường và số.</p>
-              </div>
+        <section class="security-panel" aria-label="Đổi mật khẩu quản trị">
+          <div class="security-card">
+            <h2>Đổi mật khẩu tài khoản hiện tại</h2>
+            <p>Mật khẩu mới cần tối thiểu 8 ký tự và tránh đặt các chuỗi ký tự dễ đoán.</p>
+
+            <div class="alert-box error" *ngIf="securityError">
+              <i class="fas fa-triangle-exclamation"></i>
+              <span>{{ securityError }}</span>
             </div>
 
-            <label>
-              <span>Mật khẩu hiện tại</span>
-              <input
-                [type]="showPasswords ? 'text' : 'password'"
-                name="currentPassword"
-                [(ngModel)]="currentPassword"
-                autocomplete="current-password"
-                required
-              />
-            </label>
-
-            <label>
-              <span>Mật khẩu mới</span>
-              <input
-                [type]="showPasswords ? 'text' : 'password'"
-                name="newPassword"
-                [(ngModel)]="newPassword"
-                autocomplete="new-password"
-                minlength="12"
-                required
-              />
-            </label>
-
-            <label>
-              <span>Nhập lại mật khẩu mới</span>
-              <input
-                [type]="showPasswords ? 'text' : 'password'"
-                name="confirmPassword"
-                [(ngModel)]="confirmPassword"
-                autocomplete="new-password"
-                minlength="12"
-                required
-              />
-            </label>
-
-            <label class="show-passwords">
-              <input type="checkbox" name="showPasswords" [(ngModel)]="showPasswords" />
-              <span>Hiện mật khẩu đang nhập</span>
-            </label>
-
-            @if (securityError) {
-              <p class="form-message error" role="alert">{{ securityError }}</p>
-            }
-            @if (securityMessage) {
-              <p class="form-message success">{{ securityMessage }}</p>
-            }
-
-            <button class="change-button" type="submit" [disabled]="changingPassword">
-              <i [class]="changingPassword ? 'fas fa-spinner fa-spin' : 'fas fa-shield-halved'"></i>
-              {{ changingPassword ? 'Đang cập nhật...' : 'Cập nhật mật khẩu' }}
-            </button>
-          </form>
-
-          <aside class="security-card protection-card">
-            <div class="card-heading">
-              <span><i class="fas fa-lock"></i></span>
-              <div>
-                <h2>Lớp bảo vệ đang bật</h2>
-                <p>Bảo vệ phía máy chủ, không chỉ ẩn đường dẫn.</p>
-              </div>
+            <div class="alert-box success" *ngIf="securityMessage">
+              <i class="fas fa-circle-check"></i>
+              <span>{{ securityMessage }}</span>
             </div>
 
-            <ul>
-              <li><i class="fas fa-check"></i> Cookie phiên không cho JavaScript truy cập</li>
-              <li><i class="fas fa-check"></i> Khóa 15 phút sau 5 lần đăng nhập sai</li>
-              <li><i class="fas fa-check"></i> Chống yêu cầu giả mạo bằng mã CSRF</li>
-              <li><i class="fas fa-check"></i> Tự hết hạn khi không hoạt động</li>
-            </ul>
-          </aside>
+            <form class="security-form" (ngSubmit)="submitChangePassword()">
+              <label class="field-group">
+                <span class="field-label">Mật khẩu hiện tại</span>
+                <div class="password-input">
+                  <input
+                    [type]="showPasswords ? 'text' : 'password'"
+                    name="currentPassword"
+                    [(ngModel)]="currentPassword"
+                    autocomplete="current-password"
+                    placeholder="Nhập mật khẩu đang dùng"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label class="field-group">
+                <span class="field-label">Mật khẩu mới</span>
+                <div class="password-input">
+                  <input
+                    [type]="showPasswords ? 'text' : 'password'"
+                    name="newPassword"
+                    [(ngModel)]="newPassword"
+                    autocomplete="new-password"
+                    placeholder="Tối thiểu 8 ký tự"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label class="field-group">
+                <span class="field-label">Nhập lại mật khẩu mới</span>
+                <div class="password-input">
+                  <input
+                    [type]="showPasswords ? 'text' : 'password'"
+                    name="confirmPassword"
+                    [(ngModel)]="confirmPassword"
+                    autocomplete="new-password"
+                    placeholder="Nhập lại mật khẩu mới"
+                    required
+                  />
+                </div>
+              </label>
+
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn-toggle-password"
+                  (click)="showPasswords = !showPasswords"
+                >
+                  <i [class]="showPasswords ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                  <span>{{ showPasswords ? 'Ẩn mật khẩu' : 'Hiện mật khẩu' }}</span>
+                </button>
+
+                <button
+                  type="submit"
+                  class="btn-save-password"
+                  [disabled]="changingPassword || !currentPassword || !newPassword || !confirmPassword"
+                >
+                  <i [class]="changingPassword ? 'fas fa-spinner fa-spin' : 'fas fa-key'"></i>
+                  <span>{{ changingPassword ? 'Đang cập nhật...' : 'Đổi mật khẩu' }}</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </section>
       }
     </main>
   </div>
+
+  <!-- FLOATING TOAST NOTIFICATIONS -->
+  @if (toastService.toasts().length > 0) {
+    <aside class="admin-toast-container" aria-live="polite" aria-atomic="true">
+      @for (toast of toastService.toasts(); track toast.id) {
+        <div class="toast-item" [class]="toast.type" role="alert">
+          <i [class]="toast.icon" class="toast-icon"></i>
+          <div class="toast-content">
+            @if (toast.title) {
+              <strong class="toast-title">{{ toast.title }}</strong>
+            }
+            <p class="toast-message">{{ toast.message }}</p>
+          </div>
+          <button type="button" class="btn-toast-close" (click)="toastService.dismiss(toast.id)" aria-label="Đóng">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+      }
+    </aside>
+  }
 </div>

@@ -1,0 +1,56 @@
+@if (bannerEvent) {
+  <section class="home-event-banner-section" aria-label="Sự kiện nổi bật">
+    <div class="container">
+      <div
+        class="home-event-banner-card"
+        [class.style-navy]="bannerEvent.displayConfig.indexBanner.style === 'navy'"
+        [class.style-card]="bannerEvent.displayConfig.indexBanner.style === 'card'"
+      >
+        <div class="banner-decor-circle" aria-hidden="true"></div>
+
+        <div class="banner-copy">
+          <span class="banner-tag">
+            <i class="fas fa-sparkles" aria-hidden="true"></i>
+            {{ bannerEvent.categoryName }}
+          </span>
+
+          <h2 class="banner-title">
+            {{ bannerEvent.displayTitle || bannerEvent.title }}
+          </h2>
+
+          <p class="banner-desc">
+            {{ bannerEvent.summary || bannerEvent.content }}
+          </p>
+
+          <div class="banner-actions">
+            @if (bannerEvent.cta.enabled) {
+              <a
+                class="banner-cta-btn"
+                [href]="bannerEvent.cta.url"
+                [target]="bannerEvent.cta.target"
+                (click)="onCtaClick(bannerEvent)"
+              >
+                <span>{{ bannerEvent.cta.label }}</span>
+                <i class="fas fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            }
+
+            <span class="banner-time-note">
+              <i class="fas fa-calendar-check" aria-hidden="true"></i>
+              Diễn ra đến: {{ bannerEvent.schedule.endDate ? (bannerEvent.schedule.endDate | date:'dd/MM/yyyy') : 'Hạn đăng ký có hạn' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="banner-visual">
+          <img
+            [src]="bannerEvent.bannerImage || bannerEvent.coverImage || 'assets/images/logo.png'"
+            alt="Hình ảnh minh họa" [alt]="bannerEvent.title"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+}
+

@@ -59,6 +59,26 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'khai-so-yeu-ly-lich',
+    redirectTo: 'form-hoc-vien',
+    pathMatch: 'full',
+  },
+  {
+    path: 'tao-poster',
+    redirectTo: 'quan-tri-viejap',
+    pathMatch: 'full',
+  },
+  {
+    path: 'tao-poster-don-hang',
+    redirectTo: 'quan-tri-viejap',
+    pathMatch: 'full',
+  },
+  {
+    path: 'tao-poster-tu-dong',
+    redirectTo: 'quan-tri-viejap/tao-poster-tu-dong',
+    pathMatch: 'full',
+  },
+  {
     path: 'don-hang',
     title: 'Đơn hàng đang tuyển - VieJap',
     loadComponent: () => import('./features/jobs/pages/jobs-page').then((module) => module.JobsPage),
@@ -70,17 +90,48 @@ export const routes: Routes = [
       import('./features/jobs/pages/job-order-detail-page').then((module) => module.JobOrderDetailPage),
   },
   {
+    path: 'hoat-dong',
+    title: 'Góc Hoạt Động & Sự Kiện - VieJap',
+    loadComponent: () =>
+      import('./features/public/activities/activities-page').then((m) => m.ActivitiesPage),
+  },
+  {
+    path: 'hoat-dong/:slug',
+    title: 'Chi Tiết Hoạt Động - VieJap',
+    loadComponent: () =>
+      import('./features/public/activities/activity-detail-page').then((m) => m.ActivityDetailPage),
+  },
+  {
     path: 'dang-nhap-quan-tri',
     title: 'Đăng nhập quản trị - VieJap',
     loadComponent: () =>
       import('./features/admin/pages/admin-login-page').then((module) => module.AdminLoginPage),
   },
   {
+    path: 'quan-tri-viejap/poster-studio',
+    redirectTo: 'quan-tri-viejap',
+    pathMatch: 'full',
+  },
+  {
+    path: 'quan-tri-viejap/tao-poster-tu-dong',
+    title: 'Tạo Poster Tự Động (Quản trị) - VieJap',
+    canMatch: [adminMatchGuard],
+    canActivate: [adminAuthGuard],
+    loadComponent: () =>
+      import('./features/tools/poster-maker/pages/auto-poster-page/auto-poster-page').then((module) => module.AutoPosterPage),
+  },
+  {
     path: 'quan-tri-viejap',
+    pathMatch: 'full',
     title: 'Quản trị - VieJap',
     canMatch: [adminMatchGuard],
     canActivate: [adminAuthGuard],
     loadComponent: () => import('./features/admin/pages/admin-page').then((module) => module.AdminPage),
+  },
+  {
+    path: 'admin/poster-studio',
+    redirectTo: 'quan-tri-viejap',
+    pathMatch: 'full',
   },
   {
     path: 'faq',

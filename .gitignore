@@ -47,3 +47,9 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# .NET build artifacts
+**/bin/
+**/obj/
+*.user
+*.suo

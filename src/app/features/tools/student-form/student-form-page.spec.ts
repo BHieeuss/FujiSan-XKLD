@@ -1,5 +1,6 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { NgForm } from '@angular/forms';
+import { provideRouter } from '@angular/router';
 import { STUDENT_FORM_STORAGE_KEY } from './student-form.model';
 import { StudentFormPage } from './student-form-page';
 
@@ -9,9 +10,13 @@ describe('StudentFormPage', () => {
 
   beforeEach(async () => {
     localStorage.removeItem(STUDENT_FORM_STORAGE_KEY);
-    await TestBed.configureTestingModule({ imports: [StudentFormPage] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [StudentFormPage],
+      providers: [provideRouter([])],
+    }).compileComponents();
     fixture = TestBed.createComponent(StudentFormPage);
     component = fixture.componentInstance;
+    component.isVerified = true;
     fixture.detectChanges();
   });
 
@@ -56,6 +61,7 @@ describe('StudentFormPage', () => {
     fixture.destroy();
     fixture = TestBed.createComponent(StudentFormPage);
     component = fixture.componentInstance;
+    component.isVerified = true;
     fixture.detectChanges();
 
     expect(component.data.fullName).toBe('Nguyễn Văn A');

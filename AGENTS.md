@@ -211,3 +211,88 @@ Khi tạo một bài học mới (ví dụ: `minna-lesson-2`):
    - **Ghép từ (Word Builder):** Tự động tạo ô chọn và khối đáp án.
 5. **Thống kê điểm số:** Hiệu ứng lửa chuỗi đúng liên tiếp (`🔥 streak >= 3`), độ chính xác %, kỷ lục.
 6. **Modal giải thích chi tiết:** Phân tích từng bước từ dạng gốc $\rightarrow$ công thức $\rightarrow$ đáp án.
+
+---
+
+## 7. Quy Tắc Bắt Buộc: Mọi Chức Năng Mới Phải Tích Hợp Phân Quyền (RBAC & User Override Mandate)
+
+Đây là **quy tắc kiến trúc cốt lõi bất khả xâm phạm** của dự án VieJap. Bất kỳ AI Agent hoặc lập trình viên nào khi phát triển tính năng mới, module mới, hoặc thêm bất kỳ thao tác mới nào vào chức năng hiện tại đều **bắt buộc tuân thủ 100%** theo 6 bước chuẩn hóa dưới đây:
+
+### 7.1. Quy Trình 6 Bước Khi Phát Triển Tính Năng Mới
+1. **Bước 1: Xác định quyền cần thiết:**
+   - Trước khi code, phải liệt kê danh sách quyền phân theo module và hành động dạng `<module>.<action>`.
+   - Ví dụ khi thêm module Hợp đồng (`contracts`): `contracts.view`, `contracts.create`, `contracts.update`, `contracts.delete`, `contracts.approve`, `contracts.download`, `contracts.export`.
+   - Không gộp tất cả thao tác vào một quyền chung nếu có thể tách biệt.
+
+2. **Bước 2: Tự động đăng ký vào Centralized Permission Registry:**
+   - Khai báo quyền mới trong hàm `admin_permission_registry()` tại `public/api/admin/_rbac.php` và interface `PermissionItem` tại `src/app/features/admin/components/users-admin/users-admin.models.ts`.
+   - Mỗi quyền bắt buộc có đủ: `key`, `name` (tiếng Việt), `description`, `module`, `moduleName`, `action`, `isSensitive` (true cho xóa/khóa/sửa nhạy cảm).
+   - Tuyệt đối không hardcode quyền riêng lẻ rải rác trong từng trang.
+
+3. **Bước 3: Tự động xuất hiện trong giao diện Phân quyền:**
+   - Sau khi đăng ký, quyền mới phải tự động xuất hiện trong:
+     - Ma trận phân quyền vai trò (Permission Matrix) khi tạo hoặc sửa vai trò.
+     - Bộ điều khiển 3 trạng thái phân quyền riêng cho từng tài khoản (User Override: Mặc định / ALLOW / DENY).
+     - Bảng tổng hợp quyền hiệu lực thực tế (`Effective = Role + ALLOW - DENY`).
+
+4. **Bước 4: Tích hợp kiểm tra quyền đồng bộ Backend & Frontend:**
+   - **Frontend:** Dùng `AdminAuthService.hasPermission('...')` hoặc `hasAnyPermission([...])` để ẩn/hiện menu, nút hành động (Thêm/Sửa/Xóa/Xuất). Nếu người dùng truy cập URL trái phép, hiển thị thông báo "Bạn không có quyền truy cập chức năng này".
+   - **Backend API:** Bắt buộc gọi `admin_require_permission($session, '...')` trước khi thực thi xử lý nghiệp vụ. Ném mã HTTP 403 Forbidden nếu không đủ quyền.
+   - **Data Scope:** Kiểm soát phạm vi dữ liệu (`own`, `assigned`, `team`, `department`, `all`) ở cấp Backend SQL/JSON truy vấn, không chỉ lọc ở giao diện.
+
+5. **Bước 5: Thiết lập quyền mặc định an toàn (Safe Defaults):**
+   - Quyền mới tự động được cấp cho `super_admin` theo cơ chế bảo vệ tối cao.
+   - Tuyệt đối không tự động cấp quyền mới cho tất cả các vai trò thông thường khác.
+   - Các vai trò khác chỉ nhận quyền khi Super Admin chủ động thiết lập trong giao diện hoặc qua migration có kiểm soát.
+
+6. **Bước 6: Kiểm thử phân quyền bắt buộc:**
+   - Kiểm tra người có quyền thao tác bình thường.
+   - Kiểm tra người không có quyền bị ẩn nút trên giao diện và bị API chặn 403 khi gọi trực tiếp.
+   - Kiểm tra cơ chế User Override: ALLOW cấp thêm quyền, DENY thu hồi quyền (DENY luôn có ưu tiên cao nhất).
+   - Kiểm tra tài khoản bị khóa không thể truy cập bất kỳ API nào.
+
+### 7.2. Áp Dụng Cả Khi Chỉnh Sửa Module Hiện Tại
+- Bất kỳ khi nào bổ sung nút mới (Duyệt, Xuất Excel, Tải PDF, Xóa dữ liệu, Phân công...), lập trình viên phải lập tức đăng ký quyền tương ứng và bọc kiểm tra quyền ở cả Frontend và Backend API.
+- Nếu module cũ chưa có phân quyền, khi sửa đổi phải rà soát và bổ sung đồng bộ.
+
+### 7.3. Tiêu Chuẩn Hoàn Thành (Definition of Done - DoD)
+Một chức năng chỉ được xem là **Hoàn Thành (DONE)** khi thỏa mãn đầy đủ 7 điều kiện:
+1. Đã triển khai xong chức năng chính.
+2. Đã đăng ký đầy đủ quyền vào Permission Registry (`_rbac.php`).
+3. Quyền mới đã tự động xuất hiện trong giao diện Permission Matrix & User Overrides.
+4. Đã tích hợp kiểm tra quyền trên Frontend (ẩn nút, menu, chặn route).
+5. Đã tích hợp Middleware kiểm tra quyền Backend API (`admin_require_permission`).
+6. Đã chạy script quét tuân thủ tự động: `npm run check:rbac` (hoặc `php tests/audit_rbac_compliance.php`) đạt 100% PASS.
+7. Đã kiểm thử tài khoản có quyền và không có quyền thực tế.
+
+---
+
+## 8. Báo Cáo Bắt Buộc Cho Mọi Coding Agent Trước Khi Kết Thúc Nhiệm Vụ
+
+Trước khi kết thúc mỗi lượt phản hồi hoặc bàn giao code, Agent **bắt buộc phải xuất báo cáo tổng kết** gồm 5 nội dung chuẩn hóa:
+1. **Những quyền mới được tạo** (Key, Tên tiếng Việt, Module).
+2. **Những quyền cũ được cập nhật** (nếu có).
+3. **Các module đã tích hợp phân quyền** (Frontend Components & Routes).
+4. **Các API backend đã được bảo vệ** (Tên file & mã quyền kiểm tra).
+5. **Kết quả kiểm thử phân quyền đã thực hiện** (Unit test, integration test, browser screenshots).
+
+---
+
+## 9. Quy Chuẩn Ngôn Ngữ Tiếng Việt Toàn Hệ Thống (Vietnamese Language Standardization Mandate)
+
+Mọi giao diện mới dành cho người dùng và nhân viên VieJap phải **ưu tiên 100% tiếng Việt dễ hiểu, gần gũi**. Tuyệt đối không lạm dụng tiếng Anh hoặc thuật ngữ kỹ thuật trong giao diện.
+
+1. **Phục vụ người dùng thực tế:** Giao diện quản trị hướng đến toàn thể cán bộ, nhân viên văn phòng và chuyên viên công ty VieJap, không sử dụng thuật ngữ công nghệ phức tạp dành riêng cho lập trình viên.
+2. **Thống nhất cách gọi tên (Terminology):**
+   - `Dashboard` → `Tổng quan` / `Trung tâm điều hành`
+   - `Admin / Super Admin` → `Quản trị viên` / `Quản trị viên cấp cao` / `Ban quản trị`
+   - `User` → `Người dùng` / `Tài khoản nhân sự`
+   - `Student` → `Học viên`
+   - `Job Order` → `Đơn hàng`
+   - `Registration Code` → `Mã đăng ký học viên`
+   - `Draft` → `Bản nháp`, `Published` → `Đang đăng tuyển`, `Pending` → `Đang chờ`, `Approved` → `Đã duyệt`
+   - `Export` → `Xuất file Excel`, `Import` → `Nhập từ file Excel`, `Upload` → `Tải ảnh/tệp lên`
+3. **Bảo toàn mã kỹ thuật:** Tên biến trong code, tên hàm, API endpoints, bảng cơ sở dữ liệu và thư viện được giữ nguyên để bảo đảm tính toàn vẹn kỹ thuật.
+4. **Từ điển trung tâm:** Toàn bộ thông báo, trạng thái và nhãn tham chiếu tập trung tại `src/app/core/config/admin-terminology.ts`.
+
+

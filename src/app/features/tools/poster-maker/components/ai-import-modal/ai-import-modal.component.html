@@ -1,0 +1,544 @@
+<div [ngClass]="isPageMode ? 'auto-poster-page-wrapper' : 'ai-modal-backdrop'" (click)="!isPageMode && close()">
+  <div [ngClass]="isPageMode ? 'auto-poster-page-card' : 'ai-modal-dialog'" (click)="$event.stopPropagation()" role="region" aria-label="Tạo Poster Tự Động">
+    
+    <!-- Header: Sáng sủa, tối giản, hỗ trợ cả Page và Modal -->
+    <header class="ai-modal-header" [class.page-header]="isPageMode">
+      <div class="header-brand">
+        <button
+          *ngIf="isPageMode"
+          type="button"
+          class="btn-back-nav"
+          (click)="navigateBack()"
+          title="Quay lại Thiết kế poster"
+        >
+          <i class="fas fa-arrow-left me-1"></i> Quay lại
+        </button>
+        <div class="header-icon">
+          <i class="fas fa-wand-magic-sparkles"></i>
+        </div>
+        <div>
+          <h2>Tạo Poster Tự Động</h2>
+          <p class="header-sub">Đọc thông báo đơn hàng và thiết kế poster tuyển dụng trực tiếp</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Nút trạng thái Gemini AI dạng chip nhỏ gọn -->
+        <button
+          type="button"
+          class="api-chip"
+          [class.connected]="hasApiKey"
+          [class.warning]="!hasApiKey"
+          (click)="toggleApiKeyInput()"
+          [title]="hasApiKey ? 'Đã kết nối Gemini AI (' + maskedKey + ')' : 'Nhấp để cài đặt mã API Gemini'"
+        >
+          <span class="status-dot"></span>
+          <span class="chip-label">{{ hasApiKey ? 'AI Sẵn sàng' : 'Cài mã AI' }}</span>
+          <i class="fas fa-gear ms-1"></i>
+        </button>
+
+        <button *ngIf="!isPageMode" type="button" class="btn-close-modal" (click)="close()" aria-label="Đóng cửa sổ">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hộp cài đặt API Key (Chỉ hiện khi nhấp vào chip AI) -->
+    <div class="api-popover" *ngIf="showApiKeyInput">
+      <div class="api-popover-header">
+        <span class="fw-bold"><i class="fas fa-key text-primary me-2"></i>Cài đặt mã API Google Gemini</span>
+        <button type="button" class="btn-close-popover" (click)="showApiKeyInput = false">✕</button>
+      </div>
+      <p class="api-popover-desc">
+        Hệ thống dùng Google Gemini để đọc tự động từ ảnh đơn hàng. Bạn có thể lấy mã miễn phí tại
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio <i class="fas fa-external-link-alt"></i></a>.
+      </p>
+      <div class="api-input-row">
+        <input
+          type="password"
+          class="form-control"
+          placeholder="Dán mã API vào đây (AIzaSy...)"
+          [(ngModel)]="inputApiKey"
+        />
+        <button class="btn btn-primary" type="button" (click)="saveApiKey()" [disabled]="savingApiKey">
+          {{ savingApiKey ? 'Đang lưu...' : 'Lưu mã' }}
+        </button>
+      </div>
+      <div class="api-message text-success fw-bold" *ngIf="apiKeyMessage">{{ apiKeyMessage }}</div>
+    </div>
+
+    <!-- Stepper Navigation: Thanh phân bước tối giản, trực quan -->
+    <nav class="ai-stepper" aria-label="Các bước tạo poster">
+      <div
+        class="step-item"
+        [class.active]="currentStep === 'select_template'"
+        [class.done]="['upload', 'scanning', 'review_data', 'qa_preview'].includes(currentStep)"
+        (click)="goToStep('select_template')"
+      >
+        <span class="step-badge">1</span>
+        <span class="step-text">Chọn mẫu</span>
+      </div>
+
+      <div class="step-divider" [class.done]="['upload', 'scanning', 'review_data', 'qa_preview'].includes(currentStep)"></div>
+
+      <div
+        class="step-item"
+        [class.active]="currentStep === 'upload' || currentStep === 'scanning'"
+        [class.done]="['review_data', 'qa_preview'].includes(currentStep)"
+        (click)="currentStep !== 'scanning' && goToStep('upload')"
+      >
+        <span class="step-badge">2</span>
+        <span class="step-text">{{ currentStep === 'scanning' ? 'Đang đọc...' : 'Tải ảnh đơn' }}</span>
+      </div>
+
+      <div class="step-divider" [class.done]="['review_data', 'qa_preview'].includes(currentStep)"></div>
+
+      <div
+        class="step-item"
+        [class.active]="currentStep === 'review_data'"
+        [class.done]="currentStep === 'qa_preview'"
+        (click)="stagedPosterData && goToStep('review_data')"
+      >
+        <span class="step-badge">3</span>
+        <span class="step-text">Soát thông tin</span>
+      </div>
+
+      <div class="step-divider" [class.done]="currentStep === 'qa_preview'"></div>
+
+      <div
+        class="step-item"
+        [class.active]="currentStep === 'qa_preview'"
+        (click)="stagedPosterData && proceedToQaAndPreview()"
+      >
+        <span class="step-badge">4</span>
+        <span class="step-text">Xem poster & Xuất ảnh</span>
+      </div>
+    </nav>
+
+    <!-- Modal Content -->
+    <main class="ai-modal-body">
+      <!-- STEP 1: CHỌN MẪU POSTER -->
+      <section class="step-panel" *ngIf="currentStep === 'select_template'">
+        <app-template-gallery
+          [selectedTemplateId]="selectedTemplateId"
+          [existingPosterData]="stagedPosterData || currentPosterData"
+          [existingAssets]="stagedAssets || currentAssets"
+          (templateSelected)="selectTemplate($event)"
+          (templateConfirmed)="onTemplateConfirmed($event)"
+        ></app-template-gallery>
+      </section>
+
+      <!-- STEP 2: TẢI ẢNH ĐƠN HÀNG -->
+      <section class="step-panel upload-panel" *ngIf="currentStep === 'upload'">
+        <!-- Thanh tóm tắt mẫu đang chọn -->
+        <div class="template-context-bar">
+          <div class="context-left">
+            <span class="context-label">Mẫu đang chọn:</span>
+            <strong class="context-title">{{ selectedTemplateName }}</strong>
+            <span class="context-tag">{{ is3PhotoTemplate ? '3 ảnh' : '2 ảnh' }}</span>
+          </div>
+          <button type="button" class="btn-change-template" (click)="currentStep = 'select_template'">
+            <i class="fas fa-rotate me-1"></i> Đổi mẫu khác
+          </button>
+        </div>
+
+        <!-- Banner dùng lại dữ liệu nếu có sẵn -->
+        <div class="existing-data-banner" *ngIf="hasExistingOrderData">
+          <div class="existing-info">
+            <i class="fas fa-bolt-lightning text-warning"></i>
+            <div>
+              <strong>Có dữ liệu đơn sẵn có:</strong> {{ currentPosterData?.title }}
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-primary" (click)="useExistingData()">
+            Tiếp tục dùng dữ liệu này →
+          </button>
+        </div>
+
+        <!-- Dropzone tải ảnh sạch sẽ, nổi bật -->
+        <div
+          class="dropzone-box"
+          [class.drag-over]="isDragging"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          (click)="fileInputRef.click()"
+        >
+          <input
+            #fileInputRef
+            type="file"
+            accept="image/png,image/jpeg,image/webp,application/pdf"
+            hidden
+            (change)="onFileInputChanged($event)"
+          />
+          <div class="dropzone-icon-circle">
+            <i class="fas fa-cloud-arrow-up"></i>
+          </div>
+          <h3>Tải ảnh thông báo đơn hàng</h3>
+          <p class="dropzone-sub">Kéo thả ảnh chụp thông báo đơn hàng vào đây hoặc bấm để chọn từ máy (JPG, PNG, PDF)</p>
+          <button type="button" class="btn-upload-action" (click)="$event.stopPropagation(); fileInputRef.click()">
+            <i class="fas fa-folder-open me-1"></i> Chọn ảnh từ thiết bị
+          </button>
+        </div>
+
+        <!-- Thử nhanh với các đơn mẫu -->
+        <div class="demo-samples-bar">
+          <span class="samples-label"><i class="fas fa-wand-magic-sparkles text-primary me-1"></i> Hoặc thử nhanh với đơn mẫu:</span>
+          <div class="samples-pills">
+            <button type="button" class="sample-pill" (click)="loadDemoSample('yamawa')">
+              🍱 Thực phẩm (Ishikawa)
+            </button>
+            <button type="button" class="sample-pill" (click)="loadDemoSample('tsubama')">
+              ⚙️ Cơ khí (Saitama)
+            </button>
+            <button type="button" class="sample-pill" (click)="loadDemoSample('sankochi')">
+              🚗 Ô tô (Aichi)
+            </button>
+          </div>
+        </div>
+
+        <!-- Lỗi nếu có -->
+        <div class="alert-error" *ngIf="extractionError">
+          <i class="fas fa-circle-exclamation me-2"></i>
+          <span>{{ extractionError }}</span>
+        </div>
+      </section>
+
+      <!-- STEP 3: SCANNING (ĐANG ĐỌC TỰ ĐỘNG) -->
+      <section class="step-panel scanning-panel" *ngIf="currentStep === 'scanning'">
+        <div class="scan-card">
+          <div class="scan-image-wrap">
+            <img [src]="originalImagePreviewUrl" alt="Ảnh đang đọc" class="scan-thumb" *ngIf="originalImagePreviewUrl" />
+            <div class="scan-laser-line"></div>
+          </div>
+          <div class="scan-status-group">
+            <h3>{{ scanProgressText }}</h3>
+            <p class="scan-sub">AI đang tự động đọc tên xí nghiệp, mức lương, nơi làm việc và yêu cầu tuyển dụng...</p>
+            <div class="scan-progress-bar">
+              <div class="progress-fill" [style.width.%]="scanProgressPercent"></div>
+            </div>
+            <span class="progress-number">{{ scanProgressPercent }}%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 4: SOÁT THÔNG TIN (REVIEW DATA) -->
+      <section class="step-panel split-view-panel" *ngIf="currentStep === 'review_data' && stagedPosterData">
+        <!-- Cột trái: Live Preview Poster trực tiếp (thay thế ảnh thông báo đơn) -->
+        <div class="original-image-col poster-live-preview-col">
+          <div class="col-header">
+            <h4><i class="fas fa-eye text-primary me-1"></i> Xem trước poster</h4>
+            <div class="preview-header-actions">
+              <span class="preview-live-badge"><i class="fas fa-bolt text-warning"></i> Trực tiếp</span>
+              <button
+                type="button"
+                class="btn-preview-tool"
+                (click)="renderReviewPoster()"
+                title="Vẽ lại / Làm mới poster"
+              >
+                <i class="fas fa-rotate"></i>
+              </button>
+              <button
+                *ngIf="originalImagePreviewUrl"
+                type="button"
+                class="btn-preview-tool btn-toggle-doc"
+                (click)="showOriginalNotice = !showOriginalNotice"
+                [class.active]="showOriginalNotice"
+                title="Xem đối chiếu ảnh thông báo đơn hàng gốc"
+              >
+                <i class="fas fa-file-invoice me-1"></i>
+                <span>{{ showOriginalNotice ? 'Xem Poster' : 'Ảnh gốc đơn' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="image-viewport poster-viewport">
+            <!-- Bản vẽ Canvas Live Poster -->
+            <div class="poster-scaler-wrap" [class.d-none]="showOriginalNotice">
+              <canvas #reviewCanvasRef class="review-poster-canvas" [width]="1080" [height]="1920"></canvas>
+            </div>
+
+            <!-- Lightbox xem ảnh gốc đối chiếu nếu cần -->
+            <div class="original-notice-overlay" *ngIf="showOriginalNotice && originalImagePreviewUrl">
+              <div class="notice-overlay-header">
+                <span><i class="fas fa-file-image me-1"></i> Ảnh thông báo đơn hàng gốc</span>
+                <button type="button" class="btn-close-notice" (click)="showOriginalNotice = false">✕</button>
+              </div>
+              <div class="notice-image-scroll">
+                <img [src]="originalImagePreviewUrl" alt="Ảnh thông báo đơn gốc" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột phải: Form thông tin có cấu trúc -->
+        <div class="data-editor-col">
+          <div class="col-header">
+            <h4><i class="fas fa-pen-to-square me-1"></i> Thông tin trích xuất</h4>
+            <div class="d-flex align-items-center gap-2">
+              <span class="accuracy-badge">
+                <i class="fas fa-check-circle me-1"></i> Độ chính xác: {{ Math.round((validationResult?.score || 0.95) * 100) }}%
+              </span>
+              <button type="button" class="btn-change-template-compact" (click)="changeTemplate('review_data')" title="Đổi mẫu poster">
+                <i class="fas fa-palette me-1"></i> {{ selectedTemplateName }}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-content-scroll" (input)="onFieldChanged()" (change)="onFieldChanged()">
+            <!-- Cảnh báo nếu có trường cần chú ý -->
+            <div class="validation-note" *ngIf="validationResult?.issues?.length">
+              <div class="note-title"><i class="fas fa-circle-info me-1"></i> Gợi ý kiểm tra:</div>
+              <ul>
+                <li *ngFor="let issue of validationResult?.issues">
+                  <strong>{{ issue.field }}:</strong> {{ issue.message }}
+                </li>
+              </ul>
+            </div>
+
+            <!-- NHÓM 1: THÔNG TIN CÔNG VIỆC -->
+            <fieldset class="form-section">
+              <legend class="section-legend">1. Thông tin công việc</legend>
+              <div class="fields-row">
+                <label class="field-box full">
+                  <span class="field-label">Tên công việc / Ngành nghề</span>
+                  <input type="text" [(ngModel)]="stagedPosterData.title" placeholder="Ví dụ: GIA CÔNG CƠ KHÍ CHÍNH XÁC" class="form-input fw-bold" />
+                </label>
+              </div>
+
+              <div class="fields-row two-cols">
+                <label class="field-box">
+                  <span class="field-label">Xí nghiệp tiếp nhận</span>
+                  <input type="text" [(ngModel)]="stagedPosterData.companyHeader" placeholder="Tên công ty / xí nghiệp" class="form-input" />
+                </label>
+                <label class="field-box">
+                  <span class="field-label">Mã đơn tuyển</span>
+                  <input type="text" [(ngModel)]="stagedPosterData.orderCode" placeholder="Ví dụ: TC059M" class="form-input" />
+                </label>
+              </div>
+
+              <div class="fields-row">
+                <label class="field-box full">
+                  <span class="field-label">Nội dung công việc chi tiết</span>
+                  <textarea rows="2" [(ngModel)]="stagedPosterData.jobDescription" placeholder="Mô tả công việc hàng ngày..." class="form-textarea"></textarea>
+                </label>
+              </div>
+            </fieldset>
+
+            <!-- NHÓM 2: LƯƠNG & ĐỊA ĐIỂM -->
+            <fieldset class="form-section">
+              <legend class="section-legend">2. Lương & Nơi làm việc</legend>
+              <div class="fields-row">
+                <label class="field-box full">
+                  <span class="field-label">Mức lương hiển thị trên Poster</span>
+                  <textarea rows="2" [(ngModel)]="stagedPosterData.salary" class="form-textarea fw-semibold" placeholder="Mỗi dòng một mức lương..."></textarea>
+                  <small class="salary-helper" *ngIf="extractedOrder?.salary?.basic?.value">
+                    Cơ bản: {{ extractedOrder?.salary?.basic?.value?.toLocaleString() }} JPY · Thực lĩnh: ~{{ extractedOrder?.salary?.take_home?.value?.toLocaleString() }} JPY
+                  </small>
+                </label>
+              </div>
+
+              <div class="fields-row two-cols">
+                <label class="field-box">
+                  <span class="field-label">Địa điểm làm việc</span>
+                  <input type="text" [(ngModel)]="stagedPosterData.location" placeholder="Tỉnh / Thành phố Nhật Bản" class="form-input" />
+                </label>
+                <label class="field-box">
+                  <span class="field-label">Độ tuổi tiếp nhận</span>
+                  <input type="text" [(ngModel)]="stagedPosterData.ageRange" placeholder="Ví dụ: 18 - 30 tuổi" class="form-input" />
+                </label>
+              </div>
+            </fieldset>
+
+            <!-- NHÓM 3: THI TUYỂN & YÊU CẦU -->
+            <fieldset class="form-section">
+              <legend class="section-legend">3. Thời gian & Yêu cầu</legend>
+              <div class="fields-row two-cols">
+                <label class="field-box">
+                  <span class="field-label">Ngày phỏng vấn</span>
+                  <input type="date" [(ngModel)]="stagedPosterData.interviewDate" class="form-input" />
+                </label>
+                <label class="field-box">
+                  <span class="field-label">Thời gian xuất cảnh</span>
+                  <input type="text" [(ngModel)]="stagedPosterData.departureDate" placeholder="Ví dụ: Tháng 06/2026" class="form-input" />
+                </label>
+              </div>
+
+              <div class="fields-row">
+                <label class="field-box full">
+                  <span class="field-label">Yêu cầu & Quyền lợi ứng viên</span>
+                  <textarea rows="3" [(ngModel)]="stagedPosterData.requirements" class="form-textarea" placeholder="Mỗi dòng một yêu cầu..."></textarea>
+                </label>
+              </div>
+            </fieldset>
+
+            <!-- NHÓM 4: ẢNH MINH HỌA ĐƠN HÀNG -->
+            <fieldset class="form-section">
+              <legend class="section-legend">4. Hình ảnh minh họa đơn hàng</legend>
+              <p class="section-subtext">Đã chọn sẵn ảnh mẫu chuẩn. Nhấp "Đổi ảnh" nếu bạn muốn tải ảnh thực tế từ thiết bị.</p>
+              
+              <div class="photo-slots-grid" [class.three-slots]="is3PhotoTemplate">
+                <!-- Ảnh 1 -->
+                <div class="photo-slot-card">
+                  <img [src]="stagedAssets?.primaryPhotoSrc || 'assets/images/KySu/1.png'" class="slot-thumb" alt="Ảnh 1" />
+                  <div class="slot-info">
+                    <span class="slot-name">Ảnh 1: Công việc</span>
+                    <label class="btn-slot-upload">
+                      <i class="fas fa-camera me-1"></i> Đổi ảnh
+                      <input type="file" accept="image/png,image/jpeg,image/webp" class="d-none" (change)="onLocalBatchFileSelected($event, 'primary')" />
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Ảnh 2 -->
+                <div class="photo-slot-card">
+                  <img [src]="stagedAssets?.secondaryPhotoSrc || 'assets/images/KySu/2.png'" class="slot-thumb" alt="Ảnh 2" />
+                  <div class="slot-info">
+                    <span class="slot-name">Ảnh 2: Môi trường</span>
+                    <label class="btn-slot-upload">
+                      <i class="fas fa-camera me-1"></i> Đổi ảnh
+                      <input type="file" accept="image/png,image/jpeg,image/webp" class="d-none" (change)="onLocalBatchFileSelected($event, 'secondary')" />
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Ảnh 3 (nếu là mẫu 3 ảnh) -->
+                <div class="photo-slot-card" *ngIf="is3PhotoTemplate">
+                  <img [src]="stagedAssets?.tertiaryPhotoSrc || 'assets/images/KySu/3.png'" class="slot-thumb" alt="Ảnh 3" />
+                  <div class="slot-info">
+                    <span class="slot-name">Ảnh 3: Hoạt động</span>
+                    <label class="btn-slot-upload">
+                      <i class="fas fa-camera me-1"></i> Đổi ảnh
+                      <input type="file" accept="image/png,image/jpeg,image/webp" class="d-none" (change)="onLocalBatchFileSelected($event, 'tertiary')" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 5: XEM TRƯỚC & XUẤT ẢNH (QA PREVIEW) -->
+      <section class="step-panel qa-panel" *ngIf="currentStep === 'qa_preview'">
+        <div class="qa-layout">
+          <!-- Khung Canvas Poster -->
+          <div class="canvas-viewport">
+            <canvas #qaCanvasRef width="1080" height="1920" class="poster-preview-canvas"></canvas>
+            <div class="canvas-loading" *ngIf="runningQa">
+              <i class="fas fa-spinner fa-spin me-2"></i>
+              <span>Đang tạo bản xem trước...</span>
+            </div>
+          </div>
+
+          <!-- Bảng hành động bên phải -->
+          <div class="qa-actions-col">
+            <div class="qa-status-box" [class.success]="qaReport?.status === 'PASS'">
+              <div class="status-icon-circle">
+                <i class="fas fa-circle-check"></i>
+              </div>
+              <div>
+                <h5>Bố Cục Đạt Chuẩn</h5>
+                <p>Poster hoàn thiện sắc nét, sẵn sàng để xuất file.</p>
+              </div>
+            </div>
+
+            <div class="website-order-direct-box">
+              <button
+                type="button"
+                class="btn-create-order-highlight"
+                (click)="applyAndCreateWebsiteOrder()"
+                title="Tạo đơn tuyển dụng trực tiếp trên website từ dữ liệu và poster này"
+              >
+                <i class="fas fa-cloud-arrow-up me-2"></i> ĐĂNG ĐƠN LÊN WEBSITE
+              </button>
+            </div>
+
+            <div class="export-group">
+              <span class="export-label">Tải xuống poster ngay:</span>
+              <button type="button" class="btn-export-primary" (click)="downloadDirectly('png')" [disabled]="exporting">
+                <i class="fas fa-download me-2"></i> Tải ảnh nét cao (PNG)
+              </button>
+              <div class="export-sub-buttons">
+                <button type="button" class="btn-export-secondary" (click)="downloadDirectly('jpg')" [disabled]="exporting">
+                  <i class="fas fa-file-image me-1"></i> Ảnh nhẹ (JPG)
+                </button>
+                <button type="button" class="btn-export-secondary" (click)="downloadDirectly('pdf')" [disabled]="exporting">
+                  <i class="fas fa-file-pdf me-1"></i> File in (PDF)
+                </button>
+              </div>
+              <div class="export-feedback" *ngIf="exportMessage">
+                <i class="fas fa-check-circle me-1"></i> {{ exportMessage }}
+              </div>
+            </div>
+
+            <div class="template-quick-switch">
+              <span>Mẫu đang dùng: <strong>{{ selectedTemplateName }}</strong></span>
+              <button type="button" class="btn-link-action" (click)="changeTemplate('qa_preview')">
+                <i class="fas fa-palette me-1"></i> Đổi mẫu poster
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Modal -->
+    <footer class="ai-modal-footer">
+      <div class="footer-left">
+        <button type="button" class="btn-footer-secondary" (click)="close()">
+          <i class="fas fa-xmark me-1"></i> Đóng
+        </button>
+      </div>
+
+      <div class="footer-right">
+        <!-- Nút khi ở bước soát thông tin -->
+        <button
+          type="button"
+          class="btn-footer-outline"
+          *ngIf="currentStep === 'review_data'"
+          (click)="resetToUpload()"
+        >
+          <i class="fas fa-rotate-left me-1"></i> Đổi ảnh khác
+        </button>
+
+        <button
+          type="button"
+          class="btn-footer-outline text-primary"
+          *ngIf="currentStep === 'review_data'"
+          (click)="proceedToQaAndPreview()"
+        >
+          <i class="fas fa-eye me-1"></i> Xem trước poster
+        </button>
+
+        <button
+          type="button"
+          class="btn-footer-primary"
+          *ngIf="currentStep === 'review_data'"
+          (click)="applyDirectlyToForm()"
+        >
+          <i class="fas fa-check-circle me-1"></i> Áp dụng vào Poster
+        </button>
+
+        <!-- Nút khi ở bước xem kết quả -->
+        <button
+          type="button"
+          class="btn-footer-outline"
+          *ngIf="currentStep === 'qa_preview'"
+          (click)="goToStep('review_data')"
+        >
+          <i class="fas fa-arrow-left me-1"></i> Sửa lại thông tin
+        </button>
+
+        <button
+          type="button"
+          class="btn-footer-primary"
+          *ngIf="currentStep === 'qa_preview'"
+          (click)="applyDirectlyToForm()"
+        >
+          <i class="fas fa-check-circle me-1"></i> Hoàn tất & Điền vào trang
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>

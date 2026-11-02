@@ -18,25 +18,31 @@ describe('KatakanaPage', () => {
   afterEach(() => localStorage.removeItem(KATAKANA_PROGRESS_STORAGE_KEY));
 
   it('should render a four-answer Katakana quiz', () => {
-    expect(fixture.nativeElement.querySelectorAll('.answer-grid button').length).toBe(4);
+    component.switchView('practice');
+    component.setTab('quiz');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.hira-mc-option').length).toBe(4);
     const question = component.currentQuestion!;
     component.chooseAnswer(question.correctAnswer);
     fixture.detectChanges();
     expect(component.quizScore).toBe(1);
-    expect(fixture.nativeElement.querySelector('.answer-feedback.is-correct')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.hira-feedback-banner.is-correct')).toBeTruthy();
   });
 
   it('should render two writing pads for a compound sound', () => {
+    component.switchView('practice');
     component.setTab('writing');
     component.selectWritingItem(KATAKANA_ITEMS.find((item) => item.id === 'kya')!);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('app-stroke-pad').length).toBe(2);
-    expect(fixture.nativeElement.querySelector('.writing-tool-header h2')?.textContent).toContain(
+    expect(fixture.nativeElement.querySelector('.canvas-title-group h3')?.textContent).toContain(
       'キャ',
     );
   });
 
   it('should avoid an immediate repeat in continuous mode', () => {
+    component.switchView('practice');
+    component.setTab('quiz');
     component.setQuizMode('continuous');
     const first = component.currentQuestion!;
     component.chooseAnswer(first.correctAnswer);

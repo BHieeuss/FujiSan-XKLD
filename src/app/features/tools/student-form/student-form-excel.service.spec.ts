@@ -5,6 +5,7 @@ import { createStudentFormData } from './student-form.model';
 
 const SPREADSHEET_NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const DRAWING_NS = 'http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing';
+const DRAWING_TEXT_NS = 'http://schemas.openxmlformats.org/drawingml/2006/main';
 
 describe('StudentFormExcelService', () => {
   let service: StudentFormExcelService;
@@ -20,7 +21,7 @@ describe('StudentFormExcelService', () => {
     service = TestBed.inject(StudentFormExcelService);
   });
 
-  it('should fill the original Excel template and remove the sample photo', async () => {
+  it('should fill the original Excel template with clean cell text and centered checkbox shapes', async () => {
     const data = createStudentFormData();
     data.fullName = 'Nguyễn Văn A';
     data.idNumber = '012345678901';
@@ -39,13 +40,25 @@ describe('StudentFormExcelService', () => {
     const sheet = parseXml(await zip.file('xl/worksheets/sheet1.xml')!.async('string'));
     const drawing = parseXml(await zip.file('xl/drawings/drawing1.xml')!.async('string'));
 
+    // Clean cell text without stray 'X'
     expect(cellText(sheet, 'B3')).toBe('NGUYỄN VĂN A');
     expect(cellText(sheet, 'G3')).toContain('012345678901');
-    expect(cellText(sheet, 'G5')).toBe('Chưa kết hôn X');
+    expect(cellText(sheet, 'G5')).toBe('Chưa kết hôn');
     expect(cellText(sheet, 'J9')).toBe('Có');
-    expect(cellText(sheet, 'K9')).toBe('Không X');
+    expect(cellText(sheet, 'K9')).toBe('Không');
     expect(cellText(sheet, 'C28')).toBe('THPT NGUYỄN DU');
     expect(cellText(sheet, 'F28')).toBe('Công nghệ thông tin');
+
+    // Residual template rows are wiped clean
+    expect(cellText(sheet, 'C29')).toBe('');
+    expect(cellText(sheet, 'C30')).toBe('');
+
+    // Checkbox shape tests: Shape 24 (single) and Shape 54 (colorBlind no) should have 'X'
+    expect(shapeHasX(drawing, '24')).toBeTrue();
+    expect(shapeHasX(drawing, '54')).toBeTrue();
+    // Shape 22 (married) should NOT have 'X'
+    expect(shapeHasX(drawing, '22')).toBeFalse();
+
     expect(zip.file('xl/worksheets/sheet2.xml')).toBeTruthy();
     expect(zip.file('xl/worksheets/sheet3.xml')).toBeTruthy();
     expect(zip.file('xl/media/image1.png')).toBeNull();
@@ -81,4 +94,22 @@ function cellText(sheet: XMLDocument, reference: string): string {
     (candidate) => candidate.getAttribute('r') === reference,
   );
   return cell?.textContent ?? '';
+}
+
+function shapeHasX(drawing: XMLDocument, shapeId: string): boolean {
+  const anchors = Array.from(drawing.documentElement.childNodes).filter(
+    (node): node is Element => node.nodeType === 1,
+  );
+  for (const anchor of anchors) {
+    const cNvPr =
+      anchor.getElementsByTagNameNS(DRAWING_NS, 'cNvPr')[0] ||
+      anchor.getElementsByTagName('xdr:cNvPr')[0];
+    if (cNvPr?.getAttribute('id') === shapeId) {
+      const txBody =
+        anchor.getElementsByTagNameNS(DRAWING_NS, 'txBody')[0] ||
+        anchor.getElementsByTagName('xdr:txBody')[0];
+      return (txBody?.textContent || '').includes('X');
+    }
+  }
+  return false;
 }

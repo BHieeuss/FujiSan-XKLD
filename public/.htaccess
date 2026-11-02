@@ -26,6 +26,7 @@ Options -Indexes
 
   RewriteRule ^admin-api/(.*)$ api/admin/$1 [L]
   RewriteRule ^orders-api/(.*)$ api/$1 [L]
+  RewriteRule ^student-api/(.*)$ api/$1 [L]
 
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

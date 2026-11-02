@@ -56,6 +56,7 @@ export class StudentFormExcelService {
     const zip = await JSZip.loadAsync(templateBytes);
     const sheet = await this.readXml(zip, 'xl/worksheets/sheet1.xml');
 
+    this.ensureFitToPage(sheet);
     this.writeBasicInformation(sheet, data);
     this.writeHealthInformation(sheet, data);
     this.writeGoalsAndPersonality(sheet, data);
@@ -64,7 +65,7 @@ export class StudentFormExcelService {
     this.writeFamily(sheet, data);
 
     zip.file('xl/worksheets/sheet1.xml', this.serializeXml(sheet));
-    await this.updateDrawing(zip, photo);
+    await this.updateDrawing(zip, data, photo);
 
     return zip.generateAsync({
       type: 'uint8array',
@@ -79,63 +80,42 @@ export class StudentFormExcelService {
     this.setCell(sheet, 'G3', `Số CMT/CCCD: ${this.clean(data.idNumber)}`);
     this.setCell(sheet, 'B4', this.formatDate(data.birthDate));
     this.setCell(sheet, 'G4', `Ngày cấp: ${this.formatDate(data.idIssueDate)}`);
-    this.setCell(
-      sheet,
-      'C5',
-      `${this.selected('Đã kết hôn', data.maritalStatus === 'married')}     ${this.selected(
-        'Ly thân',
-        data.maritalStatus === 'separated',
-      )}`,
-    );
-    this.setCell(sheet, 'E5', this.selected('Đã ly hôn', data.maritalStatus === 'divorced'));
-    this.setCell(sheet, 'G5', this.selected('Chưa kết hôn', data.maritalStatus === 'single'));
+    this.setCell(sheet, 'C5', 'Đã kết hôn     Ly thân');
+    this.setCell(sheet, 'E5', 'Đã ly hôn');
+    this.setCell(sheet, 'G5', 'Chưa kết hôn');
     this.setCell(sheet, 'B6', this.uppercase(data.address));
     this.setCell(sheet, 'J5', `TTS: ${this.clean(data.phone)}`);
     this.setCell(sheet, 'J6', `Người thân: ${this.clean(data.relativePhone)}`);
   }
 
   private writeHealthInformation(sheet: XMLDocument, data: StudentFormData): void {
-    this.setCell(
-      sheet,
-      'A8',
-      `Thị lực (Mắt): ${this.selected('Có kính', data.eyesight === 'glasses')}        ${this.selected(
-        'Không kính',
-        data.eyesight === 'no-glasses',
-      )}`,
-    );
-    this.setCell(
-      sheet,
-      'F8',
-      `Thuận tay: ${this.selected('Phải', data.handedness === 'right')}        ${this.selected(
-        'Trái',
-        data.handedness === 'left',
-      )}`,
-    );
-    this.setCell(sheet, 'A9', `Mù màu: ${this.yesNoText(data.colorBlind)}`);
-    this.writeYesNoCells(sheet, 'F9', 'J9', 'K9', 'Chân tay có dị tật không?', data.limbDisability);
+    this.setCell(sheet, 'A8', 'Thị lực (Mắt):  Có kính:                 Không kính');
+    this.setCell(sheet, 'F8', 'Thuận tay:             Phải              Trái       ');
+    this.setCell(sheet, 'A9', 'Mù màu:                      Có                         Không');
+    this.setCell(sheet, 'F9', 'Chân tay có dị tật không?');
+    this.setCell(sheet, 'J9', 'Có');
+    this.setCell(sheet, 'K9', 'Không');
     this.setCell(sheet, 'A10', `Chiều cao: ${this.clean(data.height)} cm`);
     this.setCell(sheet, 'C10', `Cân nặng: ${this.clean(data.weight)} kg`);
-    this.writeYesNoCells(sheet, 'F10', 'J10', 'K10', 'Đã phẫu thuật lần nào chưa?', data.surgery);
-    this.setCell(
-      sheet,
-      'A11',
-      `Nhóm máu: ${(['A', 'B', 'AB', 'O'] as const)
-        .map((type) => this.selected(type, data.bloodType === type))
-        .join('        ')}`,
-    );
-    this.writeYesNoCells(sheet, 'F11', 'J11', 'K11', 'Có hình xăm không?', data.tattoo);
-    this.setCell(
-      sheet,
-      'A12',
-      `Gia đình có tiền sử bệnh lý không? ${this.yesNoText(data.familyMedicalHistory)}`,
-    );
-    this.writeYesNoCells(sheet, 'F12', 'J12', 'K12', 'Có uống bia, rượu không?', data.alcohol);
+    this.setCell(sheet, 'F10', 'Đã phẫu thuật lần nào chưa?');
+    this.setCell(sheet, 'J10', 'Có');
+    this.setCell(sheet, 'K10', 'Không');
+    this.setCell(sheet, 'A11', 'Nhóm máu:         A                B                AB                 O');
+    this.setCell(sheet, 'F11', 'Có hình xăm không?');
+    this.setCell(sheet, 'J11', 'Có');
+    this.setCell(sheet, 'K11', 'Không');
+    this.setCell(sheet, 'A12', 'Gia đình có tiền sử bệnh lý không? Có                   Không');
+    this.setCell(sheet, 'F12', 'Có uống bia, rượu không?');
+    this.setCell(sheet, 'J12', 'Có');
+    this.setCell(sheet, 'K12', 'Không');
     this.setCell(
       sheet,
       'A13',
       `Chuyên ngành/chuyên môn đã được đào tạo\n${this.uppercase(data.trainedSpecialty)}`,
     );
-    this.writeYesNoCells(sheet, 'F13', 'J13', 'K13', 'Có hút thuốc không?', data.smoking);
+    this.setCell(sheet, 'F13', 'Có hút thuốc không?');
+    this.setCell(sheet, 'J13', 'Có');
+    this.setCell(sheet, 'K13', 'Không');
     this.setCell(sheet, 'F14', `Tôn giáo: ${this.clean(data.religion)}`);
     this.setCell(sheet, 'J14', '');
     this.setCell(sheet, 'K14', '');
@@ -145,8 +125,8 @@ export class StudentFormExcelService {
     this.setCell(sheet, 'F15', `Điểm mạnh (Trong tính cách): ${this.clean(data.strengths)}`);
     this.setCell(sheet, 'F16', `Điểm yếu (Trong tính cách): ${this.clean(data.weaknesses)}`);
     this.setCell(sheet, 'F17', `Sở thích: ${this.clean(data.hobbies)}`);
-    this.setCell(sheet, 'C17', this.yesNoText(data.collectiveLiving));
-    this.setCell(sheet, 'C18', this.yesNoText(data.canCook));
+    this.setCell(sheet, 'C17', 'Có                      Không');
+    this.setCell(sheet, 'C18', 'Có                      Không');
     this.setCell(sheet, 'F18', `Tự nhận xét về tính cách: ${this.clean(data.selfAssessment)}`);
     this.setCell(
       sheet,
@@ -168,71 +148,88 @@ export class StudentFormExcelService {
     this.setCell(
       sheet,
       'D24',
-      `${this.selected('Đã từng', data.abroadBefore === 'yes')}     Nước nào: ${this.clean(
-        data.abroadCountry,
-      )}     Năm nào: ${this.clean(data.abroadYear)}`,
+      `Đã từng                      Nước nào: ${this.clean(data.abroadCountry)}                    Năm nào: ${this.clean(data.abroadYear)}`,
     );
-    this.setCell(sheet, 'J24', this.selected('Chưa từng', data.abroadBefore === 'no'));
+    this.setCell(sheet, 'J24', 'Chưa từng');
     this.setCell(
       sheet,
       'A25',
-      `Anh/chị đã từng làm thủ tục đăng ký xin VISA đi Nhật lần nào chưa?  ${this.selected(
-        'Đã đăng ký',
-        data.visaApplied === 'yes',
-      )}`,
+      'Anh/chị đã từng làm thủ tục đăng ký xin VISA đi Nhật lần nào chưa?  Đã đăng ký',
     );
-    this.setCell(sheet, 'J25', this.selected('Chưa từng', data.visaApplied === 'no'));
+    this.setCell(sheet, 'J25', 'Chưa từng');
   }
 
   private writeEducation(sheet: XMLDocument, data: StudentFormData): void {
-    data.education.forEach((entry, index) => {
+    for (let index = 0; index < 4; index++) {
       const row = 28 + index;
-      const [majorStart, majorEnd] = this.splitText(entry.major, 38);
-      this.setCell(sheet, `A${row}`, this.clean(entry.from));
-      this.setCell(sheet, `B${row}`, this.clean(entry.to));
-      this.setCell(sheet, `C${row}`, this.uppercase(entry.school));
-      this.setCell(sheet, `F${row}`, this.clean(majorStart));
-      this.setCell(sheet, `J${row}`, this.clean(majorEnd));
-    });
+      const entry = data.education[index];
+      if (entry && (entry.from || entry.to || entry.school || entry.major)) {
+        const [majorStart, majorEnd] = this.splitText(entry.major, 38);
+        this.setCell(sheet, `A${row}`, this.clean(entry.from));
+        this.setCell(sheet, `B${row}`, this.clean(entry.to));
+        this.setCell(sheet, `C${row}`, this.uppercase(entry.school));
+        this.setCell(sheet, `F${row}`, this.clean(majorStart));
+        this.setCell(sheet, `J${row}`, this.clean(majorEnd));
+      } else {
+        this.setCell(sheet, `A${row}`, '');
+        this.setCell(sheet, `B${row}`, '');
+        this.setCell(sheet, `C${row}`, '');
+        this.setCell(sheet, `F${row}`, '');
+        this.setCell(sheet, `J${row}`, '');
+      }
+    }
 
     this.setCell(
       sheet,
       'A32',
-      `Tình trạng học tập:   ${this.selected('Học muộn', data.studiedLate)}     ${this.selected(
-        'Học sớm',
-        data.studiedEarly,
-      )}     ${this.selected('Học lại', data.repeatedGrade)}`,
+      'Tình trạng học tập:   Học muộn                                    Học sớm                                    Học lại',
     );
     this.setCell(sheet, 'J32', `Năm nào: ${this.clean(data.studyStatusYear)}`);
   }
 
   private writeWorkHistory(sheet: XMLDocument, data: StudentFormData): void {
-    data.workHistory.forEach((entry, index) => {
+    for (let index = 0; index < 4; index++) {
       const row = 35 + index;
-      this.setCell(sheet, `A${row}`, this.clean(entry.from));
-      this.setCell(sheet, `B${row}`, this.clean(entry.to));
-      this.setCell(sheet, `C${row}`, this.uppercase(entry.company));
-      this.setCell(sheet, `F${row}`, this.uppercase(entry.job));
-    });
+      const entry = data.workHistory[index];
+      if (entry && (entry.from || entry.to || entry.company || entry.job)) {
+        this.setCell(sheet, `A${row}`, this.clean(entry.from));
+        this.setCell(sheet, `B${row}`, this.clean(entry.to));
+        this.setCell(sheet, `C${row}`, this.uppercase(entry.company));
+        this.setCell(sheet, `F${row}`, this.uppercase(entry.job));
+      } else {
+        this.setCell(sheet, `A${row}`, '');
+        this.setCell(sheet, `B${row}`, '');
+        this.setCell(sheet, `C${row}`, '');
+        this.setCell(sheet, `F${row}`, '');
+      }
+    }
   }
 
   private writeFamily(sheet: XMLDocument, data: StudentFormData): void {
-    data.family.forEach((member, index) => {
+    for (let index = 0; index < 6; index++) {
       const row = 42 + index;
-      this.setCell(sheet, `A${row}`, this.uppercase(member.fullName));
-      this.setCell(sheet, `C${row}`, this.uppercase(member.relationship));
-      this.setCell(sheet, `E${row}`, this.clean(member.birthYear));
-      this.setCell(sheet, `F${row}`, this.uppercase(member.occupation));
-      this.setCell(sheet, `H${row}`, member.livingStatus === 'together' ? 'X' : '');
-      this.setCell(sheet, `I${row}`, member.livingStatus === 'separate' ? 'X' : '');
-    });
+      const member = data.family[index];
+      if (member && (member.fullName || member.relationship || member.occupation)) {
+        this.setCell(sheet, `A${row}`, this.uppercase(member.fullName));
+        this.setCell(sheet, `C${row}`, this.uppercase(member.relationship));
+        this.setCell(sheet, `E${row}`, this.clean(member.birthYear));
+        this.setCell(sheet, `F${row}`, this.uppercase(member.occupation));
+        this.setCell(sheet, `H${row}`, member.livingStatus === 'together' ? 'X' : '');
+        this.setCell(sheet, `I${row}`, member.livingStatus === 'separate' ? 'X' : '');
+      } else {
+        this.setCell(sheet, `A${row}`, '');
+        this.setCell(sheet, `C${row}`, '');
+        this.setCell(sheet, `E${row}`, '');
+        this.setCell(sheet, `F${row}`, '');
+        this.setCell(sheet, `H${row}`, '');
+        this.setCell(sheet, `I${row}`, '');
+      }
+    }
 
     this.setCell(
       sheet,
       'J39',
-      `Gia đình có đồng ý cho Anh/Chị đi thực tập sinh tại Nhật không?\n${this.yesNoText(
-        data.familyConsent,
-      )}`,
+      'Gia đình có đồng ý cho Anh/Chị đi thực tập sinh tại Nhật không?\nCó                    Không',
     );
     this.setCell(
       sheet,
@@ -241,19 +238,6 @@ export class StudentFormExcelService {
         data.familyJapanHistory,
       )}`,
     );
-  }
-
-  private writeYesNoCells(
-    sheet: XMLDocument,
-    labelCell: string,
-    yesCell: string,
-    noCell: string,
-    label: string,
-    value: YesNo,
-  ): void {
-    this.setCell(sheet, labelCell, label);
-    this.setCell(sheet, yesCell, this.selected('Có', value === 'yes'));
-    this.setCell(sheet, noCell, this.selected('Không', value === 'no'));
   }
 
   private setCell(sheet: XMLDocument, reference: string, value: string): void {
@@ -277,12 +261,104 @@ export class StudentFormExcelService {
     cell.appendChild(inlineString);
   }
 
-  private async updateDrawing(zip: JSZip, photo?: File): Promise<void> {
-    const drawing = await this.readXml(zip, 'xl/drawings/drawing1.xml');
-    Array.from(drawing.getElementsByTagNameNS(DRAWING_TEXT_NS, 't')).forEach(
-      (text) => (text.textContent = ''),
-    );
+  private ensureFitToPage(sheet: XMLDocument): void {
+    let sheetPr = sheet.getElementsByTagNameNS(SPREADSHEET_NS, 'sheetPr')[0];
+    if (!sheetPr) {
+      sheetPr = sheet.createElementNS(SPREADSHEET_NS, 'sheetPr');
+      const root = sheet.documentElement;
+      root.insertBefore(sheetPr, root.firstChild);
+    }
+    let pageSetUpPr = sheetPr.getElementsByTagNameNS(SPREADSHEET_NS, 'pageSetUpPr')[0];
+    if (!pageSetUpPr) {
+      pageSetUpPr = sheet.createElementNS(SPREADSHEET_NS, 'pageSetUpPr');
+      sheetPr.appendChild(pageSetUpPr);
+    }
+    pageSetUpPr.setAttribute('fitToPage', '1');
 
+    let pageSetup = sheet.getElementsByTagNameNS(SPREADSHEET_NS, 'pageSetup')[0];
+    if (!pageSetup) {
+      pageSetup = sheet.createElementNS(SPREADSHEET_NS, 'pageSetup');
+      sheet.documentElement.appendChild(pageSetup);
+    }
+    pageSetup.setAttribute('paperSize', '9');
+    pageSetup.setAttribute('fitToWidth', '1');
+    pageSetup.setAttribute('fitToHeight', '1');
+    pageSetup.setAttribute('orientation', 'portrait');
+    pageSetup.removeAttribute('scale');
+  }
+
+  private async updateDrawing(
+    zip: JSZip,
+    data: StudentFormData,
+    photo?: File,
+  ): Promise<void> {
+    const drawing = await this.readXml(zip, 'xl/drawings/drawing1.xml');
+
+    // 1. Remove leftover sample textboxes
+    const anchors = Array.from(drawing.documentElement.childNodes).filter(
+      (node): node is Element => node.nodeType === 1,
+    );
+    for (const anchor of anchors) {
+      const cNvPr =
+        anchor.getElementsByTagNameNS(DRAWING_NS, 'cNvPr')[0] ||
+        anchor.getElementsByTagName('xdr:cNvPr')[0];
+      const name = cNvPr?.getAttribute('name') || '';
+      if (name.startsWith('TextBox')) {
+        drawing.documentElement.removeChild(anchor);
+      }
+    }
+
+    // 2. Clone EyeGlasses & EyeNoGlasses shapes if missing
+    this.ensureEyesightShapes(drawing);
+
+    // 3. Compute active shape IDs for checkboxes
+    const activeShapeIds = this.resolveActiveShapeIds(data);
+
+    // 4. Update each shape in drawing
+    const currentAnchors = Array.from(drawing.documentElement.childNodes).filter(
+      (node): node is Element => node.nodeType === 1,
+    );
+    for (const anchor of currentAnchors) {
+      const cNvPr =
+        anchor.getElementsByTagNameNS(DRAWING_NS, 'cNvPr')[0] ||
+        anchor.getElementsByTagName('xdr:cNvPr')[0];
+      const shapeId = cNvPr?.getAttribute('id') || '';
+      const sp =
+        anchor.getElementsByTagNameNS(DRAWING_NS, 'sp')[0] ||
+        anchor.getElementsByTagName('xdr:sp')[0];
+      if (!sp) continue;
+
+      // Remove any existing txBody
+      const existingTx =
+        sp.getElementsByTagNameNS(DRAWING_NS, 'txBody')[0] ||
+        sp.getElementsByTagName('xdr:txBody')[0];
+      if (existingTx) {
+        sp.removeChild(existingTx);
+      }
+
+      // Update text rectangle boundary in custom geometry to match shape extents
+      const ext =
+        anchor.getElementsByTagNameNS(DRAWING_NS, 'ext')[0] ||
+        anchor.getElementsByTagName('xdr:ext')[0];
+      const cx = ext?.getAttribute('cx') || '113030';
+      const cy = ext?.getAttribute('cy') || '121920';
+      const rect =
+        sp.getElementsByTagNameNS(DRAWING_TEXT_NS, 'rect')[0] ||
+        sp.getElementsByTagName('a:rect')[0];
+      if (rect) {
+        rect.setAttribute('l', '0');
+        rect.setAttribute('t', '0');
+        rect.setAttribute('r', cx);
+        rect.setAttribute('b', cy);
+      }
+
+      // If active, inject centered 'X' txBody
+      if (activeShapeIds.has(shapeId)) {
+        this.insertCenteredX(drawing, sp);
+      }
+    }
+
+    // 5. Handle student portrait photo
     const pictureAnchor = Array.from(drawing.documentElement.children).find(
       (element) => element.getElementsByTagNameNS(DRAWING_NS, 'pic').length > 0,
     );
@@ -301,6 +377,275 @@ export class StudentFormExcelService {
     }
 
     zip.file('xl/drawings/drawing1.xml', this.serializeXml(drawing));
+  }
+
+  private ensureEyesightShapes(drawing: XMLDocument): void {
+    let hasShape101 = false;
+    let shape55: Element | null = null;
+
+    for (const anchor of Array.from(drawing.documentElement.childNodes).filter(
+      (node): node is Element => node.nodeType === 1,
+    )) {
+      const cNvPr =
+        anchor.getElementsByTagNameNS(DRAWING_NS, 'cNvPr')[0] ||
+        anchor.getElementsByTagName('xdr:cNvPr')[0];
+      const id = cNvPr?.getAttribute('id');
+      if (id === '101') {
+        hasShape101 = true;
+      }
+      if (id === '55' || cNvPr?.getAttribute('name') === 'Shape 55') {
+        shape55 = anchor;
+      }
+    }
+
+    if (!hasShape101 && shape55) {
+      // Shape 101: EyeGlasses
+      const eyeGlasses = shape55.cloneNode(true) as Element;
+      const pr1 =
+        eyeGlasses.getElementsByTagNameNS(DRAWING_NS, 'cNvPr')[0] ||
+        eyeGlasses.getElementsByTagName('xdr:cNvPr')[0];
+      pr1.setAttribute('id', '101');
+      pr1.setAttribute('name', 'Shape EyeGlasses');
+      const row1 =
+        eyeGlasses.getElementsByTagNameNS(DRAWING_NS, 'row')[0] ||
+        eyeGlasses.getElementsByTagName('xdr:row')[0];
+      row1.textContent = '7';
+      const off1 =
+        eyeGlasses.getElementsByTagNameNS(DRAWING_TEXT_NS, 'off')[0] ||
+        eyeGlasses.getElementsByTagName('a:off')[0];
+      off1.setAttribute('y', '1550035');
+      drawing.documentElement.appendChild(eyeGlasses);
+
+      // Shape 102: EyeNoGlasses
+      const eyeNoGlasses = shape55.cloneNode(true) as Element;
+      const pr2 =
+        eyeNoGlasses.getElementsByTagNameNS(DRAWING_NS, 'cNvPr')[0] ||
+        eyeNoGlasses.getElementsByTagName('xdr:cNvPr')[0];
+      pr2.setAttribute('id', '102');
+      pr2.setAttribute('name', 'Shape EyeNoGlasses');
+      const col2 =
+        eyeNoGlasses.getElementsByTagNameNS(DRAWING_NS, 'col')[0] ||
+        eyeNoGlasses.getElementsByTagName('xdr:col')[0];
+      col2.textContent = '3';
+      const colOff2 =
+        eyeNoGlasses.getElementsByTagNameNS(DRAWING_NS, 'colOff')[0] ||
+        eyeNoGlasses.getElementsByTagName('xdr:colOff')[0];
+      colOff2.textContent = '296926';
+      const row2 =
+        eyeNoGlasses.getElementsByTagNameNS(DRAWING_NS, 'row')[0] ||
+        eyeNoGlasses.getElementsByTagName('xdr:row')[0];
+      row2.textContent = '7';
+      const off2 =
+        eyeNoGlasses.getElementsByTagNameNS(DRAWING_TEXT_NS, 'off')[0] ||
+        eyeNoGlasses.getElementsByTagName('a:off')[0];
+      off2.setAttribute('x', '2753995');
+      off2.setAttribute('y', '1550035');
+      drawing.documentElement.appendChild(eyeNoGlasses);
+    }
+  }
+
+  private resolveActiveShapeIds(data: StudentFormData): Set<string> {
+    const ids = new Set<string>();
+
+    // Marital Status (Row 5)
+    switch (data.maritalStatus) {
+      case 'married':
+        ids.add('22');
+        break;
+      case 'separated':
+        ids.add('56');
+        break;
+      case 'divorced':
+        ids.add('23');
+        break;
+      case 'single':
+        ids.add('24');
+        break;
+    }
+
+    // Eyesight (Row 8)
+    if (data.eyesight === 'glasses') {
+      ids.add('101');
+    } else if (data.eyesight === 'no-glasses') {
+      ids.add('102');
+    }
+
+    // Handedness (Row 8)
+    if (data.handedness === 'right') {
+      ids.add('38');
+    } else if (data.handedness === 'left') {
+      ids.add('71');
+    }
+
+    // Color Blind (Row 9)
+    if (data.colorBlind === 'yes') {
+      ids.add('55');
+    } else if (data.colorBlind === 'no') {
+      ids.add('54');
+    }
+
+    // Limb Disability (Row 9)
+    if (data.limbDisability === 'yes') {
+      ids.add('3');
+    } else if (data.limbDisability === 'no') {
+      ids.add('65');
+    }
+
+    // Surgery (Row 10)
+    if (data.surgery === 'yes') {
+      ids.add('60');
+    } else if (data.surgery === 'no') {
+      ids.add('66');
+    }
+
+    // Blood Type (Row 11)
+    switch (data.bloodType) {
+      case 'A':
+        ids.add('40');
+        break;
+      case 'B':
+        ids.add('53');
+        break;
+      case 'AB':
+        ids.add('8');
+        break;
+      case 'O':
+        ids.add('41');
+        break;
+    }
+
+    // Tattoo (Row 11)
+    if (data.tattoo === 'yes') {
+      ids.add('61');
+    } else if (data.tattoo === 'no') {
+      ids.add('67');
+    }
+
+    // Family Medical History (Row 12)
+    if (data.familyMedicalHistory === 'yes') {
+      ids.add('32');
+    } else if (data.familyMedicalHistory === 'no') {
+      ids.add('33');
+    }
+
+    // Alcohol (Row 12)
+    if (data.alcohol === 'yes') {
+      ids.add('62');
+    } else if (data.alcohol === 'no') {
+      ids.add('68');
+    }
+
+    // Smoking (Row 13)
+    if (data.smoking === 'yes') {
+      ids.add('63');
+    } else if (data.smoking === 'no') {
+      ids.add('69');
+    }
+
+    // Religion (Row 14)
+    const rel = this.clean(data.religion).toLowerCase();
+    if (rel && rel !== 'không' && rel !== 'khong' && rel !== 'none') {
+      ids.add('64');
+    } else if (data.religion) {
+      ids.add('70');
+    }
+
+    // Collective Living (Row 17)
+    if (data.collectiveLiving === 'yes') {
+      ids.add('25');
+    } else if (data.collectiveLiving === 'no') {
+      ids.add('26');
+    }
+
+    // Can Cook (Row 18)
+    if (data.canCook === 'yes') {
+      ids.add('28');
+    } else if (data.canCook === 'no') {
+      ids.add('27');
+    }
+
+    // Abroad Before (Row 24)
+    if (data.abroadBefore === 'yes') {
+      ids.add('29');
+    } else if (data.abroadBefore === 'no') {
+      ids.add('30');
+    }
+
+    // Visa Applied (Row 25)
+    if (data.visaApplied === 'yes') {
+      ids.add('31');
+    } else if (data.visaApplied === 'no') {
+      ids.add('52');
+    }
+
+    // Study Status (Row 32)
+    if (data.studiedLate) {
+      ids.add('34');
+    }
+    if (data.studiedEarly) {
+      ids.add('35');
+    }
+    if (data.repeatedGrade) {
+      ids.add('36');
+    }
+
+    // Family Consent (Row 39/41)
+    if (data.familyConsent === 'yes') {
+      ids.add('72');
+    } else if (data.familyConsent === 'no') {
+      ids.add('73');
+    }
+
+    return ids;
+  }
+
+  private insertCenteredX(drawing: XMLDocument, sp: Element): void {
+    const txBody = drawing.createElementNS(DRAWING_NS, 'xdr:txBody');
+
+    const bodyPr = drawing.createElementNS(DRAWING_TEXT_NS, 'a:bodyPr');
+    bodyPr.setAttribute('anchor', 'ctr');
+    bodyPr.setAttribute('anchorCtr', '1');
+    bodyPr.setAttribute('lIns', '0');
+    bodyPr.setAttribute('tIns', '0');
+    bodyPr.setAttribute('rIns', '0');
+    bodyPr.setAttribute('bIns', '0');
+    bodyPr.setAttribute('vert', 'horz');
+    txBody.appendChild(bodyPr);
+
+    const lstStyle = drawing.createElementNS(DRAWING_TEXT_NS, 'a:lstStyle');
+    txBody.appendChild(lstStyle);
+
+    const p = drawing.createElementNS(DRAWING_TEXT_NS, 'a:p');
+    const pPr = drawing.createElementNS(DRAWING_TEXT_NS, 'a:pPr');
+    pPr.setAttribute('algn', 'ctr');
+    p.appendChild(pPr);
+
+    const r = drawing.createElementNS(DRAWING_TEXT_NS, 'a:r');
+    const rPr = drawing.createElementNS(DRAWING_TEXT_NS, 'a:rPr');
+    rPr.setAttribute('lang', 'en-US');
+    rPr.setAttribute('sz', '750');
+    rPr.setAttribute('b', '1');
+
+    const solidFill = drawing.createElementNS(DRAWING_TEXT_NS, 'a:solidFill');
+    const srgbClr = drawing.createElementNS(DRAWING_TEXT_NS, 'a:srgbClr');
+    srgbClr.setAttribute('val', '000000');
+    solidFill.appendChild(srgbClr);
+    rPr.appendChild(solidFill);
+
+    const latin = drawing.createElementNS(DRAWING_TEXT_NS, 'a:latin');
+    latin.setAttribute('typeface', 'Arial');
+    rPr.appendChild(latin);
+
+    r.appendChild(rPr);
+
+    const t = drawing.createElementNS(DRAWING_TEXT_NS, 'a:t');
+    t.textContent = 'X';
+    r.appendChild(t);
+
+    p.appendChild(r);
+    txBody.appendChild(p);
+
+    sp.appendChild(txBody);
   }
 
   private async photoToPng(file: File): Promise<Uint8Array> {
@@ -355,17 +700,6 @@ export class StudentFormExcelService {
   private serializeXml(document: XMLDocument): string {
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${new XMLSerializer().serializeToString(
       document.documentElement,
-    )}`;
-  }
-
-  private selected(label: string, active: boolean): string {
-    return `${label}${active ? ' X' : ''}`;
-  }
-
-  private yesNoText(value: YesNo): string {
-    return `${this.selected('Có', value === 'yes')}        ${this.selected(
-      'Không',
-      value === 'no',
     )}`;
   }
 

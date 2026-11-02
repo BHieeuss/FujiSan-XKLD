@@ -4,11 +4,25 @@ export interface AdminSession {
   authenticated: true;
   username: string;
   csrfToken: string;
+  fullName?: string;
+  email?: string;
+  roleId?: string;
+  roleName?: string;
+  isSuperAdmin?: boolean;
+  dataScope?: string;
+  effectivePermissions?: string[];
 }
 
 interface AdminApiResponse {
   authenticated?: boolean;
   username?: string;
+  fullName?: string;
+  email?: string;
+  roleId?: string;
+  roleName?: string;
+  isSuperAdmin?: boolean;
+  dataScope?: string;
+  effectivePermissions?: string[];
   csrfToken?: string;
   message?: string;
   retryAfter?: number;
@@ -87,6 +101,33 @@ export class AdminAuthService {
     this.storeAuthenticatedSession(response);
   }
 
+  hasPermission(permission: string): boolean {
+    const s = this.session();
+    if (!s) return false;
+    if (s.isSuperAdmin || s.username === 'admin') return true;
+    return !!s.effectivePermissions && s.effectivePermissions.includes(permission);
+  }
+
+  hasAnyPermission(permissions: string[]): boolean {
+    const s = this.session();
+    if (!s) return false;
+    if (s.isSuperAdmin || s.username === 'admin') return true;
+    if (!s.effectivePermissions) return false;
+    return permissions.some(p => s.effectivePermissions!.includes(p));
+  }
+
+  isSuperAdminUser(): boolean {
+    const s = this.session();
+    return !!s && (s.isSuperAdmin === true || s.username === 'admin');
+  }
+
+  getDataScope(): string {
+    const s = this.session();
+    if (!s) return 'own';
+    if (s.isSuperAdmin || s.username === 'admin') return 'all';
+    return s.dataScope || 'assigned';
+  }
+
   private async fetchSession(): Promise<boolean> {
     try {
       const response = await this.request('session.php');
@@ -111,6 +152,13 @@ export class AdminAuthService {
       authenticated: true,
       username: response.username,
       csrfToken: response.csrfToken,
+      fullName: response.fullName || response.username,
+      email: response.email || '',
+      roleId: response.roleId || 'super_admin',
+      roleName: response.roleName || 'Quản trị viên',
+      isSuperAdmin: response.isSuperAdmin ?? (response.username === 'admin'),
+      dataScope: response.dataScope || 'all',
+      effectivePermissions: response.effectivePermissions || [],
     });
   }
 

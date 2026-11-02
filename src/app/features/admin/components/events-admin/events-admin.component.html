@@ -1,0 +1,995 @@
+<div class="events-admin-container" [class.mode-designer]="isEditorOpen">
+  <!-- =================================================================== -->
+  <!-- 1. MANAGEMENT LIST VIEW                                             -->
+  <!-- =================================================================== -->
+  @if (!isEditorOpen) {
+  <div class="list-view-container">
+    <!-- Top Page Header -->
+    <header class="events-page-header">
+      <div class="header-content">
+        <span class="header-eyebrow">
+          <i class="fas fa-bullhorn"></i> Truyền thông & Tiếp cận
+        </span>
+        <h1 class="header-title">Quản Lý Sự Kiện & Thông Báo</h1>
+        <p class="header-desc">
+          Thiết lập các chiến dịch thông báo, popup giữa/góc màn hình, thanh thông báo đầu trang và banner sự kiện trên
+          toàn hệ thống VieJap.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        @if (auth.hasPermission('events.create')) {
+        <button type="button" class="btn btn-primary" (click)="openCreateModal()">
+          <i class="fas fa-plus-circle"></i>
+          <span>Tạo sự kiện mới</span>
+        </button>
+        }
+      </div>
+    </header>
+
+    <!-- Stats Overview Cards -->
+    <section class="stats-overview" aria-label="Thống kê tổng quan sự kiện">
+      <div class="stat-card" [class.active]="selectedStatus === 'all'" (click)="selectedStatus = 'all'; onFilterChange()">
+        <div class="stat-icon icon-blue">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Tổng số sự kiện</span>
+          <strong class="stat-value">{{ stats.total }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card" [class.active]="selectedStatus === 'published'"
+        (click)="selectedStatus = 'published'; onFilterChange()">
+        <div class="stat-icon icon-green">
+          <i class="fas fa-tower-broadcast"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Đang hiển thị</span>
+          <strong class="stat-value">{{ stats.published }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card" [class.active]="selectedStatus === 'scheduled'"
+        (click)="selectedStatus = 'scheduled'; onFilterChange()">
+        <div class="stat-icon icon-orange">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Đã lên lịch</span>
+          <strong class="stat-value">{{ stats.scheduled }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card" [class.active]="selectedStatus === 'paused'"
+        (click)="selectedStatus = 'paused'; onFilterChange()">
+        <div class="stat-icon icon-gray">
+          <i class="fas fa-pause-circle"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Tạm dừng</span>
+          <strong class="stat-value">{{ stats.paused }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card" [class.active]="selectedStatus === 'ended'"
+        (click)="selectedStatus = 'ended'; onFilterChange()">
+        <div class="stat-icon icon-red">
+          <i class="fas fa-calendar-xmark"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Đã kết thúc</span>
+          <strong class="stat-value">{{ stats.ended }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters & Search Toolbar -->
+    <section class="events-toolbar">
+      <div class="toolbar-search">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onFilterChange()"
+          placeholder="Tìm theo tên sự kiện, tiêu đề, mã số..." class="search-input" />
+        @if (searchQuery) {
+        <button type="button" class="btn-clear-search" (click)="searchQuery = ''; onFilterChange()"
+          aria-label="Xóa tìm kiếm">
+          <i class="fas fa-xmark"></i>
+        </button>
+        }
+      </div>
+
+      <div class="toolbar-filters">
+        <!-- Filter by Category -->
+        <div class="filter-item">
+          <select [(ngModel)]="selectedCategory" (change)="onFilterChange()" class="filter-select">
+            <option value="all">Tất cả danh mục</option>
+            @for (cat of categories; track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Filter by Status -->
+        <div class="filter-item">
+          <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="filter-select">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="published">Đang hiển thị</option>
+            <option value="scheduled">Đã lên lịch</option>
+            <option value="paused">Tạm dừng</option>
+            <option value="ended">Đã kết thúc</option>
+            <option value="draft">Bản nháp</option>
+          </select>
+        </div>
+
+        <!-- Filter by Format -->
+        <div class="filter-item">
+          <select [(ngModel)]="selectedFormat" (change)="onFilterChange()" class="filter-select">
+            <option value="all">Tất cả hình thức</option>
+            <option value="popup_center">Popup giữa</option>
+            <option value="popup_corner">Popup góc</option>
+            <option value="top_bar">Thanh thông báo</option>
+            <option value="index_banner">Banner trang chủ</option>
+            <option value="floating_button">Nút sự kiện nổi</option>
+            <option value="list">Danh sách</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Events Data Table -->
+    <section class="events-table-card">
+      @if (isLoading) {
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Đang tải dữ liệu sự kiện...</p>
+      </div>
+      } @else if (events.length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-calendar-plus"></i>
+        <h3>Không tìm thấy sự kiện phù hợp</h3>
+        <p>Hãy thử thay đổi bộ lọc tìm kiếm hoặc tạo sự kiện mới ngay hôm nay.</p>
+        @if (auth.hasPermission('events.create')) {
+        <button type="button" class="btn btn-outline mt-3" (click)="openCreateModal()">
+          <i class="fas fa-plus"></i> Tạo sự kiện đầu tiên
+        </button>
+        }
+      </div>
+      } @else {
+      <div class="table-responsive">
+        <table class="events-table">
+          <thead>
+            <tr>
+              <th class="col-thumb">ẢNH</th>
+              <th class="col-title">TÊN SỰ KIỆN & TIÊU ĐỀ</th>
+              <th class="col-category">DANH MỤC</th>
+              <th class="col-formats">HÌNH THỨC HIỂN THỊ</th>
+              <th class="col-schedule">LỊCH HIỂN THỊ</th>
+              <th class="col-status-metrics">TRẠNG THÁI & HIỆU QUẢ</th>
+              <th class="col-actions">THAO TÁC</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ev of events; track ev.id) {
+            <tr class="event-row" [class.row-ended]="ev.status === 'ended'">
+              <!-- Thumbnail -->
+              <td class="col-thumb">
+                <div class="thumb-wrap">
+                  <img [src]="getCoverImageUrl(ev.coverImage)" (error)="onImageError($event)" alt="Ảnh sự kiện" [alt]="ev.title" />
+                </div>
+              </td>
+
+              <!-- Title & Meta -->
+              <td class="col-title">
+                <div class="title-meta-group">
+                  <strong class="event-name" (click)="openEditModal(ev)" [title]="ev.title">
+                    {{ ev.title }}
+                  </strong>
+                  @if (ev.displayTitle && ev.displayTitle !== ev.title) {
+                  <span class="display-title" [title]="ev.displayTitle">
+                    <i class="fas fa-fire text-primary"></i> {{ ev.displayTitle }}
+                  </span>
+                  }
+                  <div class="event-sub-info">
+                    <span class="event-code">
+                      <i class="fas fa-tag"></i> {{ ev.code }}
+                    </span>
+                    @if (ev.linkToActivity) {
+                    <span class="activity-badge" title="Đã liên kết với Góc hoạt động">
+                      <i class="fas fa-link"></i> Góc hoạt động
+                    </span>
+                    }
+                  </div>
+                </div>
+              </td>
+
+              <!-- Category -->
+              <td class="col-category">
+                <span class="category-pill">{{ ev.categoryName }}</span>
+              </td>
+
+              <!-- Formats -->
+              <td class="col-formats">
+                <div class="positions-pill-list">
+                  @for (fmt of ev.displayFormats; track fmt) {
+                  <span class="pos-pill" [class]="'pill-' + fmt">
+                    <i [class]="fmt === 'popup_center' ? 'fas fa-window-restore' :
+                                fmt === 'popup_corner' ? 'fas fa-envelope-open-text' :
+                                fmt === 'top_bar' ? 'fas fa-heading' :
+                                fmt === 'index_banner' ? 'fas fa-image' :
+                                fmt === 'floating_button' ? 'fas fa-circle-dot' : 'fas fa-list-check'"></i>
+                    {{ getFormatLabel(fmt) }}
+                  </span>
+                  }
+                </div>
+              </td>
+
+              <!-- Schedule -->
+              <td class="col-schedule">
+                <div class="schedule-info">
+                  <span class="date-start" title="Thời gian bắt đầu">
+                    <i class="fas fa-calendar-check text-success"></i>
+                    {{ ev.schedule.startDate | date : 'dd/MM/yyyy HH:mm' }}
+                  </span>
+                  @if (ev.schedule.endDate) {
+                  <span class="date-end" title="Thời gian kết thúc">
+                    <i class="fas fa-calendar-xmark text-muted"></i>
+                    {{ ev.schedule.endDate | date : 'dd/MM/yyyy HH:mm' }}
+                  </span>
+                  }
+                </div>
+              </td>
+
+              <!-- Status, Priority & Metrics (Gộp 3 cột) -->
+              <td class="col-status-metrics">
+                <div class="status-metrics-group">
+                  <div class="status-priority-row">
+                    <button type="button" class="status-badge-btn" [class]="getStatusBadgeClass(ev.status)"
+                      (click)="togglePublish(ev)" [title]="ev.status === 'published' ? 'Bấm để tạm dừng' : 'Bấm để xuất bản'">
+                      <i [class]="ev.status === 'published' ? 'fas fa-circle-check' :
+                                  ev.status === 'scheduled' ? 'fas fa-clock' :
+                                  ev.status === 'paused' ? 'fas fa-circle-pause' :
+                                  ev.status === 'ended' ? 'fas fa-circle-xmark' : 'fas fa-file-pen'"></i>
+                      <span>{{ getStatusLabel(ev.status) }}</span>
+                    </button>
+                    <span class="priority-badge" [class]="'priority-' + ev.delivery.priorityLevel" title="Mức độ ưu tiên">
+                      {{ getPriorityLabel(ev.delivery.priorityLevel) }}
+                      <small>(#{{ ev.delivery.priorityOrder }})</small>
+                    </span>
+                  </div>
+                  <div class="metrics-row">
+                    <span class="metric-item" title="Lượt xem / hiển thị">
+                      <i class="fas fa-eye"></i> {{ ev.analytics.views | number }}
+                    </span>
+                    <span class="metric-dot">·</span>
+                    <span class="metric-item text-primary" title="Lượt nhấn / chuyển đổi">
+                      <i class="fas fa-arrow-pointer"></i> {{ ev.analytics.clicks | number }}
+                    </span>
+                    <span class="metric-ctr-badge" title="Tỷ lệ click CTR">
+                      CTR {{ calculateCTR(ev.analytics.clicks, ev.analytics.views) }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td class="col-actions">
+                <div class="actions-group">
+                  @if (auth.hasPermission('events.update')) {
+                  <button type="button" class="btn-action btn-edit" (click)="openEditModal(ev)" title="Chỉnh sửa sự kiện">
+                    <i class="fas fa-pen-to-square"></i>
+                  </button>
+                  }
+
+                  @if (auth.hasPermission('events.create')) {
+                  <button type="button" class="btn-action btn-copy" (click)="duplicateEvent(ev)" title="Nhân bản sự kiện">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                  }
+
+                  @if (auth.hasPermission('events.delete')) {
+                  <button type="button" class="btn-action btn-delete" (click)="confirmDelete(ev)" title="Xóa sự kiện">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                  }
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-footer">
+        <app-admin-pagination
+          [currentPage]="currentPage"
+          [totalItems]="totalItems"
+          [pageSize]="pageSize"
+          [itemLabel]="'sự kiện'"
+          (pageChange)="onPageChange($event)"
+        ></app-admin-pagination>
+      </div>
+      }
+    </section>
+  </div>
+  }
+
+  <!-- =================================================================== -->
+  <!-- 2. FULL-PAGE EVENT DESIGNER VIEW (Giao diện Trang riêng chuẩn hóa)  -->
+  <!-- =================================================================== -->
+  @if (isEditorOpen) {
+  <div class="designer-container">
+    <!-- Designer Navigation Topbar -->
+    <header class="designer-topbar">
+      <div class="topbar-left">
+        <button type="button" class="btn btn-outline btn-sm" (click)="closeEditor()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Quay lại danh sách</span>
+        </button>
+        <div class="designer-title-info">
+          <span class="badge-status" [ngClass]="getStatusBadgeClass(formEvent.status || 'draft')">
+            {{ getStatusLabel(formEvent.status || 'draft') }}
+          </span>
+          <h2 class="designer-heading" [title]="formEvent.displayTitle || formEvent.title">
+            {{ formEvent.displayTitle || formEvent.title || 'Sự kiện & Thông báo mới' }}
+          </h2>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="device-switch">
+          <button
+            type="button"
+            class="device-btn"
+            [class.active]="previewDevice === 'desktop'"
+            (click)="previewDevice = 'desktop'"
+            title="Xem giao diện trên máy tính"
+          >
+            <i class="fas fa-desktop"></i>
+            <span>Máy tính</span>
+          </button>
+          <button
+            type="button"
+            class="device-btn"
+            [class.active]="previewDevice === 'mobile'"
+            (click)="previewDevice = 'mobile'"
+            title="Xem giao diện trên điện thoại"
+          >
+            <i class="fas fa-mobile-screen"></i>
+            <span>Điện thoại</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button
+          type="button"
+          class="btn btn-outline btn-sm"
+          [disabled]="isSubmitting"
+          (click)="saveEvent('draft')"
+        >
+          <i class="fas fa-file-pen"></i>
+          <span>Lưu bản nháp</span>
+        </button>
+
+        @if (auth.hasPermission('events.publish') || auth.hasPermission('events.create') || auth.hasPermission('events.update')) {
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          [disabled]="isSubmitting"
+          (click)="saveEvent('published')"
+        >
+          <i [class]="isSubmitting ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
+          <span>{{ editingId ? 'Cập nhật & Xuất bản' : 'Xuất bản ngay' }}</span>
+        </button>
+        }
+      </div>
+    </header>
+
+    <!-- Designer Workspace: 2 Columns Side-by-Side -->
+    <div class="designer-body">
+      <!-- LEFT COLUMN: Editor Sub-tabs & Configuration Panel -->
+      <div class="designer-editor-panel">
+        <!-- Sub-Tabs Navigation -->
+        <nav class="editor-tabs" aria-label="Các bước thiết lập sự kiện">
+          <button
+            type="button"
+            class="editor-tab"
+            [class.active]="activeTab === 'basic'"
+            (click)="activeTab = 'basic'"
+          >
+            <i class="fas fa-circle-info"></i>
+            <span>1. Thông tin cơ bản</span>
+          </button>
+
+          <button
+            type="button"
+            class="editor-tab"
+            [class.active]="activeTab === 'formats'"
+            (click)="activeTab = 'formats'"
+          >
+            <i class="fas fa-cubes"></i>
+            <span>2. Hình thức hiển thị ({{ formEvent.displayFormats.length }})</span>
+          </button>
+
+          <button
+            type="button"
+            class="editor-tab"
+            [class.active]="activeTab === 'cta'"
+            (click)="activeTab = 'cta'"
+          >
+            <i class="fas fa-hand-pointer"></i>
+            <span>3. Nút hành động CTA</span>
+          </button>
+
+          <button
+            type="button"
+            class="editor-tab"
+            [class.active]="activeTab === 'schedule'"
+            (click)="activeTab = 'schedule'"
+          >
+            <i class="fas fa-calendar-days"></i>
+            <span>4. Lịch & Phạm vi</span>
+          </button>
+        </nav>
+
+        <!-- Editor Tab Content Scrollable Container -->
+        <div class="editor-tab-content">
+          <!-- STEP 1: THÔNG TIN CƠ BẢN -->
+          @if (activeTab === 'basic') {
+          <div class="wizard-panel">
+            <div class="form-grid">
+              <!-- Tên sự kiện -->
+              <div class="form-group col-12">
+                <label for="eventTitle" class="form-label required">Tên sự kiện nội bộ:</label>
+                <input id="eventTitle" type="text" [(ngModel)]="formEvent.title" class="form-control"
+                  placeholder="Ví dụ: Hội thảo lộ trình Tokutei Ginou 2026" required />
+                <small class="form-hint">Tên định danh quản lý trong trang Admin.</small>
+              </div>
+
+              <!-- Danh mục sự kiện -->
+              <div class="form-group col-6">
+                <label for="eventCategory" class="form-label required">Danh mục sự kiện:</label>
+                <select id="eventCategory" [(ngModel)]="formEvent.category" class="form-select">
+                  @for (cat of categories; track cat.id) {
+                  <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <!-- Tiêu đề hiển thị -->
+              <div class="form-group col-6">
+                <label for="eventDisplayTitle" class="form-label">Tiêu đề hiển thị (Khách xem):</label>
+                <input id="eventDisplayTitle" type="text" [(ngModel)]="formEvent.displayTitle" class="form-control"
+                  placeholder="Tiêu đề bắt mắt hiển thị trên popup hoặc banner" />
+              </div>
+
+              <!-- Mô tả ngắn -->
+              <div class="form-group col-12">
+                <label for="eventSummary" class="form-label">Mô tả ngắn gọn:</label>
+                <textarea id="eventSummary" [(ngModel)]="formEvent.summary" class="form-control" rows="2"
+                  placeholder="Tóm tắt ngắn gọn nội dung sự kiện (hiển thị trên thẻ hoặc popup nhỏ)"></textarea>
+              </div>
+
+              <!-- Nội dung chi tiết -->
+              <div class="form-group col-12">
+                <label for="eventContent" class="form-label">Nội dung chi tiết:</label>
+                <textarea id="eventContent" [(ngModel)]="formEvent.content" class="form-control" rows="4"
+                  placeholder="Nội dung giới thiệu chi tiết về chương trình, quyền lợi, lịch trình..."></textarea>
+              </div>
+
+              <!-- Ảnh đại diện -->
+              <div class="form-group col-6">
+                <label class="form-label">Ảnh đại diện / Ảnh Popup:</label>
+                <div class="image-upload-box">
+                  <div class="preview-img-wrap">
+                    <img [src]="getCoverImageUrl(formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước ảnh" />
+                  </div>
+                  <div class="upload-controls">
+                    <input #coverUploadInput type="file" id="coverUpload" accept="image/*"
+                      (change)="handleImageUpload($event, 'coverImage')" style="display: none;" />
+                    <button type="button" class="btn btn-outline-sm" (click)="coverUploadInput.click()"
+                      [disabled]="uploadingImage">
+                      <i class="fas fa-upload"></i> {{ uploadingImage ? 'Đang tải...' : 'Tải ảnh lên' }}
+                    </button>
+                    <input type="text" [(ngModel)]="formEvent.coverImage" class="form-control form-control-sm mt-2"
+                      placeholder="Hoặc dán URL hình ảnh..." />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ảnh Banner -->
+              <div class="form-group col-6">
+                <label class="form-label">Ảnh Banner ngang (cho Trang chủ):</label>
+                <div class="image-upload-box">
+                  <div class="preview-img-wrap banner-ratio">
+                    <img [src]="getCoverImageUrl(formEvent.bannerImage || formEvent.coverImage)" (error)="onImageError($event)"
+                      alt="Xem trước banner" />
+                  </div>
+                  <div class="upload-controls">
+                    <input #bannerUploadInput type="file" id="bannerUpload" accept="image/*"
+                      (change)="handleImageUpload($event, 'bannerImage')" style="display: none;" />
+                    <button type="button" class="btn btn-outline-sm" (click)="bannerUploadInput.click()"
+                      [disabled]="uploadingImage">
+                      <i class="fas fa-upload"></i> {{ uploadingImage ? 'Đang tải...' : 'Tải banner lên' }}
+                    </button>
+                    <input type="text" [(ngModel)]="formEvent.bannerImage" class="form-control form-control-sm mt-2"
+                      placeholder="Hoặc dán URL banner..." />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tích hợp Góc hoạt động -->
+              <div class="form-group col-12">
+                <div class="checkbox-card">
+                  <label class="checkbox-label">
+                    <input type="checkbox" [(ngModel)]="formEvent.linkToActivity" />
+                    <span><strong>Tích hợp với Góc hoạt động:</strong> Cho phép sự kiện liên kết trực tiếp với bài viết
+                      tương ứng tại Góc hoạt động.</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          }
+
+          <!-- STEP 2: HÌNH THỨC HIỂN THỊ -->
+          @if (activeTab === 'formats') {
+          <div class="wizard-panel">
+            <p class="panel-intro">
+              Chọn một hoặc nhiều hình thức hiển thị cho sự kiện. Mỗi hình thức có cấu hình giao diện riêng:
+            </p>
+
+            <div class="formats-selector-grid">
+              <!-- 1. Popup giữa màn hình -->
+              <div class="format-card" [class.selected]="isFormatSelected('popup_center')">
+                <div class="format-card-header">
+                  <label class="format-checkbox">
+                    <input type="checkbox" [checked]="isFormatSelected('popup_center')"
+                      (change)="toggleFormat('popup_center')" />
+                    <strong>1. Popup giữa màn hình</strong>
+                  </label>
+                  <span class="format-tag">Nổi bật</span>
+                </div>
+                <p class="format-desc">Hộp thoại bật lên giữa màn hình khi khách truy cập trang. Tự động điều chỉnh kích
+                  thước trên điện thoại.</p>
+
+                @if (isFormatSelected('popup_center')) {
+                <div class="format-subconfig">
+                  <label class="sub-label">Bố cục Popup:</label>
+                  <select [(ngModel)]="formEvent.displayConfig.popupCenter.layout" class="form-select form-select-sm">
+                    <option value="banner_top">Banner ở trên - Nội dung ở dưới</option>
+                    <option value="horizontal">Ảnh bên trái - Nội dung bên phải (PC)</option>
+                    <option value="vertical">Dạng thẻ dọc</option>
+                  </select>
+
+                  <label class="checkbox-inline mt-2">
+                    <input type="checkbox" [(ngModel)]="formEvent.displayConfig.popupCenter.backdropClickClose" />
+                    <span>Cho phép nhấn ra ngoài để đóng</span>
+                  </label>
+                </div>
+                }
+              </div>
+
+              <!-- 2. Popup góc màn hình -->
+              <div class="format-card" [class.selected]="isFormatSelected('popup_corner')">
+                <div class="format-card-header">
+                  <label class="format-checkbox">
+                    <input type="checkbox" [checked]="isFormatSelected('popup_corner')"
+                      (change)="toggleFormat('popup_corner')" />
+                    <strong>2. Popup góc màn hình</strong>
+                  </label>
+                  <span class="format-tag">Tinh tế</span>
+                </div>
+                <p class="format-desc">Thẻ thông báo nhỏ nổi ở góc dưới màn hình, không chiếm dụng không gian đọc của
+                  khách.</p>
+
+                @if (isFormatSelected('popup_corner')) {
+                <div class="format-subconfig">
+                  <label class="sub-label">Vị trí hiển thị:</label>
+                  <select [(ngModel)]="formEvent.displayConfig.popupCorner.position" class="form-select form-select-sm">
+                    <option value="bottom_right">Góc dưới bên phải</option>
+                    <option value="bottom_left">Góc dưới bên trái</option>
+                  </select>
+                </div>
+                }
+              </div>
+
+              <!-- 3. Thanh thông báo đầu trang -->
+              <div class="format-card" [class.selected]="isFormatSelected('top_bar')">
+                <div class="format-card-header">
+                  <label class="format-checkbox">
+                    <input type="checkbox" [checked]="isFormatSelected('top_bar')" (change)="toggleFormat('top_bar')" />
+                    <strong>3. Thanh thông báo đầu trang</strong>
+                  </label>
+                  <span class="format-tag">Toàn trang</span>
+                </div>
+                <p class="format-desc">Dải băng thông báo cố định ở đỉnh website, thu hút sự chú ý ngay lập tức.</p>
+
+                @if (isFormatSelected('top_bar')) {
+                <div class="format-subconfig">
+                  <div class="color-pickers-row">
+                    <div>
+                      <label class="sub-label">Màu nền:</label>
+                      <input type="color" [(ngModel)]="formEvent.displayConfig.topBar.bgColor" />
+                    </div>
+                    <div>
+                      <label class="sub-label">Màu chữ:</label>
+                      <input type="color" [(ngModel)]="formEvent.displayConfig.topBar.textColor" />
+                    </div>
+                    <label class="checkbox-inline mt-3">
+                      <input type="checkbox" [(ngModel)]="formEvent.displayConfig.topBar.isClosable" />
+                      <span>Cho phép khách đóng thanh</span>
+                    </label>
+                  </div>
+                </div>
+                }
+              </div>
+
+              <!-- 4. Banner sự kiện trên trang chủ -->
+              <div class="format-card" [class.selected]="isFormatSelected('index_banner')">
+                <div class="format-card-header">
+                  <label class="format-checkbox">
+                    <input type="checkbox" [checked]="isFormatSelected('index_banner')"
+                      (change)="toggleFormat('index_banner')" />
+                    <strong>4. Banner trên trang chủ</strong>
+                  </label>
+                  <span class="format-tag">Trang chủ</span>
+                </div>
+                <p class="format-desc">Hiển thị một khối banner ấn tượng trực tiếp trên Index mà không làm phá vỡ layout
+                  hiện có.</p>
+
+                @if (isFormatSelected('index_banner')) {
+                <div class="format-subconfig">
+                  <label class="sub-label">Vị trí chèn:</label>
+                  <select [(ngModel)]="formEvent.displayConfig.indexBanner.position" class="form-select form-select-sm">
+                    <option value="below_hero">Ngay dưới Hero Section</option>
+                    <option value="below_orders">Ngay dưới Danh sách đơn hàng</option>
+                    <option value="in_activities">Bên trong Góc hoạt động</option>
+                    <option value="bottom">Cuối trang chủ</option>
+                  </select>
+                </div>
+                }
+              </div>
+
+              <!-- 5. Nút sự kiện nổi (FAB) -->
+              <div class="format-card" [class.selected]="isFormatSelected('floating_button')">
+                <div class="format-card-header">
+                  <label class="format-checkbox">
+                    <input type="checkbox" [checked]="isFormatSelected('floating_button')"
+                      (change)="toggleFormat('floating_button')" />
+                    <strong>5. Nút sự kiện nổi (FAB)</strong>
+                  </label>
+                  <span class="format-tag">Tiện ích</span>
+                </div>
+                <p class="format-desc">Nút huy hiệu nổi bật ở góc màn hình hiển thị số lượng sự kiện, khi nhấn mở danh
+                  sách sự kiện đang diễn ra.</p>
+              </div>
+
+              <!-- 6. Danh sách sự kiện -->
+              <div class="format-card" [class.selected]="isFormatSelected('list')">
+                <div class="format-card-header">
+                  <label class="format-checkbox">
+                    <input type="checkbox" [checked]="isFormatSelected('list')" (change)="toggleFormat('list')" />
+                    <strong>6. Hiển thị trong Danh sách sự kiện</strong>
+                  </label>
+                  <span class="format-tag">Lưu trữ</span>
+                </div>
+                <p class="format-desc">Xuất hiện trong ngăn kéo sự kiện và trang tổng hợp sự kiện của VieJap.</p>
+              </div>
+            </div>
+          </div>
+          }
+
+          <!-- STEP 3: NÚT HÀNH ĐỘNG (CTA) -->
+          @if (activeTab === 'cta') {
+          <div class="wizard-panel">
+            <div class="cta-activation-box">
+              <label class="checkbox-inline">
+                <input type="checkbox" [(ngModel)]="formEvent.cta.enabled" />
+                <strong>Bật nút hành động (Call to Action) cho sự kiện</strong>
+              </label>
+            </div>
+
+            @if (formEvent.cta.enabled) {
+            <div class="form-grid mt-4">
+              <div class="form-group col-6">
+                <label class="form-label">Mục đích hành động:</label>
+                <select [(ngModel)]="formEvent.cta.actionType" class="form-select">
+                  <option value="register">Đăng ký tham gia</option>
+                  <option value="view_detail">Xem chi tiết</option>
+                  <option value="learn_more">Tìm hiểu thêm</option>
+                  <option value="consultation">Liên hệ tư vấn</option>
+                  <option value="view_orders">Xem danh sách đơn hàng</option>
+                  <option value="custom">Tùy chỉnh riêng</option>
+                </select>
+              </div>
+
+              <div class="form-group col-6">
+                <label class="form-label required">Nhãn hiển thị trên nút:</label>
+                <input type="text" [(ngModel)]="formEvent.cta.label" class="form-control"
+                  placeholder="Ví dụ: Đăng ký nhận vé mời" />
+              </div>
+
+              <div class="form-group col-8">
+                <label class="form-label required">Đường dẫn đích (URL / Anchor):</label>
+                <input type="text" [(ngModel)]="formEvent.cta.url" class="form-control"
+                  placeholder="Ví dụ: /#lien-he hoặc /don-hang hoặc liên kết Zalo" />
+                <small class="form-hint">Hỗ trợ đường dẫn nội bộ (/don-hang) hoặc đường dẫn ngoài
+                  (https://zalo.me/...).</small>
+              </div>
+
+              <div class="form-group col-4">
+                <label class="form-label">Cách mở trang:</label>
+                <select [(ngModel)]="formEvent.cta.target" class="form-select">
+                  <option value="_self">Mở trong tab hiện tại</option>
+                  <option value="_blank">Mở trong tab mới</option>
+                </select>
+              </div>
+            </div>
+            }
+          </div>
+          }
+
+          <!-- STEP 4: LỊCH & PHẠM VI HIỂN THỊ -->
+          @if (activeTab === 'schedule') {
+          <div class="wizard-panel">
+            <div class="form-grid">
+              <!-- Ngày bắt đầu -->
+              <div class="form-group col-6">
+                <label class="form-label required">Ngày giờ bắt đầu hiển thị:</label>
+                <input type="datetime-local" [(ngModel)]="formEvent.schedule.startDate" class="form-control" />
+                <small class="form-hint">Sự kiện sẽ tự động xuất hiện khi đến thời gian này.</small>
+              </div>
+
+              <!-- Ngày kết thúc -->
+              <div class="form-group col-6">
+                <label class="form-label">Ngày giờ kết thúc hiển thị:</label>
+                <input type="datetime-local" [(ngModel)]="formEvent.schedule.endDate" class="form-control" />
+                <small class="form-hint">Tự động kết thúc và ẩn khỏi website khi quá hạn.</small>
+              </div>
+
+              <!-- Mức độ ưu tiên -->
+              <div class="form-group col-6">
+                <label class="form-label">Mức độ ưu tiên:</label>
+                <select [(ngModel)]="formEvent.delivery.priorityLevel" class="form-select">
+                  <option value="high">Quan trọng (Ưu tiên hiển thị hàng đầu)</option>
+                  <option value="normal">Bình thường (Chương trình, hội thảo)</option>
+                  <option value="low">Thông tin (Tin tức hoạt động)</option>
+                </select>
+              </div>
+
+              <!-- Tần suất hiển thị -->
+              <div class="form-group col-6">
+                <label class="form-label">Tần suất hiển thị Popup:</label>
+                <select [(ngModel)]="formEvent.delivery.frequency" class="form-select">
+                  <option value="per_session">Mỗi phiên truy cập một lần (Khuyên dùng)</option>
+                  <option value="per_day">Mỗi ngày một lần</option>
+                  <option value="per_week">Mỗi tuần một lần</option>
+                  <option value="once_ever">Chỉ một lần duy nhất cho đến khi kết thúc</option>
+                  <option value="always">Luôn hiển thị (Chỉ dùng cho thông báo khẩn)</option>
+                </select>
+              </div>
+
+              <!-- Phạm vi trang hiển thị -->
+              <div class="form-group col-12">
+                <label class="form-label">Phạm vi trang hiển thị:</label>
+                <div class="page-targeting-options">
+                  <button type="button" class="page-target-pill" [class.active]="isPageTargetSelected('all')"
+                    (click)="togglePageTarget('all')">
+                    <i class="fas fa-globe"></i> Toàn bộ website
+                  </button>
+
+                  <button type="button" class="page-target-pill" [class.active]="isPageTargetSelected('/')"
+                    (click)="togglePageTarget('/')">
+                    <i class="fas fa-home"></i> Chỉ Trang chủ (Index)
+                  </button>
+
+                  <button type="button" class="page-target-pill" [class.active]="isPageTargetSelected('/don-hang')"
+                    (click)="togglePageTarget('/don-hang')">
+                    <i class="fas fa-briefcase"></i> Chỉ trang Đơn hàng
+                  </button>
+
+                  <button type="button" class="page-target-pill" [class.active]="isPageTargetSelected('/hoat-dong')"
+                    (click)="togglePageTarget('/hoat-dong')">
+                    <i class="fas fa-newspaper"></i> Chỉ Góc hoạt động
+                  </button>
+                </div>
+              </div>
+
+              <!-- Đối tượng khách -->
+              <div class="form-group col-12">
+                <label class="form-label">Đối tượng hiển thị:</label>
+                <select [(ngModel)]="formEvent.targeting.userAudience" class="form-select">
+                  <option value="all">Tất cả khách truy cập (Khuyên dùng)</option>
+                  <option value="guest_only">Chỉ khách chưa đăng nhập tài khoản</option>
+                  <option value="logged_in_only">Chỉ người dùng đã đăng nhập</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Live Interactive Preview Panel -->
+      <div class="designer-preview-panel">
+        <!-- Preview Panel Header -->
+        <div class="preview-panel-header">
+          <div class="preview-title-wrap">
+            <span class="preview-label">
+              <i class="fas fa-eye text-primary"></i>
+              Mô phỏng hiển thị trực tiếp
+            </span>
+            <small class="preview-sub">Thay đổi thông tin bên trái sẽ phản hồi ngay lập tức</small>
+          </div>
+
+          <div class="preview-format-select">
+            <label class="format-select-label">Định dạng xem:</label>
+            <select [(ngModel)]="previewFormat" class="form-select form-select-sm">
+              <option value="popup_center">1. Popup giữa màn hình</option>
+              <option value="popup_corner">2. Popup góc màn hình</option>
+              <option value="top_bar">3. Thanh thông báo đầu trang</option>
+              <option value="index_banner">4. Banner trên trang chủ</option>
+              <option value="floating_button">5. Nút sự kiện nổi</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Active Formats Quick-Switch Bar -->
+        <div class="active-formats-bar">
+          <span class="bar-title">Đang kích hoạt:</span>
+          <div class="bar-pills">
+            @for (fmt of formEvent.displayFormats; track fmt) {
+              @if (fmt !== 'list') {
+              <button
+                type="button"
+                class="fmt-pill"
+                [class.active]="previewFormat === fmt"
+                (click)="previewFormat = fmt"
+              >
+                <i [class]="fmt === 'popup_center' ? 'fas fa-window-restore' :
+                            fmt === 'popup_corner' ? 'fas fa-envelope-open-text' :
+                            fmt === 'top_bar' ? 'fas fa-heading' :
+                            fmt === 'index_banner' ? 'fas fa-image' : 'fas fa-circle-dot'"></i>
+                {{ getFormatLabel(fmt) }}
+              </button>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Device Mockup Stage -->
+        <div class="preview-stage-wrap">
+          <div class="preview-stage" [class.stage-mobile]="previewDevice === 'mobile'">
+            <!-- Preview: TOP BAR -->
+            @if (previewFormat === 'top_bar') {
+            <div class="mockup-top-bar" [style.backgroundColor]="formEvent.displayConfig.topBar.bgColor"
+              [style.color]="formEvent.displayConfig.topBar.textColor">
+              <div class="mockup-top-bar-content">
+                <i [class]="formEvent.displayConfig.topBar.icon"></i>
+                <span><strong>{{ formEvent.displayTitle || formEvent.title }}</strong>: {{ formEvent.summary }}</span>
+                @if (formEvent.cta.enabled) {
+                <a class="mockup-bar-link" [href]="formEvent.cta.url">
+                  {{ formEvent.cta.label }} <i class="fas fa-arrow-right"></i>
+                </a>
+                }
+              </div>
+              @if (formEvent.displayConfig.topBar.isClosable) {
+              <button type="button" class="mockup-bar-close"><i class="fas fa-xmark"></i></button>
+              }
+            </div>
+            }
+
+            <!-- Preview: POPUP CENTER -->
+            @if (previewFormat === 'popup_center') {
+            <div class="mockup-popup-backdrop">
+              <div class="mockup-popup-center"
+                [class.layout-horizontal]="formEvent.displayConfig.popupCenter.layout === 'horizontal' && previewDevice === 'desktop'">
+                <button type="button" class="mockup-popup-close"><i class="fas fa-xmark"></i></button>
+                <div class="mockup-popup-img">
+                  <img [src]="getCoverImageUrl(formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước ảnh popup sự kiện" />
+                </div>
+                <div class="mockup-popup-body">
+                  <span class="mockup-badge">{{ formEvent.categoryName }}</span>
+                  <h3 class="mockup-popup-title">{{ formEvent.displayTitle || formEvent.title }}</h3>
+                  <p class="mockup-popup-desc">{{ formEvent.summary || formEvent.content }}</p>
+                  @if (formEvent.cta.enabled) {
+                  <a class="mockup-cta-btn" [href]="formEvent.cta.url">
+                    <span>{{ formEvent.cta.label }}</span>
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+
+            <!-- Preview: POPUP CORNER -->
+            @if (previewFormat === 'popup_corner') {
+            <div class="mockup-corner-container"
+              [class.corner-left]="formEvent.displayConfig.popupCorner.position === 'bottom_left'">
+              <div class="mockup-corner-card">
+                <button type="button" class="mockup-corner-close"><i class="fas fa-xmark"></i></button>
+                <div class="mockup-corner-thumb">
+                  <img [src]="getCoverImageUrl(formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước ảnh góc màn hình" />
+                </div>
+                <div class="mockup-corner-info">
+                  <small class="mockup-corner-cat">{{ formEvent.categoryName }}</small>
+                  <h4 class="mockup-corner-title">{{ formEvent.displayTitle || formEvent.title }}</h4>
+                  @if (formEvent.cta.enabled) {
+                  <a class="mockup-corner-link" [href]="formEvent.cta.url">
+                    {{ formEvent.cta.label }} <i class="fas fa-arrow-right"></i>
+                  </a>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+
+            <!-- Preview: INDEX BANNER -->
+            @if (previewFormat === 'index_banner') {
+            <div class="mockup-index-banner-wrap">
+              <div class="mockup-index-banner">
+                <div class="banner-left">
+                  <span class="banner-badge">{{ formEvent.categoryName }}</span>
+                  <h3 class="banner-title">{{ formEvent.displayTitle || formEvent.title }}</h3>
+                  <p class="banner-desc">{{ formEvent.summary }}</p>
+                  @if (formEvent.cta.enabled) {
+                  <a class="mockup-cta-btn" [href]="formEvent.cta.url">
+                    <span>{{ formEvent.cta.label }}</span>
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+                  }
+                </div>
+                <div class="banner-right">
+                  <img [src]="getCoverImageUrl(formEvent.bannerImage || formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước banner sự kiện" />
+                </div>
+              </div>
+            </div>
+            }
+
+            <!-- Preview: FLOATING BUTTON -->
+            @if (previewFormat === 'floating_button') {
+            <div class="mockup-fab-container">
+              <div class="mockup-fab-button">
+                <i class="fas fa-gift"></i>
+                <span>Sự kiện</span>
+                <span class="mockup-fab-badge">1</span>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- =================================================================== -->
+  <!-- 3. DELETE CONFIRMATION MODAL                                        -->
+  <!-- =================================================================== -->
+  @if (deletingEvent) {
+  <div class="confirm-modal-backdrop" (click)="cancelDelete()">
+    <div class="confirm-modal-dialog" (click)="$event.stopPropagation()">
+      <div class="confirm-icon text-danger">
+        <i class="fas fa-triangle-exclamation"></i>
+      </div>
+      <h3 class="confirm-title">Xác nhận xóa sự kiện?</h3>
+      <p class="confirm-desc">
+        Bạn có chắc chắn muốn xóa vĩnh viễn sự kiện <strong>"{{ deletingEvent.title }}"</strong> ({{ deletingEvent.code
+        }}) khỏi hệ thống? Thao tác này không thể hoàn tác.
+      </p>
+
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting">
+          Hủy bỏ
+        </button>
+        <button type="button" class="btn btn-danger" (click)="executeDelete()" [disabled]="isDeleting">
+          <i [class]="isDeleting ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+          <span>{{ isDeleting ? 'Đang xóa...' : 'Đồng ý xóa' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

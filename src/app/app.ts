@@ -12,11 +12,20 @@ import { HeaderComponent } from './core/layout/header/header.component';
 import { FooterComponent } from './core/layout/footer/footer.component';
 import { LoadingComponent } from './core/shared/loading/loading.component';
 import { SakuraComponent } from './core/layout/sakura/sakura.component';
+import { ScrollNavigationService } from './core/services/scroll-navigation.service';
+import { SiteEventsCoordinatorComponent } from './features/public/events/site-events-coordinator.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, LoadingComponent, SakuraComponent],
+  imports: [
+    RouterOutlet,
+    HeaderComponent,
+    FooterComponent,
+    LoadingComponent,
+    SakuraComponent,
+    SiteEventsCoordinatorComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -32,7 +41,10 @@ export class App implements OnInit, OnDestroy {
   private initialLoadingFinished = false;
   private readonly initialLoadingDuration = 3000;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private scrollNav: ScrollNavigationService
+  ) { }
 
   ngOnInit(): void {
     this.updateShellVisibility(this.router.url);
@@ -94,21 +106,21 @@ export class App implements OnInit, OnDestroy {
     );
     this.isPracticeMode.set(
       path === '/luyen-the-te' ||
-        path === '/luyen-the-ta' ||
-        path === '/luyen-the-nai' ||
-        path === '/luyen-the-ru' ||
-        path === '/luyen-the-y-chi' ||
-        path === '/luyen-the-menh-lenh' ||
-        path === '/luyen-the-cam-chi' ||
-        path === '/luyen-the-kha-nang' ||
-        path === '/luyen-the-dieu-kien' ||
-        path === '/luyen-the-bi-dong' ||
-        path === '/luyen-the-sai-khien' ||
-        path === '/luyen-the-sai-khien-bi-dong' ||
-        path === '/luyen-tap' ||
-        path === '/hoc-hiragana' ||
-        path === '/hoc-katakana' ||
-        path === '/hoc-so-dem',
+      path === '/luyen-the-ta' ||
+      path === '/luyen-the-nai' ||
+      path === '/luyen-the-ru' ||
+      path === '/luyen-the-y-chi' ||
+      path === '/luyen-the-menh-lenh' ||
+      path === '/luyen-the-cam-chi' ||
+      path === '/luyen-the-kha-nang' ||
+      path === '/luyen-the-dieu-kien' ||
+      path === '/luyen-the-bi-dong' ||
+      path === '/luyen-the-sai-khien' ||
+      path === '/luyen-the-sai-khien-bi-dong' ||
+      path === '/luyen-tap' ||
+      path === '/hoc-hiragana' ||
+      path === '/hoc-katakana' ||
+      path === '/hoc-so-dem',
     );
     this.isHomePage.set(path === '/' || path === '');
   }

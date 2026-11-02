@@ -7,7 +7,7 @@
     <div class="featured-activity-layout">
       <div class="featured-activity-media">
         <figure class="featured-activity-main">
-          <img [src]="featuredActivity.coverImage.src" [alt]="featuredActivity.coverImage.alt"
+          <img [src]="featuredActivity.coverImage.src" alt="Hình ảnh minh họa" [alt]="featuredActivity.coverImage.alt"
             [title]="featuredActivity.coverImage.alt" loading="eager" fetchpriority="high" />
           <figcaption>
             <i class="fas fa-location-dot"></i>
@@ -17,7 +17,7 @@
 
         <div class="featured-activity-strip" aria-label="Hình ảnh hội thảo nổi bật">
           <figure *ngFor="let image of featuredActivity.gallery | slice: 1 : 4">
-            <img [src]="image.src" [alt]="image.alt" [title]="image.alt" loading="lazy" />
+            <img [src]="image.src" alt="Hình ảnh minh họa" [alt]="image.alt" [title]="image.alt" loading="lazy" />
           </figure>
         </div>
       </div>
@@ -165,7 +165,7 @@
         <article class="program-card" role="button" tabindex="0" (click)="openProgramModal(item.key)"
           (keydown.enter)="openProgramModal(item.key)" [attr.aria-label]="'Xem chương trình ' + item.label">
           <div class="program-card-media">
-            <img [src]="item.coverImage" [alt]="item.coverAlt" [title]="item.coverAlt" loading="lazy" />
+            <img [src]="item.coverImage" alt="Hình ảnh minh họa" [alt]="item.coverAlt" [title]="item.coverAlt" loading="lazy" />
             <span class="program-card-badge">{{ item.badge }}</span>
           </div>
 
@@ -217,7 +217,7 @@
         <ng-container *ngIf="!isProgramRoadmapOpen; else programRoadmapView">
           <div class="program-detail-layout">
             <figure class="program-detail-visual">
-              <img [src]="selectedProgramDetail.images[0]" [alt]="selectedProgramDetail.title"
+              <img [src]="selectedProgramDetail.images[0]" alt="Hình ảnh minh họa" [alt]="selectedProgramDetail.title"
                 [title]="selectedProgramDetail.title" />
               <figcaption>
                 <i class="fas fa-camera"></i>
@@ -257,7 +257,7 @@
 
             <div class="program-photo-strip">
               <figure *ngFor="let image of selectedProgramDetail.images | slice: 1; let index = index">
-                <img [src]="image" [alt]="'Hình ảnh ' + selectedProgramDetail.title + ' ' + (index + 2)"
+                <img [src]="image" alt="Hình ảnh minh họa" [alt]="'Hình ảnh ' + selectedProgramDetail.title + ' ' + (index + 2)"
                   [title]="'Hình ảnh ' + selectedProgramDetail.title + ' ' + (index + 2)" loading="lazy" />
               </figure>
             </div>
@@ -279,7 +279,7 @@
 
             <a class="program-roadmap-poster" [href]="selectedProgramDetail.guideImage" target="_blank"
               rel="noopener noreferrer">
-              <img [src]="selectedProgramDetail.guideImage" [alt]="selectedProgramDetail.guideAlt"
+              <img [src]="selectedProgramDetail.guideImage" alt="Hình ảnh minh họa" [alt]="selectedProgramDetail.guideAlt"
                 [title]="selectedProgramDetail.guideAlt" />
               <span>
                 <i class="fas fa-expand-alt"></i>
@@ -428,394 +428,373 @@
 </section>
 
 
-<!-- Thông tin cần biết & Quyền lợi -->
+<!-- Thông tin cần biết & Quyền lợi: Redesigned NHCSXH & Quyền Lợi -->
 <section class="policy-section" id="chinh-sach">
-  <div class="container">
-    <!-- Header -->
+  <div class="container policy-container">
+
+    <!-- KHU VỰC A: TIÊU ĐỀ VÀ THÔNG ĐIỆP CHÍNH -->
     <div class="policy-header-wrapper text-center">
-      <div class="policy-cute-badge">
-        <span class="badge-sparkle">✨</span> Cẩm nang bỏ túi
+      <div class="policy-header-badge">
+        <i class="fas fa-bookmark me-1 text-amber"></i> CẨM NANG BỎ TÚI
       </div>
-      <h2 class="policy-main-title">Hiểu đúng quyền lợi – Đi Nhật an tâm hơn</h2>
+      <h2 class="policy-main-title">HIỂU ĐÚNG QUYỀN LỢI – ĐI NHẬT AN TÂM HƠN</h2>
       <p class="policy-main-subtitle">
-        Những thông tin thiết thực về chi phí, hoàn tiền bảo hiểm và quyền lợi khi làm việc tại Nhật được VieJap tóm tắt dễ hiểu nhất.
+        Thông tin về chính sách hỗ trợ vay vốn giúp người lao động chủ động chuẩn bị chi phí khi tham gia chương trình làm việc tại Nhật Bản.
       </p>
     </div>
 
-    <!-- 3 Cartoon/Friendly Tabs -->
-    <div class="policy-tabs-row" role="tablist" aria-label="Chọn chủ đề thông tin">
+    <!-- KHU VỰC B: BA QUYỀN LỢI NỔI BẬT (Thanh điều hướng phẳng, tối giản, đồng bộ) -->
+    <div class="policy-nav-strip" role="tablist" aria-label="Chọn chủ đề chính sách">
       <button
         *ngFor="let category of policyCategories"
         type="button"
-        class="policy-tab-card"
+        class="policy-nav-item"
         [class.active]="category.id === selectedPolicyId"
-        [class.theme-amber]="category.theme === 'amber'"
-        [class.theme-emerald]="category.theme === 'emerald'"
-        [class.theme-sky]="category.theme === 'sky'"
         role="tab"
         [attr.aria-selected]="category.id === selectedPolicyId"
         [attr.aria-controls]="category.id + '-panel'"
         (click)="selectPolicy(category.id)"
       >
-        <div class="tab-icon-sticker">
+        <span class="nav-item-icon">
           <i [class]="category.icon"></i>
-        </div>
-        <div class="tab-meta">
-          <div class="tab-badge-pill">{{ category.badge }}</div>
-          <h3 class="tab-title">{{ category.title }}</h3>
-          <span class="tab-summary">{{ category.summary }}</span>
+        </span>
+        <div class="nav-item-meta">
+          <strong class="nav-item-title">{{ category.title }}</strong>
+          <span class="nav-item-desc">{{ category.summary }}</span>
         </div>
       </button>
     </div>
 
-    <!-- Active Panel Content -->
-    <div class="policy-panel-container" [ngSwitch]="selectedPolicyId">
+    <!-- KHU VỰC C & D: NỘI DUNG CHÍNH (Active Policy Panel) -->
+    <div class="policy-panel-wrapper" [ngSwitch]="selectedPolicyId">
 
-      <!-- TAB 1: VAY VỐN -->
-      <article *ngSwitchCase="'policy-loan'" class="policy-panel-card theme-amber-panel" id="policy-loan-panel" role="tabpanel">
-        <div class="panel-top-banner">
-          <div class="banner-kicker">
-            <span class="emoji-tag">🏦</span> {{ loanPolicy.eyebrow }}
+      <!-- TAB 1: VAY VỐN NGÂN HÀNG CHÍNH SÁCH XÃ HỘI (NHCSXH) -->
+      <article
+        *ngSwitchCase="'policy-loan'"
+        class="policy-panel-card policy-panel theme-loan-panel"
+        id="policy-loan-panel"
+        role="tabpanel"
+      >
+        <!-- Tiêu đề & Thông điệp mở đầu -->
+        <div class="panel-hero-header">
+          <div class="panel-badge-kicker">
+            <i class="fas fa-building-columns"></i>
+            <span>{{ loanPolicy.eyebrow }}</span>
           </div>
-          <h3 class="banner-title">{{ loanPolicy.title }}</h3>
-          <p class="banner-desc">{{ loanPolicy.description }}</p>
+          <h3 class="panel-hero-title">{{ loanPolicy.title }}</h3>
+          <p class="panel-hero-desc">{{ loanPolicy.description }}</p>
         </div>
 
-        <!-- 3 Highlight Facts -->
-        <div class="policy-highlight-grid">
-          <div class="highlight-item" *ngFor="let fact of loanPolicy.facts">
-            <div class="highlight-icon-circle" [style.color]="fact.color" [style.background-color]="fact.color + '15'">
+        <!-- 1. THÔNG TIN KHOẢN VAY (3 thông số trực quan) -->
+        <div class="policy-metrics-grid policy-facts">
+          <div class="metric-card-item" *ngFor="let fact of loanPolicy.facts">
+            <div class="metric-icon-wrap" [style.color]="fact.color" [style.background-color]="fact.color + '14'">
               <i [class]="fact.icon"></i>
             </div>
-            <div class="highlight-text">
-              <small>{{ fact.label }}</small>
-              <strong>{{ fact.value }}</strong>
+            <div class="metric-content">
+              <span class="metric-tag">{{ fact.label }}</span>
+              <strong class="metric-highlight">{{ fact.highlight || fact.value }}</strong>
+              <small class="metric-subtext">{{ fact.note || fact.value }}</small>
             </div>
           </div>
         </div>
 
-        <!-- 2 Information Boxes -->
-        <div class="policy-dual-cards">
-          <!-- Ai được vay -->
-          <div class="info-subcard">
-            <div class="subcard-header">
-              <div class="subcard-icon-pill bg-amber">
-                <i class="fas fa-users-viewfinder"></i>
-              </div>
-              <h4>Đối tượng được ưu tiên vay</h4>
+        <!-- 2. ĐIỀU KIỆN VÀ HỒ SƠ (2 nhóm thông tin song song) -->
+        <div class="policy-dual-checklist-box">
+          <!-- Nhóm 1: Ai có thể được xem xét vay? -->
+          <div class="checklist-column">
+            <div class="checklist-title-bar">
+              <span class="title-icon icon-users"><i class="fas fa-users-viewfinder"></i></span>
+              <h4>Ai có thể được xem xét vay?</h4>
             </div>
-            <ul class="subcard-list">
+            <ul class="checklist-unstyled">
               <li *ngFor="let item of loanPolicy.eligibleGroups">
-                <span class="check-icon-sticker"><i class="fas fa-check"></i></span>
-                <span>{{ item }}</span>
+                <span class="check-bullet"><i class="fas fa-check"></i></span>
+                <span class="item-text">{{ item }}</span>
               </li>
             </ul>
           </div>
 
-          <!-- Điều kiện cần chuẩn bị -->
-          <div class="info-subcard">
-            <div class="subcard-header">
-              <div class="subcard-icon-pill bg-blue">
-                <i class="fas fa-file-circle-check"></i>
-              </div>
-              <h4>Hồ sơ & Điều kiện cơ bản</h4>
+          <!-- Nhóm 2: Hồ sơ cần chuẩn bị -->
+          <div class="checklist-column">
+            <div class="checklist-title-bar">
+              <span class="title-icon icon-docs"><i class="fas fa-file-shield"></i></span>
+              <h4>Hồ sơ cần chuẩn bị</h4>
             </div>
-            <ul class="subcard-list">
+            <ul class="checklist-unstyled">
               <li *ngFor="let item of loanPolicy.requirements">
-                <span class="check-icon-sticker"><i class="fas fa-check"></i></span>
-                <span>{{ item }}</span>
+                <span class="check-bullet"><i class="fas fa-check"></i></span>
+                <span class="item-text">{{ item }}</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <!-- Note Tip Box -->
-        <div class="policy-friendly-tip">
-          <div class="tip-icon-sticker">💡</div>
-          <div class="tip-content">
-            <strong>Mách nhỏ từ VieJap:</strong>
-            <p>{{ loanPolicy.note }}</p>
+        <!-- TƯƠNG TÁC THÔNG MINH: QUY TRÌNH 4 BƯỚC THỦ TỤC VAY VỐN (ACCORDION) -->
+        <div class="policy-accordion-section">
+          <button
+            type="button"
+            class="procedure-toggle-trigger"
+            (click)="toggleLoanProcedure()"
+            [attr.aria-expanded]="isLoanProcedureOpen"
+          >
+            <div class="trigger-left">
+              <i class="fas fa-route trigger-icon"></i>
+              <strong>Xem quy trình 4 bước làm thủ tục vay vốn tại địa phương</strong>
+            </div>
+            <span class="trigger-chevron" [class.rotated]="isLoanProcedureOpen">
+              <i class="fas fa-chevron-down"></i>
+            </span>
+          </button>
+
+          <div class="procedure-expand-panel" *ngIf="isLoanProcedureOpen">
+            <div class="procedure-steps-container">
+              <div class="procedure-step-card" *ngFor="let step of loanPolicy.procedureSteps">
+                <div class="step-num-pill">Bước {{ step.step }}</div>
+                <strong class="step-card-title">{{ step.title }}</strong>
+                <p class="step-card-desc">{{ step.desc }}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="panel-bottom-footer">
-          <div class="footer-sources">
-            <span class="source-label"><i class="fas fa-link me-1"></i>Nguồn đối chiếu:</span>
-            <div class="source-links">
-              <a *ngFor="let source of loanPolicy.sources" [href]="source.url" target="_blank" rel="noopener noreferrer">
-                {{ source.label }} <i class="fas fa-arrow-up-right-from-square"></i>
-              </a>
-            </div>
+        <!-- KHU VỰC D: LỜI NHẮN VIEJAP & CTA -->
+        <div class="policy-viejap-message-box">
+          <div class="message-badge">
+            <i class="fas fa-handshake-angle"></i>
+            <strong>VieJap đồng hành cùng bạn</strong>
           </div>
-          <a class="btn-ask-viejap" [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
-            <i class="fas fa-comment-dots"></i> Nhắn VieJap tư vấn hồ sơ
+          <p class="message-body">
+            VieJap hỗ trợ hướng dẫn chuẩn bị hồ sơ và kết nối thông tin với ngân hàng chính sách địa phương. Việc xét duyệt khoản vay thuộc thẩm quyền của ngân hàng theo quy định.
+          </p>
+        </div>
+
+        <!-- HÀNG HÀNH ĐỘNG: CTA CHÍNH & CTA PHỤ -->
+        <div class="policy-actions-container">
+          <a
+            class="btn-primary-policy-cta"
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fas fa-comment-dots"></i>
+            <span>Nhận tư vấn và hướng dẫn hồ sơ</span>
           </a>
+
+          <div class="secondary-policy-links">
+            <a
+              *ngFor="let source of loanPolicy.sources"
+              [href]="source.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="secondary-link-btn"
+            >
+              <i class="fas fa-file-pdf" *ngIf="source.url.endsWith('.pdf')"></i>
+              <i class="fas fa-arrow-up-right-from-square" *ngIf="!source.url.endsWith('.pdf')"></i>
+              <span>{{ source.label }}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- NGUỒN THÔNG TIN CHÍNH THỨC & NGÀY XÁC MINH -->
+        <div class="policy-source-footer">
+          <div class="source-notes">
+            <span class="source-intro"><i class="fas fa-shield-halved me-1"></i>Nguồn thông tin chính thức:</span>
+            <span>Chính sách hỗ trợ từ NHCSXH (vbsp.org.vn) & Tài liệu điều kiện và hồ sơ vay vốn chính thức.</span>
+            <span class="policy-verified ms-2">(Xác minh: {{ policyVerifiedOn }})</span>
+          </div>
         </div>
       </article>
 
-      <!-- TAB 2: NENKIN -->
-      <article *ngSwitchCase="'policy-nenkin'" class="policy-panel-card theme-emerald-panel" id="policy-nenkin-panel" role="tabpanel">
-        <div class="panel-top-banner">
-          <div class="banner-kicker">
-            <span class="emoji-tag">💴</span> {{ nenkinPolicy.eyebrow }}
+      <!-- TAB 2: NENKIN (LẤY LẠI TIỀN BẢO HIỂM) -->
+      <article
+        *ngSwitchCase="'policy-nenkin'"
+        class="policy-panel-card policy-panel theme-nenkin-panel"
+        id="policy-nenkin-panel"
+        role="tabpanel"
+      >
+        <div class="panel-hero-header">
+          <div class="panel-badge-kicker kicker-emerald">
+            <i class="fas fa-money-bill-transfer"></i>
+            <span>{{ nenkinPolicy.eyebrow }}</span>
           </div>
-          <h3 class="banner-title">{{ nenkinPolicy.title }}</h3>
-          <p class="banner-desc">{{ nenkinPolicy.description }}</p>
+          <h3 class="panel-hero-title">{{ nenkinPolicy.title }}</h3>
+          <p class="panel-hero-desc">{{ nenkinPolicy.description }}</p>
         </div>
 
-        <!-- 3 Highlight Reminders (2 đợt hoàn tiền) -->
-        <div class="policy-highlight-grid nenkin-grid">
-          <div class="highlight-item" *ngFor="let item of nenkinPolicy.reminders">
-            <div class="highlight-icon-circle" [style.color]="item.color" [style.background-color]="item.color + '15'">
+        <!-- 3 Highlight Reminders -->
+        <div class="policy-metrics-grid nenkin-metrics policy-facts">
+          <div class="metric-card-item" *ngFor="let item of nenkinPolicy.reminders">
+            <div class="metric-icon-wrap" [style.color]="item.color" [style.background-color]="item.color + '14'">
               <i [class]="item.icon"></i>
             </div>
-            <div class="highlight-text">
-              <small>{{ item.title }}</small>
-              <strong>{{ item.text }}</strong>
+            <div class="metric-content">
+              <span class="metric-tag">{{ item.title }}</span>
+              <strong class="metric-highlight">{{ item.text }}</strong>
+              <small class="metric-subtext">Nhận lại trọn vẹn tiền bảo hiểm (sau 2 năm kết thúc hợp đồng)</small>
             </div>
           </div>
         </div>
 
         <!-- 2 Information Boxes -->
-        <div class="policy-dual-cards">
-          <!-- Điều kiện -->
-          <div class="info-subcard">
-            <div class="subcard-header">
-              <div class="subcard-icon-pill bg-emerald">
-                <i class="fas fa-user-check"></i>
-              </div>
+        <div class="policy-dual-checklist-box">
+          <div class="checklist-column">
+            <div class="checklist-title-bar">
+              <span class="title-icon icon-emerald"><i class="fas fa-user-check"></i></span>
               <h4>Điều kiện nhận lại Nenkin</h4>
             </div>
-            <ul class="subcard-list">
+            <ul class="checklist-unstyled">
               <li *ngFor="let item of nenkinPolicy.conditions">
-                <span class="check-icon-sticker"><i class="fas fa-check"></i></span>
-                <span>{{ item }}</span>
+                <span class="check-bullet bullet-emerald"><i class="fas fa-check"></i></span>
+                <span class="item-text">{{ item }}</span>
               </li>
             </ul>
           </div>
 
-          <!-- 4 Bước thực hiện -->
-          <div class="info-subcard">
-            <div class="subcard-header">
-              <div class="subcard-icon-pill bg-teal">
-                <i class="fas fa-route"></i>
-              </div>
+          <div class="checklist-column">
+            <div class="checklist-title-bar">
+              <span class="title-icon icon-teal"><i class="fas fa-route"></i></span>
               <h4>4 Bước làm thủ tục dễ dàng</h4>
             </div>
-            <ol class="step-cute-list">
+            <ol class="step-numbered-list">
               <li *ngFor="let step of nenkinPolicy.steps; let idx = index">
-                <span class="step-number-bubble">{{ idx + 1 }}</span>
-                <span>{{ step }}</span>
+                <span class="step-num-pill pill-emerald">{{ idx + 1 }}</span>
+                <span class="item-text">{{ step }}</span>
               </li>
             </ol>
           </div>
         </div>
 
-        <!-- Note Tip Box -->
-        <div class="policy-friendly-tip tip-emerald">
-          <div class="tip-icon-sticker">🎉</div>
-          <div class="tip-content">
-            <strong>Kinh nghiệm bỏ túi:</strong>
-            <p>{{ nenkinPolicy.note }}</p>
+        <!-- Tip Box -->
+        <div class="policy-viejap-message-box box-emerald">
+          <div class="message-badge text-emerald">
+            <i class="fas fa-circle-check"></i>
+            <strong>Kinh nghiệm bỏ túi từ VieJap</strong>
+          </div>
+          <p class="message-body">{{ nenkinPolicy.note }}</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="policy-actions-container">
+          <a
+            class="btn-primary-policy-cta btn-emerald-cta"
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fas fa-comment-dots"></i>
+            <span>Nhắn VieJap hỗ trợ làm Nenkin</span>
+          </a>
+
+          <div class="secondary-policy-links">
+            <a
+              *ngFor="let source of nenkinPolicy.sources"
+              [href]="source.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="secondary-link-btn"
+            >
+              <i class="fas fa-arrow-up-right-from-square"></i>
+              <span>{{ source.label }}</span>
+            </a>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="panel-bottom-footer">
-          <div class="footer-sources">
-            <span class="source-label"><i class="fas fa-link me-1"></i>Nguồn chính thức:</span>
-            <div class="source-links">
-              <a *ngFor="let source of nenkinPolicy.sources" [href]="source.url" target="_blank" rel="noopener noreferrer">
-                {{ source.label }} <i class="fas fa-arrow-up-right-from-square"></i>
-              </a>
-            </div>
+        <div class="policy-source-footer">
+          <div class="source-notes">
+            <span class="source-intro"><i class="fas fa-shield-halved me-1"></i>Nguồn chính thức:</span>
+            <span>Cơ quan Hưu trí Nhật Bản (nenkin.go.jp).</span>
+            <span class="policy-verified ms-2">(Xác minh: {{ policyVerifiedOn }})</span>
           </div>
-          <a class="btn-ask-viejap btn-emerald" [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
-            <i class="fas fa-comment-dots"></i> Nhắn VieJap hỗ trợ làm Nenkin
-          </a>
         </div>
       </article>
 
       <!-- TAB 3: QUYỀN LỢI & BẢO VỆ -->
-      <article *ngSwitchCase="'policy-protection'" class="policy-panel-card theme-sky-panel" id="policy-protection-panel" role="tabpanel">
-        <div class="panel-top-banner">
-          <div class="banner-kicker">
-            <span class="emoji-tag">🛡️</span> {{ protectionPolicy.eyebrow }}
+      <article
+        *ngSwitchCase="'policy-protection'"
+        class="policy-panel-card policy-panel theme-protection-panel"
+        id="policy-protection-panel"
+        role="tabpanel"
+      >
+        <div class="panel-hero-header">
+          <div class="panel-badge-kicker kicker-sky">
+            <i class="fas fa-shield-heart"></i>
+            <span>{{ protectionPolicy.eyebrow }}</span>
           </div>
-          <h3 class="banner-title">{{ protectionPolicy.title }}</h3>
-          <p class="banner-desc">{{ protectionPolicy.description }}</p>
+          <h3 class="panel-hero-title">{{ protectionPolicy.title }}</h3>
+          <p class="panel-hero-desc">{{ protectionPolicy.description }}</p>
         </div>
 
-        <!-- 4 Rights Cards -->
-        <div class="policy-rights-grid">
-          <div class="right-card-item" *ngFor="let right of protectionPolicy.rights">
-            <div class="right-icon-box" [style.color]="right.color" [style.background-color]="right.color + '15'">
+        <!-- Rights Grid -->
+        <div class="policy-rights-refined-grid">
+          <div class="right-item-card" *ngFor="let right of protectionPolicy.rights">
+            <div class="right-icon-pill" [style.color]="right.color" [style.background-color]="right.color + '14'">
               <i [class]="right.icon"></i>
             </div>
-            <div class="right-card-body">
+            <div class="right-meta">
               <h5>{{ right.title }}</h5>
               <p>{{ right.text }}</p>
             </div>
           </div>
         </div>
 
-        <!-- Emergency Alert Box -->
-        <div class="policy-emergency-box">
-          <div class="emergency-header">
-            <span class="emergency-icon-glow">🚨</span>
-            <div>
-              <h4>Liên hệ hỗ trợ khẩn cấp khi bạn gặp các trường hợp sau:</h4>
-              <p>Luật pháp Nhật Bản nghiêm cấm mọi hành vi xâm phạm quyền lợi của người lao động.</p>
-            </div>
+        <!-- Emergency Alert -->
+        <div class="policy-emergency-callout">
+          <div class="emergency-badge-title">
+            <i class="fas fa-triangle-exclamation"></i>
+            <h4>Kênh hỗ trợ bảo vệ khẩn cấp: Luật pháp Nhật Bản nghiêm cấm xâm hại quyền lợi lao động</h4>
           </div>
-          <div class="emergency-tags">
-            <span class="emergency-pill" *ngFor="let item of protectionPolicy.emergencyExamples">
+          <div class="emergency-pill-list">
+            <span class="emergency-tag-item" *ngFor="let item of protectionPolicy.emergencyExamples">
               <i class="fas fa-circle-exclamation me-1"></i> {{ item }}
             </span>
           </div>
         </div>
 
-        <!-- VieJap Role Note -->
-        <div class="policy-friendly-tip tip-sky">
-          <div class="tip-icon-sticker">🤝</div>
-          <div class="tip-content">
-            <strong>VieJap luôn sát cánh bên bạn:</strong>
-            <p>{{ protectionPolicy.viejapRole }}</p>
+        <!-- VieJap Role -->
+        <div class="policy-viejap-message-box box-sky">
+          <div class="message-badge text-sky">
+            <i class="fas fa-headset"></i>
+            <strong>VieJap luôn sát cánh bên bạn 24/7</strong>
           </div>
+          <p class="message-body">{{ protectionPolicy.viejapRole }}</p>
         </div>
 
-        <!-- Footer -->
-        <div class="panel-bottom-footer">
-          <div class="footer-sources">
-            <span class="source-label"><i class="fas fa-link me-1"></i>Đường dây nóng tiếng Việt:</span>
-            <div class="source-links">
-              <a *ngFor="let source of protectionPolicy.sources" [href]="source.url" target="_blank" rel="noopener noreferrer">
-                {{ source.label }} <i class="fas fa-arrow-up-right-from-square"></i>
-              </a>
-            </div>
-          </div>
-          <a class="btn-ask-viejap btn-sky" [href]="contactInfo.consultationUrl" target="_blank" rel="noopener noreferrer">
-            <i class="fas fa-comment-dots"></i> Báo VieJap hỗ trợ ngay
+        <!-- Actions -->
+        <div class="policy-actions-container">
+          <a
+            class="btn-primary-policy-cta btn-sky-cta"
+            [href]="contactInfo.consultationUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fas fa-phone-volume"></i>
+            <span>Báo VieJap hỗ trợ ngay</span>
           </a>
-        </div>
-      </article>
 
-    </div>
-  </div>
-</section>
-<section class="company-activities-section py-5" id="hoat-dong">
-  <div class="container">
-    <div class="activities-heading">
-      <div class="activities-heading-copy">
-        <span class="about-section-label">
-          <i class="fas fa-newspaper me-2"></i>Góc hoạt động
-        </span>
-        <h2 class="about-section-title">Hoạt động thực tế: từ đối ngoại, văn hóa đến đồng hành học viên</h2>
-        <p class="about-section-desc">
-          Bộ ảnh này gom lại những lần VieJap có mặt trong các sự kiện kết nối Việt Nam - Nhật Bản,
-          sinh hoạt văn hóa và hoạt động tại địa phương. Người xem có thể nhìn thấy đội ngũ qua
-          những khoảnh khắc thật, rõ bối cảnh, thay vì chỉ đọc lời giới thiệu.
-        </p>
-      </div>
-
-      <div class="activities-impact" aria-label="Dấu ấn hoạt động">
-        <div class="impact-item">
-          <strong>05</strong>
-          <span>
-            <span class="impact-label-full">hoạt động thực tế được ghi lại</span>
-            <span class="impact-label-short">hoạt động</span>
-          </span>
-        </div>
-        <div class="impact-item">
-          <strong>Tokyo</strong>
-          <span>
-            <span class="impact-label-full">dấu ấn đối ngoại Việt Nam - Nhật Bản</span>
-            <span class="impact-label-short">đối ngoại</span>
-          </span>
-        </div>
-        <div class="impact-item">
-          <strong>24</strong>
-          <span>
-            <span class="impact-label-full">điểm trường hướng nghiệp</span>
-            <span class="impact-label-short">điểm trường</span>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="activity-showcase">
-      <div class="activity-media">
-        <figure class="activity-main-image">
-          <img [src]="selectedActivityImage.src" [alt]="selectedActivityImage.alt" [title]="selectedActivityImage.alt"
-            loading="lazy" />
-          <figcaption>
-            <i class="fas fa-camera"></i>
-            Ảnh ghi lại tại chương trình
-          </figcaption>
-        </figure>
-
-        <div class="activity-thumbnails" aria-label="Chọn hình ảnh hoạt động">
-          <button *ngFor="let image of selectedActivity.gallery; let index = index" type="button"
-            [class.active]="image.src === selectedActivityImage.src"
-            [attr.aria-pressed]="image.src === selectedActivityImage.src" (click)="selectActivityImage(image)"
-            [attr.aria-label]="'Xem ảnh ' + (index + 1) + ': ' + image.alt"
-            [title]="'Xem ảnh ' + (index + 1) + ': ' + image.alt">
-            <img [src]="image.src" [alt]="image.alt" [title]="image.alt" loading="lazy" />
-          </button>
-        </div>
-      </div>
-
-      <article class="activity-story">
-        <span class="activity-category">{{ selectedActivity.category }}</span>
-        <h3>{{ selectedActivity.title }}</h3>
-
-        <div class="activity-meta">
-          <span>
-            <i class="fas fa-location-dot"></i>
-            {{ selectedActivity.location }}
-          </span>
-          <span>
-            <strong>{{ selectedActivity.metric }}</strong>
-            {{ selectedActivity.metricLabel }}
-          </span>
-        </div>
-
-        <p class="activity-summary">{{ selectedActivity.summary }}</p>
-
-        <ul class="activity-highlights">
-          <li *ngFor="let highlight of selectedActivity.highlights">
-            <i class="fas fa-circle-check"></i>
-            <span>{{ highlight }}</span>
-          </li>
-        </ul>
-
-        <div class="activity-video" *ngIf="selectedActivity.video">
-          <div class="activity-video-heading">
-            <span><i class="fas fa-play-circle"></i> Video hoạt động</span>
-            <small>Một đoạn ngắn từ buổi gặp gỡ</small>
+          <div class="secondary-policy-links">
+            <a
+              *ngFor="let source of protectionPolicy.sources"
+              [href]="source.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="secondary-link-btn"
+            >
+              <i class="fas fa-arrow-up-right-from-square"></i>
+              <span>{{ source.label }}</span>
+            </a>
           </div>
-          <video controls preload="metadata" playsinline [poster]="selectedActivity.coverImage.src">
-            <source [src]="selectedActivity.video" type="video/mp4" />
-            Trình duyệt của bạn không hỗ trợ video.
-          </video>
+        </div>
+
+        <div class="policy-source-footer">
+          <div class="source-notes">
+            <span class="source-intro"><i class="fas fa-shield-halved me-1"></i>Đường dây nóng tiếng Việt:</span>
+            <span>Tổ chức Quản lý Thực tập sinh Nước ngoài OTIT (support.otit.go.jp) & Đại sứ quán Việt Nam tại Tokyo.</span>
+            <span class="policy-verified ms-2">(Xác minh: {{ policyVerifiedOn }})</span>
+          </div>
         </div>
       </article>
-    </div>
 
-    <div class="activity-selector" aria-label="Danh sách hoạt động công ty">
-      <button *ngFor="let activity of orderedCompanyActivities" type="button" class="activity-selector-card"
-        [class.active]="activity.id === selectedActivity.id" [attr.aria-pressed]="activity.id === selectedActivity.id"
-        (click)="selectCompanyActivity(activity)">
-        <img [src]="activity.coverImage.src" [alt]="activity.coverImage.alt" [title]="activity.coverImage.alt"
-          loading="lazy" />
-        <span class="activity-selector-copy">
-          <small>{{ activity.category }}</small>
-          <strong>{{ activity.title }}</strong>
-          <span><i class="fas fa-location-dot"></i>{{ activity.location }}</span>
-        </span>
-        <i class="fas fa-arrow-right activity-selector-arrow" aria-hidden="true"></i>
-      </button>
     </div>
   </div>
 </section>

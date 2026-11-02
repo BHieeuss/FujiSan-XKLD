@@ -1,0 +1,333 @@
+<div class="activity-detail-wrapper">
+  @if (isLoading) {
+  <div class="detail-loading-state">
+    <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+    <p>Đang tải chi tiết hoạt động...</p>
+  </div>
+  } @else if (errorMessage || !activity) {
+  <div class="detail-error-state">
+    <div class="container text-center">
+      <i class="fas fa-triangle-exclamation fa-3x text-amber mb-3"></i>
+      <h2>{{ errorMessage || 'Không tìm thấy hoạt động' }}</h2>
+      <p>Hoạt động có thể đã kết thúc, đã được lưu trữ hoặc đường dẫn không còn khả dụng.</p>
+      <a routerLink="/hoat-dong" class="btn btn-primary mt-3">
+        <i class="fas fa-arrow-left"></i> Quay lại Góc hoạt động
+      </a>
+    </div>
+  </div>
+  } @else {
+  <!-- Breadcrumb & Top Bar -->
+  <div class="detail-top-nav">
+    <div class="container">
+      <nav class="breadcrumb-trail">
+        <a routerLink="/">Trang chủ</a>
+        <i class="fas fa-chevron-right separator"></i>
+        <a routerLink="/hoat-dong">Góc hoạt động</a>
+        <i class="fas fa-chevron-right separator"></i>
+        <span class="active">{{ activity.categoryName || activity.category }}</span>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Article Header -->
+  <header class="article-header">
+    <div class="container article-container">
+      <div class="article-badge-row">
+        <span class="badge-cat">
+          <i class="fas fa-tag"></i> {{ activity.categoryName || activity.category }}
+        </span>
+        @if (activity.hotBadge.enabled) {
+        <span class="badge-hot">
+          <i class="fas fa-fire"></i> HOT
+        </span>
+        }
+        @if (activity.level === 'special') {
+        <span class="badge-special">
+          <i class="fas fa-crown"></i> ĐẶC BIỆT
+        </span>
+        }
+      </div>
+
+      <h1 class="article-title" [style.color]="activity.titleColor || null">{{ activity.title }}</h1>
+
+      <!-- Meta Bar -->
+      <div class="article-meta-bar">
+        <div class="meta-left">
+          <span class="meta-item"><i class="fas fa-calendar-day"></i> {{ activity.eventDate }}</span>
+          @if (activity.location) {
+          <span class="meta-item"><i class="fas fa-map-marker-alt"></i> {{ activity.location }}</span>
+          }
+          @if (activity.organizer) {
+          <span class="meta-item"><i class="fas fa-building"></i> {{ activity.organizer }}</span>
+          }
+          <span class="meta-item"><i class="fas fa-eye"></i> {{ (activity.viewCount || (activity.metrics ? activity.metrics.viewCount : 0)) |
+            number }} lượt xem</span>
+        </div>
+
+        <!-- Share Toolbar -->
+        <div class="meta-right-share">
+          <span class="share-label">Chia sẻ:</span>
+          <button type="button" class="btn-share-icon" (click)="shareFacebook()" title="Chia sẻ lên Facebook">
+            <i class="fab fa-facebook-f"></i>
+          </button>
+          <button type="button" class="btn-share-icon" (click)="shareZalo()" title="Chia sẻ qua Zalo">
+            <span class="zalo-text">Zalo</span>
+          </button>
+          <button type="button" class="btn-share-icon" (click)="copyPageUrl()" title="Sao chép liên kết">
+            <i class="fas fa-link"></i>
+          </button>
+          @if (copiedNotification) {
+          <span class="copied-pill">Đã chép link!</span>
+          }
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Cover Hero (16:9) -->
+  <div class="article-cover-hero">
+    <div class="container article-container">
+      <div class="cover-frame">
+        <img [src]="getCoverImageUrl(activity.coverImage)" (error)="onImageError($event)" alt="Ảnh hoạt động VieJap" [alt]="activity.title"
+          class="cover-image" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Article Content Grid -->
+  <main class="article-body-section">
+    <div class="container article-container">
+      <div class="article-main-column">
+        <!-- Summary Lead -->
+        @if (activity.summary) {
+        <div class="article-lead" [style.color]="activity.textColor || null">
+          <p>{{ activity.summary }}</p>
+        </div>
+        }
+
+        <!-- Metric Highlight Box (if any) -->
+        @if (activity.metric) {
+        <div class="activity-metric-banner">
+          <div class="metric-big-num">{{ activity.metric }}</div>
+          <div class="metric-big-text">
+            <strong>{{ activity.metricLabel }}</strong>
+            <p>Một trong những thành tựu nổi bật được ghi nhận qua hoạt động này.</p>
+          </div>
+        </div>
+        }
+
+        <!-- Dynamic Blocks -->
+        <div class="activity-blocks-render">
+          @for (block of activity.blocks; track block.id) {
+          @if (block.isVisible) {
+          <!-- Heading -->
+          @if (block.type === 'heading') {
+          <h2 class="render-heading" [style.color]="block.meta?.textColor || activity.textColor || null">{{ block.content }}</h2>
+          }
+
+          <!-- Subheading -->
+          @if (block.type === 'subheading') {
+          <h3 class="render-subheading" [style.color]="block.meta?.textColor || activity.textColor || null">{{ block.content }}</h3>
+          }
+
+          <!-- Paragraph -->
+          @if (block.type === 'paragraph') {
+          <p class="render-paragraph" [style.color]="block.meta?.textColor || activity.textColor || null">{{ block.content }}</p>
+          }
+
+          <!-- Image -->
+          @if (block.type === 'image') {
+          <figure class="render-figure" (click)="openLightbox(block.meta?.url || '')">
+            <img [src]="block.meta?.url || 'assets/images/logo.png'" alt="Ảnh bài viết" [alt]="block.content || 'Ảnh bài viết'" class="render-img" />
+            @if (block.content) {
+            <figcaption class="render-caption">{{ block.content }}</figcaption>
+            }
+          </figure>
+          }
+
+          <!-- Gallery -->
+          @if (block.type === 'gallery') {
+          <div class="render-gallery-section">
+            @if (block.content) {
+            <h4 class="render-gallery-title">{{ block.content }}</h4>
+            }
+            <div class="render-gallery-grid">
+              @for (img of block.meta?.images; track img.url) {
+              <div class="gallery-photo-card" (click)="openLightbox(img.url)">
+                <img [src]="img.url" alt="Khoảnh khắc sự kiện" class="gallery-photo" loading="lazy" />
+                @if (img.caption) {
+                <span class="photo-caption">{{ img.caption }}</span>
+                }
+              </div>
+              }
+            </div>
+          </div>
+          }
+
+          <!-- Video -->
+          @if (block.type === 'video') {
+          <div class="render-video-box">
+            <video controls [src]="block.meta?.url" class="render-video-player"
+              [poster]="block.meta?.thumbnail || getCoverImageUrl(activity.coverImage)">
+              Trình duyệt của bạn không hỗ trợ thẻ phát video.
+            </video>
+            @if (block.content) {
+            <div class="video-caption">{{ block.content }}</div>
+            }
+          </div>
+          }
+
+          <!-- Quote -->
+          @if (block.type === 'quote') {
+          <blockquote class="render-quote" [style.color]="block.meta?.textColor || activity.textColor || null">
+            <i class="fas fa-quote-left quote-icon"></i>
+            <p class="quote-text">{{ block.content }}</p>
+            @if (block.meta?.author) {
+            <cite class="quote-author">
+              <strong>{{ block.meta?.author }}</strong>
+              @if (block.meta?.role) {
+              <span> — {{ block.meta?.role }}</span>
+              }
+            </cite>
+            }
+          </blockquote>
+          }
+
+          <!-- Callout -->
+          @if (block.type === 'callout') {
+          <div class="render-callout" [ngClass]="'callout-' + (block.meta?.calloutType || 'info')">
+            <i class="fas fa-circle-info callout-icon"></i>
+            <div class="callout-content">{{ block.content }}</div>
+          </div>
+          }
+
+          <!-- Event Info -->
+          @if (block.type === 'event_info') {
+          <div class="render-event-card">
+            <div class="event-card-header">
+              <i class="fas fa-calendar-check"></i>
+              <h4>{{ block.content }}</h4>
+            </div>
+            <div class="event-details-grid">
+              <div><span class="label">Thời gian:</span> {{ block.meta?.eventDate || activity.eventDate }}</div>
+              <div><span class="label">Địa điểm:</span> {{ block.meta?.eventLocation || activity.location }}</div>
+              <div><span class="label">Thành phần:</span> {{ activity.participants || 'Cán bộ, giảng viên và học viên
+                VieJap' }}</div>
+              <div><span class="label">Chủ trì:</span> {{ activity.organizer || 'VieJap Education' }}</div>
+            </div>
+          </div>
+          }
+
+          <!-- Bullet list -->
+          @if (block.type === 'bullet_list') {
+          <ul class="render-bullet-list">
+            <li *ngFor="let it of block.meta?.items">{{ it }}</li>
+          </ul>
+          }
+
+          <!-- Button CTA -->
+          @if (block.type === 'button') {
+          <div class="render-btn-box">
+            <a [routerLink]="block.meta?.buttonLink || '/lien-he'" class="btn btn-primary btn-lg">
+              {{ block.content }}
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          }
+
+          <!-- Divider -->
+          @if (block.type === 'divider') {
+          <hr class="render-divider" />
+          }
+          }
+          }
+        </div>
+
+        <!-- Article Footer & Tags -->
+        <footer class="article-footer-meta">
+          <div class="footer-tags">
+            <span class="tags-label"><i class="fas fa-tags"></i> Từ khóa:</span>
+            <span class="tag-pill">VieJap</span>
+            <span class="tag-pill">{{ activity.categoryName || activity.category }}</span>
+            <span class="tag-pill">Nhật Bản</span>
+            <span class="tag-pill">Xuất khẩu lao động</span>
+          </div>
+
+          <div class="footer-back-link">
+            <a routerLink="/hoat-dong" class="btn btn-outline">
+              <i class="fas fa-arrow-left"></i> Quay lại Góc hoạt động
+            </a>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </main>
+
+  <!-- Related Activities Section -->
+  @if (relatedActivities.length > 0) {
+  <section class="related-activities-section">
+    <div class="container article-container">
+      <div class="related-header">
+        <h3>Hoạt Động Liên Quan Khác</h3>
+        <a routerLink="/hoat-dong" class="view-all-link">
+          <span>Xem tất cả</span>
+          <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="related-grid">
+        @for (item of relatedActivities; track item.id) {
+        <a [routerLink]="['/hoat-dong', item.slug]" class="related-card">
+          <div class="related-thumb-wrapper">
+            <img [src]="getCoverImageUrl(item.coverImage)" (error)="onImageError($event)" alt="Ảnh hoạt động liên quan" [alt]="item.title"
+              class="related-thumb" />
+            <span class="related-cat">{{ item.categoryName || item.category }}</span>
+          </div>
+          <div class="related-info">
+            <span class="related-date"><i class="fas fa-calendar-alt"></i> {{ item.eventDate }}</span>
+            <h4 class="related-title">{{ item.title }}</h4>
+          </div>
+        </a>
+        }
+      </div>
+    </div>
+  </section>
+  }
+
+  <!-- Call to Action Banner -->
+  <section class="cta-section">
+    <div class="container cta-container">
+      <div class="cta-content">
+        <span class="cta-eyebrow">Khát vọng vươn xa cùng VieJap</span>
+        <h2 class="cta-title">Sẵn Sàng Cho Hành Trình Làm Việc & Học Tập Tại Nhật Bản?</h2>
+        <p class="cta-desc">
+          Đăng ký tham gia các khóa đào tạo, định hướng kỹ năng và tham quan thực tế môi trường đào tạo chuyên nghiệp
+          chuẩn Nhật Bản của VieJap ngay hôm nay.
+        </p>
+        <div class="cta-buttons">
+          <a routerLink="/lien-he" class="btn-cta-primary">
+            <i class="fas fa-paper-plane"></i>
+            <span>Liên hệ tư vấn miễn phí</span>
+          </a>
+          <a routerLink="/form-hoc-vien" class="btn-cta-outline">
+            <i class="fas fa-file-signature"></i>
+            <span>Khai sơ yếu lý lịch online</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+  }
+
+  <!-- Photo Lightbox Modal -->
+  @if (lightboxImage) {
+  <div class="lightbox-backdrop" (click)="closeLightbox()">
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+      <img [src]="lightboxImage" alt="Phóng to ảnh" class="lightbox-img" />
+      <button type="button" class="btn-close-lightbox" (click)="closeLightbox()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+  }
+</div>

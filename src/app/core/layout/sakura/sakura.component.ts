@@ -37,7 +37,7 @@ interface SakuraPetal {
   styles: [`
     :host {
       position: fixed;
-      z-index: 9999;
+      z-index: 2;
       inset: 0;
       pointer-events: none;
       overflow: hidden;
@@ -151,20 +151,20 @@ export class SakuraComponent implements OnInit, OnDestroy {
   petals: SakuraPetal[] = [];
   private intervalId?: ReturnType<typeof setInterval>;
   private petalCounter = 0;
-  private readonly maxPetals = 25;
+  private readonly maxPetals = 8;
 
   ngOnInit(): void {
-    // Tạo batch ban đầu với delay ngẫu nhiên
-    for (let i = 0; i < 15; i++) {
-      this.petals.push(this.createPetal(Math.random() * 10));
+    // Tạo số lượng cánh hoa tinh tế, nhẹ nhàng
+    for (let i = 0; i < 5; i++) {
+      this.petals.push(this.createPetal(Math.random() * 8));
     }
 
-    // Thêm cánh hoa mới mỗi 3 giây
+    // Thêm cánh hoa mới với tần suất chậm để không che khuất nội dung
     this.intervalId = setInterval(() => {
       if (this.petals.length < this.maxPetals) {
         this.petals.push(this.createPetal(0));
       }
-    }, 3000);
+    }, 6000);
   }
 
   ngOnDestroy(): void {
@@ -175,12 +175,12 @@ export class SakuraComponent implements OnInit, OnDestroy {
     return {
       id: ++this.petalCounter,
       left: Math.random() * 100,
-      size: 8 + Math.random() * 12,
-      delay: extraDelay + Math.random() * 5,
-      duration: 7 + Math.random() * 9,
-      drift: 2 + Math.random() * 5,
-      rotation: 30 + Math.random() * 300,
-      opacity: 0.5 + Math.random() * 0.45,
+      size: 7 + Math.random() * 8,
+      delay: extraDelay + Math.random() * 4,
+      duration: 9 + Math.random() * 9,
+      drift: 1.5 + Math.random() * 3,
+      rotation: 20 + Math.random() * 240,
+      opacity: 0.25 + Math.random() * 0.35,
       variant: Math.floor(Math.random() * 3),
     };
   }

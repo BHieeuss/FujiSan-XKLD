@@ -27,14 +27,6 @@ describe('About', () => {
     expect(compiled.querySelector('.featured-activity-copy h2')?.textContent).toContain(
       'hội thảo kết nối thương mại',
     );
-    expect(compiled.querySelector('#hoat-dong')).toBeTruthy();
-    expect(compiled.querySelectorAll('.activity-selector-card').length).toBe(5);
-    expect(compiled.querySelector('.activity-story h3')?.textContent).toContain(
-      'Trung thu cho em',
-    );
-    expect(compiled.querySelector('.activity-selector-card strong')?.textContent).toContain(
-      'Trung thu cho em',
-    );
   });
 
   it('should keep the roadmap hidden until requested', () => {
@@ -69,7 +61,7 @@ describe('About', () => {
     expect(compiled.querySelector('.policy-facts')?.textContent).toContain('6,24%/năm');
 
     const loanSources = compiled.querySelectorAll<HTMLAnchorElement>(
-      '.policy-source-footer a[target="_blank"]',
+      '.secondary-policy-links a[target="_blank"]',
     );
     expect(Array.from(loanSources).some((link) => link.href.includes('vbsp.org.vn'))).toBeTrue();
 
@@ -77,7 +69,7 @@ describe('About', () => {
     fixture.detectChanges();
 
     const nenkinSource = compiled.querySelector<HTMLAnchorElement>(
-      '.policy-source-footer a[href*="nenkin.go.jp"]',
+      '.secondary-policy-links a[href*="nenkin.go.jp"]',
     );
     expect(nenkinSource).toBeTruthy();
     expect(compiled.querySelector('.policy-panel')?.textContent).toContain('2 năm');
@@ -99,9 +91,10 @@ describe('About', () => {
     expect(component.quizStep).toBe(0);
   });
 
-  it('should render the live order list', () => {
+  it('should render the contact CTA section', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('#don-tuyen iframe')).toBeTruthy();
+    expect(compiled.querySelector('#lien-he')).toBeTruthy();
+    expect(compiled.querySelector('.cta-title')?.textContent).toContain('Sẵn sàng');
   });
 });

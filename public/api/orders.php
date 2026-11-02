@@ -8,7 +8,7 @@ try {
     $id = trim((string) ($_GET['id'] ?? ''));
 
     if ($id !== '') {
-        $order = admin_job_order_find($id);
+        $order = admin_job_order_find($id, true);
         if ($order === null) {
             admin_respond(404, ['message' => 'Không tìm thấy đơn hàng.']);
         }

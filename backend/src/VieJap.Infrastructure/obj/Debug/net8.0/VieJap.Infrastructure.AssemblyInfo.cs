@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VieJap.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+31c18131363f54f0ebe5ef6e0b171aafbdc5ca5b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b08cbab32e4be5666fe3612aac88e63d3fb1714")]
 [assembly: System.Reflection.AssemblyProductAttribute("VieJap.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VieJap.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

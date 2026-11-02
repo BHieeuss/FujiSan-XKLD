@@ -1,0 +1,1086 @@
+<div class="users-admin-shell">
+  <!-- HEADER -->
+  <header class="module-header">
+    <div class="header-main">
+      <div class="header-badge">
+        <i class="fas fa-user-shield"></i>
+        <span>HỆ THỐNG PHÂN QUYỀN & TÙY CHỈNH TÀI KHOẢN</span>
+      </div>
+      <h2>Quản Lý Người Dùng & Phân Quyền Truy Cập</h2>
+      <p>
+        Kiểm soát tài khoản cán bộ nhân viên, thiết lập vai trò, phân quyền theo phân hệ,
+        tùy chỉnh cấp thêm hoặc tạm chặn quyền và giới hạn phạm vi dữ liệu an toàn.
+      </p>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-pill">
+        <span class="stat-num">{{ stats().total }}</span>
+        <span class="stat-label">Tổng tài khoản</span>
+      </div>
+      <div class="stat-pill active">
+        <span class="stat-num">{{ stats().active }}</span>
+        <span class="stat-label">Đang hoạt động</span>
+      </div>
+      <div class="stat-pill locked">
+        <span class="stat-num">{{ stats().locked }}</span>
+        <span class="stat-label">Đã khóa</span>
+      </div>
+      <div class="stat-pill roles">
+        <span class="stat-num">{{ roles().length }}</span>
+        <span class="stat-label">Vai trò chuẩn</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="subnav-tabs" aria-label="Tabs quản lý người dùng">
+    <button
+      type="button"
+      class="subnav-btn"
+      [class.active]="activeTab === 'users'"
+      (click)="selectTab('users')"
+    >
+      <i class="fas fa-users"></i>
+      <span>Danh sách tài khoản</span>
+      <span class="badge-count">{{ users().length }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="subnav-btn"
+      [class.active]="activeTab === 'roles'"
+      (click)="selectTab('roles')"
+    >
+      <i class="fas fa-shield-halved"></i>
+      <span>Quản lý vai trò & Quyền hạn</span>
+      <span class="badge-count">{{ roles().length }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="subnav-btn"
+      [class.active]="activeTab === 'overrides'"
+      (click)="selectTab('overrides')"
+    >
+      <i class="fas fa-sliders"></i>
+      <span>Phân quyền riêng từng tài khoản</span>
+      @if (selectedUserForOverride) {
+        <span class="badge-active-user">{{ selectedUserForOverride.username }}</span>
+      }
+    </button>
+
+    <button
+      type="button"
+      class="subnav-btn"
+      [class.active]="activeTab === 'audit'"
+      (click)="selectTab('audit')"
+    >
+      <i class="fas fa-clock-rotate-left"></i>
+      <span>Nhật ký hoạt động & Phân quyền</span>
+    </button>
+  </nav>
+
+  <!-- LOADING SPINNER -->
+  @if (isLoading()) {
+    <div class="loading-overlay">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Đang tải dữ liệu phân quyền...</span>
+    </div>
+  }
+
+  <!-- TAB 1: USERS LIST -->
+  @if (activeTab === 'users') {
+    <section class="tab-panel users-panel">
+      <!-- Toolbar -->
+      <div class="panel-toolbar">
+        <div class="search-box">
+          <i class="fas fa-magnifying-glass"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Tìm theo họ tên, email, tên đăng nhập, phòng ban..."
+          />
+          @if (searchTerm) {
+            <button type="button" class="clear-search" (click)="searchTerm = ''; onSearchChange()">
+              <i class="fas fa-times"></i>
+            </button>
+          }
+        </div>
+
+        <div class="filters-group">
+          <div class="select-wrapper">
+            <label for="filter-role">Vai trò:</label>
+            <select id="filter-role" [(ngModel)]="roleFilter" (ngModelChange)="loadUsers()">
+              <option value="all">Tất cả vai trò</option>
+              @for (r of roles(); track r.id) {
+                <option [value]="r.id">{{ r.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="select-wrapper">
+            <label for="filter-status">Trạng thái:</label>
+            <select id="filter-status" [(ngModel)]="statusFilter" (ngModelChange)="loadUsers()">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="locked">Đã khóa</option>
+            </select>
+          </div>
+
+          @if (auth.hasPermission('users.create')) {
+            <button type="button" class="btn btn-primary" (click)="openCreateUserModal()">
+              <i class="fas fa-user-plus"></i>
+              <span>Thêm tài khoản mới</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      @if (users().length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-user-slash"></i>
+          <h3>Không tìm thấy tài khoản nào</h3>
+          <p>Không có kết quả phù hợp với điều kiện tìm kiếm và bộ lọc hiện tại.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Họ & Tên / Tài khoản</th>
+                <th>Liên hệ</th>
+                <th>Vai trò</th>
+                <th>Phòng ban</th>
+                <th>Trạng thái</th>
+                <th>Lần đăng nhập cuối</th>
+                <th class="text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of pagedUsers(); track u.id) {
+                <tr [class.row-super-admin]="u.isSuperAdmin || u.username === 'admin'" [class.row-locked]="u.status === 'locked'">
+                  <td>
+                    <div class="user-cell">
+                      <div class="user-avatar" [class.avatar-super]="u.isSuperAdmin || u.username === 'admin'">
+                        @if (u.avatarUrl) {
+                          <img [src]="u.avatarUrl" alt="Hình ảnh minh họa" [alt]="u.fullName" class="avatar-photo" />
+                        } @else if (u.isSuperAdmin || u.username === 'admin') {
+                          <i class="fas fa-crown"></i>
+                        } @else {
+                          {{ u.fullName.charAt(0).toUpperCase() }}
+                        }
+                      </div>
+                      <div class="user-meta">
+                        <div class="user-name">
+                          <strong>{{ u.fullName }}</strong>
+                          @if (u.isSuperAdmin || u.username === 'admin') {
+                            <span class="badge-super" title="Tài khoản Quản trị viên tối cao được bảo vệ đặc biệt">Super Admin</span>
+                          }
+                        </div>
+                        <span class="user-username">&#64;{{ u.username }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="contact-cell">
+                      <span class="contact-email"><i class="fas fa-envelope"></i> {{ u.email }}</span>
+                      @if (u.phone) {
+                        <span class="contact-phone"><i class="fas fa-phone"></i> {{ u.phone }}</span>
+                      }
+                    </div>
+                  </td>
+                  <td>
+                    <span class="role-badge" [ngClass]="getRoleBadgeClass(u.roleId)">
+                      {{ u.roleName }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="dept-text">{{ u.department || 'Văn Phòng' }}</span>
+                  </td>
+                  <td>
+                    @if (u.status === 'active') {
+                      <span class="status-badge status-active">
+                        <i class="fas fa-circle-check"></i> Đang hoạt động
+                      </span>
+                    } @else {
+                      <span class="status-badge status-locked">
+                        <i class="fas fa-circle-xmark"></i> Đã khóa
+                      </span>
+                    }
+                  </td>
+                  <td>
+                    <span class="login-time">
+                      @if (u.lastLoginAt) {
+                        {{ u.lastLoginAt }}
+                      } @else {
+                        <em class="text-muted">Chưa đăng nhập</em>
+                      }
+                    </span>
+                  </td>
+                  <td class="text-right">
+                    <div class="action-buttons">
+                      <!-- Edit Profile -->
+                      @if (auth.hasPermission('users.update')) {
+                        <button
+                          type="button"
+                          class="action-btn"
+                          title="Chỉnh sửa thông tin"
+                          (click)="openEditUserModal(u)"
+                        >
+                          <i class="fas fa-pen-to-square"></i>
+                        </button>
+                      }
+
+                      <!-- Override Permissions (Tab 3) -->
+                      @if (auth.hasPermission('permissions.override') && !u.isSuperAdmin && u.username !== 'admin') {
+                        <button
+                          type="button"
+                          class="action-btn btn-override"
+                          title="Thiết lập quyền riêng (ALLOW/DENY)"
+                          (click)="goToOverridesForUser(u)"
+                        >
+                          <i class="fas fa-sliders"></i>
+                        </button>
+                      }
+
+                      <!-- Reset Password -->
+                      @if (auth.hasPermission('users.update')) {
+                        <button
+                          type="button"
+                          class="action-btn"
+                          title="Đặt lại mật khẩu"
+                          (click)="openResetPasswordModal(u)"
+                        >
+                          <i class="fas fa-key"></i>
+                        </button>
+                      }
+
+                      <!-- Toggle Lock Status -->
+                      @if (auth.hasPermission('users.lock') && !u.isSuperAdmin && u.username !== 'admin') {
+                        <button
+                          type="button"
+                          class="action-btn"
+                          [class.btn-lock]="u.status === 'active'"
+                          [class.btn-unlock]="u.status === 'locked'"
+                          [title]="u.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'"
+                          (click)="toggleUserStatus(u)"
+                        >
+                          <i [class]="u.status === 'active' ? 'fas fa-lock' : 'fas fa-lock-open'"></i>
+                        </button>
+                      }
+
+                      <!-- Delete User -->
+                      @if (auth.hasPermission('users.delete') && !u.isSuperAdmin && u.username !== 'admin') {
+                        <button
+                          type="button"
+                          class="action-btn btn-delete"
+                          title="Xóa tài khoản"
+                          (click)="deleteUser(u)"
+                        >
+                          <i class="fas fa-trash-can"></i>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <app-admin-pagination
+          [currentPage]="usersPage()"
+          [pageSize]="usersPageSize"
+          [totalItems]="users().length"
+          [disabled]="isLoading()"
+          itemLabel="tài khoản"
+          (pageChange)="onUsersPageChange($event)"
+        ></app-admin-pagination>
+      }
+    </section>
+  }
+
+  <!-- TAB 2: ROLES & PERMISSION MATRIX -->
+  @if (activeTab === 'roles') {
+    <section class="tab-panel roles-panel">
+      <div class="panel-header-bar">
+        <div>
+          <h3>Danh Sách Vai Trò & Ma Trận Phân Quyền</h3>
+          <p>Mỗi vai trò đại diện cho một vị trí công việc với tập quyền RBAC và phạm vi dữ liệu mặc định.</p>
+        </div>
+
+        @if (auth.hasPermission('roles.manage')) {
+          <button type="button" class="btn btn-primary" (click)="openCreateRoleModal()">
+            <i class="fas fa-plus"></i>
+            <span>Tạo vai trò mới</span>
+          </button>
+        }
+      </div>
+
+      <div class="roles-grid">
+        @for (r of pagedRoles(); track r.id) {
+          <div class="role-card" [class.card-system]="r.isSystem">
+            <div class="role-card-header">
+              <div class="role-title-wrap">
+                <span class="role-icon">
+                  <i [class]="r.id === 'super_admin' ? 'fas fa-crown' : (r.isSystem ? 'fas fa-shield' : 'fas fa-id-badge')"></i>
+                </span>
+                <div>
+                  <h4>{{ r.name }}</h4>
+                  <div class="role-tags">
+                    @if (r.isSystem) {
+                      <span class="badge-system-role">Hệ thống</span>
+                    }
+                    <span class="badge-scope">
+                      <i class="fas fa-layer-group"></i> {{ getDataScopeLabel(r.dataScope) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="role-user-count">
+                <span class="count-num">{{ r.userCount ?? 0 }}</span>
+                <span class="count-label">tài khoản</span>
+              </div>
+            </div>
+
+            <p class="role-desc">{{ r.description }}</p>
+
+            <div class="role-card-footer">
+              <div class="perm-counter">
+                <i class="fas fa-check-double"></i>
+                <span>{{ r.permissions.length }} quyền được cấp</span>
+              </div>
+
+              <div class="role-actions">
+                @if (auth.hasPermission('roles.manage')) {
+                  <button type="button" class="btn-role-action" (click)="openEditRoleModal(r)" title="Xem & chỉnh sửa ma trận quyền">
+                    <i class="fas fa-sliders"></i> Sửa quyền
+                  </button>
+                  <button type="button" class="btn-role-action" (click)="openCopyRoleModal(r)" title="Sao chép vai trò này">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                  @if (!r.isSystem && (r.userCount ?? 0) === 0) {
+                    <button type="button" class="btn-role-action action-danger" (click)="deleteRole(r)" title="Xóa vai trò">
+                      <i class="fas fa-trash-can"></i>
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <app-admin-pagination
+        [currentPage]="rolesPage()"
+        [pageSize]="rolesPageSize"
+        [totalItems]="roles().length"
+        [disabled]="isLoading()"
+        itemLabel="vai trò"
+        (pageChange)="onRolesPageChange($event)"
+      ></app-admin-pagination>
+    </section>
+  }
+
+  <!-- TAB 3: USER OVERRIDES (RBAC + ALLOW / DENY) -->
+  @if (activeTab === 'overrides') {
+    <section class="tab-panel overrides-panel">
+      <!-- User Selector Header -->
+      <div class="override-selector-bar">
+        <div class="user-select-field">
+          <label for="select-override-user">
+            <i class="fas fa-user-check"></i> Chọn tài khoản cán bộ để thiết lập quyền riêng:
+          </label>
+          <select
+            id="select-override-user"
+            [ngModel]="selectedUserForOverride?.id"
+            (ngModelChange)="onOverrideUserChange($event)"
+          >
+            <option [ngValue]="null" disabled>-- Chọn một người dùng --</option>
+            @for (u of users(); track u.id) {
+              <option [value]="u.id">
+                {{ u.fullName }} (&#64;{{ u.username }}) - {{ u.roleName }}
+              </option>
+            }
+          </select>
+        </div>
+
+        @if (selectedUserForOverride) {
+          <div class="override-quick-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="isSavingOverride || selectedUserForOverride.isSuperAdmin"
+              (click)="resetUserOverrides()"
+            >
+              <i class="fas fa-rotate-left"></i>
+              <span>Khôi phục quyền theo vai trò</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="isSavingOverride || selectedUserForOverride.isSuperAdmin"
+              (click)="saveUserOverrides()"
+            >
+              <i [class]="isSavingOverride ? 'fas fa-spinner fa-spin' : 'fas fa-floppy-disk'"></i>
+              <span>Lưu phân quyền riêng</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (!selectedUserForOverride) {
+        <div class="empty-state select-prompt">
+          <i class="fas fa-hand-pointer"></i>
+          <h3>Vui lòng chọn tài khoản ở danh sách trên</h3>
+          <p>Sau khi chọn, bạn có thể cấp thêm quyền hoặc tạm chặn quyền riêng biệt cho từng người dùng.</p>
+        </div>
+      } @else if (selectedUserForOverride.isSuperAdmin || selectedUserForOverride.username === 'admin') {
+        <div class="super-admin-banner">
+          <i class="fas fa-shield-halved"></i>
+          <div>
+            <h4>Tài khoản Quản trị viên cấp cao tối cao</h4>
+            <p>
+              Tài khoản <strong>{{ selectedUserForOverride.fullName }}</strong> ({{ selectedUserForOverride.username }})
+              được bảo vệ đặc biệt và luôn sở hữu 100% quyền trên toàn hệ thống VieJap. Không thể thay đổi quyền tài khoản này.
+            </p>
+          </div>
+        </div>
+      } @else {
+        <!-- Formula & Metrics Summary -->
+        <div class="effective-formula-card">
+          <div class="formula-header">
+            <div>
+              <span class="user-target-title">
+                Phân quyền cho: <strong>{{ selectedUserForOverride.fullName }}</strong> (&#64;{{ selectedUserForOverride.username }})
+              </span>
+              <span class="user-role-badge">Vai trò: {{ selectedUserForOverride.roleName }}</span>
+            </div>
+
+            <div class="formula-equation">
+              <span class="badge-role-eq">Vai trò ({{ userOverrideCalc?.rolePermissions?.length || 0 }})</span>
+              <span class="op">+</span>
+              <span class="badge-allow-eq">Cấp thêm ({{ overrideAllowSet.size }})</span>
+              <span class="op">-</span>
+              <span class="badge-deny-eq">Tạm chặn ({{ overrideDenySet.size }})</span>
+              <span class="op">=</span>
+              <span class="badge-effective-eq">Quyền thực tế: {{ calculateTotalEffectiveCount() }} quyền</span>
+            </div>
+          </div>
+
+          <!-- Data Scope & Reason Row -->
+          <div class="override-scope-row">
+            <div class="scope-col">
+              <label><i class="fas fa-database"></i> Phạm vi dữ liệu được xem:</label>
+              <select [(ngModel)]="overrideDataScope">
+                <option value="">Mặc định theo vai trò ({{ getDataScopeLabel(userOverrideCalc?.dataScope || 'assigned') }})</option>
+                <option value="own">Chỉ dữ liệu cá nhân tạo</option>
+                <option value="assigned">Dữ liệu được giao phụ trách</option>
+                <option value="team">Dữ liệu toàn bộ nhóm</option>
+                <option value="department">Dữ liệu toàn phòng ban</option>
+                <option value="all">Toàn bộ dữ liệu hệ thống</option>
+              </select>
+            </div>
+
+            <div class="reason-col">
+              <label><i class="fas fa-comment-dots"></i> Lý do điều chỉnh quyền (Lưu vào lịch sử thao tác):</label>
+              <input
+                type="text"
+                [(ngModel)]="overrideReason"
+                placeholder="Ví dụ: Cấp quyền xóa đơn hàng trong đợt thanh lý hồ sơ Q1/2026..."
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Overrides Matrix Grouped by Module -->
+        <div class="overrides-matrix">
+          @for (group of groupedPermissions(); track group.module) {
+            <div class="module-override-box">
+              <div class="module-box-header">
+                <h5><i class="fas fa-folder-open"></i> {{ group.moduleName }}</h5>
+                <span class="perm-count">{{ group.permissions.length }} thao tác</span>
+              </div>
+
+              <div class="override-items-list">
+                @for (p of group.permissions; track p.key) {
+                  <div
+                    class="override-row"
+                    [class.is-effective]="isEffectivePermission(p.key)"
+                    [class.is-denied]="getOverrideState(p.key) === 'deny'"
+                    [class.is-allowed]="getOverrideState(p.key) === 'allow'"
+                  >
+                    <div class="perm-info">
+                      <div class="perm-name-wrap">
+                        <strong>{{ p.name }}</strong>
+                        <code class="perm-code">{{ p.key }}</code>
+                        @if (p.isSensitive) {
+                          <span class="sensitive-pill" title="Thao tác nhạy cảm">Nhạy cảm</span>
+                        }
+                      </div>
+                      <p class="perm-desc">{{ p.description }}</p>
+                    </div>
+
+                    <div class="perm-inheritance-status">
+                      @if (isInheritedFromRole(p.key)) {
+                        <span class="inherited-badge has-role" title="Vai trò đã có quyền này">
+                          <i class="fas fa-check"></i> Vai trò có
+                        </span>
+                      } @else {
+                        <span class="inherited-badge no-role" title="Vai trò không có quyền này">
+                          <i class="fas fa-minus"></i> Vai trò không có
+                        </span>
+                      }
+                    </div>
+
+                    <!-- 3-Way State Control -->
+                    <div class="tri-state-controls">
+                      <button
+                        type="button"
+                        class="tri-btn btn-role"
+                        [class.active]="getOverrideState(p.key) === 'role'"
+                        (click)="setOverrideState(p.key, 'role')"
+                        title="Dùng theo vai trò mặc định"
+                      >
+                        Mặc định
+                      </button>
+
+                      <button
+                        type="button"
+                        class="tri-btn btn-allow"
+                        [class.active]="getOverrideState(p.key) === 'allow'"
+                        (click)="setOverrideState(p.key, 'allow')"
+                        title="Cấp thêm quyền riêng cho tài khoản này"
+                      >
+                        <i class="fas fa-plus"></i> Cấp thêm
+                      </button>
+
+                      <button
+                        type="button"
+                        class="tri-btn btn-deny"
+                        [class.active]="getOverrideState(p.key) === 'deny'"
+                        (click)="setOverrideState(p.key, 'deny')"
+                        title="Tạm chặn quyền này (Ưu tiên cao nhất)"
+                      >
+                        <i class="fas fa-ban"></i> Tạm chặn
+                      </button>
+                    </div>
+
+                    <div class="perm-result-badge">
+                      @if (isEffectivePermission(p.key)) {
+                        <span class="result-badge effective-yes">
+                          <i class="fas fa-circle-check"></i> Có quyền
+                        </span>
+                      } @else {
+                        <span class="result-badge effective-no">
+                          <i class="fas fa-circle-xmark"></i> Bị chặn
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- TAB 4: AUDIT LOGS -->
+  @if (activeTab === 'audit') {
+    <section class="tab-panel audit-panel">
+      <div class="panel-header-bar">
+        <div>
+          <h3>Nhật Ký Hoạt Động & Lịch Sử Phân Quyền</h3>
+          <p>Ghi nhận chi tiết người thực hiện, thời gian, đối tượng tác động và bảng đối chiếu Before / After.</p>
+        </div>
+
+        <button type="button" class="btn btn-secondary" (click)="loadAuditLogs()">
+          <i class="fas fa-arrows-rotate"></i>
+          <span>Làm mới nhật ký</span>
+        </button>
+      </div>
+
+      @if (auditLogs().length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-clock"></i>
+          <h3>Chưa có nhật ký hoạt động phân quyền</h3>
+          <p>Các thay đổi về tài khoản, vai trò hoặc quyền riêng sẽ xuất hiện tại đây.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>Người thực hiện</th>
+                <th>Hành động</th>
+                <th>Đối tượng</th>
+                <th>Chi tiết</th>
+                <th class="text-right">Thay đổi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (log of pagedAuditLogs(); track log.id) {
+                <tr>
+                  <td>
+                    <span class="log-time">{{ log.createdAt }}</span>
+                  </td>
+                  <td>
+                    <strong>{{ log.actorName }}</strong>
+                    <span class="actor-role">{{ log.actorRole }}</span>
+                  </td>
+                  <td>
+                    <span class="log-action">{{ log.action }}</span>
+                  </td>
+                  <td>
+                    <span class="log-target-badge">{{ log.targetType }}: {{ log.targetName }}</span>
+                  </td>
+                  <td>
+                    <span class="log-details">{{ log.details }}</span>
+                  </td>
+                  <td class="text-right">
+                    @if (log.changes && log.changes.length > 0) {
+                      <button type="button" class="btn-diff-view" (click)="openDiffModal(log)">
+                        <i class="fas fa-code-compare"></i> Xem đối chiếu
+                      </button>
+                    } @else {
+                      <span class="text-muted">-</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <app-admin-pagination
+          [currentPage]="auditPage()"
+          [pageSize]="auditPageSize"
+          [totalItems]="auditLogs().length"
+          [disabled]="isLoading()"
+          itemLabel="bản ghi nhật ký"
+          (pageChange)="onAuditPageChange($event)"
+        ></app-admin-pagination>
+      }
+    </section>
+  }
+
+  <!-- MODAL: CREATE / EDIT USER -->
+  @if (showUserModal) {
+    <div class="modal-backdrop" (click)="closeUserModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <i [class]="isEditingUser ? 'fas fa-user-pen' : 'fas fa-user-plus'"></i>
+            {{ isEditingUser ? 'Chỉnh Sửa Tài Khoản Cán Bộ' : 'Tạo Tài Khoản Cán Bộ Mới' }}
+          </h3>
+          <button type="button" class="close-btn" (click)="closeUserModal()">&times;</button>
+        </div>
+
+        <form (ngSubmit)="saveUser()">
+          <div class="modal-body">
+            @if (userFormError) {
+              <div class="alert-error">
+                <i class="fas fa-circle-exclamation"></i> {{ userFormError }}
+              </div>
+            }
+
+            <!-- Avatar Section -->
+            <div class="avatar-editor-section">
+              <div class="avatar-preview-box">
+                @if (userForm.avatarUrl) {
+                  <img [src]="userForm.avatarUrl" alt="Avatar preview" class="avatar-preview-img" />
+                } @else {
+                  <div class="avatar-placeholder">
+                    @if (userForm.username === 'admin') {
+                      <i class="fas fa-crown"></i>
+                    } @else if (userForm.fullName) {
+                      <span>{{ userForm.fullName.charAt(0).toUpperCase() }}</span>
+                    } @else {
+                      <i class="fas fa-user"></i>
+                    }
+                  </div>
+                }
+                @if (isUploadingAvatar) {
+                  <div class="avatar-uploading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                  </div>
+                }
+              </div>
+
+              <div class="avatar-controls">
+                <label class="avatar-label">Ảnh đại diện tài khoản</label>
+                <div class="avatar-buttons">
+                  <label for="user-avatar-file" class="btn btn-sm btn-outline avatar-upload-btn" [class.disabled]="isUploadingAvatar">
+                    <i class="fas fa-camera"></i>
+                    <span>{{ userForm.avatarUrl ? 'Đổi ảnh đại diện' : 'Tải ảnh lên' }}</span>
+                  </label>
+                  <input
+                    id="user-avatar-file"
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp, image/gif"
+                    (change)="onAvatarFileSelected($event)"
+                    style="display: none;"
+                  />
+
+                  @if (userForm.avatarUrl) {
+                    <button type="button" class="btn btn-sm btn-danger-light" (click)="removeAvatar()">
+                      <i class="fas fa-trash-can"></i> Xóa ảnh
+                    </button>
+                  }
+                </div>
+                <div class="avatar-url-input-wrap">
+                  <i class="fas fa-link"></i>
+                  <input
+                    type="text"
+                    [(ngModel)]="userForm.avatarUrl"
+                    name="avatarUrl"
+                    placeholder="Hoặc dán URL ảnh (https://... hoặc /uploads/...)"
+                  />
+                </div>
+                <small class="form-hint">Hỗ trợ JPG, PNG, WebP tối đa 5 MB.</small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="u-fullname">Họ và tên <span class="required">*</span></label>
+                <input id="u-fullname" type="text" [(ngModel)]="userForm.fullName" name="fullName" required placeholder="Ví dụ: Nguyễn Văn An" />
+              </div>
+
+              <div class="form-group">
+                <label for="u-username">Tên đăng nhập <span class="required">*</span></label>
+                <input
+                  id="u-username"
+                  type="text"
+                  [(ngModel)]="userForm.username"
+                  name="username"
+                  [disabled]="isEditingUser && userForm.username === 'admin'"
+                  required
+                  placeholder="Ví dụ: an.nguyen"
+                />
+                @if (isEditingUser && userForm.username === 'admin') {
+                  <small class="form-hint text-warning">Tài khoản Super Admin được bảo vệ tên đăng nhập.</small>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="u-email">Email <span class="required">*</span></label>
+                <input id="u-email" type="email" [(ngModel)]="userForm.email" name="email" required placeholder="an.nguyen@viejap.com" />
+              </div>
+
+              <div class="form-group">
+                <label for="u-phone">Số điện thoại</label>
+                <input id="u-phone" type="tel" [(ngModel)]="userForm.phone" name="phone" placeholder="0912 345 678" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="u-role">Vai trò RBAC <span class="required">*</span></label>
+                <select id="u-role" [(ngModel)]="userForm.roleId" name="roleId" [disabled]="isEditingUser && userForm.username === 'admin'">
+                  @for (r of roles(); track r.id) {
+                    <option [value]="r.id">{{ r.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="u-dept">Phòng ban / Nhóm</label>
+                <input id="u-dept" type="text" [(ngModel)]="userForm.department" name="department" placeholder="Ví dụ: Phòng Tuyển Dụng" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="u-status">Trạng thái tài khoản</label>
+                <select id="u-status" [(ngModel)]="userForm.status" name="status" [disabled]="isEditingUser && userForm.username === 'admin'">
+                  <option value="active">Đang hoạt động</option>
+                  <option value="locked">Đã khóa</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="u-password">
+                  {{ isEditingUser ? 'Mật khẩu mới (Để trống nếu không đổi)' : 'Mật khẩu ban đầu' }}
+                  @if (!isEditingUser) { <span class="required">*</span> }
+                </label>
+                <input
+                  id="u-password"
+                  type="password"
+                  [(ngModel)]="userForm.password"
+                  name="password"
+                  [required]="!isEditingUser"
+                  placeholder="Tối thiểu 6 ký tự"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="u-notes">Ghi chú nội bộ</label>
+              <textarea id="u-notes" [(ngModel)]="userForm.notes" name="notes" rows="2" placeholder="Ghi chú phân công, phạm vi công việc..."></textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeUserModal()">Hủy bỏ</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSavingUser">
+              <i [class]="isSavingUser ? 'fas fa-spinner fa-spin' : 'fas fa-check'"></i>
+              <span>{{ isEditingUser ? 'Lưu thay đổi' : 'Tạo tài khoản' }}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: RESET PASSWORD -->
+  @if (selectedUserForReset) {
+    <div class="modal-backdrop" (click)="closeResetPasswordModal()">
+      <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3><i class="fas fa-key"></i> Đặt Lại Mật Khẩu</h3>
+          <button type="button" class="close-btn" (click)="closeResetPasswordModal()">&times;</button>
+        </div>
+
+        <form (ngSubmit)="submitResetPassword()">
+          <div class="modal-body">
+            <p>
+              Đặt lại mật khẩu cho tài khoản:
+              <strong>{{ selectedUserForReset.fullName }}</strong> ({{ selectedUserForReset.username }}).
+            </p>
+
+            <div class="form-group">
+              <label for="new-pw-input">Mật khẩu mới <span class="required">*</span></label>
+              <input
+                id="new-pw-input"
+                type="password"
+                [(ngModel)]="resetPasswordInput"
+                name="resetPassword"
+                required
+                minlength="6"
+                placeholder="Tối thiểu 6 ký tự..."
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeResetPasswordModal()">Hủy</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isResettingPassword">
+              <i [class]="isResettingPassword ? 'fas fa-spinner fa-spin' : 'fas fa-floppy-disk'"></i>
+              <span>Xác nhận đổi</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: ROLE & PERMISSION MATRIX EDITOR -->
+  @if (showRoleModal) {
+    <div class="modal-backdrop" (click)="closeRoleModal()">
+      <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <i class="fas fa-shield-halved"></i>
+            {{ isEditingRole ? 'Chỉnh Sửa Vai Trò & Ma Trận Quyền' : 'Tạo Vai Trò Mới' }}
+          </h3>
+          <button type="button" class="close-btn" (click)="closeRoleModal()">&times;</button>
+        </div>
+
+        <form (ngSubmit)="saveRole()">
+          <div class="modal-body">
+            @if (roleFormError) {
+              <div class="alert-error">
+                <i class="fas fa-circle-exclamation"></i> {{ roleFormError }}
+              </div>
+            }
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="r-name">Tên vai trò <span class="required">*</span></label>
+                <input id="r-name" type="text" [(ngModel)]="roleForm.name" name="roleName" required placeholder="Ví dụ: Trưởng nhóm Tuyển dụng" />
+              </div>
+
+              <div class="form-group">
+                <label for="r-scope">Phạm vi dữ liệu mặc định (Data Scope)</label>
+                <select id="r-scope" [(ngModel)]="roleForm.dataScope" name="dataScope">
+                  <option value="own">Chỉ xem dữ liệu do bản thân tạo (Own)</option>
+                  <option value="assigned">Chỉ xem dữ liệu được phân công (Assigned)</option>
+                  <option value="team">Dữ liệu thuộc nhóm (Team)</option>
+                  <option value="department">Dữ liệu thuộc phòng ban (Department)</option>
+                  <option value="all">Toàn bộ dữ liệu hệ thống (All)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="r-desc">Mô tả vai trò</label>
+              <textarea id="r-desc" [(ngModel)]="roleForm.description" name="roleDesc" rows="2" placeholder="Mô tả quyền hạn và trách nhiệm của vị trí..."></textarea>
+            </div>
+
+            <!-- Permission Matrix Checklist -->
+            <div class="matrix-section">
+              <div class="matrix-header">
+                <div>
+                  <h4>Ma Trận Phân Quyền ({{ roleForm.permissions.length }} quyền được chọn)</h4>
+                  <small>Đánh dấu các quyền mà vai trò này được phép thực hiện</small>
+                </div>
+
+                <div class="quick-check-btns">
+                  <button type="button" class="btn-check-tool" (click)="selectAllRolePermissions()">
+                    <i class="fas fa-check-double"></i> Chọn tất cả
+                  </button>
+                  <button type="button" class="btn-check-tool" (click)="deselectAllRolePermissions()">
+                    <i class="fas fa-xmark"></i> Bỏ chọn tất cả
+                  </button>
+                </div>
+              </div>
+
+              <div class="matrix-accordion">
+                @for (group of groupedPermissions(); track group.module) {
+                  <div class="module-matrix-card">
+                    <div class="module-card-head">
+                      <div class="module-card-title">
+                        <i class="fas fa-folder"></i>
+                        <strong>{{ group.moduleName }}</strong>
+                      </div>
+
+                      <button
+                        type="button"
+                        class="btn-toggle-module"
+                        (click)="toggleAllInModule(group)"
+                      >
+                        {{ isAllSelectedInModule(group) ? 'Bỏ chọn cả nhóm' : 'Chọn cả nhóm' }}
+                      </button>
+                    </div>
+
+                    <div class="perms-grid">
+                      @for (p of group.permissions; track p.key) {
+                        <label class="perm-checkbox-item" [class.is-checked]="isPermissionInRoleForm(p.key)">
+                          <input
+                            type="checkbox"
+                            [checked]="isPermissionInRoleForm(p.key)"
+                            (change)="toggleRolePermission(p.key)"
+                          />
+                          <div class="perm-label-wrap">
+                            <span class="perm-label-name">{{ p.name }}</span>
+                            <span class="perm-label-desc">{{ p.description }}</span>
+                            @if (p.isSensitive) {
+                              <span class="badge-sensitive">Nhạy cảm</span>
+                            }
+                          </div>
+                        </label>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeRoleModal()">Hủy</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSavingRole">
+              <i [class]="isSavingRole ? 'fas fa-spinner fa-spin' : 'fas fa-check'"></i>
+              <span>{{ isEditingRole ? 'Lưu thay đổi vai trò' : 'Tạo vai trò' }}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: COPY ROLE -->
+  @if (selectedRoleForCopy) {
+    <div class="modal-backdrop" (click)="closeCopyRoleModal()">
+      <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3><i class="fas fa-copy"></i> Sao Chép Vai Trò</h3>
+          <button type="button" class="close-btn" (click)="closeCopyRoleModal()">&times;</button>
+        </div>
+
+        <form (ngSubmit)="submitCopyRole()">
+          <div class="modal-body">
+            <p>
+              Sao chép toàn bộ {{ selectedRoleForCopy.permissions.length }} quyền từ vai trò:
+              <strong>{{ selectedRoleForCopy.name }}</strong>.
+            </p>
+
+            <div class="form-group">
+              <label for="copy-role-name">Tên vai trò mới <span class="required">*</span></label>
+              <input
+                id="copy-role-name"
+                type="text"
+                [(ngModel)]="copyRoleName"
+                name="copyName"
+                required
+                placeholder="Nhập tên vai trò mới..."
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeCopyRoleModal()">Hủy</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isCopyingRole">
+              <i [class]="isCopyingRole ? 'fas fa-spinner fa-spin' : 'fas fa-check'"></i>
+              <span>Tạo bản sao</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: AUDIT DIFF BEFORE / AFTER -->
+  @if (selectedLogForDiff) {
+    <div class="modal-backdrop" (click)="closeDiffModal()">
+      <div class="modal-card modal-md" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3><i class="fas fa-code-compare"></i> Chi Tiết Đối Chiếu Before / After</h3>
+          <button type="button" class="close-btn" (click)="closeDiffModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="diff-summary">
+            <div><strong>Hành động:</strong> {{ selectedLogForDiff.action }}</div>
+            <div><strong>Người thực hiện:</strong> {{ selectedLogForDiff.actorName }} ({{ selectedLogForDiff.actorRole }})</div>
+            <div><strong>Thời gian:</strong> {{ selectedLogForDiff.createdAt }}</div>
+          </div>
+
+          <table class="diff-table">
+            <thead>
+              <tr>
+                <th>Trường thông tin</th>
+                <th class="diff-col-before">Trước khi thay đổi</th>
+                <th class="diff-col-after">Sau khi thay đổi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of selectedLogForDiff.changes || []; track c.field) {
+                <tr>
+                  <td><strong>{{ c.fieldLabel || c.field }}</strong></td>
+                  <td class="diff-val-before">{{ c.before !== null ? c.before : '(Trống)' }}</td>
+                  <td class="diff-val-after">{{ c.after !== null ? c.after : '(Trống)' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeDiffModal()">Đóng</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

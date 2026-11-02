@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/admin/_student_profiles.php';
+
 const MAX_WORKBOOK_SIZE = 10 * 1024 * 1024;
-const DRIVE_WEBHOOK_URL = '__VIEJAP_DRIVE_WEBHOOK_URL__';
-const DRIVE_WEBHOOK_SECRET = '__VIEJAP_DRIVE_WEBHOOK_SECRET__';
+const MAX_PDF_SIZE = 20 * 1024 * 1024;
+const MAX_PHOTO_SIZE = 10 * 1024 * 1024;
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -14,11 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(405, ['message' => 'Phương thức không được hỗ trợ.']);
 }
 
+// Honeypot check
 if (!empty($_POST['website'] ?? '')) {
     respond(200, [
-        'submissionId' => 'ignored',
-        'driveSaved' => false,
-        'message' => 'Yêu cầu đã được tiếp nhận.',
+        'success' => true,
+        'profileId' => 'ignored',
+        'studentCode' => 'HV-000000-0000',
+        'message' => 'Hồ sơ đã được tiếp nhận.',
     ]);
 }
 
@@ -29,144 +33,373 @@ if (($_POST['consent'] ?? '') !== 'accepted') {
 $fullName = clean_text($_POST['fullName'] ?? '', 120);
 $phone = clean_text($_POST['phone'] ?? '', 30);
 $idNumber = clean_text($_POST['idNumber'] ?? '', 30);
+$birthDate = clean_text($_POST['birthDate'] ?? '', 20);
+$address = clean_text($_POST['address'] ?? '', 255);
 
 if ($fullName === '' || $phone === '' || $idNumber === '') {
     respond(422, ['message' => 'Họ tên, số điện thoại và số CMT/CCCD là bắt buộc.']);
 }
 
+// Validate Workbook
 if (!isset($_FILES['workbook']) || !is_array($_FILES['workbook'])) {
     respond(422, ['message' => 'Không tìm thấy file Excel của hồ sơ.']);
 }
-
-$upload = $_FILES['workbook'];
-if (($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+$wbUpload = $_FILES['workbook'];
+if (($wbUpload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
     respond(422, ['message' => 'File Excel tải lên không hợp lệ.']);
 }
-
-$size = (int) ($upload['size'] ?? 0);
-$temporaryPath = (string) ($upload['tmp_name'] ?? '');
-if ($size < 1 || $size > MAX_WORKBOOK_SIZE || !is_uploaded_file($temporaryPath)) {
-    respond(422, ['message' => 'File Excel vượt quá giới hạn hoặc không hợp lệ.']);
+$wbSize = (int) ($wbUpload['size'] ?? 0);
+$wbTmp = (string) ($wbUpload['tmp_name'] ?? '');
+if ($wbSize < 1 || $wbSize > MAX_WORKBOOK_SIZE || !is_uploaded_file($wbTmp)) {
+    respond(422, ['message' => 'File Excel vượt quá giới hạn (10MB) hoặc không hợp lệ.']);
 }
 
-validate_workbook($temporaryPath);
+validate_workbook($wbTmp);
+
+// Validate optional CV PDF (Sơ yếu lý lịch PDF)
+$hasCvPdf = isset($_FILES['cvPdf']) && is_array($_FILES['cvPdf']) && ($_FILES['cvPdf']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK;
+$cvPdfTmp = '';
+$cvPdfSize = 0;
+if ($hasCvPdf) {
+    $cvPdfUpload = $_FILES['cvPdf'];
+    $cvPdfSize = (int) ($cvPdfUpload['size'] ?? 0);
+    $cvPdfTmp = (string) ($cvPdfUpload['tmp_name'] ?? '');
+    if ($cvPdfSize > 0 && $cvPdfSize <= MAX_PDF_SIZE && is_uploaded_file($cvPdfTmp)) {
+        $header = file_get_contents($cvPdfTmp, false, null, 0, 5);
+        if ($header !== '%PDF-') {
+            $hasCvPdf = false;
+        }
+    } else {
+        $hasCvPdf = false;
+    }
+}
+
+// Validate optional PDF document (Tài liệu đính kèm)
+$hasPdf = isset($_FILES['documentPdf']) && is_array($_FILES['documentPdf']) && ($_FILES['documentPdf']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK;
+$pdfTmp = '';
+$pdfSize = 0;
+$pdfOrigName = '';
+if ($hasPdf) {
+    $pdfUpload = $_FILES['documentPdf'];
+    $pdfSize = (int) ($pdfUpload['size'] ?? 0);
+    $pdfTmp = (string) ($pdfUpload['tmp_name'] ?? '');
+    $pdfOrigName = (string) ($pdfUpload['name'] ?? 'tai-lieu.pdf');
+    if ($pdfSize < 1 || $pdfSize > MAX_PDF_SIZE || !is_uploaded_file($pdfTmp)) {
+        respond(422, ['message' => 'File PDF tài liệu vượt quá giới hạn cho phép (20MB).']);
+    }
+    // Check PDF magic bytes (%PDF-)
+    $pdfHeader = file_get_contents($pdfTmp, false, null, 0, 5);
+    if ($pdfHeader !== '%PDF-') {
+        respond(422, ['message' => 'File đính kèm không phải định dạng PDF hợp lệ.']);
+    }
+}
+
+// Validate optional photo
+$hasPhoto = isset($_FILES['photo']) && is_array($_FILES['photo']) && ($_FILES['photo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK;
+$photoTmp = '';
+$photoSize = 0;
+if ($hasPhoto) {
+    $photoUpload = $_FILES['photo'];
+    $photoSize = (int) ($photoUpload['size'] ?? 0);
+    $photoTmp = (string) ($photoUpload['tmp_name'] ?? '');
+    if ($photoSize > MAX_PHOTO_SIZE || !is_uploaded_file($photoTmp)) {
+        respond(422, ['message' => 'Ảnh thẻ tải lên không hợp lệ hoặc quá lớn.']);
+    }
+}
+
 enforce_rate_limit();
 
-$submissionId = date('Ymd-His') . '-' . bin2hex(random_bytes(4));
-$safeName = safe_filename($fullName);
-$filename = sprintf('%s-%s.xlsx', $submissionId, $safeName);
-$storageDirectory = storage_directory();
-$storedPath = $storageDirectory . DIRECTORY_SEPARATOR . $filename;
-
-if (!move_uploaded_file($temporaryPath, $storedPath)) {
-    respond(500, ['message' => 'Máy chủ không thể lưu bản dự phòng của hồ sơ.']);
+// Parse Student Form full data JSON
+$rawData = $_POST['data'] ?? $_POST['studentData'] ?? '';
+$formData = [];
+if (is_string($rawData) && trim($rawData) !== '') {
+    $decoded = json_decode($rawData, true);
+    if (is_array($decoded)) {
+        $formData = $decoded;
+    }
+}
+if (empty($formData['fullName'])) {
+    $formData['fullName'] = $fullName;
+}
+if (empty($formData['phone'])) {
+    $formData['phone'] = $phone;
+}
+if (empty($formData['idNumber'])) {
+    $formData['idNumber'] = $idNumber;
 }
 
-$driveSaved = false;
-$driveMessage = '';
+// Generate Profile and File paths
+$profileId = admin_student_profile_generate_id();
+$dir = admin_student_files_directory($profileId);
+
+$safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', strtoupper(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $fullName)));
+$safeName = trim((string) $safeName, '_') ?: 'HOC_VIEN';
+
+$filesToInsert = [];
+
+// 1. Move Excel workbook
+$wbFileName = sprintf('SO_YEU_LY_LICH_%s_v1.xlsx', $safeName);
+$wbPath = $dir . DIRECTORY_SEPARATOR . $wbFileName;
+if (!move_uploaded_file($wbTmp, $wbPath)) {
+    respond(500, ['message' => 'Máy chủ không thể lưu file Excel của hồ sơ.']);
+}
+$filesToInsert[] = [
+    'fileType' => 'excel',
+    'version' => 1,
+    'fileName' => $wbFileName,
+    'filePath' => $wbPath,
+    'fileSize' => $wbSize,
+    'mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+
+// 2. Move CV PDF document if present
+if ($hasCvPdf && $cvPdfTmp !== '') {
+    $cvPdfFileName = sprintf('SO_YEU_LY_LICH_%s_v1.pdf', $safeName);
+    $cvPdfPath = $dir . DIRECTORY_SEPARATOR . $cvPdfFileName;
+    if (move_uploaded_file($cvPdfTmp, $cvPdfPath)) {
+        $filesToInsert[] = [
+            'fileType' => 'pdf',
+            'version' => 1,
+            'fileName' => $cvPdfFileName,
+            'filePath' => $cvPdfPath,
+            'fileSize' => $cvPdfSize,
+            'mimeType' => 'application/pdf',
+        ];
+    }
+}
+
+// 3. Move attached PDF document if present
+if ($hasPdf && $pdfTmp !== '') {
+    $pdfFileName = sprintf('TAI_LIEU_%s.pdf', $safeName);
+    $pdfPath = $dir . DIRECTORY_SEPARATOR . $pdfFileName;
+    if (move_uploaded_file($pdfTmp, $pdfPath)) {
+        $filesToInsert[] = [
+            'fileType' => 'document',
+            'version' => 1,
+            'fileName' => $pdfFileName,
+            'filePath' => $pdfPath,
+            'fileSize' => $pdfSize,
+            'mimeType' => 'application/pdf',
+        ];
+    }
+}
+
+// 3. Move Photo if present
+if ($hasPhoto && $photoTmp !== '') {
+    $photoFileName = sprintf('ANH_THE_%s.png', $safeName);
+    $photoPath = $dir . DIRECTORY_SEPARATOR . $photoFileName;
+    if (move_uploaded_file($photoTmp, $photoPath)) {
+        $filesToInsert[] = [
+            'fileType' => 'photo',
+            'version' => 1,
+            'fileName' => $photoFileName,
+            'filePath' => $photoPath,
+            'fileSize' => $photoSize,
+            'mimeType' => 'image/png',
+        ];
+    }
+}
+
+// Create profile record in database / json store
+$profilePayload = [
+    'fullName' => $fullName,
+    'birthDate' => $birthDate ?: ($formData['birthDate'] ?? ''),
+    'phone' => $phone,
+    'idNumber' => $idNumber,
+    'address' => $address ?: ($formData['address'] ?? ''),
+    'data' => $formData,
+];
+
+// Force manual injection of profileId so file paths match
+$profile = admin_student_profile_create_with_id($profileId, $profilePayload, $filesToInsert);
 
 try {
-    $driveResult = send_to_drive($storedPath, [
-        'submissionId' => $submissionId,
-        'filename' => $filename,
-        'fullName' => $fullName,
-        'phone' => $phone,
-        'idNumberLast4' => mb_substr($idNumber, -4),
-        'submittedAt' => gmdate('c'),
+    require_once __DIR__ . '/admin/_notifications.php';
+    admin_notification_create([
+        'eventType' => 'student.submitted',
+        'category' => 'students',
+        'title' => 'Hồ sơ học viên mới: ' . $fullName,
+        'message' => 'Học viên ' . $fullName . ' (' . $profile['studentCode'] . ') vừa nộp sơ yếu lý lịch kèm file Excel' . ($hasPdf ? ' và tài liệu PDF' : '') . '.',
+        'actor' => ['id' => 'student', 'name' => $fullName, 'role' => 'Học viên'],
+        'target' => [
+            'type' => 'student',
+            'id' => $profileId,
+            'code' => $profile['studentCode'],
+            'name' => $fullName,
+            'url' => '/quan-tri-viejap?section=students&id=' . $profileId,
+        ],
+        'priority' => 'high',
     ]);
-    $driveSaved = ($driveResult['ok'] ?? false) === true;
-    $driveMessage = clean_text($driveResult['message'] ?? '', 300);
-} catch (Throwable $error) {
-    error_log('VieJap Drive upload failed: ' . $error->getMessage());
-    $driveMessage = 'Google Drive chưa phản hồi.';
+
+    admin_activity_log_create([
+        'actorName' => $fullName,
+        'actorRole' => 'Học viên',
+        'action' => 'Đăng ký nộp hồ sơ trực tuyến',
+        'targetType' => 'student',
+        'targetId' => $profileId,
+        'targetName' => $fullName,
+        'details' => 'Nộp hồ sơ sơ yếu lý lịch qua website. Mã hồ sơ: ' . $profile['studentCode'] . '.',
+        'changes' => [
+            ['field' => 'fullName', 'fieldLabel' => 'Họ tên', 'before' => null, 'after' => $fullName],
+            ['field' => 'phone', 'fieldLabel' => 'Số điện thoại', 'before' => null, 'after' => $phone],
+            ['field' => 'status', 'fieldLabel' => 'Trạng thái', 'before' => null, 'after' => 'Tiếp nhận mới'],
+        ],
+    ]);
+
+    admin_task_create([
+        'title' => 'Kiểm tra hồ sơ học viên ' . $fullName,
+        'description' => 'Kiểm tra sơ yếu lý lịch, file Excel và tài liệu đính kèm của học viên ' . $fullName . ' (' . $profile['studentCode'] . ').',
+        'category' => 'student_check',
+        'priority' => 'high',
+        'status' => 'cho_xu_ly',
+        'targetType' => 'student',
+        'targetId' => $profileId,
+        'targetName' => $fullName,
+        'targetUrl' => '/quan-tri-viejap?section=students&id=' . $profileId,
+        'assignedTo' => 'staff-01',
+        'assignedToName' => 'Nguyễn Thị Mai',
+        'assignedBy' => 'Hệ thống tự động',
+        'dueAt' => date('Y-m-d H:i:s', time() + 86400 * 2),
+    ]);
+} catch (Throwable) {}
+
+// Build response with download file links
+$responseFiles = [];
+foreach ($profile['files'] ?? [] as $f) {
+    $responseFiles[] = [
+        'id' => $f['id'],
+        'fileType' => $f['fileType'],
+        'version' => $f['version'],
+        'fileName' => $f['fileName'],
+        'fileSize' => $f['fileSize'],
+        'downloadUrl' => 'api/student-files.php?profile_id=' . urlencode($profileId) . '&file_id=' . urlencode((string) $f['id']),
+    ];
 }
 
 respond(200, [
-    'submissionId' => $submissionId,
-    'driveSaved' => $driveSaved,
-    'message' => $driveSaved
-        ? 'Hồ sơ đã được lưu vào Google Drive VieJap.'
-        : 'Hồ sơ đã được lưu dự phòng trên máy chủ. ' . $driveMessage,
+    'success' => true,
+    'profileId' => $profileId,
+    'studentCode' => $profile['studentCode'],
+    'fullName' => $profile['fullName'],
+    'message' => 'Hồ sơ đã được lưu trữ an toàn trong hệ thống của VieJap.',
+    'files' => $responseFiles,
 ]);
 
-function send_to_drive(string $path, array $metadata): array
+function admin_student_profile_create_with_id(string $id, array $payload, array $initialFiles): array
 {
-    if (
-        str_starts_with(DRIVE_WEBHOOK_URL, '__') ||
-        str_starts_with(DRIVE_WEBHOOK_SECRET, '__')
-    ) {
-        throw new RuntimeException('Google Drive chưa được cấu hình.');
-    }
+    $studentCode = admin_student_profile_generate_code();
+    $now = date('Y-m-d H:i:s');
 
-    $contents = file_get_contents($path);
-    if ($contents === false) {
-        throw new RuntimeException('Không thể đọc file Excel đã lưu.');
-    }
+    $fullName = trim((string) ($payload['fullName'] ?? ''));
+    $birthDate = trim((string) ($payload['birthDate'] ?? ''));
+    $phone = trim((string) ($payload['phone'] ?? ''));
+    $idNumber = trim((string) ($payload['idNumber'] ?? ''));
+    $address = trim((string) ($payload['address'] ?? ''));
+    $dataJson = is_string($payload['data'] ?? null)
+        ? $payload['data']
+        : json_encode($payload['data'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $status = 'tiep_nhan';
 
-    $payload = json_encode([
-        'secret' => DRIVE_WEBHOOK_SECRET,
-        'fileName' => $metadata['filename'],
-        'mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'base64' => base64_encode($contents),
-        'metadata' => $metadata,
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-    if ($payload === false) {
-        throw new RuntimeException('Không thể đóng gói dữ liệu gửi Google Drive.');
-    }
-
-    $response = http_post_json(DRIVE_WEBHOOK_URL, $payload);
-    $decoded = json_decode($response, true);
-    if (!is_array($decoded)) {
-        throw new RuntimeException('Google Drive trả về dữ liệu không hợp lệ.');
-    }
-
-    return $decoded;
-}
-
-function http_post_json(string $url, string $payload): string
-{
-    if (function_exists('curl_init')) {
-        $curl = curl_init($url);
-        curl_setopt_array($curl, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_MAXREDIRS => 5,
+    $database = admin_student_profiles_database();
+    if ($database !== null) {
+        $stmt = $database->prepare(
+            'INSERT INTO student_profiles (id, student_code, full_name, birth_date, phone, id_number, address, data_json, status, created_at, updated_at)
+             VALUES (:id, :student_code, :full_name, :birth_date, :phone, :id_number, :address, :data_json, :status, :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            'id' => $id,
+            'student_code' => $studentCode,
+            'full_name' => $fullName,
+            'birth_date' => $birthDate,
+            'phone' => $phone,
+            'id_number' => $idNumber,
+            'address' => $address,
+            'data_json' => $dataJson,
+            'status' => $status,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
-        $response = curl_exec($curl);
-        $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-        $error = curl_error($curl);
-        curl_close($curl);
 
-        if ($response === false || $status < 200 || $status >= 300) {
-            throw new RuntimeException(
-                sprintf('Lỗi kết nối Google Drive (%d): %s', $status, $error)
+        foreach ($initialFiles as $file) {
+            $fileId = admin_student_profile_generate_id();
+            $fileStmt = $database->prepare(
+                'INSERT INTO student_profile_files (id, profile_id, file_type, version, file_name, file_path, file_size, mime_type, created_at)
+                 VALUES (:id, :profile_id, :file_type, :version, :file_name, :file_path, :file_size, :mime_type, :created_at)'
             );
+            $fileStmt->execute([
+                'id' => $fileId,
+                'profile_id' => $id,
+                'file_type' => $file['fileType'],
+                'version' => $file['version'] ?? 1,
+                'file_name' => $file['fileName'],
+                'file_path' => $file['filePath'],
+                'file_size' => $file['fileSize'] ?? 0,
+                'mime_type' => $file['mimeType'] ?? '',
+                'created_at' => $now,
+            ]);
         }
-        return (string) $response;
+
+        $logId = admin_student_profile_generate_id();
+        $logStmt = $database->prepare(
+            'INSERT INTO student_profile_audit_logs (id, profile_id, action, actor, details, created_at)
+             VALUES (:id, :profile_id, :action, :actor, :details, :created_at)'
+        );
+        $logStmt->execute([
+            'id' => $logId,
+            'profile_id' => $id,
+            'action' => 'created',
+            'actor' => 'Học viên',
+            'details' => 'Nộp hồ sơ sơ yếu lý lịch trực tuyến qua website.',
+            'created_at' => $now,
+        ]);
+
+        return admin_student_profile_find($id) ?? [];
     }
 
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'POST',
-            'header' => "Content-Type: application/json\r\n",
-            'content' => $payload,
-            'timeout' => 30,
-            'follow_location' => 1,
-            'max_redirects' => 5,
-            'ignore_errors' => true,
-        ],
-    ]);
-    $response = file_get_contents($url, false, $context);
-    if ($response === false) {
-        throw new RuntimeException('Không thể kết nối đến Google Drive.');
+    // JSON file fallback
+    $profiles = admin_student_profiles_load_file();
+    $preparedFiles = [];
+    foreach ($initialFiles as $file) {
+        $preparedFiles[] = [
+            'id' => admin_student_profile_generate_id(),
+            'fileType' => $file['fileType'],
+            'version' => $file['version'] ?? 1,
+            'fileName' => $file['fileName'],
+            'filePath' => $file['filePath'],
+            'fileSize' => $file['fileSize'] ?? 0,
+            'mimeType' => $file['mimeType'] ?? '',
+            'createdAt' => $now,
+        ];
     }
-    return $response;
+
+    $newProfile = [
+        'id' => $id,
+        'studentCode' => $studentCode,
+        'fullName' => $fullName,
+        'birthDate' => $birthDate,
+        'phone' => $phone,
+        'idNumber' => $idNumber,
+        'address' => $address,
+        'status' => $status,
+        'createdAt' => $now,
+        'updatedAt' => $now,
+        'data' => is_string($payload['data'] ?? null) ? json_decode($payload['data'], true) : ($payload['data'] ?? []),
+        'files' => $preparedFiles,
+        'auditLogs' => [
+            [
+                'id' => admin_student_profile_generate_id(),
+                'action' => 'created',
+                'actor' => 'Học viên',
+                'details' => 'Nộp hồ sơ sơ yếu lý lịch trực tuyến qua website.',
+                'createdAt' => $now,
+            ],
+        ],
+    ];
+
+    $profiles[] = $newProfile;
+    admin_student_profiles_save_file($profiles);
+
+    return $newProfile;
 }
 
 function validate_workbook(string $path): void
@@ -182,7 +415,7 @@ function validate_workbook(string $path): void
         'xl/worksheets/sheet1.xml',
     ];
     foreach ($requiredEntries as $entry) {
-        if ($zip->locateName($entry, ZipArchive::FL_NODIR) === false) {
+        if ($zip->locateName($entry) === false) {
             $zip->close();
             respond(422, ['message' => 'Cấu trúc file Excel không hợp lệ.']);
         }
@@ -190,21 +423,9 @@ function validate_workbook(string $path): void
     $zip->close();
 }
 
-function storage_directory(): string
-{
-    $home = getenv('HOME') ?: dirname(__DIR__, 3);
-    $directory = $home . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR .
-        'viejap' . DIRECTORY_SEPARATOR . 'student-forms' . DIRECTORY_SEPARATOR . date('Y-m');
-
-    if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory)) {
-        respond(500, ['message' => 'Máy chủ không thể tạo thư mục lưu hồ sơ.']);
-    }
-    return $directory;
-}
-
 function enforce_rate_limit(): void
 {
-    $home = getenv('HOME') ?: sys_get_temp_dir();
+    $home = admin_home_directory() ?: sys_get_temp_dir();
     $directory = $home . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR .
         'viejap' . DIRECTORY_SEPARATOR . 'rate-limit';
     if (!is_dir($directory)) {
@@ -216,19 +437,10 @@ function enforce_rate_limit(): void
     $path = $directory . DIRECTORY_SEPARATOR . $key;
     $now = time();
     $last = is_file($path) ? (int) file_get_contents($path) : 0;
-    if ($last > 0 && ($now - $last) < 20) {
-        respond(429, ['message' => 'Bạn gửi hồ sơ quá nhanh. Vui lòng đợi ít nhất 20 giây.']);
+    if ($last > 0 && ($now - $last) < 10) {
+        respond(429, ['message' => 'Bạn gửi hồ sơ quá nhanh. Vui lòng đợi ít nhất 10 giây.']);
     }
     @file_put_contents($path, (string) $now, LOCK_EX);
-}
-
-function safe_filename(string $value): string
-{
-    $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
-    $ascii = $ascii === false ? 'hoc-vien' : $ascii;
-    $ascii = strtolower((string) preg_replace('/[^a-zA-Z0-9]+/', '-', $ascii));
-    $ascii = trim($ascii, '-');
-    return $ascii !== '' ? $ascii : 'hoc-vien';
 }
 
 function clean_text(mixed $value, int $maxLength): string

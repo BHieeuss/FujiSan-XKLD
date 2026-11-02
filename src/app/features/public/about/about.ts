@@ -552,6 +552,7 @@ export class About implements OnDestroy {
 
   // Chính sách & Thông tin cần biết
   policyVerifiedOn = '07/06/2026';
+  isLoanProcedureOpen = false;
 
   policyCategories = [
     {
@@ -559,15 +560,15 @@ export class About implements OnDestroy {
       icon: 'fas fa-hand-holding-dollar',
       badge: '💰 Vay vốn',
       title: 'Hỗ trợ vay vốn',
-      summary: 'Mức vay & điều kiện theo chính sách nhà nước',
+      summary: 'Hỗ trợ tiếp cận nguồn vốn theo chính sách áp dụng',
       theme: 'amber',
     },
     {
       id: 'policy-nenkin',
       icon: 'fas fa-money-bill-transfer',
       badge: '💴 Tiền Nenkin',
-      title: 'Lấy lại tiền Nenkin',
-      summary: 'Nhận lại trọn vẹn tiền bảo hiểm khi về nước',
+      title: 'Hoàn tiền Nenkin',
+      summary: 'Thông tin lãi suất & thủ tục theo chương trình',
       theme: 'emerald',
     },
     {
@@ -575,7 +576,7 @@ export class About implements OnDestroy {
       icon: 'fas fa-shield-heart',
       badge: '🛡️ Quyền lợi',
       title: 'Quyền lợi & Bảo vệ',
-      summary: 'Kênh hỗ trợ tiếng Việt miễn phí 24/7 tại Nhật',
+      summary: 'Tìm hiểu điều kiện và quyền lợi liên quan',
       theme: 'sky',
     },
   ];
@@ -593,33 +594,61 @@ export class About implements OnDestroy {
       {
         icon: 'fas fa-sack-dollar',
         label: 'Mức vay tối đa',
+        highlight: '100% Chi phí',
         value: 'Lên đến 100% chi phí trong hợp đồng',
-        color: '#f59e0b',
+        note: 'Căn cứ theo chi phí ghi trong hợp đồng đưa đi làm việc tại Nhật',
+        color: '#d97706',
       },
       {
         icon: 'fas fa-percent',
         label: 'Lãi suất ưu đãi',
+        highlight: '6,24%/năm',
         value: '6,24%/năm (khoảng 0,52%/tháng)',
-        color: '#10b981',
+        note: 'Khoảng 0,52%/tháng theo quy định hiện hành của NHCSXH',
+        color: '#059669',
       },
       {
         icon: 'fas fa-calendar-check',
         label: 'Thời hạn trả nợ',
+        highlight: 'Theo hợp đồng',
         value: 'Theo suốt thời gian hợp đồng lao động',
-        color: '#3b82f6',
+        note: 'Linh hoạt tương ứng suốt thời gian làm việc tại Nhật Bản',
+        color: '#2563eb',
       },
     ],
     eligibleGroups: [
       'Người lao động thuộc hộ nghèo hoặc hộ cận nghèo theo quy định.',
       'Người lao động là người đồng bào dân tộc thiểu số.',
       'Thân nhân gia đình có công với cách mạng, thương binh, liệt sĩ.',
-      'Hộ gia đình thuộc diện bị thu hồi đất nông nghiệp.',
+      'Hộ gia đình thuộc diện bị thu hồi đất nông nghiệp theo quy định.',
     ],
     requirements: [
       'Có CCCD/giấy tờ cư trú hợp pháp và đủ năng lực hành vi dân sự.',
       'Đã trúng tuyển và ký hợp đồng chính thức đưa đi làm việc tại Nhật.',
       'Có giấy xác nhận thuộc diện ưu tiên từ UBND cấp xã/phường.',
       'Có bảo đảm tiền vay theo hướng dẫn của Ngân hàng CSXH (nếu có yêu cầu).',
+    ],
+    procedureSteps: [
+      {
+        step: 1,
+        title: 'Trúng tuyển đơn hàng & Ký hợp đồng',
+        desc: 'Học viên trúng tuyển chính thức đơn hàng tại VieJap và được cung cấp hợp đồng đưa đi làm việc tại Nhật Bản kèm giấy báo trúng tuyển.',
+      },
+      {
+        step: 2,
+        title: 'Xin giấy xác nhận đối tượng ưu tiên',
+        desc: 'Người lao động nộp đơn xin cấp Giấy xác nhận thuộc đối tượng chính sách ưu tiên vay vốn tại UBND xã/phường nơi có hộ khẩu thường trú.',
+      },
+      {
+        step: 3,
+        title: 'Nộp hồ sơ tại NHCSXH địa phương',
+        desc: 'Nộp bộ hồ sơ hoàn chỉnh tới Phòng giao dịch NHCSXH cấp quận/huyện hoặc thông qua Tổ Tiết kiệm và Vay vốn tại thôn/xóm nơi cư trú.',
+      },
+      {
+        step: 4,
+        title: 'Ngân hàng thẩm định & Giải ngân',
+        desc: 'NHCSXH thẩm định điều kiện, ký hợp đồng tín dụng và giải ngân trực tiếp hoặc ủy quyền thanh toán chi phí theo đúng thỏa thuận hợp đồng.',
+      },
     ],
     note:
       'VieJap sẽ cung cấp đầy đủ bộ hồ sơ hợp đồng và giấy xác nhận trúng tuyển để bạn nộp trực tiếp cho Ngân hàng CSXH địa phương.',
@@ -743,6 +772,10 @@ export class About implements OnDestroy {
 
   selectPolicy(policyId: string): void {
     this.selectedPolicyId = policyId;
+  }
+
+  toggleLoanProcedure(): void {
+    this.isLoanProcedureOpen = !this.isLoanProcedureOpen;
   }
 
   // Đội ngũ nhân sự chủ chốt

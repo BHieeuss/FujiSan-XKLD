@@ -1,0 +1,236 @@
+<div class="auth-modal-backdrop" *ngIf="isOpen" (click)="onClose()">
+  <div class="auth-modal-dialog" (click)="$event.stopPropagation()">
+    <button type="button" class="auth-modal-close" (click)="onClose()" aria-label="Đóng">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div class="auth-modal-header">
+      <div class="auth-brand-badge">
+        <span class="auth-brand-jp">VieJap</span>
+        <span class="auth-brand-sub">Học Tiếng Nhật</span>
+      </div>
+      <h2 class="auth-modal-title">
+        {{ activeTab() === 'login' ? 'Đăng Nhập Tài Khoản' : 'Đăng Ký Học Viên' }}
+      </h2>
+      <p class="auth-modal-desc">
+        {{ activeTab() === 'login' 
+          ? 'Đăng nhập để đồng bộ tiến độ học từ vựng, ngữ pháp và thể động từ.' 
+          : 'Đăng ký tài khoản học viên mới bằng Mã code kích hoạt do VieJap cấp.' }}
+      </p>
+
+      <!-- Tabs Switcher -->
+      <div class="auth-tabs">
+        <button
+          type="button"
+          class="auth-tab-btn"
+          [class.active]="activeTab() === 'login'"
+          (click)="setTab('login')"
+        >
+          <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
+        </button>
+        <button
+          type="button"
+          class="auth-tab-btn"
+          [class.active]="activeTab() === 'register'"
+          (click)="setTab('register')"
+        >
+          <i class="fas fa-user-plus me-1"></i> Đăng ký (Có mã Code)
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div class="auth-alert error" *ngIf="errorMessage()">
+      <i class="fas fa-exclamation-circle me-2"></i> {{ errorMessage() }}
+    </div>
+    <div class="auth-alert success" *ngIf="successMessage()">
+      <i class="fas fa-check-circle me-2"></i> {{ successMessage() }}
+    </div>
+
+    <!-- FORM: ĐĂNG NHẬP -->
+    <form *ngIf="activeTab() === 'login'" (ngSubmit)="handleLogin()" class="auth-form" novalidate>
+      <div class="form-group">
+        <label for="loginId">Tên đăng nhập hoặc Email</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user input-icon"></i>
+          <input
+            id="loginId"
+            type="text"
+            class="form-control"
+            [(ngModel)]="loginIdentifier"
+            name="loginIdentifier"
+            placeholder="Nhập username hoặc email..."
+            required
+            autocomplete="username"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="loginPwd">Mật khẩu</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input
+            id="loginPwd"
+            [type]="showLoginPassword ? 'text' : 'password'"
+            class="form-control"
+            [(ngModel)]="loginPassword"
+            name="loginPassword"
+            placeholder="Nhập mật khẩu của bạn..."
+            required
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="pwd-toggle"
+            (click)="showLoginPassword = !showLoginPassword"
+            tabindex="-1"
+          >
+            <i [class]="showLoginPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="btn-submit"
+        [disabled]="isSubmitting() || !loginIdentifier || !loginPassword"
+      >
+        <i class="fas fa-spinner fa-spin me-2" *ngIf="isSubmitting()"></i>
+        <span *ngIf="!isSubmitting()"><i class="fas fa-arrow-right-to-bracket me-1"></i> Đăng nhập ngay</span>
+        <span *ngIf="isSubmitting()">Đang xử lý...</span>
+      </button>
+
+      <div class="auth-switch-note">
+        Chưa có tài khoản?
+        <button type="button" class="link-switch" (click)="setTab('register')">
+          Nhập mã Code để Đăng ký
+        </button>
+      </div>
+    </form>
+
+    <!-- FORM: ĐĂNG KÝ (BẮT BUỘC MÃ CODE) -->
+    <form *ngIf="activeTab() === 'register'" (ngSubmit)="handleRegister()" class="auth-form" novalidate>
+      <div class="form-group">
+        <label for="regCode">Mã code đăng ký <span class="badge-required">Bắt buộc</span></label>
+        <div class="input-wrapper highlight-code">
+          <i class="fas fa-key input-icon text-warning"></i>
+          <input
+            id="regCode"
+            type="text"
+            class="form-control code-input"
+            [(ngModel)]="regCode"
+            name="regCode"
+            placeholder="Nhập mã code kích hoạt (VD: VIEJAP2026)"
+            required
+            autocomplete="off"
+          />
+        </div>
+        <small class="form-hint">
+          <i class="fas fa-info-circle"></i> Mã code do Trung tâm VieJap hoặc Quản trị viên cấp.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="regName">Họ và tên</label>
+        <div class="input-wrapper">
+          <i class="fas fa-id-card input-icon"></i>
+          <input
+            id="regName"
+            type="text"
+            class="form-control"
+            [(ngModel)]="regFullName"
+            name="regFullName"
+            placeholder="Nguyễn Văn A"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="regUser">Tên đăng nhập</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user-tag input-icon"></i>
+            <input
+              id="regUser"
+              type="text"
+              class="form-control"
+              [(ngModel)]="regUsername"
+              name="regUsername"
+              placeholder="user123"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="regMail">Email</label>
+          <div class="input-wrapper">
+            <i class="fas fa-envelope input-icon"></i>
+            <input
+              id="regMail"
+              type="email"
+              class="form-control"
+              [(ngModel)]="regEmail"
+              name="regEmail"
+              placeholder="hocvien@gmail.com"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="regPwd">Mật khẩu</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock input-icon"></i>
+            <input
+              id="regPwd"
+              [type]="showRegPassword ? 'text' : 'password'"
+              class="form-control"
+              [(ngModel)]="regPassword"
+              name="regPassword"
+              placeholder="Tối thiểu 6 ký tự"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="regConfirm">Xác nhận mật khẩu</label>
+          <div class="input-wrapper">
+            <i class="fas fa-shield-check input-icon"></i>
+            <input
+              id="regConfirm"
+              [type]="showRegPassword ? 'text' : 'password'"
+              class="form-control"
+              [(ngModel)]="regConfirmPassword"
+              name="regConfirmPassword"
+              placeholder="Nhập lại mật khẩu"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="btn-submit"
+        [disabled]="isSubmitting() || !regCode || !regUsername || !regEmail || !regPassword || !regFullName"
+      >
+        <i class="fas fa-spinner fa-spin me-2" *ngIf="isSubmitting()"></i>
+        <span *ngIf="!isSubmitting()"><i class="fas fa-user-check me-1"></i> Tạo tài khoản & Đăng nhập</span>
+        <span *ngIf="isSubmitting()">Đang kích hoạt...</span>
+      </button>
+
+      <div class="auth-switch-note">
+        Đã có tài khoản?
+        <button type="button" class="link-switch" (click)="setTab('login')">
+          Đăng nhập ngay
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

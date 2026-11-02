@@ -12,6 +12,14 @@ export interface RecruitmentPosterData {
   registrationLabel: string;
   registrationUrl: string;
   hotline: string;
+  category?: string;
+  quantity?: string;
+  gender?: string;
+  benefits?: string;
+  age?: string;
+  workLocation?: string;
+  contactHotline?: string;
+  contactUnit?: string;
 }
 
 export interface RecruitmentPosterAssets {
@@ -19,6 +27,7 @@ export interface RecruitmentPosterAssets {
   backgroundSrc: string;
   primaryPhotoSrc: string;
   secondaryPhotoSrc: string;
+  tertiaryPhotoSrc?: string;
 }
 
 export function createRecruitmentPosterData(): RecruitmentPosterData {

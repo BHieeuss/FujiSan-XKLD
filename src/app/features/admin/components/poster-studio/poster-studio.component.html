@@ -1,0 +1,828 @@
+<div class="poster-studio-root" [class.embedded-mode]="embedded">
+  <!-- ========================================================= -->
+  <!-- 1. STUDIO HEADER TOOLBAR                                  -->
+  <!-- ========================================================= -->
+  <header class="studio-header">
+    <div class="header-left">
+      <button type="button" class="btn-studio-back" (click)="exitStudio()" title="Quay lại">
+        <i class="fas fa-arrow-left"></i>
+        <span>Quay lại</span>
+      </button>
+
+      <div class="studio-title-badge">
+        <div class="studio-icon-bubble">
+          <i class="fas fa-palette"></i>
+        </div>
+        <div class="studio-meta">
+          <div class="title-row">
+            <h1 class="studio-main-title">Tạo Poster Tự Động</h1>
+            <span class="order-code-tag" *ngIf="orderCode">{{ orderCode }}</span>
+          </div>
+          <span class="studio-order-title text-truncate">{{ orderTitle || data.title }}</span>
+        </div>
+      </div>
+
+      <!-- Save Status Pill -->
+      <div class="save-status-pill" [ngClass]="'status-' + saveStatus">
+        @if (saveStatus === 'saved') {
+          <i class="fas fa-cloud-check"></i>
+          <span>Đã lưu tự động</span>
+        } @else if (saveStatus === 'saving') {
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Đang lưu...</span>
+        } @else {
+          <i class="fas fa-pen-nib"></i>
+          <span>Có thay đổi chưa lưu</span>
+        }
+      </div>
+    </div>
+
+    <!-- Center: Zoom & Undo/Redo & AI Launch -->
+    <div class="header-center">
+      <!-- Undo / Redo -->
+      <div class="undo-redo-group">
+        <button
+          type="button"
+          class="btn-tool-icon"
+          [disabled]="undoStack.length <= 1"
+          (click)="undo()"
+          title="Hoàn tác (Ctrl+Z)"
+        >
+          <i class="fas fa-rotate-left"></i>
+        </button>
+        <button
+          type="button"
+          class="btn-tool-icon"
+          [disabled]="redoStack.length === 0"
+          (click)="redo()"
+          title="Làm lại (Ctrl+Y)"
+        >
+          <i class="fas fa-rotate-right"></i>
+        </button>
+      </div>
+
+      <!-- Zoom Controls -->
+      <div class="zoom-controls-group">
+        <button type="button" class="btn-tool-icon" (click)="zoomOut()" title="Thu nhỏ (-)">
+          <i class="fas fa-minus"></i>
+        </button>
+        <button type="button" class="zoom-level-btn" (click)="fitScreen()" title="Tỉ lệ chuẩn vừa màn hình">
+          <span>{{ Math.round(zoomLevel * 100) }}%</span>
+          <small>Vừa khung</small>
+        </button>
+        <button type="button" class="btn-tool-icon" (click)="zoomIn()" title="Phóng to (+)">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Preview, Save, Export, Apply -->
+    <div class="header-right">
+      <button type="button" class="btn-header-outline" (click)="showPreviewModal = true">
+        <i class="fas fa-eye"></i>
+        <span>Xem trước</span>
+      </button>
+
+      <button type="button" class="btn-header-outline" (click)="manualSave()">
+        <i class="fas fa-floppy-disk"></i>
+        <span>Lưu nháp</span>
+      </button>
+
+      <!-- Export Dropdown -->
+      <div class="export-dropdown-wrapper">
+        <button type="button" class="btn-header-export" [disabled]="isExporting" (click)="exportPoster('png')">
+          <i class="fas fa-download"></i>
+          <span>Xuất PNG HD</span>
+        </button>
+      </div>
+
+      <!-- Apply to Order Button -->
+      @if (orderId && auth.hasPermission('poster_studio.apply_to_order')) {
+        <button
+          type="button"
+          class="btn-header-apply"
+          [disabled]="isApplyingToOrder"
+          (click)="applyToCurrentOrder()"
+        >
+          @if (isApplyingToOrder) {
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Đang áp dụng...</span>
+          } @else {
+            <i class="fas fa-check-double"></i>
+            <span>Áp dụng vào đơn hàng</span>
+          }
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- 2. STUDIO MAIN WORKSPACE (2 COLUMNS)                      -->
+  <!-- ========================================================= -->
+  <div class="studio-workspace">
+    <!-- LEFT COLUMN: POSTER CANVAS WORKBENCH -->
+    <main class="poster-canvas-workbench" (click)="clearSelection()">
+      <div class="canvas-viewport-wrapper">
+        <div
+          class="canvas-artboard"
+          [style.transform]="'scale(' + zoomLevel + ')'"
+          [style.width.px]="posterWidth"
+          [style.height.px]="posterHeight"
+        >
+          <!-- Real HTML5 Canvas (1080x1920) -->
+          <canvas #posterCanvas class="real-poster-canvas" [width]="posterWidth" [height]="posterHeight"></canvas>
+
+          <!-- Interactive Selection Overlay Elements -->
+          <div class="interactive-overlay-layer">
+            @for (el of elements; track el.id; let idx = $index) {
+              @if (el.isVisible) {
+                <div
+                  class="canvas-element-box"
+                  [class.selected]="selectedElementId === el.id"
+                  [class.is-locked]="el.isLocked"
+                  [style.top.%]="el.topPct"
+                  [style.left.%]="el.leftPct"
+                  [style.width.%]="el.widthPct"
+                  [style.height.%]="el.heightPct"
+                  (click)="$event.stopPropagation(); selectElement(el.id)"
+                  [title]="'Nhấp để chỉnh sửa ' + el.name"
+                >
+                  <div class="element-handle-bar">
+                    <span class="element-tag">
+                      <i [class]="el.icon"></i>
+                      <span>{{ el.name }}</span>
+                    </span>
+                    @if (selectedElementId === el.id) {
+                      <div class="element-quick-tools" (click)="$event.stopPropagation()">
+                        <button
+                          type="button"
+                          class="btn-quick-tool"
+                          (click)="toggleLayerLock(el, $event)"
+                          [title]="el.isLocked ? 'Mở khóa' : 'Khóa vị trí'"
+                        >
+                          <i [class]="el.isLocked ? 'fas fa-lock text-amber' : 'fas fa-unlock'"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-quick-tool"
+                          (click)="toggleLayerVisibility(el, $event)"
+                          title="Ẩn thành phần này"
+                        >
+                          <i class="fas fa-eye-slash"></i>
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Resize handles corner decoration -->
+                  @if (selectedElementId === el.id) {
+                    <div class="resize-handle handle-tl"></div>
+                    <div class="resize-handle handle-tr"></div>
+                    <div class="resize-handle handle-bl"></div>
+                    <div class="resize-handle handle-br"></div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Bottom Quick Toolbar for Canvas -->
+      <div class="canvas-bottom-floating-bar" (click)="$event.stopPropagation()">
+        <span class="dimension-pill">
+          <i class="fas fa-ruler-combined"></i> 1080 × 1920 px (Chuẩn Story 9:16)
+        </span>
+        <button type="button" class="btn-float-action" (click)="fitScreen()">
+          <i class="fas fa-compress"></i> Vừa màn hình
+        </button>
+        <button type="button" class="btn-float-action" (click)="resetLayout()">
+          <i class="fas fa-arrow-rotate-left"></i> Khôi phục bố cục
+        </button>
+      </div>
+    </main>
+
+    <!-- RIGHT COLUMN: 6-TAB CONTROL PANEL -->
+    <aside class="studio-control-panel">
+      <!-- Tabs Navigation Header -->
+      <nav class="panel-tabs-bar">
+        <button
+          type="button"
+          class="panel-tab-btn"
+          [class.active]="activeTab === 'content'"
+          (click)="activeTab = 'content'"
+        >
+          <i class="fas fa-file-pen"></i>
+          <span>Nội dung</span>
+        </button>
+
+        <button
+          type="button"
+          class="panel-tab-btn"
+          [class.active]="activeTab === 'images'"
+          (click)="activeTab = 'images'"
+        >
+          <i class="fas fa-image"></i>
+          <span>Hình ảnh</span>
+        </button>
+
+        <button
+          type="button"
+          class="panel-tab-btn"
+          [class.active]="activeTab === 'typography'"
+          (click)="activeTab = 'typography'"
+        >
+          <i class="fas fa-font"></i>
+          <span>Kiểu chữ</span>
+        </button>
+
+        <button
+          type="button"
+          class="panel-tab-btn"
+          [class.active]="activeTab === 'colors'"
+          (click)="activeTab = 'colors'"
+        >
+          <i class="fas fa-palette"></i>
+          <span>Màu sắc</span>
+        </button>
+
+        <button
+          type="button"
+          class="panel-tab-btn"
+          [class.active]="activeTab === 'layout'"
+          (click)="activeTab = 'layout'"
+        >
+          <i class="fas fa-layer-group"></i>
+          <span>Bố cục & Lớp</span>
+        </button>
+
+        <button
+          type="button"
+          class="panel-tab-btn"
+          [class.active]="activeTab === 'templates'"
+          (click)="activeTab = 'templates'"
+        >
+          <i class="fas fa-shapes"></i>
+          <span>Mẫu poster</span>
+        </button>
+      </nav>
+
+      <!-- Panel Content Scroll Container -->
+      <div class="panel-scroll-content">
+        <!-- ========================================================= -->
+        <!-- TAB 1: NỘI DUNG (CONTENT)                                 -->
+        <!-- ========================================================= -->
+        @if (activeTab === 'content') {
+          <div class="tab-content-wrapper">
+            <div class="tab-section-header">
+              <h3><i class="fas fa-file-pen text-primary"></i> Thông Tin Tuyển Dụng</h3>
+              <p>Mọi thay đổi văn bản sẽ hiển thị trực tiếp lên hình ảnh poster.</p>
+            </div>
+
+            <!-- Tên đơn & Tiêu đề -->
+            <div class="field-card">
+              <label class="form-label required">Tên đơn tuyển dụng (Tiêu đề lớn):</label>
+              <input
+                type="text"
+                class="form-control form-control-lg font-bold"
+                [(ngModel)]="data.title"
+                (input)="scheduleRender()"
+                placeholder="Ví dụ: LINH KIỆN ĐIỆN TỬ, CHẾ BIẾN THỰC PHẨM..."
+              />
+            </div>
+
+            <div class="field-card-row-2">
+              <div class="field-card">
+                <label class="form-label">Mã đơn tuyển:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="data.orderCode"
+                  (input)="scheduleRender()"
+                  placeholder="ĐH-2026-001"
+                />
+              </div>
+
+              <div class="field-card">
+                <label class="form-label">Tên công ty / Xí nghiệp:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="data.companyHeader"
+                  (input)="scheduleRender()"
+                  placeholder="Tên công ty Nhật Bản..."
+                />
+              </div>
+            </div>
+
+            <!-- Nội dung công việc -->
+            <div class="field-card">
+              <label class="form-label">Mô tả công việc chi tiết:</label>
+              <textarea
+                class="form-control"
+                rows="3"
+                [(ngModel)]="data.jobDescription"
+                (input)="scheduleRender()"
+                placeholder="Mô tả công việc cụ thể học viên sẽ làm tại Nhật..."
+              ></textarea>
+            </div>
+
+            <!-- Điều kiện tuyển dụng -->
+            <div class="field-card">
+              <h4 class="sub-legend"><i class="fas fa-user-check"></i> Điều kiện tuyển chọn:</h4>
+              <div class="field-card-row-3">
+                <div class="form-group">
+                  <label class="form-label">Số lượng:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="data.quantity"
+                    (input)="scheduleRender()"
+                    placeholder="06 Nam / 04 Nữ"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Giới tính:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="data.gender"
+                    (input)="scheduleRender()"
+                    placeholder="Nam hoặc Nữ"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Độ tuổi:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="data.age"
+                    (input)="scheduleRender()"
+                    placeholder="18 - 30 tuổi"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group mt-2">
+                <label class="form-label">Địa điểm làm việc tại Nhật:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="data.workLocation"
+                  (input)="scheduleRender()"
+                  placeholder="Tokyo, Osaka, Aichi, Fukuoka..."
+                />
+              </div>
+            </div>
+
+            <!-- Mức lương & Chế độ -->
+            <div class="field-card">
+              <h4 class="sub-legend"><i class="fas fa-hand-holding-dollar text-green"></i> Mức lương & Đãi ngộ:</h4>
+              <div class="form-group">
+                <label class="form-label">Mức lương cơ bản hiển thị (mỗi dòng một ý):</label>
+                <textarea
+                  class="form-control"
+                  rows="3"
+                  [(ngModel)]="data.salary"
+                  (input)="scheduleRender()"
+                  placeholder="Lương cơ bản: 32 - 38 triệu VNĐ / tháng&#10;Chưa tính tăng ca và phụ cấp chuyên cần"
+                ></textarea>
+              </div>
+
+              <div class="form-group mt-2">
+                <label class="form-label">Quyền lợi & Chế độ phúc lợi:</label>
+                <textarea
+                  class="form-control"
+                  rows="2"
+                  [(ngModel)]="data.benefits"
+                  (input)="scheduleRender()"
+                  placeholder="Bảo hiểm đầy đủ theo luật Nhật, hỗ trợ ký túc xá, vé máy bay..."
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Lịch trình & Liên hệ -->
+            <div class="field-card">
+              <h4 class="sub-legend"><i class="fas fa-calendar-days text-primary"></i> Thời gian & Liên hệ:</h4>
+              <div class="field-card-row-2">
+                <div class="form-group">
+                  <label class="form-label">Thời gian thi tuyển:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="data.interviewDate"
+                    (input)="scheduleRender()"
+                    placeholder="Phỏng vấn: Tháng 11/2026"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Dự kiến xuất cảnh:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="data.departureDate"
+                    (input)="scheduleRender()"
+                    placeholder="Bay: Tháng 04/2027"
+                  />
+                </div>
+              </div>
+
+              <div class="field-card-row-2 mt-2">
+                <div class="form-group">
+                  <label class="form-label">Hotline tư vấn:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="data.contactHotline"
+                    (input)="scheduleRender()"
+                    placeholder="0966966284"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Đơn vị tư vấn:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="data.contactUnit"
+                    (input)="scheduleRender()"
+                    placeholder="VieJap Trà Vinh"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ========================================================= -->
+        <!-- TAB 2: HÌNH ẢNH (IMAGES)                                  -->
+        <!-- ========================================================= -->
+        @if (activeTab === 'images') {
+          <div class="tab-content-wrapper">
+            <div class="tab-section-header">
+              <h3><i class="fas fa-image text-primary"></i> Quản Lý Hình Ảnh Poster</h3>
+              <p>Tải ảnh thực tế từ thiết bị hoặc chọn ảnh từ kho ngành nghề Nhật Bản.</p>
+            </div>
+
+            <!-- Ẩn input file handlers -->
+            <input #primaryPhotoInput type="file" accept="image/*" class="d-none" (change)="onPhotoSelected($event, 'primary')" />
+            <input #secondaryPhotoInput type="file" accept="image/*" class="d-none" (change)="onPhotoSelected($event, 'secondary')" />
+            <input #tertiaryPhotoInput type="file" accept="image/*" class="d-none" (change)="onPhotoSelected($event, 'tertiary')" />
+
+            <!-- Photo Slot 1: Ảnh công việc chính -->
+            <div class="photo-slot-card">
+              <div class="slot-header">
+                <span class="slot-badge">Ảnh 1 (Chính)</span>
+                <span class="slot-name">Hình ảnh công việc thực tế</span>
+              </div>
+              <div class="slot-body">
+                <div class="slot-thumb-box">
+                  @if (assets.primaryPhotoSrc) {
+                    <img [src]="assets.primaryPhotoSrc" alt="Primary" class="slot-thumb" />
+                  } @else {
+                    <div class="slot-empty">Chưa có ảnh</div>
+                  }
+                </div>
+                <div class="slot-actions">
+                  <button type="button" class="btn btn-outline btn-sm" (click)="triggerPhotoUpload('primary')">
+                    <i class="fas fa-upload"></i> Tải ảnh từ máy
+                  </button>
+                  @if (assets.primaryPhotoSrc) {
+                    <button type="button" class="btn btn-danger-outline btn-sm" (click)="removePhoto('primary')">
+                      <i class="fas fa-trash"></i> Xóa ảnh
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Photo Slot 2: Ảnh môi trường làm việc -->
+            <div class="photo-slot-card">
+              <div class="slot-header">
+                <span class="slot-badge">Ảnh 2 (Phụ)</span>
+                <span class="slot-name">Môi trường xí nghiệp / Đời sống</span>
+              </div>
+              <div class="slot-body">
+                <div class="slot-thumb-box">
+                  @if (assets.secondaryPhotoSrc) {
+                    <img [src]="assets.secondaryPhotoSrc" alt="Secondary" class="slot-thumb" />
+                  } @else {
+                    <div class="slot-empty">Chưa có ảnh</div>
+                  }
+                </div>
+                <div class="slot-actions">
+                  <button type="button" class="btn btn-outline btn-sm" (click)="triggerPhotoUpload('secondary')">
+                    <i class="fas fa-upload"></i> Tải ảnh từ máy
+                  </button>
+                  @if (assets.secondaryPhotoSrc) {
+                    <button type="button" class="btn btn-danger-outline btn-sm" (click)="removePhoto('secondary')">
+                      <i class="fas fa-trash"></i> Xóa ảnh
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Stock Photos Library -->
+            <div class="stock-library-card">
+              <h4 class="sub-legend"><i class="fas fa-photo-film text-primary"></i> Kho ảnh mẫu ngành nghề Nhật Bản:</h4>
+              <p class="stock-hint">Nhấp vào ảnh để áp dụng ngay vào Poster:</p>
+
+              <div class="stock-grid">
+                @for (p of stockPhotos; track p.id) {
+                  <div class="stock-item" (click)="selectStockPhoto(p, 'primary')" [title]="p.title">
+                    <img [src]="p.url" alt="Hình ảnh minh họa" [alt]="p.title" class="stock-img" />
+                    <span class="stock-label">{{ p.title }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ========================================================= -->
+        <!-- TAB 3: KIỂU CHỮ (TYPOGRAPHY)                              -->
+        <!-- ========================================================= -->
+        @if (activeTab === 'typography') {
+          <div class="tab-content-wrapper">
+            <div class="tab-section-header">
+              <h3><i class="fas fa-font text-primary"></i> Tùy Chỉnh Kiểu Chữ</h3>
+              <p>Lựa chọn phông chữ tiếng Việt chuẩn đẹp và điều chỉnh tỉ lệ kích thước.</p>
+            </div>
+
+            <div class="field-card">
+              <label class="form-label">Phông chữ hiển thị:</label>
+              <select class="form-control" [(ngModel)]="typography.fontFamily" (change)="scheduleRender()">
+                <option value='"Be Vietnam Pro", sans-serif'>Be Vietnam Pro (Chuẩn VieJap)</option>
+                <option value='"Noto Sans", sans-serif'>Noto Sans (Sắc nét, đa ngôn ngữ)</option>
+                <option value='"Inter", sans-serif'>Inter (Hiện đại, tối giản)</option>
+                <option value='"Montserrat", sans-serif'>Montserrat (Mạnh mẽ, ấn tượng)</option>
+              </select>
+            </div>
+
+            <div class="field-card">
+              <label class="form-label">Tỉ lệ cỡ chữ Tiêu Đề: {{ Math.round(typography.titleScale * 100) }}%</label>
+              <input
+                type="range"
+                class="form-range"
+                min="0.8"
+                max="1.4"
+                step="0.05"
+                [(ngModel)]="typography.titleScale"
+                (input)="scheduleRender()"
+              />
+            </div>
+
+            <div class="field-card">
+              <label class="form-label">Tỉ lệ cỡ chữ Mức Lương: {{ Math.round(typography.salaryScale * 100) }}%</label>
+              <input
+                type="range"
+                class="form-range"
+                min="0.8"
+                max="1.5"
+                step="0.05"
+                [(ngModel)]="typography.salaryScale"
+                (input)="scheduleRender()"
+              />
+            </div>
+
+            <div class="field-card">
+              <label class="form-label">Độ đậm phông chữ:</label>
+              <div class="btn-group-toggle">
+                <button
+                  type="button"
+                  class="btn-toggle"
+                  [class.active]="typography.fontWeight === '600'"
+                  (click)="typography.fontWeight = '600'; scheduleRender()"
+                >
+                  Vừa
+                </button>
+                <button
+                  type="button"
+                  class="btn-toggle"
+                  [class.active]="typography.fontWeight === '700'"
+                  (click)="typography.fontWeight = '700'; scheduleRender()"
+                >
+                  Đậm (Chuẩn)
+                </button>
+                <button
+                  type="button"
+                  class="btn-toggle"
+                  [class.active]="typography.fontWeight === '800'"
+                  (click)="typography.fontWeight = '800'; scheduleRender()"
+                >
+                  Rất đậm
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ========================================================= -->
+        <!-- TAB 4: MÀU SẮC (COLORS)                                   -->
+        <!-- ========================================================= -->
+        @if (activeTab === 'colors') {
+          <div class="tab-content-wrapper">
+            <div class="tab-section-header">
+              <h3><i class="fas fa-palette text-primary"></i> Bảng Màu Poster</h3>
+              <p>Chọn các phối màu nhận diện VieJap chuẩn mực hoặc tự điều chỉnh màu sắc.</p>
+            </div>
+
+            <!-- Color Presets Cards -->
+            <div class="presets-section">
+              <label class="form-label">Bộ phối màu gợi ý:</label>
+              <div class="presets-grid">
+                @for (preset of colorPresets; track preset.id) {
+                  <div class="preset-card" (click)="applyColorPreset(preset)">
+                    <div class="preset-stripes">
+                      @for (c of preset.preview; track c) {
+                        <span class="preset-color" [style.backgroundColor]="c"></span>
+                      }
+                    </div>
+                    <span class="preset-name">{{ preset.name }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Custom Colors Form -->
+            <div class="custom-colors-grid">
+              <div class="color-field">
+                <label>Màu chủ đạo thương hiệu:</label>
+                <div class="color-picker-row">
+                  <input type="color" [(ngModel)]="colors.primary" (change)="scheduleRender()" />
+                  <input type="text" class="form-control" [(ngModel)]="colors.primary" (input)="scheduleRender()" />
+                </div>
+              </div>
+
+              <div class="color-field">
+                <label>Màu điểm nhấn (Vàng kim):</label>
+                <div class="color-picker-row">
+                  <input type="color" [(ngModel)]="colors.accent" (change)="scheduleRender()" />
+                  <input type="text" class="form-control" [(ngModel)]="colors.accent" (input)="scheduleRender()" />
+                </div>
+              </div>
+
+              <div class="color-field">
+                <label>Màu nền phía trên:</label>
+                <div class="color-picker-row">
+                  <input type="color" [(ngModel)]="colors.bgStart" (change)="scheduleRender()" />
+                  <input type="text" class="form-control" [(ngModel)]="colors.bgStart" (input)="scheduleRender()" />
+                </div>
+              </div>
+
+              <div class="color-field">
+                <label>Màu nền phía dưới:</label>
+                <div class="color-picker-row">
+                  <input type="color" [(ngModel)]="colors.bgEnd" (change)="scheduleRender()" />
+                  <input type="text" class="form-control" [(ngModel)]="colors.bgEnd" (input)="scheduleRender()" />
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ========================================================= -->
+        <!-- TAB 5: BỐ CỤC & LỚP (LAYERS)                              -->
+        <!-- ========================================================= -->
+        @if (activeTab === 'layout') {
+          <div class="tab-content-wrapper">
+            <div class="tab-section-header">
+              <h3><i class="fas fa-layer-group text-primary"></i> Quản Lý Lớp & Bố Cục</h3>
+              <p>Kiểm soát ẩn/hiện, khóa vị trí và thứ tự các thành phần trên Poster.</p>
+            </div>
+
+            <div class="layers-stack-list">
+              @for (el of elements; track el.id; let idx = $index) {
+                <div
+                  class="layer-item-row"
+                  [class.selected]="selectedElementId === el.id"
+                  [class.is-hidden]="!el.isVisible"
+                  (click)="selectElement(el.id)"
+                >
+                  <div class="layer-info">
+                    <i [class]="el.icon + ' layer-icon'"></i>
+                    <span class="layer-name">{{ el.name }}</span>
+                  </div>
+
+                  <div class="layer-tools">
+                    <button
+                      type="button"
+                      class="btn-layer-tool"
+                      (click)="toggleLayerLock(el, $event)"
+                      [title]="el.isLocked ? 'Mở khóa' : 'Khóa vị trí'"
+                    >
+                      <i [class]="el.isLocked ? 'fas fa-lock text-amber' : 'fas fa-unlock'"></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-layer-tool"
+                      (click)="toggleLayerVisibility(el, $event)"
+                      [title]="el.isVisible ? 'Ẩn lớp này' : 'Hiện lớp này'"
+                    >
+                      <i [class]="el.isVisible ? 'fas fa-eye' : 'fas fa-eye-slash text-muted'"></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-layer-tool"
+                      [disabled]="idx === 0"
+                      (click)="moveLayer(idx, 'up', $event)"
+                      title="Đưa lên trên"
+                    >
+                      <i class="fas fa-arrow-up"></i>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-layer-tool"
+                      [disabled]="idx === elements.length - 1"
+                      (click)="moveLayer(idx, 'down', $event)"
+                      title="Đưa xuống dưới"
+                    >
+                      <i class="fas fa-arrow-down"></i>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="mt-4">
+              <button type="button" class="btn btn-outline btn-block" (click)="resetLayout()">
+                <i class="fas fa-arrow-rotate-left"></i> Khôi phục vị trí & bố cục mặc định
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- ========================================================= -->
+        <!-- TAB 6: MẪU POSTER (TEMPLATES)                             -->
+        <!-- ========================================================= -->
+        @if (activeTab === 'templates') {
+          <div class="tab-content-wrapper">
+            <div class="tab-section-header">
+              <h3><i class="fas fa-shapes text-primary"></i> Chọn Mẫu Thiết Kế Poster</h3>
+              <p>Chuyển đổi kiểu dáng poster linh hoạt mà không làm mất thông tin đơn hàng đã nhập.</p>
+            </div>
+
+            <div class="templates-studio-grid">
+              @for (tpl of availableTemplates; track tpl.id) {
+                <div
+                  class="studio-template-card"
+                  [class.active]="selectedTemplateId === tpl.id"
+                  (click)="changeTemplate(tpl.id)"
+                >
+                  <div class="tpl-card-header">
+                    <span class="tpl-badge">{{ tpl.badge }}</span>
+                    <span class="tpl-check" *ngIf="selectedTemplateId === tpl.id">
+                      <i class="fas fa-circle-check text-green"></i> Đang chọn
+                    </span>
+                  </div>
+
+                  <h4 class="tpl-title">{{ tpl.name }}</h4>
+                  <p class="tpl-description">{{ tpl.description }}</p>
+
+                  <div class="tpl-meta-bottom">
+                    <span><i class="fas fa-images"></i> Khuyến nghị {{ tpl.recommendedPhotoCount }} ảnh</span>
+                    <span class="tpl-dot" [style.backgroundColor]="tpl.colors.primaryBrand"></span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </aside>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 3. CLEAN FULLSCREEN PREVIEW MODAL                         -->
+  <!-- ========================================================= -->
+  @if (showPreviewModal) {
+    <div class="fullscreen-preview-backdrop" (click)="showPreviewModal = false">
+      <div class="preview-modal-dialog" (click)="$event.stopPropagation()">
+        <div class="preview-modal-topbar">
+          <div class="preview-title">
+            <i class="fas fa-eye text-primary"></i>
+            <span>Bản Xem Trước Thực Tế Poster Tuyển Dụng</span>
+          </div>
+          <div class="preview-modal-actions">
+            <button type="button" class="btn btn-primary btn-sm" (click)="exportPoster('png')">
+              <i class="fas fa-download"></i> Tải ảnh PNG HD
+            </button>
+            <button type="button" class="btn-close-preview" (click)="showPreviewModal = false">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-modal-body">
+          <div class="preview-poster-scaled">
+            <!-- Clone view of current rendered canvas -->
+            <img [src]="previewDataUrl" alt="Clean Preview" class="preview-img" />
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

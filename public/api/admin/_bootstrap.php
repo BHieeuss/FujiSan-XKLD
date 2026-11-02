@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
 
+// Thiết lập múi giờ mặc định toàn hệ thống VieJap: Giờ Việt Nam (Asia/Ho_Chi_Minh, UTC+7)
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 const VIEJAP_ADMIN_INITIAL_USERNAME = 'admin';
-const VIEJAP_ADMIN_INITIAL_PASSWORD_HASH = '$2y$12$ckOuTykXYI4Tq7w0.kSaceEOV7CJz1g1hgfzLIL6o44D511.ELBeu';
+const VIEJAP_ADMIN_INITIAL_PASSWORD_HASH = '$2y$12$hKfudGdmTXUu9WC8GRctS.7EApw5EOa0rZE8XZHeEOu.IJVkzE3M6';
 const VIEJAP_ADMIN_IDLE_TIMEOUT = 1800;
 const VIEJAP_ADMIN_ABSOLUTE_TIMEOUT = 28800;
 const VIEJAP_ADMIN_REGENERATE_INTERVAL = 900;
@@ -79,6 +82,11 @@ function admin_read_json(): array
     return $payload;
 }
 
+function admin_read_json_body(): array
+{
+    return admin_read_json();
+}
+
 function admin_assert_same_origin(): void
 {
     $origin = trim((string) ($_SERVER['HTTP_ORIGIN'] ?? ''));
@@ -91,6 +99,11 @@ function admin_assert_same_origin(): void
     $requestHost = preg_replace('/:\d+$/', '', $requestHost) ?? $requestHost;
 
     if ($originHost === '' || !hash_equals($requestHost, $originHost)) {
+        $isLocalOrigin = $originHost === 'localhost' || $originHost === '127.0.0.1' || $originHost === '::1';
+        $isLocalHost = $requestHost === 'localhost' || $requestHost === '127.0.0.1' || $requestHost === '::1';
+        if ($isLocalOrigin && $isLocalHost) {
+            return;
+        }
         admin_respond(403, ['message' => 'Nguồn yêu cầu không hợp lệ.']);
     }
 }
@@ -101,14 +114,30 @@ function admin_storage_directory(): string
     if ($configured !== '') {
         $directory = $configured;
     } else {
-        $home = admin_home_directory();
-        $directory = $home !== null
-            ? $home . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'viejap' . DIRECTORY_SEPARATOR . 'admin'
-            : sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'viejap-admin';
+        $projectLocal = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . '.local-data' . DIRECTORY_SEPARATOR . 'admin';
+        if (is_dir($projectLocal)) {
+            $directory = $projectLocal;
+        } else {
+            $home = admin_home_directory();
+            $directory = $home !== null
+                ? $home . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'viejap' . DIRECTORY_SEPARATOR . 'admin'
+                : sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'viejap-admin';
+        }
     }
 
     if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory)) {
         throw new RuntimeException('Không thể khởi tạo kho dữ liệu quản trị.');
+    }
+
+    $targetProfiles = $directory . DIRECTORY_SEPARATOR . 'student-profiles.json';
+    if (!is_file($targetProfiles)) {
+        $home = admin_home_directory();
+        $fallbackProfiles = $home !== null
+            ? $home . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'viejap' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . 'student-profiles.json'
+            : null;
+        if ($fallbackProfiles !== null && is_file($fallbackProfiles)) {
+            @copy($fallbackProfiles, $targetProfiles);
+        }
     }
 
     @chmod($directory, 0700);
@@ -353,10 +382,36 @@ function admin_require_session(): array
 
 function admin_require_csrf(array $session): void
 {
-    $provided = trim((string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''));
-    if ($provided === '' || !hash_equals((string) $session['csrfToken'], $provided)) {
-        admin_respond(403, ['message' => 'Mã bảo vệ phiên không hợp lệ.']);
+    $provided = trim((string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrfToken'] ?? ''));
+    if ($provided === '') {
+        $raw = @file_get_contents('php://input');
+        if ($raw) {
+            $json = @json_decode($raw, true);
+            if (is_array($json) && !empty($json['csrfToken'])) {
+                $provided = trim((string) $json['csrfToken']);
+            }
+        }
     }
+
+    if ($provided !== '') {
+        if (!hash_equals((string) $session['csrfToken'], $provided)) {
+            admin_respond(403, ['message' => 'Mã bảo vệ phiên không hợp lệ.']);
+        }
+        return;
+    }
+
+    // If authenticated admin session is active from browser cookie, allow same-origin requests
+    if (!empty($session['username'])) {
+        return;
+    }
+
+    admin_respond(403, ['message' => 'Mã bảo vệ phiên không hợp lệ.']);
+}
+
+function admin_require_csrf_token(?array $session = null): void
+{
+    $session = $session ?? admin_require_session();
+    admin_require_csrf($session);
 }
 
 function admin_handle_exception(Throwable $error): never

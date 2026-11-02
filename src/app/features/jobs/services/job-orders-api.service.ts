@@ -41,10 +41,14 @@ export class JobOrdersApiService {
     return response.orders ?? [];
   }
 
-  async create(payload: JobOrderPayload): Promise<JobOrder> {
+  async create(payload: JobOrderPayload, opts?: { idempotencyKey?: string }): Promise<JobOrder> {
+    const extraHeaders: Record<string, string> = {};
+    if (opts?.idempotencyKey) {
+      extraHeaders['X-Idempotency-Key'] = opts.idempotencyKey;
+    }
     const response = await this.request(
       '/admin-api/orders.php',
-      { method: 'POST', body: JSON.stringify(payload) },
+      { method: 'POST', body: JSON.stringify(payload), headers: extraHeaders },
       true,
     );
     if (!response.order) {
@@ -71,6 +75,32 @@ export class JobOrdersApiService {
       { method: 'DELETE' },
       true,
     );
+  }
+
+  async checkOrderCode(code: string, excludeId?: string): Promise<boolean> {
+    const params = new URLSearchParams({ action: 'check_code', code });
+    if (excludeId) {
+      params.append('excludeId', excludeId);
+    }
+    const response = await this.request(`/admin-api/orders.php?${params.toString()}`, {}, true);
+    return Boolean((response as any).exists);
+  }
+
+  async saveDraft(draft: JobOrderPayload): Promise<void> {
+    await this.request(
+      '/admin-api/orders.php?action=draft_save',
+      { method: 'POST', body: JSON.stringify(draft) },
+      true,
+    );
+  }
+
+  async getDraft(): Promise<JobOrderPayload | null> {
+    const response = await this.request('/admin-api/orders.php?action=draft_get', {}, true);
+    return (response as any).draft ?? null;
+  }
+
+  async clearDraft(): Promise<void> {
+    await this.request('/admin-api/orders.php?action=draft_clear', { method: 'POST', body: '{}' }, true);
   }
 
   async uploadImage(file: File): Promise<string> {

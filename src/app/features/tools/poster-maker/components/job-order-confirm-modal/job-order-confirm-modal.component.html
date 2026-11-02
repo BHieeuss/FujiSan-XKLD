@@ -1,0 +1,599 @@
+<div class="confirm-modal-backdrop" role="presentation" (click)="closeModal()">
+  <div
+    class="confirm-modal-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Xác nhận tạo đơn hàng trên website"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Modal Header -->
+    <header class="confirm-modal-header">
+      <div class="header-title-group">
+        <span class="header-icon-box">
+          <i class="fas fa-briefcase"></i>
+        </span>
+        <div>
+          <span class="header-eyebrow">Đơn Hàng Tuyển Dụng VieJap</span>
+          <h2>Đăng đơn hàng lên website từ Poster</h2>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="btn-modal-close"
+        (click)="closeModal()"
+        aria-label="Đóng cửa sổ"
+        [disabled]="submitting"
+      >
+        <i class="fas fa-xmark"></i>
+      </button>
+    </header>
+
+    <!-- Modal Body -->
+    <main class="confirm-modal-body">
+      <!-- ============================================================== -->
+      <!-- BƯỚC 1: CÂU HỎI QUYẾT ĐỊNH (ASK PROMPT)                        -->
+      <!-- ============================================================== -->
+      @if (currentStep === 'ask_prompt') {
+        <section class="prompt-step-wrap">
+          <div class="prompt-card-hero">
+            <div class="prompt-icon-bubble">
+              <i class="fas fa-cloud-arrow-up"></i>
+            </div>
+            <h3>Bạn có muốn sử dụng dữ liệu này để tạo đơn hàng tuyển dụng trên website VieJap không?</h3>
+            <p>
+              Hệ thống sẽ tái sử dụng trực tiếp tiêu đề, mức lương, nơi làm việc, yêu cầu tuyển dụng và poster vừa tạo để tự động điền sẵn đơn hàng trên website.
+            </p>
+          </div>
+
+          <!-- Poster summary pill -->
+          <div class="prompt-summary-box">
+            @if (posterPreviewUrl) {
+              <div class="summary-thumb" (click)="toggleLightbox(true)" title="Nhấn để xem poster phóng to">
+                <img [src]="posterPreviewUrl" alt="Bản xem trước poster" />
+                <span class="zoom-badge"><i class="fas fa-magnifying-glass-plus"></i></span>
+              </div>
+            }
+            <div class="summary-details">
+              <span class="summary-category">
+                <i [class]="previewCategory.icon"></i> {{ previewCategory.label }}
+              </span>
+              <strong class="summary-title">{{ draft.title }}</strong>
+              <div class="summary-meta-row">
+                <span><i class="fas fa-sack-dollar text-warning me-1"></i> {{ jobSalary }}</span>
+                <span><i class="fas fa-location-dot text-danger me-1"></i> {{ jobLocation }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hai lựa chọn chính -->
+          <div class="prompt-choices-grid">
+            <button
+              type="button"
+              class="choice-card choice-primary"
+              (click)="chooseYesCreateOrder()"
+            >
+              <div class="choice-icon">
+                <i class="fas fa-circle-check"></i>
+              </div>
+              <div class="choice-copy">
+                <strong>Có, tạo đơn hàng trên website</strong>
+                <small>Kiểm tra biểu mẫu dữ liệu, bổ sung thông tin và đăng công khai hoặc lưu nháp.</small>
+              </div>
+              <i class="fas fa-arrow-right choice-arrow"></i>
+            </button>
+
+            <button
+              type="button"
+              class="choice-card choice-secondary"
+              (click)="chooseNoKeepPosterOnly()"
+            >
+              <div class="choice-icon">
+                <i class="fas fa-floppy-disk"></i>
+              </div>
+              <div class="choice-copy">
+                <strong>Không, chỉ lưu poster</strong>
+                <small>Giữ nguyên file poster đã tạo và kết thúc quy trình, không tạo đơn trên website.</small>
+              </div>
+              <i class="fas fa-xmark choice-arrow"></i>
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- ============================================================== -->
+      <!-- BƯỚC PHỤ: YÊU CẦU ĐĂNG NHẬP QUẢN TRỊ (NEED AUTH)               -->
+      <!-- ============================================================== -->
+      @if (currentStep === 'need_auth') {
+        <section class="auth-required-step">
+          <div class="auth-lock-card">
+            <div class="auth-icon-bubble">
+              <i class="fas fa-shield-halved"></i>
+            </div>
+            <h3>Yêu cầu quyền quản trị viên</h3>
+            <p>Để tạo và xuất bản đơn hàng lên website VieJap, vui lòng đăng nhập tài khoản quản trị.</p>
+
+            <form class="auth-form" (ngSubmit)="loginAdmin()">
+              <label class="auth-field">
+                <span>Tài khoản quản trị</span>
+                <input
+                  type="text"
+                  [(ngModel)]="adminUsername"
+                  name="adminUsername"
+                  required
+                  placeholder="Nhập tên tài khoản"
+                  autocomplete="username"
+                />
+              </label>
+
+              <label class="auth-field">
+                <span>Mật khẩu</span>
+                <input
+                  type="password"
+                  [(ngModel)]="adminPassword"
+                  name="adminPassword"
+                  required
+                  placeholder="Nhập mật khẩu"
+                  autocomplete="current-password"
+                />
+              </label>
+
+              @if (loginError) {
+                <div class="auth-error-alert">
+                  <i class="fas fa-circle-exclamation me-1"></i> {{ loginError }}
+                </div>
+              }
+
+              <div class="auth-actions">
+                <button
+                  type="submit"
+                  class="btn-auth-submit"
+                  [disabled]="loggingIn || !adminUsername || !adminPassword"
+                >
+                  <i [class]="loggingIn ? 'fas fa-spinner fa-spin' : 'fas fa-arrow-right-to-bracket'"></i>
+                  {{ loggingIn ? 'Đang đăng nhập...' : 'Đăng nhập & Tiếp tục' }}
+                </button>
+                <button type="button" class="btn-auth-cancel" (click)="currentStep = 'ask_prompt'">
+                  Quay lại
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      }
+
+      <!-- ============================================================== -->
+      <!-- BƯỚC 2: FORM XÁC NHẬN VÀ CHỈNH SỬA DỮ LIỆU                     -->
+      <!-- ============================================================== -->
+      @if (currentStep === 'confirm_form') {
+        <section class="confirm-form-split">
+          <!-- Cột Trái: Xem trước Poster & Chọn ảnh đại diện -->
+          <aside class="confirm-preview-col">
+            <div class="poster-preview-card">
+              <div class="preview-header-bar">
+                <span><i class="fas fa-image me-1"></i> Poster đơn tuyển</span>
+                <button
+                  type="button"
+                  class="btn-zoom-trigger"
+                  (click)="toggleLightbox(true)"
+                  title="Xem phóng to toàn màn hình"
+                >
+                  <i class="fas fa-expand"></i> Phóng to
+                </button>
+              </div>
+
+              <div class="poster-canvas-frame" (click)="toggleLightbox(true)">
+                @if (posterPreviewUrl) {
+                  <img [src]="posterPreviewUrl" alt="Poster đơn tuyển dụng VieJap" />
+                  <div class="frame-overlay">
+                    <i class="fas fa-magnifying-glass-plus"></i>
+                    <span>Xem rõ nét</span>
+                  </div>
+                } @else {
+                  <div class="frame-placeholder">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Đang tải poster...</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Lựa chọn ảnh hiển thị ở ngoài danh sách đơn hàng -->
+              <div class="thumbnail-selector-box">
+                <label class="selector-label">
+                  <i class="fas fa-photo-film me-1"></i> Ảnh hiển thị trên thẻ danh sách:
+                </label>
+                <div class="selector-pills">
+                  <button
+                    type="button"
+                    class="btn-pill-choice"
+                    [class.active]="selectedThumbnailType === 'poster'"
+                    (click)="selectThumbnailType('poster')"
+                  >
+                    <span>Toàn bộ Poster</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-pill-choice"
+                    [class.active]="selectedThumbnailType === 'category'"
+                    (click)="selectThumbnailType('category')"
+                  >
+                    <span>Ảnh ngành nghề</span>
+                  </button>
+
+                  @if (posterAssets?.primaryPhotoSrc) {
+                    <button
+                      type="button"
+                      class="btn-pill-choice"
+                      [class.active]="selectedThumbnailType === 'photo'"
+                      (click)="selectThumbnailType('photo')"
+                    >
+                      <span>Ảnh hiện trường</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="preview-consistency-note">
+                <i class="fas fa-circle-info"></i>
+                <span>Poster này sẽ được đính kèm trực tiếp vào trang chi tiết đơn hàng trên website.</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Cột Phải: Form Thông Tin Đã Điền Tự Động -->
+          <div class="confirm-fields-col">
+            <!-- Cảnh báo nếu có trường thiếu -->
+            @if (missingFields.length > 0) {
+              <div class="fields-alert-box warning">
+                <i class="fas fa-triangle-exclamation"></i>
+                <div>
+                  <strong>Cần kiểm tra:</strong> Vui lòng điền đủ các trường bắt buộc ({{ missingFields.join(', ') }}).
+                </div>
+              </div>
+            }
+
+            @if (errorMessage) {
+              <div class="fields-alert-box error">
+                <i class="fas fa-circle-exclamation"></i>
+                <div>{{ errorMessage }}</div>
+              </div>
+            }
+
+            @if (posterStale) {
+              <div class="fields-alert-box warning">
+                <i class="fas fa-triangle-exclamation"></i>
+                <div>
+                  <strong>Poster có thể không còn khớp:</strong> nội dung đơn hàng đã được sửa
+                  sau khi tạo poster. Hãy tạo lại poster nếu thông tin đã thay đổi.
+                </div>
+              </div>
+            }
+
+            <!-- KHỐI 1: THÔNG TIN CHUNG -->
+            <fieldset class="form-group-card">
+              <legend class="group-legend">
+                <span class="legend-num">1</span> Thông tin cơ bản bài đăng
+              </legend>
+
+              <div class="field-item">
+                <label class="field-label" for="confirmOrderTitle">
+                  Tiêu đề đơn tuyển dụng <b class="text-danger">*</b>
+                </label>
+                <input
+                  id="confirmOrderTitle"
+                  type="text"
+                  class="form-control-input fw-bold"
+                  [(ngModel)]="draft.title"
+                  (input)="onFieldChanged()"
+                  placeholder="Ví dụ: GIA CÔNG CƠ KHÍ CHÍNH XÁC - AICHI"
+                  required
+                />
+              </div>
+
+              <!-- Lựa chọn Ngành Nghề -->
+              <div class="field-item">
+                <label class="field-label">
+                  Ngành nghề tuyển dụng <b class="text-danger">*</b>
+                </label>
+                <div class="category-pills-wrap">
+                  @for (cat of categories; track cat.key) {
+                    <button
+                      type="button"
+                      class="category-select-pill"
+                      [class.active]="draft.category === cat.key"
+                      (click)="onCategoryChanged(cat.key)"
+                    >
+                      <i [class]="cat.icon"></i>
+                      <span>{{ cat.label }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="field-row two-cols">
+                <div class="field-item">
+                  <label class="field-label" for="confirmOrderCode">
+                    Mã đơn hàng
+                  </label>
+                  <input
+                    id="confirmOrderCode"
+                    type="text"
+                    class="form-control-input"
+                    [(ngModel)]="jobOrderCode"
+                    (input)="onFieldChanged()"
+                    placeholder="Ví dụ: TC059M"
+                  />
+                </div>
+
+                <div class="field-item">
+                  <label class="field-label" for="confirmOrderStatus">
+                    Trạng thái hiển thị <b class="text-danger">*</b>
+                  </label>
+                  <select
+                    id="confirmOrderStatus"
+                    class="form-control-select"
+                    [(ngModel)]="draft.status"
+                  >
+                    <option value="published">Đang tuyển (Công khai trên Website)</option>
+                    <option value="draft">Lưu nháp (Chỉ quản trị viên thấy)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-item checkbox-item">
+                <label class="custom-checkbox-label">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="draft.isFeatured"
+                  />
+                  <span>
+                    <strong>Đơn hàng nổi bật</strong>
+                    <small>Được ưu tiên hiển thị đầu trang và kích hoạt thông báo tuyển gấp.</small>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <!-- KHỐI 2: ĐỊA ĐIỂM & MỨC LƯƠNG -->
+            <fieldset class="form-group-card">
+              <legend class="group-legend">
+                <span class="legend-num">2</span> Địa điểm & Thu nhập
+              </legend>
+
+              <div class="field-row two-cols">
+                <div class="field-item">
+                  <label class="field-label" for="confirmOrderLocation">
+                    Nơi làm việc (Tỉnh / Thành phố Nhật Bản)
+                  </label>
+                  <input
+                    id="confirmOrderLocation"
+                    type="text"
+                    class="form-control-input"
+                    [(ngModel)]="jobLocation"
+                    (input)="onFieldChanged()"
+                    placeholder="Ví dụ: Aichi - Nhật Bản"
+                  />
+                </div>
+
+                <div class="field-item">
+                  <label class="field-label" for="confirmOrderDeparture">
+                    Thời gian xuất cảnh dự kiến
+                  </label>
+                  <input
+                    id="confirmOrderDeparture"
+                    type="text"
+                    class="form-control-input"
+                    [(ngModel)]="jobDeparture"
+                    (input)="onFieldChanged()"
+                    placeholder="Ví dụ: Dự kiến 08/2025"
+                  />
+                </div>
+              </div>
+
+              <div class="field-item">
+                <label class="field-label" for="confirmOrderSalary">
+                  Mức lương & Thu nhập
+                </label>
+                <textarea
+                  id="confirmOrderSalary"
+                  rows="2"
+                  class="form-control-textarea fw-semibold"
+                  [(ngModel)]="jobSalary"
+                  (input)="onFieldChanged()"
+                  placeholder="Lương cơ bản: 192.000 yên/tháng&#10;Thực lĩnh: ~136.000 yên"
+                ></textarea>
+                <small class="field-helper">Mỗi dòng sẽ hiển thị như một mục lương cụ thể.</small>
+              </div>
+            </fieldset>
+
+            <!-- KHỐI 3: YÊU CẦU & NỘI DUNG TUYỂN DỤNG -->
+            <fieldset class="form-group-card">
+              <legend class="group-legend">
+                <span class="legend-num">3</span> Yêu cầu & Quyền lợi ứng viên
+              </legend>
+
+              <div class="field-item">
+                <label class="field-label" for="confirmOrderAge">
+                  Độ tuổi tuyển dụng
+                </label>
+                <input
+                  id="confirmOrderAge"
+                  type="text"
+                  class="form-control-input"
+                  [(ngModel)]="jobAgeRange"
+                  (input)="onFieldChanged()"
+                  placeholder="Ví dụ: 18–35 tuổi"
+                />
+              </div>
+
+              <div class="field-item">
+                <label class="field-label" for="confirmOrderReq">
+                  Quyền lợi và điều kiện ứng tuyển
+                </label>
+                <textarea
+                  id="confirmOrderReq"
+                  rows="3"
+                  class="form-control-textarea"
+                  [(ngModel)]="jobRequirements"
+                  (input)="onFieldChanged()"
+                  placeholder="Mỗi dòng là một quyền lợi hoặc yêu cầu..."
+                ></textarea>
+              </div>
+
+              <div class="field-item">
+                <label class="field-label" for="confirmOrderDesc">
+                  Nội dung chi tiết công việc <b class="text-danger">*</b>
+                </label>
+                <textarea
+                  id="confirmOrderDesc"
+                  rows="4"
+                  class="form-control-textarea html-preview-box"
+                  [(ngModel)]="draft.description"
+                  required
+                  placeholder="Nội dung bài đăng đầy đủ..."
+                ></textarea>
+                <small class="field-helper">
+                  Đã tự động tổng hợp từ thông tin xí nghiệp, mức lương, nơi làm việc và yêu cầu.
+                </small>
+              </div>
+            </fieldset>
+          </div>
+        </section>
+      }
+
+      <!-- ============================================================== -->
+      <!-- BƯỚC 3: ĐANG TẠO ĐƠN HÀNG (SUBMITTING)                         -->
+      <!-- ============================================================== -->
+      @if (currentStep === 'submitting') {
+        <section class="submitting-step-wrap">
+          <div class="submitting-card">
+            <div class="submitting-spinner-wrap">
+              <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <h3>Đang lưu đơn hàng lên hệ thống...</h3>
+            <p>Hệ thống đang tải ảnh poster lên máy chủ và tạo đơn tuyển dụng mới.</p>
+          </div>
+        </section>
+      }
+
+      <!-- ============================================================== -->
+      <!-- BƯỚC 4: THÀNH CÔNG (SUCCESS)                                   -->
+      <!-- ============================================================== -->
+      @if (currentStep === 'success') {
+        <section class="success-step-wrap">
+          <div class="success-card">
+            <div class="success-badge-icon">
+              <i class="fas fa-circle-check"></i>
+            </div>
+            <h3>Tạo đơn hàng thành công trên website VieJap!</h3>
+            <p class="success-sub">
+              Đơn hàng <strong>"{{ draft.title }}"</strong> đã được lưu thành công vào cơ sở dữ liệu.
+            </p>
+
+            <div class="success-order-summary">
+              <div class="summary-item">
+                <span>Ngành nghề</span>
+                <strong>{{ previewCategory.label }}</strong>
+              </div>
+              <div class="summary-item">
+                <span>Trạng thái</span>
+                <span class="status-pill" [class.published]="draft.status === 'published'">
+                  {{ draft.status === 'published' ? 'Đang tuyển (Công khai)' : 'Lưu nháp' }}
+                </span>
+              </div>
+              <div class="summary-item">
+                <span>Địa điểm</span>
+                <strong>{{ jobLocation }}</strong>
+              </div>
+            </div>
+
+            <!-- Các hành động tiếp theo -->
+            <div class="success-actions-row">
+              <button
+                type="button"
+                class="btn-success-action primary"
+                (click)="viewCreatedOrder()"
+              >
+                <i class="fas fa-eye me-1"></i> Xem đơn hàng vừa tạo
+              </button>
+
+              <button
+                type="button"
+                class="btn-success-action secondary"
+                (click)="goToAdminOrders()"
+              >
+                <i class="fas fa-list-check me-1"></i> Quản lý đơn hàng
+              </button>
+
+              <button
+                type="button"
+                class="btn-success-action outline"
+                (click)="continueWithAnotherPoster()"
+              >
+                <i class="fas fa-wand-magic-sparkles me-1"></i> Tiếp tục tạo poster khác
+              </button>
+            </div>
+          </div>
+        </section>
+      }
+    </main>
+
+    <!-- Modal Footer (cho bước form xác nhận) -->
+    @if (currentStep === 'confirm_form') {
+      <footer class="confirm-modal-footer">
+        <div class="footer-left">
+          <button
+            type="button"
+            class="btn-footer-back"
+            (click)="goBackToEditPoster()"
+            [disabled]="submitting"
+          >
+            <i class="fas fa-arrow-left me-1"></i> Quay lại chỉnh sửa poster
+          </button>
+        </div>
+
+        <div class="footer-right">
+          <button
+            type="button"
+            class="btn-footer-cancel"
+            (click)="closeModal()"
+            [disabled]="submitting"
+          >
+            Hủy
+          </button>
+
+          <button
+            type="button"
+            class="btn-footer-confirm"
+            (click)="confirmAndCreateOrder()"
+            [disabled]="submitting || !isFormValid"
+          >
+            <i class="fas fa-circle-check me-1"></i>
+            <span>{{ draft.status === 'published' ? 'Xuất bản đơn hàng lên Website' : 'Lưu nháp đơn hàng' }}</span>
+          </button>
+        </div>
+      </footer>
+    }
+  </div>
+
+  <!-- Lightbox Modal for Poster Zoom -->
+  @if (showLightbox && posterPreviewUrl) {
+    <div
+      class="poster-lightbox-backdrop"
+      role="presentation"
+      (click)="toggleLightbox(false)"
+    >
+      <div class="poster-lightbox-box" (click)="$event.stopPropagation()">
+        <button
+          type="button"
+          class="btn-lightbox-close"
+          (click)="toggleLightbox(false)"
+          aria-label="Đóng phóng to"
+        >
+          <i class="fas fa-xmark"></i>
+        </button>
+        <img [src]="posterPreviewUrl" alt="Bản xem phóng to poster" />
+      </div>
+    </div>
+  }
+</div>

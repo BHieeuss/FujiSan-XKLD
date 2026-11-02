@@ -1,28 +1,36 @@
 @echo off
 cd /d %~dp0
 
+set COMMIT_MSG=%~1
+if "%COMMIT_MSG%"=="" set COMMIT_MSG=Update website and build deploy
+
 echo ==========================================
-echo  FUJISAN - PUSH SOURCE FOR CPANEL HOSTING
+echo  FUJISAN - BUILD ^& PUSH FOR CPANEL HOSTING
 echo ==========================================
 
-echo [1/4] Staging all changes...
+echo [1/5] Building project and packaging release zip...
+call npm run release:hosting
+if errorlevel 1 goto :error
+
+echo [2/5] Staging all changes...
 git add .
 
-echo [2/4] Committing changes...
-git commit -m "Update website for cPanel hosting" || echo "No changes to commit"
+echo [3/5] Committing changes...
+git commit -m "%COMMIT_MSG%" || echo "No changes to commit"
 
-echo [3/4] Pulling latest from remote...
+echo [4/5] Pulling latest from remote...
 git pull origin main --no-edit
 if errorlevel 1 goto :error
 
-echo [4/4] Pushing source to GitHub...
+echo [5/5] Pushing source to GitHub...
 git push origin main
 if errorlevel 1 goto :error
 
 echo ==========================================
-echo  SOURCE PUSHED SUCCESSFULLY
+echo  SOURCE ^& DEPLOY ZIP PUSHED SUCCESSFULLY!
 echo  Open cPanel Git Version Control:
-echo  Update from Remote, then Deploy HEAD Commit.
+echo  1. Click 'Update from Remote'
+echo  2. Click 'Deploy HEAD Commit'
 echo  Domain: https://viejap.com
 echo ==========================================
 pause
@@ -30,7 +38,7 @@ exit /b 0
 
 :error
 echo ==========================================
-echo  DEPLOY FAILED. CHECK THE ERROR ABOVE.
+echo  DEPLOY FAILED. PLEASE CHECK THE ERROR ABOVE.
 echo ==========================================
 pause
 exit /b 1

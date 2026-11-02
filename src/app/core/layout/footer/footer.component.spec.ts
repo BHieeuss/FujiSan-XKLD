@@ -72,4 +72,17 @@ describe('FooterComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/don-hang']);
     expect(component.isOrderListOpen).toBeFalse();
   });
+
+  it('should navigate to form-hoc-vien when registration link is clicked', () => {
+    const fixture = TestBed.createComponent(FooterComponent);
+    const component = fixture.componentInstance;
+    const router = TestBed.inject(Router);
+    const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
+    const regLink = component.quickAccessLinks.find((link) => link.kind === 'registration');
+
+    component.openQuickAccessLink(regLink!);
+    fixture.detectChanges();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/form-hoc-vien']);
+  });
 });
