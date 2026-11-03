@@ -65,6 +65,21 @@ try {
     admin_require_csrf($session);
     $payload = admin_read_json();
 
+    // Xử lý XÓA ĐƠN HÀNG: Hỗ trợ cả HTTP DELETE lẫn POST (action=delete) để tương thích tuyệt đối
+    // với các hosting chặn DELETE method (cPanel ModSecurity / Cloudflare / Nginx proxy).
+    $isDeleteAction = ($method === 'DELETE') || ($method === 'POST' && ($action === 'delete' || ($payload['action'] ?? '') === 'delete'));
+    if ($isDeleteAction) {
+        admin_require_permission($session, 'orders.delete');
+        $id = trim((string) ($_GET['id'] ?? ($payload['id'] ?? '')));
+        if ($id === '') {
+            admin_respond(422, ['message' => 'Thiếu mã đơn hàng cần xóa.']);
+        }
+        if (!admin_job_order_delete($id)) {
+            admin_respond(404, ['message' => 'Không tìm thấy đơn hàng hoặc đơn hàng đã bị xóa trước đó.']);
+        }
+        admin_respond(200, ['deleted' => true, 'message' => 'Đã xóa đơn hàng thành công.']);
+    }
+
     if ($method === 'POST') {
         admin_require_permission($session, 'orders.create');
 

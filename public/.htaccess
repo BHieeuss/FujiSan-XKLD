@@ -24,9 +24,9 @@ Options -Indexes
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-  RewriteRule ^admin-api/(.*)$ api/admin/$1 [L]
-  RewriteRule ^orders-api/(.*)$ api/$1 [L]
-  RewriteRule ^student-api/(.*)$ api/$1 [L]
+  RewriteRule ^admin-api/(.*)$ api/admin/$1 [QSA,L]
+  RewriteRule ^orders-api/(.*)$ api/$1 [QSA,L]
+  RewriteRule ^student-api/(.*)$ api/$1 [QSA,L]
 
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

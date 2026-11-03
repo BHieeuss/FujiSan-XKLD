@@ -531,24 +531,65 @@ function admin_job_order_delete(string $id): bool
 
     $existing = admin_job_order_find($id, true);
     if ($existing === null) {
-        return false;
+        $allOrders = admin_job_orders_list(true);
+        foreach ($allOrders as $o) {
+            if (($o['id'] ?? '') === $id || strcasecmp($o['orderCode'] ?? '', $id) === 0) {
+                $existing = $o;
+                break;
+            }
+        }
+        if ($existing === null) {
+            return false;
+        }
     }
 
     $targetId = (string) $existing['id'];
-
-    $database = admin_job_orders_database();
+    $targetCode = (string) ($existing['orderCode'] ?? '');
     $deleted = false;
+
+    // 1. Xóa khỏi MySQL nếu có cấu hình Database
+    $database = admin_job_orders_database();
     if ($database !== null) {
-        $statement = $database->prepare('DELETE FROM job_orders WHERE id = :id');
-        $statement->execute(['id' => $targetId]);
-        $deleted = $statement->rowCount() > 0;
-    } else {
+        try {
+            $statement = $database->prepare('DELETE FROM job_orders WHERE id = :id');
+            $statement->execute(['id' => $targetId]);
+            if ($statement->rowCount() > 0) {
+                $deleted = true;
+            }
+            if (!$deleted && $targetCode !== '') {
+                $statement = $database->prepare('DELETE FROM job_orders WHERE order_code = :code');
+                $statement->execute(['code' => $targetCode]);
+                if ($statement->rowCount() > 0) {
+                    $deleted = true;
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('[VieJap order delete db] ' . $e->getMessage());
+        }
+    }
+
+    // 2. Đồng thời xóa khỏi kho lưu trữ file JSON (bảo đảm cả 2 kho dữ liệu luôn đồng bộ)
+    try {
         $orders = admin_job_order_load_file();
-        $remaining = array_values(array_filter($orders, static fn (array $order): bool => (string) ($order['id'] ?? '') !== $targetId));
-        if (count($remaining) !== count($orders)) {
+        $initialCount = count($orders);
+        $remaining = array_values(array_filter($orders, static function (array $order) use ($targetId, $targetCode): bool {
+            $orderId = (string) ($order['id'] ?? '');
+            $orderCode = (string) ($order['orderCode'] ?? '');
+            if ($orderId === $targetId) {
+                return false;
+            }
+            if ($targetCode !== '' && $orderCode !== '' && strcasecmp($orderCode, $targetCode) === 0) {
+                return false;
+            }
+            return true;
+        }));
+
+        if (count($remaining) !== $initialCount) {
             admin_job_order_save_file($remaining);
             $deleted = true;
         }
+    } catch (Throwable $e) {
+        error_log('[VieJap order delete file] ' . $e->getMessage());
     }
 
     if ($deleted) {
@@ -915,11 +956,6 @@ function admin_job_order_load_file(): array
         if (is_array($order) && isset($order['id']) && admin_job_order_is_valid_id((string) $order['id'])) {
             $normalized[] = admin_job_order_from_file($order);
         }
-    }
-    if (empty($normalized)) {
-        $orders = admin_job_order_seed_data();
-        admin_job_order_save_file($orders);
-        return $orders;
     }
     return $normalized;
 }

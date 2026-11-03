@@ -71,8 +71,11 @@ export class JobOrdersApiService {
 
   async remove(id: string): Promise<void> {
     await this.request(
-      `/admin-api/orders.php?id=${encodeURIComponent(id)}`,
-      { method: 'DELETE' },
+      `/admin-api/orders.php?action=delete&id=${encodeURIComponent(id)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'delete', id }),
+      },
       true,
     );
   }
