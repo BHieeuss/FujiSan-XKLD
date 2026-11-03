@@ -97,6 +97,39 @@ try {
             ]);
             break;
 
+        case 'delete':
+            admin_require_permission($session, 'student_registration_codes.delete');
+            $input = json_decode((string) file_get_contents('php://input'), true);
+            $id = trim((string) ($input['id'] ?? $_GET['id'] ?? ''));
+            if ($id === '') {
+                throw new InvalidArgumentException('Thiếu mã định danh cần xóa.');
+            }
+            $record = admin_student_registration_code_delete($id, $adminName);
+            echo json_encode([
+                'success' => true,
+                'message' => "Đã xóa hoàn toàn mã đăng ký {$record['code']}.",
+                'data' => $record,
+            ]);
+            break;
+
+        case 'delete_bulk':
+            admin_require_permission($session, 'student_registration_codes.delete');
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new InvalidArgumentException('Phương thức không hợp lệ.');
+            }
+            $input = json_decode((string) file_get_contents('php://input'), true);
+            $ids = $input['ids'] ?? [];
+            if (!is_array($ids) || empty($ids)) {
+                throw new InvalidArgumentException('Danh sách mã cần xóa không hợp lệ.');
+            }
+            $result = admin_student_registration_code_bulk_delete($ids, $adminName);
+            echo json_encode([
+                'success' => true,
+                'message' => "Đã xóa thành công {$result['deletedCount']} mã đăng ký.",
+                'data' => $result,
+            ]);
+            break;
+
         case 'reissue':
             admin_require_permission($session, 'student_registration_codes.reissue');
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

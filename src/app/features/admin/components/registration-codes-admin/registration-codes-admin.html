@@ -297,6 +297,28 @@
                         <i class="fas fa-ban"></i>
                       </button>
                     }
+                  
+                    @if (canDelete) {
+                      <button
+                        type="button"
+                        class="btn-tbl-action btn-tbl-delete"
+                        (click)="openDeleteModal(c)"
+                        title="Xóa vĩnh viễn mã đăng ký"
+                      >
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    }
+
+                    @if (canDelete) {
+                      <button
+                        type="button"
+                        class="btn-tbl-action btn-tbl-delete"
+                        (click)="openDeleteModal(c)"
+                        title="Xóa vĩnh viễn mã đăng ký"
+                      >
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    }
                   </div>
                 </td>
               </tr>
@@ -425,6 +447,39 @@
   }
 
   <!-- =========================================================================
+       MODAL 5B: XÁC NHẬN XÓA MÃ ĐĂNG KÝ
+       ========================================================================= -->
+  @if (showDeleteModal && codeToDelete) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeDeleteModal()">
+      <div class="modal-card modal-confirm-revoke" (click)="$event.stopPropagation()">
+        <div class="modal-header danger">
+          <div class="header-icon danger"><i class="fas fa-trash-alt"></i></div>
+          <div class="header-text">
+            <h4>Xác nhận xóa mã đăng ký</h4>
+            <p>Học viên: <strong>{{ codeToDelete.studentName }}</strong> (Mã: <code>{{ codeToDelete.code }}</code>)</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeDeleteModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="revoke-warning-text" style="color: #dc2626; font-weight: 600;">
+            Bạn có chắc chắn muốn xóa vĩnh viễn mã đăng ký này? Hành động này sẽ loại bỏ hoàn toàn mã khỏi hệ thống và không thể khôi phục lại.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting">Hủy bỏ</button>
+          <button type="button" class="btn-submit btn-danger" [disabled]="isDeleting" (click)="submitDelete()">
+            @if (isDeleting) {
+              <i class="fas fa-circle-notch fa-spin"></i> Đang xóa...
+            } @else {
+              <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
        MODAL 2: HIỂN THỊ MÃ VỪA TẠO & QR CODE
        ========================================================================= -->
   @if (showViewModal && selectedCode) {
@@ -506,6 +561,39 @@
   }
 
   <!-- =========================================================================
+       MODAL 5B: XÁC NHẬN XÓA MÃ ĐĂNG KÝ
+       ========================================================================= -->
+  @if (showDeleteModal && codeToDelete) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeDeleteModal()">
+      <div class="modal-card modal-confirm-revoke" (click)="$event.stopPropagation()">
+        <div class="modal-header danger">
+          <div class="header-icon danger"><i class="fas fa-trash-alt"></i></div>
+          <div class="header-text">
+            <h4>Xác nhận xóa mã đăng ký</h4>
+            <p>Học viên: <strong>{{ codeToDelete.studentName }}</strong> (Mã: <code>{{ codeToDelete.code }}</code>)</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeDeleteModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="revoke-warning-text" style="color: #dc2626; font-weight: 600;">
+            Bạn có chắc chắn muốn xóa vĩnh viễn mã đăng ký này? Hành động này sẽ loại bỏ hoàn toàn mã khỏi hệ thống và không thể khôi phục lại.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting">Hủy bỏ</button>
+          <button type="button" class="btn-submit btn-danger" [disabled]="isDeleting" (click)="submitDelete()">
+            @if (isDeleting) {
+              <i class="fas fa-circle-notch fa-spin"></i> Đang xóa...
+            } @else {
+              <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
        MODAL 3: CẤP MÃ HÀNG LOẠT
        ========================================================================= -->
   @if (showBulkModal) {
@@ -628,6 +716,39 @@ LÊ THỊ MAI, 0987654321</code>
   }
 
   <!-- =========================================================================
+       MODAL 5B: XÁC NHẬN XÓA MÃ ĐĂNG KÝ
+       ========================================================================= -->
+  @if (showDeleteModal && codeToDelete) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeDeleteModal()">
+      <div class="modal-card modal-confirm-revoke" (click)="$event.stopPropagation()">
+        <div class="modal-header danger">
+          <div class="header-icon danger"><i class="fas fa-trash-alt"></i></div>
+          <div class="header-text">
+            <h4>Xác nhận xóa mã đăng ký</h4>
+            <p>Học viên: <strong>{{ codeToDelete.studentName }}</strong> (Mã: <code>{{ codeToDelete.code }}</code>)</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeDeleteModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="revoke-warning-text" style="color: #dc2626; font-weight: 600;">
+            Bạn có chắc chắn muốn xóa vĩnh viễn mã đăng ký này? Hành động này sẽ loại bỏ hoàn toàn mã khỏi hệ thống và không thể khôi phục lại.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting">Hủy bỏ</button>
+          <button type="button" class="btn-submit btn-danger" [disabled]="isDeleting" (click)="submitDelete()">
+            @if (isDeleting) {
+              <i class="fas fa-circle-notch fa-spin"></i> Đang xóa...
+            } @else {
+              <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
        MODAL 4: XEM TIẾN ĐỘ & BẢN NHÁP CHI TIẾT
        ========================================================================= -->
   @if (showProgressModal && selectedProgressCode) {
@@ -737,6 +858,39 @@ LÊ THỊ MAI, 0987654321</code>
   }
 
   <!-- =========================================================================
+       MODAL 5B: XÁC NHẬN XÓA MÃ ĐĂNG KÝ
+       ========================================================================= -->
+  @if (showDeleteModal && codeToDelete) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeDeleteModal()">
+      <div class="modal-card modal-confirm-revoke" (click)="$event.stopPropagation()">
+        <div class="modal-header danger">
+          <div class="header-icon danger"><i class="fas fa-trash-alt"></i></div>
+          <div class="header-text">
+            <h4>Xác nhận xóa mã đăng ký</h4>
+            <p>Học viên: <strong>{{ codeToDelete.studentName }}</strong> (Mã: <code>{{ codeToDelete.code }}</code>)</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeDeleteModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="revoke-warning-text" style="color: #dc2626; font-weight: 600;">
+            Bạn có chắc chắn muốn xóa vĩnh viễn mã đăng ký này? Hành động này sẽ loại bỏ hoàn toàn mã khỏi hệ thống và không thể khôi phục lại.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting">Hủy bỏ</button>
+          <button type="button" class="btn-submit btn-danger" [disabled]="isDeleting" (click)="submitDelete()">
+            @if (isDeleting) {
+              <i class="fas fa-circle-notch fa-spin"></i> Đang xóa...
+            } @else {
+              <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
        MODAL 5: XÁC NHẬN THU HỒI MÃ
        ========================================================================= -->
   @if (showRevokeModal && codeToRevoke) {
@@ -780,8 +934,76 @@ LÊ THỊ MAI, 0987654321</code>
       </div>
     </div>
   }
+  <!-- =========================================================================
+       MODAL: XÁC NHẬN XÓA MÃ ĐĂNG KÝ
+       ========================================================================= -->
+  @if (showDeleteModal && codeToDelete) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeDeleteModal()">
+      <div class="modal-card modal-confirm-revoke" (click)="$event.stopPropagation()">
+        <div class="modal-header danger">
+          <div class="header-icon danger"><i class="fas fa-trash-alt"></i></div>
+          <div class="header-text">
+            <h4>Xác nhận xóa mã đăng ký</h4>
+            <p>Học viên: <strong>{{ codeToDelete.studentName }}</strong> (Mã: <code>{{ codeToDelete.code }}</code>)</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeDeleteModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="revoke-warning-text" style="color: #dc2626; font-weight: 600;">
+            Bạn có chắc chắn muốn xóa vĩnh viễn mã đăng ký này? Hành động này sẽ loại bỏ hoàn toàn mã khỏi hệ thống và không thể khôi phục lại.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting">Hủy bỏ</button>
+          <button type="button" class="btn-submit btn-danger" [disabled]="isDeleting" (click)="submitDelete()">
+            @if (isDeleting) {
+              <i class="fas fa-circle-notch fa-spin"></i> Đang xóa...
+            } @else {
+              <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
 
   <!-- =========================================================================
+       MODAL 5B: XÁC NHẬN XÓA MÃ ĐĂNG KÝ
+       ========================================================================= -->
+  @if (showDeleteModal && codeToDelete) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeDeleteModal()">
+      <div class="modal-card modal-confirm-revoke" (click)="$event.stopPropagation()">
+        <div class="modal-header danger">
+          <div class="header-icon danger"><i class="fas fa-trash-alt"></i></div>
+          <div class="header-text">
+            <h4>Xác nhận xóa mã đăng ký</h4>
+            <p>Học viên: <strong>{{ codeToDelete.studentName }}</strong> (Mã: <code>{{ codeToDelete.code }}</code>)</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeDeleteModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="revoke-warning-text" style="color: #dc2626; font-weight: 600;">
+            Bạn có chắc chắn muốn xóa vĩnh viễn mã đăng ký này? Hành động này sẽ loại bỏ hoàn toàn mã khỏi hệ thống và không thể khôi phục lại.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting">Hủy bỏ</button>
+          <button type="button" class="btn-submit btn-danger" [disabled]="isDeleting" (click)="submitDelete()">
+            @if (isDeleting) {
+              <i class="fas fa-circle-notch fa-spin"></i> Đang xóa...
+            } @else {
+              <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
        MODAL 6: NHẬT KÝ XÁC THỰC & AUDIT LOGS
        ========================================================================= -->
   @if (showHistoryModal) {

@@ -225,6 +225,28 @@ export class StudentRegistrationAdminService {
     return res.data;
   }
 
+  async deleteCode(id: string): Promise<StudentRegistrationCodeItem> {
+    const res = await this.request<{ success: boolean; message: string; data: StudentRegistrationCodeItem }>(
+      `${this.apiEndpoint}?action=delete`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ id }),
+      }
+    );
+    return res.data;
+  }
+
+  async deleteBulk(ids: string[]): Promise<{ deletedCount: number }> {
+    const res = await this.request<{ success: boolean; message: string; data: { deletedCount: number } }>(
+      `${this.apiEndpoint}?action=delete_bulk`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ ids }),
+      }
+    );
+    return res.data;
+  }
+
   async exportCodes(filters: { search?: string; status?: string; progressStatus?: string } = {}): Promise<any[]> {
     const params = new URLSearchParams();
     params.set('action', 'export');

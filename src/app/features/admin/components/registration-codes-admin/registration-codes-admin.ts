@@ -78,6 +78,11 @@ export class RegistrationCodesAdminComponent implements OnInit {
   revokeReason = 'Học viên hủy hoặc thay đổi kế hoạch';
   isRevoking = false;
 
+  // Modal: Delete Code
+  showDeleteModal = false;
+  codeToDelete: StudentRegistrationCodeItem | null = null;
+  isDeleting = false;
+
   // Modal: Audit & History
   showHistoryModal = false;
   historyLogs = signal<any[]>([]);
@@ -107,6 +112,12 @@ export class RegistrationCodesAdminComponent implements OnInit {
   }
   get canManage(): boolean {
     return this.auth.hasPermission('student_registration_codes.manage');
+  }
+  get canDelete(): boolean {
+    return (
+      this.auth.hasPermission('student_registration_codes.delete') ||
+      this.auth.hasPermission('student_registration_codes.manage')
+    );
   }
   get canViewProgress(): boolean {
     return this.auth.hasPermission('student_registration_progress.view');
@@ -433,6 +444,33 @@ Nếu được gửi kèm mã QR, bạn có thể quét QR để truy cập nhan
       this.showToast(err.error?.message || err.message || 'Không thể thu hồi mã.', 'danger');
     } finally {
       this.isRevoking = false;
+    }
+  }
+
+  // --- DELETE CODE ---
+  openDeleteModal(code: StudentRegistrationCodeItem): void {
+    if (!this.canDelete) return;
+    this.codeToDelete = code;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.codeToDelete = null;
+  }
+
+  async submitDelete(): Promise<void> {
+    if (!this.codeToDelete) return;
+    this.isDeleting = true;
+    try {
+      await this.regService.deleteCode(this.codeToDelete.id);
+      this.showToast(`Đã xóa vĩnh viễn mã đăng ký ${this.codeToDelete.code}.`);
+      this.closeDeleteModal();
+      void this.loadData();
+    } catch (err: any) {
+      this.showToast(err.error?.message || err.message || 'Không thể xóa mã đăng ký.', 'danger');
+    } finally {
+      this.isDeleting = false;
     }
   }
 

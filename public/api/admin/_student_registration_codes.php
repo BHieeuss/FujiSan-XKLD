@@ -125,10 +125,8 @@ function admin_student_registration_codes_load(): array
         return [];
     }
     $data = json_decode($raw, true);
-    if (!is_array($data) || empty($data)) {
-        $seeds = admin_student_registration_codes_default_seed();
-        admin_student_registration_codes_save($seeds);
-        return $seeds;
+    if (!is_array($data)) {
+        return [];
     }
     return $data;
 }
@@ -548,6 +546,108 @@ function admin_student_registration_code_revoke(string $id, string $adminName = 
     ]);
 
     return $targetCode;
+}
+
+/**
+ * Permanently delete a registration code
+ */
+function admin_student_registration_code_delete(string $id, string $adminName = 'Super Admin'): array
+{
+    $codes = admin_student_registration_codes_load();
+    $foundIndex = -1;
+    $targetCode = null;
+
+    foreach ($codes as $idx => $c) {
+        if (($c['id'] ?? '') === $id || ($c['code'] ?? '') === $id) {
+            $foundIndex = $idx;
+            $targetCode = $c;
+            break;
+        }
+    }
+
+    if ($foundIndex === -1 || $targetCode === null) {
+        throw new RuntimeException('Không tìm thấy mã đăng ký cần xóa.');
+    }
+
+    array_splice($codes, $foundIndex, 1);
+    admin_student_registration_codes_save($codes);
+
+    // Save to audit log
+    $logs = admin_student_registration_code_logs_load();
+    $logs[] = [
+        'id' => bin2hex(random_bytes(12)),
+        'codeId' => $targetCode['id'],
+        'code' => $targetCode['code'],
+        'studentName' => $targetCode['studentName'] ?? '',
+        'action' => 'delete',
+        'actor' => $adminName,
+        'details' => "Xóa vĩnh viễn mã đăng ký {$targetCode['code']} của học viên {$targetCode['studentName']}",
+        'timestamp' => date('c'),
+    ];
+    admin_student_registration_code_logs_save($logs);
+
+    if (function_exists('admin_activity_log_create')) {
+        try {
+            admin_activity_log_create([
+                'actorId' => 'admin',
+                'actorName' => $adminName,
+                'action' => 'student_registration_code_deleted',
+                'actionLabel' => 'Xóa mã đăng ký học viên',
+                'targetType' => 'student_code',
+                'targetId' => $targetCode['id'],
+                'targetLabel' => "Mã {$targetCode['code']} - {$targetCode['studentName']}",
+                'details' => ['deletedCode' => $targetCode['code']],
+            ]);
+        } catch (Throwable) {}
+    }
+
+    return $targetCode;
+}
+
+/**
+ * Permanently delete multiple registration codes in bulk
+ */
+function admin_student_registration_code_bulk_delete(array $ids, string $adminName = 'Super Admin'): array
+{
+    $codes = admin_student_registration_codes_load();
+    $idSet = array_flip(array_map('strval', $ids));
+    $deletedCount = 0;
+    $remaining = [];
+    $deletedItems = [];
+
+    foreach ($codes as $c) {
+        $cId = (string) ($c['id'] ?? '');
+        $cCode = (string) ($c['code'] ?? '');
+        if (isset($idSet[$cId]) || isset($idSet[$cCode])) {
+            $deletedCount++;
+            $deletedItems[] = $c;
+        } else {
+            $remaining[] = $c;
+        }
+    }
+
+    if ($deletedCount > 0) {
+        admin_student_registration_codes_save($remaining);
+        $logs = admin_student_registration_code_logs_load();
+        foreach ($deletedItems as $item) {
+            $logs[] = [
+                'id' => bin2hex(random_bytes(12)),
+                'codeId' => $item['id'],
+                'code' => $item['code'],
+                'studentName' => $item['studentName'] ?? '',
+                'action' => 'delete',
+                'actor' => $adminName,
+                'details' => "Xóa mã đăng ký {$item['code']} của học viên {$item['studentName']}",
+                'timestamp' => date('c'),
+            ];
+        }
+        admin_student_registration_code_logs_save($logs);
+    }
+
+    return [
+        'deletedCount' => $deletedCount,
+        'deletedItems' => $deletedItems,
+    ];
 }
 
 /**
