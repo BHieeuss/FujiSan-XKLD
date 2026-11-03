@@ -400,42 +400,47 @@
   letter-spacing: -0.025em;
 }
 
-/* Natural, professional salary presentation */
+/* Natural, professional salary presentation (Navy banner, full width) */
 .hero-salary-row {
   display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #1e4b8f;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 1rem 1.35rem;
+  border-radius: 14px;
+  background: #0c2340;
+  background: linear-gradient(135deg, #0c2340 0%, #16365c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 20px rgba(12, 35, 64, 0.16);
   margin-bottom: 1.25rem;
 
   .salary-label {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 750;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
   }
 
   .salary-amount {
-    font-size: clamp(1.25rem, 2.2vw, 1.65rem);
-    font-weight: 800;
-    color: #0c2340;
+    font-size: clamp(1.45rem, 2.8vw, 1.95rem);
+    font-weight: 850;
+    color: #ffffff;
     letter-spacing: -0.015em;
     line-height: 1.2;
   }
 
   .salary-note {
-    font-size: 0.76rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #64748b;
-    padding: 0.2rem 0.55rem;
+    color: rgba(255, 255, 255, 0.75);
+    padding: 0.2rem 0.6rem;
     border-radius: 6px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    margin-left: auto;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    margin-top: 0.2rem;
   }
 }
 
@@ -678,13 +683,36 @@
     transform: translateY(-2px);
   }
 
-  &.highlight {
-    background: #f0fdf4;
-    border-color: #bbf7d0;
+  &.highlight,
+  &.spec-card--salary {
+    grid-column: 1 / -1;
+    background: #0c2340;
+    background: linear-gradient(135deg, #0c2340 0%, #16365c 100%);
+    border-color: #0c2340;
+    padding: 1rem 1.25rem;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
 
-    .spec-card-icon {
-      background: #dcfce7;
-      color: #15803d;
+    .spec-card-meta {
+      align-items: center;
+      text-align: center;
+
+      .label {
+        font-size: 0.76rem;
+        font-weight: 750;
+        color: rgba(255, 255, 255, 0.85);
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+      }
+
+      strong,
+      .salary-val,
+      .text-success {
+        font-size: 1.35rem;
+        font-weight: 850;
+        color: #ffffff !important;
+      }
     }
   }
 
@@ -1559,20 +1587,30 @@
   }
 
   .related-salary-box {
-    margin-bottom: 0.85rem;
+    margin: 0.6rem -1.15rem 0.85rem -1.15rem;
+    width: calc(100% + 2.3rem);
+    background: #0c2340;
+    background: linear-gradient(135deg, #0c2340 0%, #16365c 100%);
+    padding: 0.65rem 1rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.4rem;
+    justify-content: center;
+    text-align: center;
+    gap: 0.15rem;
 
     small {
-      font-size: 0.75rem;
-      color: #64748b;
+      font-size: 0.68rem;
+      font-weight: 750;
+      color: rgba(255, 255, 255, 0.82);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     strong {
-      font-size: 0.88rem;
-      color: #15803d;
-      font-weight: 800;
+      font-size: 1.05rem;
+      color: #ffffff;
+      font-weight: 850;
     }
   }
 

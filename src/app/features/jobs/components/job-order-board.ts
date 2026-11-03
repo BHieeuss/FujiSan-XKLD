@@ -44,7 +44,7 @@ export class JobOrderBoard implements OnInit {
   activeMobileIndex = signal(0);
   @ViewChild('orderGrid') orderGridRef?: ElementRef<HTMLElement>;
 
-  constructor(private readonly ordersApi: JobOrdersApiService) {}
+  constructor(private readonly ordersApi: JobOrdersApiService) { }
 
   async ngOnInit(): Promise<void> {
     this.loadFavorites();
@@ -218,7 +218,7 @@ export class JobOrderBoard implements OnInit {
   orderLocation(order: JobOrder): string {
     const text = `${order.title || ''} ${order.description || ''}`;
     const cities = [
-      'Tokyo', 'Chiba', 'Aichi', 'Kagoshima', 'Osaka', 'Kanagawa', 
+      'Tokyo', 'Chiba', 'Aichi', 'Kagoshima', 'Osaka', 'Kanagawa',
       'Saitama', 'Fukuoka', 'Hiroshima', 'Shizuoka', 'Hyogo', 'Kyoto',
       'Ibaraki', 'Gunma', 'Mie', 'Gifu', 'Tochigi', 'Nagano', 'Okayama'
     ];
@@ -357,12 +357,12 @@ export class JobOrderBoard implements OnInit {
           this.favorites.set(new Set(arr));
         }
       }
-    } catch {}
+    } catch { }
   }
 
   private saveFavorites(favs: Set<string>): void {
     try {
       localStorage.setItem('viejap_fav_orders', JSON.stringify(Array.from(favs)));
-    } catch {}
+    } catch { }
   }
 }

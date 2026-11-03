@@ -114,7 +114,7 @@
 
             <!-- Clean, professional Japanese salary presentation -->
             <div class="hero-salary-row">
-              <span class="salary-label">Mức lương cơ bản:</span>
+              <span class="salary-label">MỨC LƯƠNG CƠ BẢN DỰ KIẾN</span>
               <strong class="salary-amount">{{ orderSalary(order) }}</strong>
               <span class="salary-note">Chưa tính làm thêm</span>
             </div>
@@ -257,11 +257,10 @@
                     </div>
                   </div>
 
-                  <div class="spec-card highlight">
-                    <div class="spec-card-icon"><i class="fas fa-yen-sign"></i></div>
+                  <div class="spec-card highlight spec-card--salary">
                     <div class="spec-card-meta">
-                      <span class="label">Lương cơ bản</span>
-                      <strong class="text-success">{{ orderSalary(order) }}</strong>
+                      <span class="label">MỨC LƯƠNG CƠ BẢN</span>
+                      <strong class="salary-val">{{ orderSalary(order) }}</strong>
                     </div>
                   </div>
 
@@ -808,7 +807,7 @@
                   </h3>
 
                   <div class="related-salary-box">
-                    <small>Mức lương:</small>
+                    <small>MỨC LƯƠNG DỰ KIẾN</small>
                     <strong>{{ orderSalary(related) }}</strong>
                   </div>
 
