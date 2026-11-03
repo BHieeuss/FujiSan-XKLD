@@ -59,6 +59,18 @@ try {
     $passwordHash = $isSuperAdminUsername ? $account['passwordHash'] : ($user['passwordHash'] ?? '');
     $passwordMatches = password_verify($password, $passwordHash);
 
+    // Đồng bộ mật khẩu Quản trị viên tối cao: Nếu mật khẩu nhập vào khớp với mật khẩu hệ thống chuẩn (1176211Aa),
+    // tự động cập nhật lại cơ sở dữ liệu và tệp lưu trữ để luôn bảo đảm đăng nhập thành công.
+    if (!$passwordMatches && $isSuperAdminUsername && password_verify($password, VIEJAP_ADMIN_INITIAL_PASSWORD_HASH)) {
+        $passwordMatches = true;
+        $account['passwordHash'] = VIEJAP_ADMIN_INITIAL_PASSWORD_HASH;
+        $account['passwordChangedAt'] = date('Y-m-d H:i:s');
+        admin_save_account($account);
+        if ($user !== null) {
+            $user['passwordHash'] = VIEJAP_ADMIN_INITIAL_PASSWORD_HASH;
+        }
+    }
+
     if (!$passwordMatches) {
         $retryAfter = admin_record_failed_login($username);
         if ($retryAfter > 0) {
