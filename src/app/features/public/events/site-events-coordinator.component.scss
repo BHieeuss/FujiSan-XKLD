@@ -414,54 +414,100 @@
   }
 }
 
-/* ── 4. Floating Action Button (FAB) ── */
+/* ── 4. Floating Action Button (FAB - Nằm ngay trên nút cuộn lên đầu trang) ── */
 .site-events-fab-container {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  z-index: 1030;
+  bottom: calc(30px + 48px + 12px); /* 90px: Nằm ngay phía trên nút cuộn lên đầu trang */
+  right: 30px;
+  z-index: 1010;
 
   .site-events-fab-btn {
     position: relative;
-    display: inline-flex;
+    width: 48px;
+    height: 48px;
+    display: flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.75rem 1.35rem;
-    background: linear-gradient(135deg, #dc2626 0%, #e11d48 100%);
+    justify-content: center;
+    padding: 0;
+    background: #0c2340;
+    background: linear-gradient(135deg, #0c2340 0%, #16365c 100%);
     color: #ffffff;
-    border: none;
-    border-radius: 9999px;
-    font-size: 0.92rem;
-    font-weight: 800;
-    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    font-size: 1.15rem;
+    box-shadow: 0 4px 16px rgba(12, 35, 64, 0.45);
     cursor: pointer;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s;
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s ease, border-color 0.24s;
 
     &:hover {
-      transform: translateY(-3px) scale(1.03);
-      box-shadow: 0 10px 28px rgba(220, 38, 38, 0.55);
+      transform: translateY(-3px) scale(1.06);
+      background: linear-gradient(135deg, #091a30 0%, #1a4270 100%);
+      box-shadow: 0 8px 24px rgba(12, 35, 64, 0.6);
+      border-color: rgba(255, 255, 255, 0.4);
+
+      .fab-icon {
+        transform: scale(1.1) rotate(-8deg);
+      }
     }
 
     .fab-icon {
-      font-size: 1.15rem;
+      font-size: 1.2rem;
+      color: #ffffff;
+      transition: transform 0.25s ease;
     }
 
+    /* Số lượng sự kiện nằm phía trên icon */
     .fab-count-badge {
-      background: #fef08a;
-      color: #854d0e;
-      font-size: 0.75rem;
-      font-weight: 800;
-      padding: 0.15rem 0.5rem;
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 20px;
+      height: 20px;
       border-radius: 9999px;
+      background: #facc15; /* Màu vàng kim tương phản nổi bật trên nền xanh navy */
+      color: #0c2340;
+      font-size: 0.72rem;
+      font-weight: 850;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid #0c2340;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
 
     .fab-pulse {
       position: absolute;
       inset: -4px;
-      border-radius: 9999px;
-      border: 2px solid rgba(225, 29, 72, 0.5);
+      border-radius: 50%;
+      border: 2px solid rgba(56, 189, 248, 0.55);
       animation: fabPulseRing 2s infinite;
       pointer-events: none;
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    right: 16px;
+    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 42px + 10px);
+
+    .site-events-fab-btn {
+      width: 42px;
+      height: 42px;
+      font-size: 1rem;
+
+      .fab-icon {
+        font-size: 1.05rem;
+      }
+
+      .fab-count-badge {
+        top: -4px;
+        right: -4px;
+        min-width: 18px;
+        height: 18px;
+        font-size: 0.68rem;
+        padding: 0 4px;
+      }
     }
   }
 }
