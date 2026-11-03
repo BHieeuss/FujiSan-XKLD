@@ -74,7 +74,9 @@
       } @else {
         <!-- Job Orders Grid -->
         <div
+          #orderGrid
           class="job-order-grid"
+          (scroll)="onGridScroll($event)"
           [class.job-order-grid--single]="visibleOrders.length === 1"
           [class.job-order-grid--few]="visibleOrders.length === 2"
         >
@@ -176,6 +178,53 @@
             </article>
           }
         </div>
+
+        <!-- Mobile Carousel Navigation & Counter (Hiển thị 1 đơn trên mobile, lướt ngang xem tiếp) -->
+        @if (visibleOrders.length > 1) {
+          <div class="job-mobile-carousel-controls" aria-label="Điều hướng danh sách đơn hàng">
+            <button
+              type="button"
+              class="mobile-nav-btn prev"
+              (click)="prevMobileSlide()"
+              [disabled]="activeMobileIndex() === 0"
+              aria-label="Đơn hàng trước"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <div class="mobile-dots-indicator" role="tablist" aria-label="Chọn đơn hàng">
+              @for (order of visibleOrders; track order.id; let idx = $index) {
+                <button
+                  type="button"
+                  class="mobile-dot"
+                  [class.active]="idx === activeMobileIndex()"
+                  (click)="scrollToMobileSlide(idx)"
+                  [attr.aria-label]="'Chuyển đến đơn hàng ' + (idx + 1)"
+                ></button>
+              }
+            </div>
+
+            <span class="mobile-slide-counter">
+              {{ activeMobileIndex() + 1 }} / {{ visibleOrders.length }}
+            </span>
+
+            <button
+              type="button"
+              class="mobile-nav-btn next"
+              (click)="nextMobileSlide()"
+              [disabled]="activeMobileIndex() >= visibleOrders.length - 1"
+              aria-label="Đơn hàng kế tiếp"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <div class="job-mobile-swipe-hint" aria-hidden="true">
+            <i class="fas fa-hand-pointer"></i>
+            <span>Vuốt sang ngang để xem đơn hàng tiếp theo</span>
+            <i class="fas fa-arrow-right-long"></i>
+          </div>
+        }
 
         @if (home) {
           <div class="job-board-more-wrap">

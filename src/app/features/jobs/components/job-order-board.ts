@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { APP_CONTACT_INFO } from '../../../core/config/app.config';
 import {
@@ -41,6 +41,8 @@ export class JobOrderBoard implements OnInit {
   errorMessage = '';
 
   favorites = signal<Set<string>>(new Set());
+  activeMobileIndex = signal(0);
+  @ViewChild('orderGrid') orderGridRef?: ElementRef<HTMLElement>;
 
   constructor(private readonly ordersApi: JobOrdersApiService) {}
 
@@ -102,10 +104,14 @@ export class JobOrderBoard implements OnInit {
   setFilter(filter: JobOrderFilter): void {
     this.activeFilter = filter;
     this.currentPage = 1;
+    this.activeMobileIndex.set(0);
+    this.orderGridRef?.nativeElement.scrollTo({ left: 0, behavior: 'instant' });
   }
 
   setPage(page: number): void {
     this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
+    this.activeMobileIndex.set(0);
+    this.orderGridRef?.nativeElement.scrollTo({ left: 0, behavior: 'instant' });
   }
 
   previousPage(): void {
@@ -114,6 +120,57 @@ export class JobOrderBoard implements OnInit {
 
   nextPage(): void {
     this.setPage(this.currentPage + 1);
+  }
+
+  /* ── Mobile Horizontal Swipe / Carousel Navigation ── */
+
+  onGridScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    if (!el) return;
+    const scrollLeft = el.scrollLeft;
+    const children = el.children;
+    if (!children.length) return;
+
+    let closestIndex = 0;
+    let minDiff = Infinity;
+    const baseOffset = (children[0] as HTMLElement).offsetLeft;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i] as HTMLElement;
+      const diff = Math.abs((child.offsetLeft - baseOffset) - scrollLeft);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = i;
+      }
+    }
+
+    if (this.activeMobileIndex() !== closestIndex) {
+      this.activeMobileIndex.set(closestIndex);
+    }
+  }
+
+  scrollToMobileSlide(index: number): void {
+    const el = this.orderGridRef?.nativeElement;
+    if (!el) return;
+    const clamped = Math.max(0, Math.min(index, this.visibleOrders.length - 1));
+    const children = el.children;
+    const target = children[clamped] as HTMLElement | undefined;
+    if (target) {
+      const baseOffset = (children[0] as HTMLElement).offsetLeft;
+      el.scrollTo({
+        left: target.offsetLeft - baseOffset,
+        behavior: 'smooth',
+      });
+      this.activeMobileIndex.set(clamped);
+    }
+  }
+
+  prevMobileSlide(): void {
+    this.scrollToMobileSlide(this.activeMobileIndex() - 1);
+  }
+
+  nextMobileSlide(): void {
+    this.scrollToMobileSlide(this.activeMobileIndex() + 1);
   }
 
   useFallbackImage(event: Event, order: JobOrder): void {
