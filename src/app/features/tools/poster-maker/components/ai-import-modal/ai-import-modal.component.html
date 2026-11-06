@@ -155,6 +155,20 @@
           </button>
         </div>
 
+        <!-- Cảnh báo khi chưa cấu hình API Key -->
+        <div class="alert-no-api-key" *ngIf="!hasApiKey">
+          <i class="fas fa-triangle-exclamation me-2"></i>
+          <span>
+            <strong>Chưa cấu hình Gemini AI.</strong>
+            Để AI đọc ảnh thông báo đơn hàng thực tế, vui lòng bấm nút
+            <strong>"Cài mã AI"</strong> phía trên để nhập API Key miễn phí từ
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
+              Google AI Studio <i class="fas fa-external-link-alt"></i>
+            </a>.
+            Hoặc dùng các nút mẫu bên dưới để xem thử.
+          </span>
+        </div>
+
         <!-- Dropzone tải ảnh sạch sẽ, nổi bật -->
         <div
           class="dropzone-box"

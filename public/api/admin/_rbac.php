@@ -200,11 +200,20 @@ function admin_permission_registry(): array
         ],
         [
             'key' => 'students.delete',
-            'name' => 'Xóa học viên',
-            'description' => 'Xóa dữ liệu học viên khỏi hệ thống',
+            'name' => 'Xóa học viên & Thùng rác',
+            'description' => 'Xóa hồ sơ học viên, chuyển vào thùng rác hoặc xóa vĩnh viễn',
             'module' => 'students',
             'moduleName' => 'Quản lý học viên',
             'action' => 'delete',
+            'isSensitive' => true,
+        ],
+        [
+            'key' => 'students.restore',
+            'name' => 'Khôi phục học viên',
+            'description' => 'Khôi phục hồ sơ học viên từ thùng rác về trạng thái hoạt động',
+            'module' => 'students',
+            'moduleName' => 'Quản lý học viên',
+            'action' => 'update',
             'isSensitive' => true,
         ],
         [

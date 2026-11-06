@@ -74,13 +74,15 @@ try {
         if ($id === '') {
             admin_respond(422, ['message' => 'Thiếu mã đơn hàng cần xóa.']);
         }
-        if (!admin_job_order_delete($id)) {
-            admin_respond(404, ['message' => 'Không tìm thấy đơn hàng hoặc đơn hàng đã bị xóa trước đó.']);
-        }
+        admin_job_order_delete($id);
         admin_respond(200, ['deleted' => true, 'message' => 'Đã xóa đơn hàng thành công.']);
     }
 
-    if ($method === 'POST') {
+    // Hỗ trợ POST+action=update cho hosting chặn HTTP PUT method (cPanel, shared hosting...)
+    $isUpdateAction = in_array($method, ['PUT', 'PATCH'], true) ||
+        ($method === 'POST' && ($action === 'update' || ($payload['action'] ?? '') === 'update'));
+
+    if ($method === 'POST' && !$isUpdateAction) {
         admin_require_permission($session, 'orders.create');
 
         if ($action === 'draft_save') {
@@ -129,10 +131,8 @@ try {
 
     if ($method === 'DELETE') {
         admin_require_permission($session, 'orders.delete');
-        if (!admin_job_order_delete($id)) {
-            admin_respond(404, ['message' => 'Không tìm thấy đơn hàng.']);
-        }
-        admin_respond(200, ['deleted' => true]);
+        admin_job_order_delete($id);
+        admin_respond(200, ['deleted' => true, 'message' => 'Đã xóa đơn hàng thành công.']);
     }
 
     admin_require_permission($session, 'orders.update');

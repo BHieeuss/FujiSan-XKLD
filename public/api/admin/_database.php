@@ -159,6 +159,47 @@ function admin_database_ensure_schema(PDO $database): void
         $database->exec('ALTER TABLE job_orders MODIFY summary LONGTEXT NOT NULL');
     }
 
+    // Migration: thêm các cột chi tiết đơn hàng còn thiếu (company, specificWork, salary detail...)
+    $extraColumns = [
+        'company'            => "VARCHAR(160) NOT NULL DEFAULT ''",
+        'job_type'           => "VARCHAR(120) NOT NULL DEFAULT ''",
+        'quantity'           => "VARCHAR(80) NOT NULL DEFAULT ''",
+        'gender'             => "VARCHAR(40) NOT NULL DEFAULT 'Nam/Nữ'",
+        'education'          => "VARCHAR(120) NOT NULL DEFAULT 'Tốt nghiệp THPT trở lên'",
+        'japanese_level'     => "VARCHAR(120) NOT NULL DEFAULT ''",
+        'contract_term'      => "VARCHAR(60) NOT NULL DEFAULT '3 năm'",
+        'interview_date'     => "VARCHAR(60) NOT NULL DEFAULT ''",
+        'specific_work'      => "LONGTEXT NOT NULL",
+        'work_environment'   => "TEXT NOT NULL",
+        'working_hours'      => "TEXT NOT NULL",
+        'holidays'           => "TEXT NOT NULL",
+        'experience'         => "TEXT NOT NULL",
+        'health_requirements'=> "TEXT NOT NULL",
+        'basic_salary'       => "VARCHAR(120) NOT NULL DEFAULT ''",
+        'take_home_salary'   => "VARCHAR(120) NOT NULL DEFAULT ''",
+        'overtime'           => "TEXT NOT NULL",
+        'allowances'         => "TEXT NOT NULL",
+        'bonus'              => "TEXT NOT NULL",
+        'insurance'          => "TEXT NOT NULL",
+        'accommodation'      => "TEXT NOT NULL",
+        'meals'              => "TEXT NOT NULL",
+        'transport'          => "TEXT NOT NULL",
+        'other_benefits'     => "TEXT NOT NULL",
+        'post_content'       => "LONGTEXT NOT NULL",
+        'facebook_content'   => "LONGTEXT NOT NULL",
+        'post_template_id'   => "VARCHAR(80) NOT NULL DEFAULT 'standard_general'",
+        'post_blocks'        => "LONGTEXT NOT NULL",
+        'gallery_images'     => "LONGTEXT NOT NULL",
+    ];
+    foreach ($extraColumns as $colName => $colDef) {
+        try {
+            $existing = $database->query("SHOW COLUMNS FROM job_orders LIKE '{$colName}'")->fetch();
+            if (!is_array($existing)) {
+                $database->exec("ALTER TABLE job_orders ADD COLUMN {$colName} {$colDef}");
+            }
+        } catch (Throwable) {}
+    }
+
     $database->exec(
         'CREATE TABLE IF NOT EXISTS job_order_metadata (
             metadata_key VARCHAR(64) NOT NULL PRIMARY KEY,
@@ -221,6 +262,17 @@ function admin_database_ensure_schema(PDO $database): void
             INDEX student_profile_audit_logs_profile_index (profile_id, created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
+
+    // Migration: Thêm cột deleted_at và previous_status cho chức năng Thùng rác hồ sơ học viên (30 ngày tự động xóa)
+    try {
+        $database->exec("ALTER TABLE student_profiles ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL");
+    } catch (Throwable) {}
+    try {
+        $database->exec("ALTER TABLE student_profiles ADD COLUMN previous_status VARCHAR(32) NULL DEFAULT NULL");
+    } catch (Throwable) {}
+    try {
+        $database->exec("CREATE INDEX student_profiles_deleted_at_index ON student_profiles (deleted_at)");
+    } catch (Throwable) {}
 
     $statement = $database->prepare(
         'INSERT IGNORE INTO admin_accounts (username, password_hash)

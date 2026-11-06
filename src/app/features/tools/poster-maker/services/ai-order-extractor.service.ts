@@ -67,11 +67,11 @@ export class AiOrderExtractorService {
         }
       } else {
         const errPayload = await response.json().catch(() => null);
+        const errCode = errPayload?.code ?? '';
         const errMsg = errPayload?.message || `Lỗi máy chủ (${response.status})`;
-        console.warn('[AI Vision]', errMsg);
-        if (!options?.demoProfile) {
-          throw new Error(`AI không thể đọc ảnh: ${errMsg}`);
-        }
+        console.warn('[AI Vision]', errCode, errMsg);
+        // Luôn ném lỗi cho người dùng biết — không âm thầm fallback sang dữ liệu cứng
+        throw new Error(errMsg);
       }
     } catch (err) {
       if (!options?.demoProfile) {

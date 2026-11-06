@@ -532,6 +532,28 @@
     display: flex;
     align-items: center;
   }
+
+  .alert-no-api-key {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    color: #92400e;
+    border-radius: 10px;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+
+    i { color: #d97706; margin-top: 2px; flex-shrink: 0; }
+
+    a {
+      color: #b45309;
+      text-decoration: underline;
+      &:hover { color: #92400e; }
+    }
+  }
 }
 
 // STEP 3: SCANNING PANEL

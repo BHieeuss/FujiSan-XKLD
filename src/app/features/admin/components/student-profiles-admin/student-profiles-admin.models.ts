@@ -1,6 +1,11 @@
 import { StudentFormData } from '../../../tools/student-form/student-form.model';
 
-export type StudentProfileStatus = 'tiep_nhan' | 'dang_xu_ly' | 'hoan_tat' | 'tam_dung';
+export type StudentProfileStatus =
+  | 'tiep_nhan'
+  | 'dang_xu_ly'
+  | 'hoan_tat'
+  | 'tam_dung'
+  | 'trash';
 
 export type StudentProfileFileType = 'excel' | 'pdf' | 'document' | 'photo';
 
@@ -31,6 +36,9 @@ export interface StudentProfileSummary {
   idNumber: string;
   address: string;
   status: StudentProfileStatus;
+  deletedAt?: string | null;
+  previousStatus?: StudentProfileStatus | null;
+  daysRemaining?: number | null;
   assignedTo?: string;
   assignedStaffName?: string;
   createdAt: string;
@@ -49,6 +57,15 @@ export interface StudentProfileFilters {
   from_date: string;
   to_date: string;
   sort: 'newest' | 'oldest';
+}
+
+export interface StudentProfilesListResult {
+  profiles: StudentProfileSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  trashCount: number;
 }
 
 export const STUDENT_PROFILE_STATUS_MAP: Record<
@@ -75,5 +92,9 @@ export const STUDENT_PROFILE_STATUS_MAP: Record<
     badgeClass: 'status-halted',
     icon: 'fas fa-circle-pause',
   },
+  trash: {
+    label: 'Thùng rác (30 ngày)',
+    badgeClass: 'status-trash',
+    icon: 'fas fa-trash-can',
+  },
 };
-

@@ -942,7 +942,7 @@
             <table class="orders-modern-table">
               <thead>
                 <tr>
-                  <th class="col-code">MÃ ĐƠN & ẢNH</th>
+                  <th class="col-thumb-code">MÃ & ẢNH BÌA</th>
                   <th class="col-title">ĐƠN HÀNG & CÔNG TY</th>
                   <th class="col-category">NGÀNH NGHỀ & ĐỊA ĐIỂM</th>
                   <th class="col-recruitment">TUYỂN DỤNG & LƯƠNG</th>
@@ -959,31 +959,34 @@
                     (click)="openDetailModal(order)"
                     [class.featured-row]="order.isFeatured"
                   >
-                    <!-- MÃ ĐƠN & ẢNH -->
-                    <td class="col-code">
-                      <div class="code-and-thumb">
-                        <div class="order-thumb-wrap">
+                    <!-- MÃ ĐƠN & ẢNH BÌA (Trình bày gọn đẹp theo chuẩn Quản lý góc hoạt động) -->
+                    <td class="col-thumb-code">
+                      <div class="order-thumb-cell">
+                        <!-- Ô nhỏ mã đơn hàng nằm phía trên ảnh bìa: background xanh navy đậm chữ trắng -->
+                        <span class="order-code-badge-top" [title]="'Mã đơn: ' + (order.orderCode || order.id)">
+                          {{ order.orderCode || order.id.slice(0, 8) }}
+                        </span>
+
+                        <!-- Khung hình ảnh bìa gọn khớp tỉ lệ giống quản lý góc hoạt động -->
+                        <div class="order-thumb-wrapper">
                           <img
                             [src]="order.imageUrl"
                             alt="Ảnh đơn hàng"
-                            class="order-thumb"
+                            class="order-thumb-img"
                             (error)="useFallbackImage($event, order)"
                           />
+                          @if (order.isFeatured) {
+                            <span class="badge-hot-tag" title="Đơn hàng nổi bật (HOT ⭐)">
+                              <i class="fas fa-fire"></i>
+                            </span>
+                          }
                           @if (order.posterUrl) {
                             <span
-                              class="poster-indicator"
+                              class="badge-poster-tag"
                               title="Có Poster đồ họa chất lượng cao"
                               (click)="openPosterLightbox(order.posterUrl, $event)"
                             >
                               <i class="fas fa-image"></i>
-                            </span>
-                          }
-                        </div>
-                        <div class="code-meta">
-                          <strong class="order-code-badge">{{ order.orderCode || order.id.slice(0, 8) }}</strong>
-                          @if (order.isFeatured) {
-                            <span class="badge-featured-mini" title="Đơn hàng nổi bật (HOT)">
-                              <i class="fas fa-star"></i> HOT
                             </span>
                           }
                         </div>

@@ -153,13 +153,25 @@ function admin_write_json_file(string $path, array $payload): void
     $temporary = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
 
     if (file_put_contents($temporary, $encoded, LOCK_EX) === false) {
-        throw new RuntimeException('Không thể lưu dữ liệu quản trị.');
+        // Dự phòng ghi trực tiếp nếu không thể tạo tệp tạm
+        if (file_put_contents($path, $encoded, LOCK_EX) === false) {
+            throw new RuntimeException('Không thể lưu dữ liệu quản trị.');
+        }
+        @chmod($path, 0600);
+        return;
     }
 
     @chmod($temporary, 0600);
-    if (!rename($temporary, $path)) {
-        @unlink($temporary);
-        throw new RuntimeException('Không thể cập nhật dữ liệu quản trị.');
+    if (!@rename($temporary, $path)) {
+        // Fallback cho môi trường Windows hoặc mount disk không cho phép rename đè lên tệp hiện hữu
+        if (@copy($temporary, $path)) {
+            @unlink($temporary);
+        } else {
+            @unlink($temporary);
+            if (file_put_contents($path, $encoded, LOCK_EX) === false) {
+                throw new RuntimeException('Không thể cập nhật dữ liệu quản trị.');
+            }
+        }
     }
     @chmod($path, 0600);
 }

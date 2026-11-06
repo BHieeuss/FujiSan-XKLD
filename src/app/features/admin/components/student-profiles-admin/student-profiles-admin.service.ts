@@ -3,16 +3,11 @@ import { AdminAuthService, AdminApiError } from '../../services/admin-auth.servi
 import {
   StudentProfileDetail,
   StudentProfileFilters,
+  StudentProfilesListResult,
   StudentProfileSummary,
 } from './student-profiles-admin.models';
 
-export interface StudentProfilesListResult {
-  profiles: StudentProfileSummary[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+export type { StudentProfilesListResult };
 
 @Injectable({ providedIn: 'root' })
 export class StudentProfilesAdminService {
@@ -40,7 +35,11 @@ export class StudentProfilesAdminService {
     const total = typeof res['total'] === 'number' ? res['total'] : profiles.length;
     const resPage = typeof res['page'] === 'number' ? res['page'] : page;
     const resLimit = typeof res['limit'] === 'number' ? res['limit'] : limit;
-    const totalPages = typeof res['totalPages'] === 'number' ? res['totalPages'] : Math.max(1, Math.ceil(total / resLimit));
+    const totalPages =
+      typeof res['totalPages'] === 'number'
+        ? res['totalPages']
+        : Math.max(1, Math.ceil(total / resLimit));
+    const trashCount = typeof res['trashCount'] === 'number' ? res['trashCount'] : 0;
 
     return {
       profiles,
@@ -48,6 +47,7 @@ export class StudentProfilesAdminService {
       page: resPage,
       limit: resLimit,
       totalPages,
+      trashCount,
     };
   }
 
@@ -80,6 +80,95 @@ export class StudentProfilesAdminService {
     });
 
     return res['profile'] as StudentProfileDetail;
+  }
+
+  async moveToTrash(id: string): Promise<{ message: string; trashCount: number }> {
+    const csrfToken = this.auth.session()?.csrfToken;
+    if (!csrfToken) {
+      throw new AdminApiError('Phiên đăng nhập đã hết hạn.', 401);
+    }
+    const res = await this.request(
+      `${this.endpoint}?action=trash&id=${encodeURIComponent(id)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ id }),
+      },
+    );
+    return {
+      message: (res['message'] as string) || 'Đã chuyển hồ sơ vào thùng rác.',
+      trashCount: (res['trashCount'] as number) || 0,
+    };
+  }
+
+  async restoreProfile(
+    id: string,
+  ): Promise<{ message: string; profile: StudentProfileDetail; trashCount: number }> {
+    const csrfToken = this.auth.session()?.csrfToken;
+    if (!csrfToken) {
+      throw new AdminApiError('Phiên đăng nhập đã hết hạn.', 401);
+    }
+    const res = await this.request(
+      `${this.endpoint}?action=restore&id=${encodeURIComponent(id)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ id }),
+      },
+    );
+    return {
+      message: (res['message'] as string) || 'Đã khôi phục hồ sơ.',
+      profile: res['profile'] as StudentProfileDetail,
+      trashCount: (res['trashCount'] as number) || 0,
+    };
+  }
+
+  async deletePermanent(id: string): Promise<{ message: string; trashCount: number }> {
+    const csrfToken = this.auth.session()?.csrfToken;
+    if (!csrfToken) {
+      throw new AdminApiError('Phiên đăng nhập đã hết hạn.', 401);
+    }
+    const res = await this.request(
+      `${this.endpoint}?action=delete-permanent&id=${encodeURIComponent(id)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ id }),
+      },
+    );
+    return {
+      message: (res['message'] as string) || 'Đã xóa vĩnh viễn hồ sơ.',
+      trashCount: (res['trashCount'] as number) || 0,
+    };
+  }
+
+  async emptyTrash(): Promise<{ message: string; deletedCount: number; trashCount: number }> {
+    const csrfToken = this.auth.session()?.csrfToken;
+    if (!csrfToken) {
+      throw new AdminApiError('Phiên đăng nhập đã hết hạn.', 401);
+    }
+    const res = await this.request(`${this.endpoint}?action=empty-trash`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken,
+      },
+      body: JSON.stringify({}),
+    });
+    return {
+      message: (res['message'] as string) || 'Đã dọn sạch thùng rác.',
+      deletedCount: (res['deletedCount'] as number) || 0,
+      trashCount: 0,
+    };
   }
 
   async uploadExcelVersion(
@@ -148,9 +237,7 @@ export class StudentProfilesAdminService {
 
     const json = (await response.json().catch(() => null)) as Record<string, unknown> | null;
     if (!response.ok) {
-      throw new Error(
-        (json?.['message'] as string) || 'Không thể tải file lên máy chủ.',
-      );
+      throw new Error((json?.['message'] as string) || 'Không thể tải file lên máy chủ.');
     }
 
     return {
@@ -213,4 +300,3 @@ export class StudentProfilesAdminService {
     return payload;
   }
 }
-

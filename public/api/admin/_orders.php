@@ -292,7 +292,12 @@ function admin_job_orders_list(bool $includeDrafts = false): array
     if ($database !== null) {
         $sql = 'SELECT id, image_url, poster_url, order_code, title, category, location, salary,
                        age_range, summary, requirements, departure_month, status, is_featured,
-                       created_at, updated_at
+                       created_at, updated_at,
+                       company, job_type, quantity, gender, education, japanese_level, contract_term,
+                       interview_date, specific_work, work_environment, working_hours, holidays,
+                       experience, health_requirements, basic_salary, take_home_salary, overtime,
+                       allowances, bonus, insurance, accommodation, meals, transport, other_benefits,
+                       post_content, facebook_content, post_template_id, post_blocks, gallery_images
                 FROM job_orders';
         if (!$includeDrafts) {
             $sql .= " WHERE status = 'published'";
@@ -341,7 +346,12 @@ function admin_job_order_find(string $id, bool $includeDrafts = false): ?array
         if ($isHexId) {
             $sql = 'SELECT id, image_url, poster_url, order_code, title, category, location, salary,
                            age_range, summary, requirements, departure_month, status, is_featured,
-                           created_at, updated_at
+                           created_at, updated_at,
+                           company, job_type, quantity, gender, education, japanese_level, contract_term,
+                           interview_date, specific_work, work_environment, working_hours, holidays,
+                           experience, health_requirements, basic_salary, take_home_salary, overtime,
+                           allowances, bonus, insurance, accommodation, meals, transport, other_benefits,
+                           post_content, facebook_content, post_template_id, post_blocks, gallery_images
                     FROM job_orders WHERE id = :id';
             if (!$includeDrafts) {
                 $sql .= " AND status = 'published'";
@@ -447,7 +457,19 @@ function admin_job_order_update(string $id, array $payload): ?array
                 title = :title, category = :category, location = :location, salary = :salary,
                 age_range = :age_range, summary = :summary, requirements = :requirements,
                 departure_month = :departure_month,
-                status = :status, is_featured = :is_featured, updated_at = :updated_at
+                status = :status, is_featured = :is_featured, updated_at = :updated_at,
+                company = :company, job_type = :job_type, quantity = :quantity,
+                gender = :gender, education = :education, japanese_level = :japanese_level,
+                contract_term = :contract_term, interview_date = :interview_date,
+                specific_work = :specific_work, work_environment = :work_environment,
+                working_hours = :working_hours, holidays = :holidays, experience = :experience,
+                health_requirements = :health_requirements, basic_salary = :basic_salary,
+                take_home_salary = :take_home_salary, overtime = :overtime, allowances = :allowances,
+                bonus = :bonus, insurance = :insurance, accommodation = :accommodation,
+                meals = :meals, transport = :transport, other_benefits = :other_benefits,
+                post_content = :post_content, facebook_content = :facebook_content,
+                post_template_id = :post_template_id, post_blocks = :post_blocks,
+                gallery_images = :gallery_images
              WHERE id = :id'
         );
         $statement->execute(admin_job_order_database_values($order));
@@ -538,31 +560,39 @@ function admin_job_order_delete(string $id): bool
                 break;
             }
         }
-        if ($existing === null) {
-            return false;
-        }
     }
 
-    $targetId = (string) $existing['id'];
-    $targetCode = (string) ($existing['orderCode'] ?? '');
+    $targetId = $existing ? (string) $existing['id'] : $id;
+    $targetCode = $existing ? (string) ($existing['orderCode'] ?? '') : '';
     $deleted = false;
 
     // 1. Xóa khỏi MySQL nếu có cấu hình Database
     $database = admin_job_orders_database();
     if ($database !== null) {
         try {
-            $statement = $database->prepare('DELETE FROM job_orders WHERE id = :id');
+            $statement = $database->prepare(
+                'DELETE FROM job_orders WHERE id = :id OR order_code = :id OR TRIM(id) = :id'
+            );
             $statement->execute(['id' => $targetId]);
             if ($statement->rowCount() > 0) {
                 $deleted = true;
             }
-            if (!$deleted && $targetCode !== '') {
-                $statement = $database->prepare('DELETE FROM job_orders WHERE order_code = :code');
+
+            if ($targetCode !== '' && $targetCode !== $targetId) {
+                $statement = $database->prepare(
+                    'DELETE FROM job_orders WHERE order_code = :code OR id = :code'
+                );
                 $statement->execute(['code' => $targetCode]);
                 if ($statement->rowCount() > 0) {
                     $deleted = true;
                 }
             }
+
+            // Dọn dẹp bản ghi khóa idempotency
+            try {
+                $stmtIdem = $database->prepare('DELETE FROM job_order_idempotency WHERE order_id = :id');
+                $stmtIdem->execute(['id' => $targetId]);
+            } catch (Throwable) {}
         } catch (Throwable $e) {
             error_log('[VieJap order delete db] ' . $e->getMessage());
         }
@@ -572,13 +602,16 @@ function admin_job_order_delete(string $id): bool
     try {
         $orders = admin_job_order_load_file();
         $initialCount = count($orders);
-        $remaining = array_values(array_filter($orders, static function (array $order) use ($targetId, $targetCode): bool {
-            $orderId = (string) ($order['id'] ?? '');
-            $orderCode = (string) ($order['orderCode'] ?? '');
-            if ($orderId === $targetId) {
+        $remaining = array_values(array_filter($orders, static function (array $order) use ($targetId, $targetCode, $id): bool {
+            $orderId = trim((string) ($order['id'] ?? ''));
+            $orderCode = trim((string) ($order['orderCode'] ?? ''));
+            if ($orderId === $targetId || $orderId === $id) {
                 return false;
             }
-            if ($targetCode !== '' && $orderCode !== '' && strcasecmp($orderCode, $targetCode) === 0) {
+            if ($targetCode !== '' && strcasecmp($orderCode, $targetCode) === 0) {
+                return false;
+            }
+            if ($orderCode !== '' && strcasecmp($orderCode, $id) === 0) {
                 return false;
             }
             return true;
@@ -592,14 +625,15 @@ function admin_job_order_delete(string $id): bool
         error_log('[VieJap order delete file] ' . $e->getMessage());
     }
 
-    if ($deleted) {
+    // Luôn ghi log nếu có dữ liệu đơn hàng
+    if ($existing !== null) {
         try {
             require_once __DIR__ . '/_notifications.php';
             admin_notification_create([
                 'eventType' => 'order.deleted',
                 'category' => 'orders',
                 'title' => 'Đơn hàng đã xóa: ' . ($existing['title'] ?? $targetId),
-                'message' => 'Đơn hàng ' . ($existing['orderCode'] ?? '') . ' vừa được xóa khỏi hệ thống.',
+                'message' => 'Đơn hàng ' . ($existing['orderCode'] ?? $targetId) . ' vừa được xóa khỏi hệ thống.',
                 'actor' => ['id' => 'admin', 'name' => 'Quản trị viên', 'role' => 'Admin'],
                 'target' => [
                     'type' => 'order',
@@ -622,7 +656,8 @@ function admin_job_order_delete(string $id): bool
         } catch (Throwable) {}
     }
 
-    return $deleted;
+    // Trả về true để bảo đảm thao tác xóa có tính lũy đẳng (Idempotent), tránh 404 gây lỗi cho giao diện
+    return true;
 }
 
 function admin_job_orders_database(): ?PDO
@@ -651,10 +686,20 @@ function admin_job_order_insert_database(PDO $database, array $order): void
     $statement = $database->prepare(
         'INSERT INTO job_orders (
             id, image_url, poster_url, order_code, title, category, location, salary, age_range, summary,
-            requirements, departure_month, status, is_featured, created_at, updated_at
+            requirements, departure_month, status, is_featured, created_at, updated_at,
+            company, job_type, quantity, gender, education, japanese_level, contract_term, interview_date,
+            specific_work, work_environment, working_hours, holidays, experience, health_requirements,
+            basic_salary, take_home_salary, overtime, allowances, bonus, insurance,
+            accommodation, meals, transport, other_benefits,
+            post_content, facebook_content, post_template_id, post_blocks, gallery_images
         ) VALUES (
             :id, :image_url, :poster_url, :order_code, :title, :category, :location, :salary, :age_range, :summary,
-            :requirements, :departure_month, :status, :is_featured, :created_at, :updated_at
+            :requirements, :departure_month, :status, :is_featured, :created_at, :updated_at,
+            :company, :job_type, :quantity, :gender, :education, :japanese_level, :contract_term, :interview_date,
+            :specific_work, :work_environment, :working_hours, :holidays, :experience, :health_requirements,
+            :basic_salary, :take_home_salary, :overtime, :allowances, :bonus, :insurance,
+            :accommodation, :meals, :transport, :other_benefits,
+            :post_content, :facebook_content, :post_template_id, :post_blocks, :gallery_images
         )'
     );
     $statement->execute(admin_job_order_database_values($order));
@@ -667,22 +712,52 @@ function admin_job_order_database_values(array $order): array
         $orderCode = 'DH-' . strtoupper(substr((string) $order['id'], 0, 6));
     }
     return [
-        'id' => $order['id'],
-        'image_url' => $order['imageUrl'],
-        'poster_url' => $order['posterUrl'] ?? '',
-        'order_code' => substr($orderCode, 0, 48),
-        'title' => $order['title'] ?? admin_job_order_default_title((string) ($order['category'] ?? '')),
-        'category' => $order['category'],
-        'location' => substr((string) ($order['location'] ?? ''), 0, 100),
-        'salary' => substr((string) ($order['salary'] ?? ''), 0, 100),
-        'age_range' => substr((string) ($order['ageRange'] ?? ''), 0, 60),
-        'summary' => $order['description'],
-        'requirements' => (string) ($order['requirements'] ?? ''),
-        'departure_month' => substr((string) ($order['departureMonth'] ?? ''), 0, 48),
-        'status' => $order['status'],
-        'is_featured' => $order['isFeatured'] ? 1 : 0,
-        'created_at' => $order['createdAt'],
-        'updated_at' => $order['updatedAt'],
+        'id'                 => $order['id'],
+        'image_url'          => $order['imageUrl'],
+        'poster_url'         => $order['posterUrl'] ?? '',
+        'order_code'         => substr($orderCode, 0, 48),
+        'title'              => $order['title'] ?? admin_job_order_default_title((string) ($order['category'] ?? '')),
+        'category'           => $order['category'],
+        'location'           => substr((string) ($order['location'] ?? ''), 0, 100),
+        'salary'             => substr((string) ($order['salary'] ?? ''), 0, 100),
+        'age_range'          => substr((string) ($order['ageRange'] ?? ''), 0, 60),
+        'summary'            => $order['description'],
+        'requirements'       => (string) ($order['requirements'] ?? ''),
+        'departure_month'    => substr((string) ($order['departureMonth'] ?? ''), 0, 48),
+        'status'             => $order['status'],
+        'is_featured'        => $order['isFeatured'] ? 1 : 0,
+        'created_at'         => $order['createdAt'],
+        'updated_at'         => $order['updatedAt'],
+        // Các cột chi tiết bổ sung
+        'company'            => substr((string) ($order['company'] ?? ''), 0, 160),
+        'job_type'           => substr((string) ($order['jobType'] ?? ''), 0, 120),
+        'quantity'           => substr((string) ($order['quantity'] ?? ''), 0, 80),
+        'gender'             => substr((string) ($order['gender'] ?? 'Nam/Nữ'), 0, 40),
+        'education'          => substr((string) ($order['education'] ?? 'Tốt nghiệp THPT trở lên'), 0, 120),
+        'japanese_level'     => substr((string) ($order['japaneseLevel'] ?? ''), 0, 120),
+        'contract_term'      => substr((string) ($order['contractTerm'] ?? '3 năm'), 0, 60),
+        'interview_date'     => substr((string) ($order['interviewDate'] ?? ''), 0, 60),
+        'specific_work'      => (string) ($order['specificWork'] ?? ''),
+        'work_environment'   => (string) ($order['workEnvironment'] ?? ''),
+        'working_hours'      => (string) ($order['workingHours'] ?? ''),
+        'holidays'           => (string) ($order['holidays'] ?? ''),
+        'experience'         => (string) ($order['experience'] ?? ''),
+        'health_requirements'=> (string) ($order['healthRequirements'] ?? ''),
+        'basic_salary'       => substr((string) ($order['basicSalary'] ?? ''), 0, 120),
+        'take_home_salary'   => substr((string) ($order['takeHomeSalary'] ?? ''), 0, 120),
+        'overtime'           => (string) ($order['overtime'] ?? ''),
+        'allowances'         => (string) ($order['allowances'] ?? ''),
+        'bonus'              => (string) ($order['bonus'] ?? ''),
+        'insurance'          => (string) ($order['insurance'] ?? ''),
+        'accommodation'      => (string) ($order['accommodation'] ?? ''),
+        'meals'              => (string) ($order['meals'] ?? ''),
+        'transport'          => (string) ($order['transport'] ?? ''),
+        'other_benefits'     => (string) ($order['otherBenefits'] ?? ''),
+        'post_content'       => (string) ($order['postContent'] ?? ''),
+        'facebook_content'   => (string) ($order['facebookContent'] ?? ''),
+        'post_template_id'   => substr((string) ($order['postTemplateId'] ?? 'standard_general'), 0, 80),
+        'post_blocks'        => json_encode($order['postBlocks'] ?? [], JSON_UNESCAPED_UNICODE),
+        'gallery_images'     => json_encode($order['galleryImages'] ?? [], JSON_UNESCAPED_UNICODE),
     ];
 }
 
@@ -699,23 +774,62 @@ function admin_job_order_from_database(array $order): array
         $posterUrl = '';
     }
 
+    $postBlocks = $order['post_blocks'] ?? $order['postBlocks'] ?? '[]';
+    if (is_string($postBlocks)) {
+        $postBlocks = json_decode($postBlocks, true) ?? [];
+    }
+    $galleryImages = $order['gallery_images'] ?? $order['galleryImages'] ?? '[]';
+    if (is_string($galleryImages)) {
+        $galleryImages = json_decode($galleryImages, true) ?? [];
+    }
+
     return [
-        'id' => (string) $order['id'],
-        'title' => trim((string) ($order['title'] ?? '')),
-        'category' => admin_job_order_category((string) ($order['category'] ?? ''), $imageUrl),
-        'imageUrl' => $imageUrl,
-        'posterUrl' => $posterUrl,
-        'description' => admin_job_order_sanitize_description((string) ($order['summary'] ?? '')),
-        'orderCode' => trim((string) ($order['order_code'] ?? '')),
-        'location' => trim((string) ($order['location'] ?? '')),
-        'salary' => trim((string) ($order['salary'] ?? '')),
-        'ageRange' => trim((string) ($order['age_range'] ?? '')),
-        'requirements' => (string) ($order['requirements'] ?? ''),
-        'departureMonth' => trim((string) ($order['departure_month'] ?? '')),
-        'status' => (string) $order['status'],
-        'isFeatured' => (bool) $order['is_featured'],
-        'createdAt' => (string) $order['created_at'],
-        'updatedAt' => (string) $order['updated_at'],
+        'id'                 => (string) $order['id'],
+        'title'              => trim((string) ($order['title'] ?? '')),
+        'category'           => admin_job_order_category((string) ($order['category'] ?? ''), $imageUrl),
+        'imageUrl'           => $imageUrl,
+        'posterUrl'          => $posterUrl,
+        'description'        => admin_job_order_sanitize_description((string) ($order['summary'] ?? '')),
+        'orderCode'          => trim((string) ($order['order_code'] ?? '')),
+        'location'           => trim((string) ($order['location'] ?? '')),
+        'salary'             => trim((string) ($order['salary'] ?? '')),
+        'ageRange'           => trim((string) ($order['age_range'] ?? '')),
+        'requirements'       => (string) ($order['requirements'] ?? ''),
+        'departureMonth'     => trim((string) ($order['departure_month'] ?? '')),
+        'status'             => (string) $order['status'],
+        'isFeatured'         => (bool) $order['is_featured'],
+        'createdAt'          => (string) $order['created_at'],
+        'updatedAt'          => (string) $order['updated_at'],
+        // Các trường chi tiết bổ sung
+        'company'            => trim((string) ($order['company'] ?? '')),
+        'jobType'            => trim((string) ($order['job_type'] ?? '')),
+        'quantity'           => trim((string) ($order['quantity'] ?? '')),
+        'gender'             => trim((string) ($order['gender'] ?? 'Nam/Nữ')),
+        'education'          => trim((string) ($order['education'] ?? 'Tốt nghiệp THPT trở lên')),
+        'japaneseLevel'      => trim((string) ($order['japanese_level'] ?? '')),
+        'contractTerm'       => trim((string) ($order['contract_term'] ?? '3 năm')),
+        'interviewDate'      => trim((string) ($order['interview_date'] ?? '')),
+        'specificWork'       => (string) ($order['specific_work'] ?? ''),
+        'workEnvironment'    => (string) ($order['work_environment'] ?? ''),
+        'workingHours'       => (string) ($order['working_hours'] ?? ''),
+        'holidays'           => (string) ($order['holidays'] ?? ''),
+        'experience'         => (string) ($order['experience'] ?? ''),
+        'healthRequirements' => (string) ($order['health_requirements'] ?? ''),
+        'basicSalary'        => trim((string) ($order['basic_salary'] ?? '')),
+        'takeHomeSalary'     => trim((string) ($order['take_home_salary'] ?? '')),
+        'overtime'           => (string) ($order['overtime'] ?? ''),
+        'allowances'         => (string) ($order['allowances'] ?? ''),
+        'bonus'              => (string) ($order['bonus'] ?? ''),
+        'insurance'          => (string) ($order['insurance'] ?? ''),
+        'accommodation'      => (string) ($order['accommodation'] ?? ''),
+        'meals'              => (string) ($order['meals'] ?? ''),
+        'transport'          => (string) ($order['transport'] ?? ''),
+        'otherBenefits'      => (string) ($order['other_benefits'] ?? ''),
+        'postContent'        => (string) ($order['post_content'] ?? ''),
+        'facebookContent'    => (string) ($order['facebook_content'] ?? ''),
+        'postTemplateId'     => trim((string) ($order['post_template_id'] ?? 'standard_general')),
+        'postBlocks'         => is_array($postBlocks) ? $postBlocks : [],
+        'galleryImages'      => is_array($galleryImages) ? $galleryImages : [],
     ];
 }
 

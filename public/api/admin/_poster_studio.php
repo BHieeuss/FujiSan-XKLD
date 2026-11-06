@@ -87,7 +87,7 @@ function admin_poster_apply_to_order(string $orderId, string $posterUrl, array $
         return null;
     }
 
-    $orders = admin_job_orders_load();
+    $orders = admin_job_order_load_file();
     $found = false;
     $updatedOrder = null;
 
@@ -106,7 +106,7 @@ function admin_poster_apply_to_order(string $orderId, string $posterUrl, array $
     unset($order);
 
     if ($found) {
-        admin_job_orders_save($orders);
+        admin_job_order_save_file($orders);
 
         // Tạo thông báo hệ thống
         admin_notification_create([

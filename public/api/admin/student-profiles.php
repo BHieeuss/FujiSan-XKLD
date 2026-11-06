@@ -83,6 +83,7 @@ try {
             'page' => $page,
             'limit' => $limit,
             'totalPages' => $totalPages,
+            'trashCount' => admin_student_profiles_trash_count(),
         ]);
     }
 
@@ -240,6 +241,94 @@ try {
         ]);
     }
 
+    // 3c. POST Move to Trash
+    if ($method === 'POST' && $action === 'trash') {
+        admin_assert_same_origin();
+        $session = admin_require_session();
+        admin_require_csrf($session);
+        admin_require_permission($session, 'students.delete');
+
+        $payload = admin_read_json();
+        $id = trim((string) ($_GET['id'] ?? $payload['id'] ?? ''));
+        if ($id === '') {
+            admin_respond(422, ['message' => 'Thiếu ID học viên cần chuyển vào thùng rác.']);
+        }
+
+        $success = admin_student_profile_move_to_trash($id, $session['username']);
+        if (!$success) {
+            admin_respond(404, ['message' => 'Không tìm thấy hồ sơ học viên.']);
+        }
+
+        admin_respond(200, [
+            'message' => 'Đã chuyển hồ sơ học viên vào thùng rác. Hệ thống sẽ tự động xóa vĩnh viễn sau 30 ngày.',
+            'trashCount' => admin_student_profiles_trash_count(),
+        ]);
+    }
+
+    // 3d. POST Restore from Trash
+    if ($method === 'POST' && $action === 'restore') {
+        admin_assert_same_origin();
+        $session = admin_require_session();
+        admin_require_csrf($session);
+        admin_require_permission($session, 'students.restore');
+
+        $payload = admin_read_json();
+        $id = trim((string) ($_GET['id'] ?? $payload['id'] ?? ''));
+        if ($id === '') {
+            admin_respond(422, ['message' => 'Thiếu ID học viên cần khôi phục.']);
+        }
+
+        $restored = admin_student_profile_restore($id, $session['username']);
+        if ($restored === null) {
+            admin_respond(404, ['message' => 'Không tìm thấy hồ sơ học viên trong thùng rác.']);
+        }
+
+        admin_respond(200, [
+            'message' => 'Đã khôi phục hồ sơ học viên thành công.',
+            'profile' => $restored,
+            'trashCount' => admin_student_profiles_trash_count(),
+        ]);
+    }
+
+    // 3e. POST Permanently Delete
+    if ($method === 'POST' && $action === 'delete-permanent') {
+        admin_assert_same_origin();
+        $session = admin_require_session();
+        admin_require_csrf($session);
+        admin_require_permission($session, 'students.delete');
+
+        $payload = admin_read_json();
+        $id = trim((string) ($_GET['id'] ?? $payload['id'] ?? ''));
+        if ($id === '') {
+            admin_respond(422, ['message' => 'Thiếu ID học viên cần xóa vĩnh viễn.']);
+        }
+
+        $success = admin_student_profile_delete_permanent($id, $session['username']);
+        if (!$success) {
+            admin_respond(404, ['message' => 'Không tìm thấy hồ sơ học viên.']);
+        }
+
+        admin_respond(200, [
+            'message' => 'Đã xóa vĩnh viễn hồ sơ học viên khỏi máy chủ.',
+            'trashCount' => admin_student_profiles_trash_count(),
+        ]);
+    }
+
+    // 3f. POST Empty Trash
+    if ($method === 'POST' && $action === 'empty-trash') {
+        admin_assert_same_origin();
+        $session = admin_require_session();
+        admin_require_csrf($session);
+        admin_require_permission($session, 'students.delete');
+
+        $deletedCount = admin_student_profiles_empty_trash($session['username']);
+        admin_respond(200, [
+            'message' => "Đã dọn sạch thùng rác ({$deletedCount} hồ sơ đã được xóa vĩnh viễn).",
+            'deletedCount' => $deletedCount,
+            'trashCount' => 0,
+        ]);
+    }
+
     // 4. PUT / PATCH Update Profile Info & Status
     if (in_array($method, ['PUT', 'PATCH'], true)) {
         admin_assert_same_origin();
@@ -268,7 +357,41 @@ try {
         ]);
     }
 
-    header('Allow: GET, POST, PUT, PATCH');
+    // 5. DELETE Handler
+    if ($method === 'DELETE') {
+        admin_assert_same_origin();
+        $session = admin_require_session();
+        admin_require_csrf($session);
+        admin_require_permission($session, 'students.delete');
+
+        $id = trim((string) ($_GET['id'] ?? ''));
+        $permanent = (($_GET['permanent'] ?? '') === '1') || ($action === 'delete-permanent');
+        if ($id === '') {
+            admin_respond(422, ['message' => 'Thiếu ID học viên cần xóa.']);
+        }
+
+        if ($permanent) {
+            $success = admin_student_profile_delete_permanent($id, $session['username']);
+            if (!$success) {
+                admin_respond(404, ['message' => 'Không tìm thấy hồ sơ học viên.']);
+            }
+            admin_respond(200, [
+                'message' => 'Đã xóa vĩnh viễn hồ sơ học viên khỏi máy chủ.',
+                'trashCount' => admin_student_profiles_trash_count(),
+            ]);
+        } else {
+            $success = admin_student_profile_move_to_trash($id, $session['username']);
+            if (!$success) {
+                admin_respond(404, ['message' => 'Không tìm thấy hồ sơ học viên.']);
+            }
+            admin_respond(200, [
+                'message' => 'Đã chuyển hồ sơ học viên vào thùng rác. Hệ thống sẽ tự động xóa sau 30 ngày.',
+                'trashCount' => admin_student_profiles_trash_count(),
+            ]);
+        }
+    }
+
+    header('Allow: GET, POST, PUT, PATCH, DELETE');
     admin_respond(405, ['message' => 'Phương thức không được hỗ trợ.']);
 } catch (Throwable $error) {
     admin_handle_exception($error);

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VieJap.WebApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b08cbab32e4be5666fe3612aac88e63d3fb1714")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+893dc25544bd08e10f591908b752d498e2e014ad")]
 [assembly: System.Reflection.AssemblyProductAttribute("VieJap.WebApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VieJap.WebApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

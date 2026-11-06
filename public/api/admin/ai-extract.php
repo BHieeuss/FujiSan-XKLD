@@ -88,16 +88,33 @@ try {
     $geminiApiKey = get_gemini_api_key($clientApiKey);
 
     if ($geminiApiKey !== null && $geminiApiKey !== '') {
-        $savedModel = getenv('AI_VISION_MODEL');
+        // Đọc model đã lưu từ ai-config.php (nếu có)
+        $savedModel = '';
+        $home = admin_home_directory() ?? dirname(__DIR__, 3);
+        $configFile = $home
+            . DIRECTORY_SEPARATOR . 'private'
+            . DIRECTORY_SEPARATOR . 'viejap'
+            . DIRECTORY_SEPARATOR . 'admin'
+            . DIRECTORY_SEPARATOR . 'ai-config.php';
+        if (is_file($configFile)) {
+            $cfg = @include $configFile;
+            if (is_array($cfg) && !empty($cfg['ai_model'])) {
+                $savedModel = (string) $cfg['ai_model'];
+            }
+        }
+        $envModel = trim((string) getenv('AI_VISION_MODEL'));
+        if ($envModel !== '') {
+            $savedModel = $envModel;
+        }
+
+        // Danh sách model Gemini Vision hợp lệ (tên chính xác theo Google API)
         $modelCandidates = array_values(array_unique(array_filter([
             $savedModel ?: null,
-            'gemini-flash-latest',
-            'gemini-flash-lite-latest',
-            'gemini-3.1-flash-lite',
-            'gemini-3.5-flash-lite',
-            'gemini-3.6-flash',
-            'gemini-3.7-flash',
-            'gemini-3.8-flash',
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-lite',
+            'gemini-1.5-flash',
+            'gemini-1.5-flash-8b',
+            'gemini-1.5-pro',
         ])));
 
         $prompt = <<<EOT
@@ -250,7 +267,21 @@ EOT;
         }
     }
 
-    // Nhận diện theo mẫu thông minh khi chạy demo/offline
+    // ----------------------------------------------------------------
+    // KHÔNG có API Key: trả lỗi rõ ràng hoặc chạy chế độ demo thuần
+    // Chỉ dùng dữ liệu mẫu khi người dùng BẤM NÚT "Dùng mẫu demo"
+    // (demoProfile được truyền từ loadDemoSample() trong modal)
+    // ----------------------------------------------------------------
+    if (!$demoProfile) {
+        // Người dùng upload ảnh thật nhưng không có API Key → báo lỗi
+        admin_respond(422, [
+            'status' => 'error',
+            'code' => 'NO_API_KEY',
+            'message' => 'Chưa cấu hình Gemini API Key. Vui lòng vào mục "Cấu hình AI" để nhập API Key, hoặc bấm nút "Tải mẫu demo" để xem thử với dữ liệu mẫu.',
+        ]);
+    }
+
+    // Chế độ demo: chọn profile theo tham số demoProfile (không dựa vào ảnh)
     $lowerFilename = strtolower($filename);
     $selectedProfile = 'tsubama';
     if ($demoProfile === 'yamawa' || str_contains($lowerFilename, 'yamawa') || str_contains($lowerFilename, 'thuc-pham') || str_contains($lowerFilename, '20261120')) {
@@ -450,7 +481,7 @@ EOT;
         'status' => 'success',
         'data' => $fallbackData,
         'mode' => 'simulated_fallback',
-        'notice' => 'Chế độ demo offline. Để quét mọi ảnh bất kỳ bằng AI Vision, vui lòng cấu hình GEMINI_API_KEY.',
+        'notice' => 'Đây là dữ liệu mẫu demo (không đọc từ ảnh thực tế). Để AI đọc ảnh thông báo đơn hàng bất kỳ, vui lòng cấu hình Gemini API Key.',
     ]);
 } catch (Throwable $error) {
     admin_handle_exception($error);

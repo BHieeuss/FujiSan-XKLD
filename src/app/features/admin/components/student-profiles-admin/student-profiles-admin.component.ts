@@ -27,6 +27,7 @@ import {
   StudentProfileSummary,
 } from './student-profiles-admin.models';
 import { StudentProfilesAdminService } from './student-profiles-admin.service';
+import { AdminAuthService } from '../../services/admin-auth.service';
 
 @Component({
   selector: 'app-student-profiles-admin',
@@ -37,6 +38,23 @@ import { StudentProfilesAdminService } from './student-profiles-admin.service';
 })
 export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
   readonly statusMap = STUDENT_PROFILE_STATUS_MAP;
+
+  viewMode: 'active' | 'trash' = 'active';
+  trashCount = 0;
+  showTrashConfirmModal = false;
+  profileToTrash?: StudentProfileSummary;
+  showDeletePermanentModal = false;
+  profileToDeletePermanent?: StudentProfileSummary;
+  showEmptyTrashModal = false;
+  isProcessingTrash = false;
+
+  get canDelete(): boolean {
+    return this.auth.hasPermission('students.delete');
+  }
+
+  get canRestore(): boolean {
+    return this.auth.hasPermission('students.restore');
+  }
 
   profiles: StudentProfileSummary[] = [];
   selectedProfile?: StudentProfileDetail;
@@ -92,6 +110,7 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly service: StudentProfilesAdminService,
+    private readonly auth: AdminAuthService,
     private readonly excelService: StudentFormExcelService,
     private readonly pdfService: StudentFormPdfService,
     private readonly sanitizer: DomSanitizer,
@@ -117,6 +136,10 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
       this.profiles = result.profiles;
       this.totalItems = result.total;
       this.currentPage = result.page;
+      this.trashCount = result.trashCount;
+      if (this.filters.status === "trash") {
+        this.viewMode = "trash";
+      }
     } catch (error) {
       console.error(error);
       this.errorMessage = error instanceof Error ? error.message : 'Không thể tải danh sách hồ sơ.';
@@ -592,6 +615,130 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
     if (this.currentBlobUrl) {
       URL.revokeObjectURL(this.currentBlobUrl);
       this.currentBlobUrl = '';
+    }
+  }
+
+
+  switchViewMode(mode: 'active' | 'trash'): void {
+    this.viewMode = mode;
+    this.filters.status = mode === 'trash' ? 'trash' : 'all';
+    this.currentPage = 1;
+    void this.loadProfiles(1);
+  }
+
+  openTrashConfirmModal(profile: StudentProfileSummary, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.profileToTrash = profile;
+    this.showTrashConfirmModal = true;
+  }
+
+  closeTrashConfirmModal(): void {
+    this.showTrashConfirmModal = false;
+    this.profileToTrash = undefined;
+  }
+
+  async confirmMoveToTrash(): Promise<void> {
+    if (!this.profileToTrash || this.isProcessingTrash) return;
+    this.isProcessingTrash = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      const res = await this.service.moveToTrash(this.profileToTrash.id);
+      this.trashCount = res.trashCount;
+      this.successMessage = `Đã chuyển hồ sơ học viên ${this.profileToTrash.fullName} vào thùng rác (tự động xóa sau 30 ngày).`;
+      const trashedId = this.profileToTrash.id;
+      this.closeTrashConfirmModal();
+      if (this.selectedProfile && this.selectedProfile.id === trashedId) {
+        this.selectedProfile.status = 'trash';
+      }
+      await this.loadProfiles(this.currentPage);
+    } catch (err) {
+      this.errorMessage = err instanceof Error ? err.message : 'Không thể chuyển hồ sơ vào thùng rác.';
+    } finally {
+      this.isProcessingTrash = false;
+    }
+  }
+
+  openDeletePermanentModal(profile: StudentProfileSummary, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.profileToDeletePermanent = profile;
+    this.showDeletePermanentModal = true;
+  }
+
+  closeDeletePermanentModal(): void {
+    this.showDeletePermanentModal = false;
+    this.profileToDeletePermanent = undefined;
+  }
+
+  async confirmDeletePermanent(): Promise<void> {
+    if (!this.profileToDeletePermanent || this.isProcessingTrash) return;
+    this.isProcessingTrash = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      const res = await this.service.deletePermanent(this.profileToDeletePermanent.id);
+      this.trashCount = res.trashCount;
+      this.successMessage = `Đã xóa vĩnh viễn hồ sơ học viên ${this.profileToDeletePermanent.fullName} và toàn bộ tài liệu liên quan.`;
+      const deletedId = this.profileToDeletePermanent.id;
+      this.closeDeletePermanentModal();
+      if (this.selectedProfile && this.selectedProfile.id === deletedId) {
+        this.selectedProfile = undefined;
+      }
+      await this.loadProfiles(this.currentPage);
+    } catch (err) {
+      this.errorMessage = err instanceof Error ? err.message : 'Không thể xóa vĩnh viễn hồ sơ.';
+    } finally {
+      this.isProcessingTrash = false;
+    }
+  }
+
+  async restoreProfile(profile: StudentProfileSummary, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    if (this.isProcessingTrash) return;
+    this.isProcessingTrash = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      const res = await this.service.restoreProfile(profile.id);
+      this.trashCount = res.trashCount;
+      this.successMessage = `Đã khôi phục thành công hồ sơ học viên ${profile.fullName}.`;
+      if (this.selectedProfile && this.selectedProfile.id === profile.id) {
+        this.selectedProfile = res.profile;
+      }
+      await this.loadProfiles(this.currentPage);
+    } catch (err) {
+      this.errorMessage = err instanceof Error ? err.message : 'Không thể khôi phục hồ sơ.';
+    } finally {
+      this.isProcessingTrash = false;
+    }
+  }
+
+  openEmptyTrashModal(): void {
+    this.showEmptyTrashModal = true;
+  }
+
+  closeEmptyTrashModal(): void {
+    this.showEmptyTrashModal = false;
+  }
+
+  async confirmEmptyTrash(): Promise<void> {
+    if (this.isProcessingTrash) return;
+    this.isProcessingTrash = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      const res = await this.service.emptyTrash();
+      this.trashCount = 0;
+      this.successMessage = res.message;
+      this.closeEmptyTrashModal();
+      if (this.selectedProfile && this.selectedProfile.status === 'trash') {
+        this.selectedProfile = undefined;
+      }
+      await this.loadProfiles(1);
+    } catch (err) {
+      this.errorMessage = err instanceof Error ? err.message : 'Không thể dọn sạch thùng rác.';
+    } finally {
+      this.isProcessingTrash = false;
     }
   }
 

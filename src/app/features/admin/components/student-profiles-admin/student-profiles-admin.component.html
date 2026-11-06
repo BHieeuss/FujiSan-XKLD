@@ -18,6 +18,45 @@
       </div>
     </div>
 
+    <!-- VIEW NAVIGATION TABS -->
+    <div class="profiles-view-tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="viewMode === 'active'"
+        (click)="switchViewMode('active')"
+      >
+        <i class="fas fa-folder-open"></i>
+        <span>Hồ sơ hoạt động</span>
+      </button>
+      <button
+        type="button"
+        class="tab-btn tab-trash"
+        [class.active]="viewMode === 'trash'"
+        (click)="switchViewMode('trash')"
+      >
+        <i class="fas fa-trash-can"></i>
+        <span>Thùng rác</span>
+        <span class="trash-badge-count" *ngIf="trashCount > 0">{{ trashCount }}</span>
+      </button>
+    </div>
+
+    <!-- TRASH NOTICE BANNER (30 DAYS AUTO PURGE) -->
+    <div class="trash-notice-banner animate-fade-in" *ngIf="viewMode === 'trash'">
+      <div class="trash-banner-icon">
+        <i class="fas fa-trash-can-arrow-up"></i>
+      </div>
+      <div class="trash-banner-text">
+        <h4>Thùng rác lưu trữ hồ sơ (Tự động xóa vĩnh viễn sau 30 ngày)</h4>
+        <p>Hồ sơ đưa vào thùng rác sẽ được giữ lại <strong>30 ngày</strong> để xem xét hoặc khôi phục. Sau thời hạn 30 ngày, hệ thống sẽ tự động dọn dẹp và xóa vĩnh viễn toàn bộ dữ liệu cùng tệp đính kèm khỏi máy chủ.</p>
+      </div>
+      <div class="trash-banner-actions" *ngIf="canDelete && trashCount > 0">
+        <button type="button" class="btn-empty-trash" (click)="openEmptyTrashModal()" [disabled]="isProcessingTrash">
+          <i class="fas fa-trash-can"></i> Dọn sạch thùng rác
+        </button>
+      </div>
+    </div>
+
     <!-- FILTER BAR -->
     <div class="filter-toolbar">
       <div class="search-input-wrap">
@@ -36,11 +75,12 @@
       <div class="filter-select-wrap">
         <label>Trạng thái:</label>
         <select [(ngModel)]="filters.status" (change)="onFiltersChange()">
-          <option value="all">Tất cả trạng thái</option>
-          <option value="tiep_nhan">Tiếp nhận mới</option>
-          <option value="dang_xu_ly">Đang xử lý</option>
-          <option value="hoan_tat">Hoàn tất hồ sơ</option>
-          <option value="tam_dung">Tạm dừng / Hủy</option>
+          <option value="all" *ngIf="viewMode === 'active'">Tất cả trạng thái hoạt động</option>
+          <option value="tiep_nhan" *ngIf="viewMode === 'active'">Tiếp nhận mới</option>
+          <option value="dang_xu_ly" *ngIf="viewMode === 'active'">Đang xử lý</option>
+          <option value="hoan_tat" *ngIf="viewMode === 'active'">Hoàn tất hồ sơ</option>
+          <option value="tam_dung" *ngIf="viewMode === 'active'">Tạm dừng / Hủy</option>
+          <option value="trash">Thùng rác ({{ trashCount }})</option>
         </select>
       </div>
 
@@ -108,12 +148,17 @@
             <td class="address-cell" [title]="p.address">{{ p.address || '---' }}</td>
             <td>{{ p.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td>
-              <span class="status-badge" [ngClass]="statusMap[p.status].badgeClass">
-                <i [class]="statusMap[p.status].icon"></i>
-                {{ statusMap[p.status].label }}
-              </span>
+              <div class="status-cell-wrap">
+                <span class="status-badge" [ngClass]="statusMap[p.status].badgeClass">
+                  <i [class]="statusMap[p.status].icon"></i>
+                  {{ statusMap[p.status].label }}
+                </span>
+                <span class="days-remaining-badge" *ngIf="p.status === 'trash' && p.daysRemaining !== null && p.daysRemaining !== undefined">
+                  <i class="fas fa-clock"></i> Còn {{ p.daysRemaining }} ngày
+                </span>
+              </div>
             </td>
-            <td class="text-right">
+            <td class="text-right table-actions-cell">
               <button
                 type="button"
                 class="btn-row-action"
@@ -122,6 +167,40 @@
               >
                 <i class="fas fa-eye"></i> Xem chi tiết
               </button>
+
+              @if (p.status !== 'trash' && canDelete) {
+                <button
+                  type="button"
+                  class="btn-row-action btn-delete-row"
+                  (click)="openTrashConfirmModal(p, $event)"
+                  title="Chuyển vào thùng rác (tự động xóa sau 30 ngày)"
+                >
+                  <i class="fas fa-trash-can"></i> Xóa
+                </button>
+              }
+
+              @if (p.status === 'trash') {
+                @if (canRestore) {
+                  <button
+                    type="button"
+                    class="btn-row-action btn-restore-row"
+                    (click)="restoreProfile(p, $event)"
+                    title="Khôi phục hồ sơ học viên"
+                  >
+                    <i class="fas fa-rotate-left"></i> Khôi phục
+                  </button>
+                }
+                @if (canDelete) {
+                  <button
+                    type="button"
+                    class="btn-row-action btn-perm-delete-row"
+                    (click)="openDeletePermanentModal(p, $event)"
+                    title="Xóa vĩnh viễn khỏi máy chủ"
+                  >
+                    <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+                  </button>
+                }
+              }
             </td>
           </tr>
         </tbody>
@@ -150,6 +229,25 @@
           <button type="button" class="btn-card-view">
             <span>Xem chi tiết hồ sơ & tải tài liệu</span> <i class="fas fa-chevron-right"></i>
           </button>
+          <div class="card-extra-actions" (click)="$event.stopPropagation()">
+            @if (p.status !== 'trash' && canDelete) {
+              <button type="button" class="btn-card-delete" (click)="openTrashConfirmModal(p, $event)">
+                <i class="fas fa-trash-can"></i> Xóa vào thùng rác
+              </button>
+            }
+            @if (p.status === 'trash') {
+              @if (canRestore) {
+                <button type="button" class="btn-card-restore" (click)="restoreProfile(p, $event)">
+                  <i class="fas fa-rotate-left"></i> Khôi phục
+                </button>
+              }
+              @if (canDelete) {
+                <button type="button" class="btn-card-perm-delete" (click)="openDeletePermanentModal(p, $event)">
+                  <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+                </button>
+              }
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -183,6 +281,23 @@
   <!-- 2. DETAIL VIEW                                                            -->
   <!-- ========================================================================= -->
   <div class="detail-view" *ngIf="selectedProfile">
+    <!-- TRASH WARNING BANNER IN DETAIL VIEW -->
+    <div class="detail-trash-banner" *ngIf="selectedProfile.status === 'trash'">
+      <div class="banner-icon"><i class="fas fa-triangle-exclamation"></i></div>
+      <div class="banner-content">
+        <h4>Hồ sơ này hiện đang nằm trong Thùng rác</h4>
+        <p>Hồ sơ sẽ được hệ thống tự động xóa vĩnh viễn sau <strong>{{ selectedProfile.daysRemaining !== null && selectedProfile.daysRemaining !== undefined ? selectedProfile.daysRemaining : 30 }} ngày</strong> kể từ ngày xóa.</p>
+      </div>
+      <div class="banner-actions">
+        <button type="button" class="btn-action btn-restore" *ngIf="canRestore" (click)="restoreProfile(selectedProfile)" [disabled]="isProcessingTrash">
+          <i class="fas fa-rotate-left"></i> <span>Khôi phục hồ sơ</span>
+        </button>
+        <button type="button" class="btn-action btn-perm-delete" *ngIf="canDelete" (click)="openDeletePermanentModal(selectedProfile)" [disabled]="isProcessingTrash">
+          <i class="fas fa-trash-alt"></i> <span>Xóa vĩnh viễn</span>
+        </button>
+      </div>
+    </div>
+
     <!-- TOP STICKY BAR -->
     <div class="detail-header-bar">
       <div class="header-left">
@@ -1389,6 +1504,102 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-secondary" (click)="closePreviewModal()">Đóng xem trước</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: XÁC NHẬN CHUYỂN HỒ SƠ VÀO THÙNG RÁC                               -->
+  <!-- ========================================================================= -->
+  <div class="viejap-modal-backdrop animate-fade-in" *ngIf="showTrashConfirmModal && profileToTrash" (click)="closeTrashConfirmModal()">
+    <div class="viejap-modal-card modal-confirm-trash" (click)="$event.stopPropagation()">
+      <div class="modal-header danger">
+        <div class="header-icon danger"><i class="fas fa-trash-can"></i></div>
+        <div class="header-text">
+          <h4>Chuyển hồ sơ vào thùng rác</h4>
+          <p>Học viên: <strong>{{ profileToTrash.fullName }}</strong> (Mã: <code>{{ profileToTrash.studentCode }}</code>)</p>
+        </div>
+        <button type="button" class="btn-close-x" (click)="closeTrashConfirmModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body-confirm">
+        <div class="warning-callout">
+          <i class="fas fa-clock"></i>
+          <div>
+            <strong>Lưu ý về thời hạn 30 ngày:</strong>
+            <p>Hồ sơ sẽ được chuyển vào <strong>Thùng rác</strong> và tự động xóa vĩnh viễn sau <strong>30 ngày</strong>. Trong thời gian này, bạn có thể xem lại hoặc khôi phục hồ sơ bất kỳ lúc nào.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeTrashConfirmModal()" [disabled]="isProcessingTrash">Hủy bỏ</button>
+        <button type="button" class="btn-danger" (click)="confirmMoveToTrash()" [disabled]="isProcessingTrash">
+          <i [class]="isProcessingTrash ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+          <span>{{ isProcessingTrash ? 'Đang xử lý...' : 'Chuyển vào thùng rác' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: XÁC NHẬN XÓA VĨNH VIỄN HỒ SƠ                                       -->
+  <!-- ========================================================================= -->
+  <div class="viejap-modal-backdrop animate-fade-in" *ngIf="showDeletePermanentModal && profileToDeletePermanent" (click)="closeDeletePermanentModal()">
+    <div class="viejap-modal-card modal-confirm-trash" (click)="$event.stopPropagation()">
+      <div class="modal-header danger">
+        <div class="header-icon danger"><i class="fas fa-triangle-exclamation"></i></div>
+        <div class="header-text">
+          <h4>Xóa vĩnh viễn hồ sơ học viên</h4>
+          <p>Học viên: <strong>{{ profileToDeletePermanent.fullName }}</strong> (Mã: <code>{{ profileToDeletePermanent.studentCode }}</code>)</p>
+        </div>
+        <button type="button" class="btn-close-x" (click)="closeDeletePermanentModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body-confirm">
+        <div class="danger-callout">
+          <i class="fas fa-circle-xmark"></i>
+          <div>
+            <strong>Cảnh báo hành động không thể khôi phục!</strong>
+            <p>Toàn bộ thông tin sơ yếu lý lịch, các tệp Excel, bản scan PDF và ảnh thẻ đính kèm của học viên này sẽ bị xóa hoàn toàn khỏi máy chủ ngay lập tức.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDeletePermanentModal()" [disabled]="isProcessingTrash">Hủy bỏ</button>
+        <button type="button" class="btn-danger" (click)="confirmDeletePermanent()" [disabled]="isProcessingTrash">
+          <i [class]="isProcessingTrash ? 'fas fa-spinner fa-spin' : 'fas fa-trash-alt'"></i>
+          <span>{{ isProcessingTrash ? 'Đang xóa...' : 'Xác nhận xóa vĩnh viễn' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: XÁC NHẬN DỌN SẠCH THÙNG RÁC                                        -->
+  <!-- ========================================================================= -->
+  <div class="viejap-modal-backdrop animate-fade-in" *ngIf="showEmptyTrashModal" (click)="closeEmptyTrashModal()">
+    <div class="viejap-modal-card modal-confirm-trash" (click)="$event.stopPropagation()">
+      <div class="modal-header danger">
+        <div class="header-icon danger"><i class="fas fa-trash-can"></i></div>
+        <div class="header-text">
+          <h4>Dọn sạch thùng rác hồ sơ</h4>
+          <p>Hiện có <strong>{{ trashCount }}</strong> hồ sơ trong thùng rác.</p>
+        </div>
+        <button type="button" class="btn-close-x" (click)="closeEmptyTrashModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body-confirm">
+        <div class="danger-callout">
+          <i class="fas fa-triangle-exclamation"></i>
+          <div>
+            <strong>Bạn có chắc chắn muốn dọn sạch thùng rác?</strong>
+            <p>Hành động này sẽ xóa vĩnh viễn toàn bộ {{ trashCount }} hồ sơ học viên đang nằm trong thùng rác cùng toàn bộ tệp đính kèm. Dữ liệu sau khi xóa sẽ không thể khôi phục lại.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeEmptyTrashModal()" [disabled]="isProcessingTrash">Hủy bỏ</button>
+        <button type="button" class="btn-danger" (click)="confirmEmptyTrash()" [disabled]="isProcessingTrash">
+          <i [class]="isProcessingTrash ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+          <span>{{ isProcessingTrash ? 'Đang dọn sạch...' : 'Dọn sạch thùng rác ngay' }}</span>
+        </button>
       </div>
     </div>
   </div>
