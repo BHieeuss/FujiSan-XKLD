@@ -158,6 +158,22 @@ try {
             ]);
         }
 
+        if ($action === 'update' || ($body['action'] ?? '') === 'update') {
+            admin_require_permission($session, 'activities.update');
+            $id = trim((string) ($_GET['id'] ?? $body['id'] ?? ''));
+            if ($id === '') {
+                admin_respond(400, ['message' => 'Thiếu id hoạt động cần cập nhật.']);
+            }
+            $updated = admin_activity_update($id, $body, $session);
+            if ($updated === null) {
+                admin_respond(404, ['message' => 'Không tìm thấy hoạt động cần cập nhật.']);
+            }
+            admin_respond(200, [
+                'message' => 'Cập nhật hoạt động thành công!',
+                'activity' => $updated,
+            ]);
+        }
+
         // Default create
         admin_require_permission($session, 'activities.create');
         if (empty($body['title'])) {

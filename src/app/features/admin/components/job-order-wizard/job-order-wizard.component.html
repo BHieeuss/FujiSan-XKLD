@@ -32,6 +32,21 @@
         </div>
 
         <div class="wizard-header-actions">
+          @if (isEditing) {
+            <button
+              type="button"
+              class="btn-quick-save"
+              (click)="saveOrder('keep_current')"
+              [disabled]="isSaving"
+              title="Lưu ngay toàn bộ thay đổi vừa chỉnh sửa mà không cần chuyển bước"
+            >
+              @if (isSaving) {
+                <i class="fas fa-spinner fa-spin"></i> Đang lưu...
+              } @else {
+                <i class="fas fa-floppy-disk"></i> Lưu thay đổi
+              }
+            </button>
+          }
           <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSaving">
             <i class="fas fa-xmark"></i> Hủy bỏ
           </button>
@@ -1236,14 +1251,27 @@
           </div>
 
           <div class="action-buttons">
+            @if (isEditing) {
+              <button
+                type="button"
+                class="btn-save-changes"
+                (click)="saveOrder('keep_current')"
+                [disabled]="isSaving"
+                title="Lưu toàn bộ thay đổi và giữ nguyên trạng thái đơn hàng"
+              >
+                <i class="fas fa-floppy-disk"></i>
+                Lưu thay đổi (Giữ trạng thái {{ draft.status === 'published' ? 'Đang tuyển' : 'Bản nháp' }})
+              </button>
+            }
+
             <button
               type="button"
               class="btn-save-draft"
               (click)="saveOrder('draft')"
               [disabled]="isSaving"
             >
-              <i class="fas fa-floppy-disk"></i>
-              Lưu bản nháp
+              <i class="fas fa-file-lines"></i>
+              {{ isEditing ? 'Lưu thành Bản nháp' : 'Lưu bản nháp' }}
             </button>
 
             <button
@@ -1253,7 +1281,7 @@
               [disabled]="isSaving"
             >
               <i class="fas fa-paper-plane"></i>
-              {{ isEditing ? 'Cập nhật & Đăng đơn' : 'Đăng đơn hàng chính thức' }}
+              {{ isEditing ? 'Cập nhật & Đăng tuyển ngay' : 'Đăng đơn hàng chính thức' }}
             </button>
           </div>
         </div>
@@ -1285,16 +1313,34 @@
         <span>Bước {{ currentStep }} / 5</span>
       </div>
 
-      @if (currentStep < 5) {
-        <button
-          type="button"
-          class="btn-next"
-          (click)="nextStep()"
-          [disabled]="isSaving"
-        >
-          Tiếp theo <i class="fas fa-arrow-right"></i>
-        </button>
-      }
+      <div class="footer-action-group">
+        @if (isEditing) {
+          <button
+            type="button"
+            class="btn-quick-save-footer"
+            (click)="saveOrder('keep_current')"
+            [disabled]="isSaving"
+            title="Lưu ngay thay đổi của đơn hàng mà không cần đợi sang bước cuối"
+          >
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i> Đang lưu...
+            } @else {
+              <i class="fas fa-floppy-disk"></i> Lưu thay đổi
+            }
+          </button>
+        }
+
+        @if (currentStep < 5) {
+          <button
+            type="button"
+            class="btn-next"
+            (click)="nextStep()"
+            [disabled]="isSaving"
+          >
+            Tiếp theo <i class="fas fa-arrow-right"></i>
+          </button>
+        }
+      </div>
     </footer>
   }
 

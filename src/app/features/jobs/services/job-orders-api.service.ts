@@ -59,8 +59,11 @@ export class JobOrdersApiService {
 
   async update(id: string, payload: JobOrderPayload): Promise<JobOrder> {
     const response = await this.request(
-      `/admin-api/orders.php?id=${encodeURIComponent(id)}`,
-      { method: 'PUT', body: JSON.stringify(payload) },
+      `/admin-api/orders.php?action=update&id=${encodeURIComponent(id)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ ...payload, action: 'update', id }),
+      },
       true,
     );
     if (!response.order) {

@@ -160,6 +160,9 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.initialData) {
       this.draft = { ...createEmptyJobOrder(), ...this.initialData };
+      if (!this.editingId && (this.initialData as JobOrder).id) {
+        this.editingId = (this.initialData as JobOrder).id;
+      }
       if ((this.initialData as JobOrder).posterUrl) {
         this.posterPreview = (this.initialData as JobOrder).posterUrl || '';
       }
@@ -272,7 +275,8 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
     this.codeCheckStatus = 'checking';
     this.codeCheckDebounce = setTimeout(async () => {
       try {
-        const exists = await this.ordersApi.checkOrderCode(code, this.editingId);
+        const excludeId = this.editingId || (this.initialData as JobOrder)?.id;
+        const exists = await this.ordersApi.checkOrderCode(code, excludeId);
         if (exists) {
           this.codeCheckStatus = 'duplicate';
           this.codeCheckMessage = `Mã "${code}" đã tồn tại! Vui lòng chọn mã khác.`;
@@ -322,7 +326,9 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
   ): void {
     const result = this.composer.composePost(this.draft, layoutId, styleId);
     this.currentSections = result.sections;
-    this.draft.facebookContent = result.fullText;
+    if (!this.draft.facebookContent || forceOverwriteHtml) {
+      this.draft.facebookContent = result.fullText;
+    }
     if (!this.draft.postContent || forceOverwriteHtml) {
       this.draft.postContent = result.htmlContent;
     }
@@ -668,13 +674,20 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
     this.lightboxImage = '';
   }
 
-  /* ── Bước 5: Lưu nháp hoặc Xuất bản ───────────────────────────── */
+  /* ── Lưu đơn hàng (Hỗ trợ lưu nhanh mọi bước hoặc lưu theo trạng thái) ── */
 
-  async saveOrder(status: 'draft' | 'published'): Promise<void> {
+  async saveOrder(status: 'draft' | 'published' | 'keep_current' = 'keep_current'): Promise<void> {
     if (this.isSaving) return;
 
     this.errorMessage = '';
-    this.draft.status = status;
+
+    // Nếu chọn 'keep_current', giữ nguyên trạng thái cũ của đơn hàng
+    if (status === 'keep_current') {
+      const existingStatus = (this.initialData as JobOrder)?.status;
+      this.draft.status = existingStatus || this.draft.status || 'published';
+    } else {
+      this.draft.status = status;
+    }
 
     // Validate minimum requirements
     if (!this.draft.title?.trim()) {
@@ -688,8 +701,15 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Đồng bộ lương cơ bản và trường salary
+    if (this.draft.basicSalary?.trim() && !this.draft.salary?.trim()) {
+      this.draft.salary = this.draft.basicSalary.trim();
+    } else if (this.draft.salary?.trim() && !this.draft.basicSalary?.trim()) {
+      this.draft.basicSalary = this.draft.salary.trim();
+    }
+
     this.isSaving = true;
-    this.savingStatusText = 'Đang tải ảnh và xử lý dữ liệu...';
+    this.savingStatusText = 'Đang xử lý dữ liệu và hình ảnh...';
 
     try {
       // 1. Upload thumbnail file if selected
@@ -734,7 +754,7 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
       }
 
       // 4. Save to API
-      this.savingStatusText = status === 'published' ? 'Đang xuất bản đơn hàng...' : 'Đang lưu bản nháp...';
+      this.savingStatusText = this.draft.status === 'published' ? 'Đang cập nhật & xuất bản đơn hàng...' : 'Đang lưu đơn hàng...';
       const targetEditId = this.editingId || (this.initialData as JobOrder)?.id;
       const order = this.isEditing && targetEditId
         ? await this.ordersApi.update(targetEditId, this.draft)
@@ -746,9 +766,11 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
       this.successOrder = order;
       this.orderSaved.emit(order);
       this.toast.show(
-        status === 'published'
-          ? `Đã xuất bản đơn hàng "${order.title}" thành công!`
-          : `Đã lưu bản nháp đơn hàng "${order.title}" thành công!`,
+        this.isEditing
+          ? `Đã cập nhật đơn hàng "${order.title}" thành công!`
+          : this.draft.status === 'published'
+            ? `Đã xuất bản đơn hàng "${order.title}" thành công!`
+            : `Đã lưu bản nháp đơn hàng "${order.title}" thành công!`,
         'success'
       );
     } catch (error) {
@@ -759,6 +781,7 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
           : error instanceof Error
             ? error.message
             : 'Không thể lưu đơn hàng. Vui lòng kiểm tra lại.';
+      this.toast.show(this.errorMessage, 'danger');
     } finally {
       this.isSaving = false;
       this.savingStatusText = '';

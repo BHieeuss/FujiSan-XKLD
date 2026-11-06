@@ -2112,3 +2112,33 @@ function admin_require_permission(array $session, string $permissionKey): array
     return $user;
 }
 
+function admin_has_permission(array $session, string $permissionKey): bool
+{
+    $username = (string) ($session['username'] ?? '');
+    if ($username === '') {
+        return false;
+    }
+
+    $user = admin_user_find_by_username($username);
+    if ($user === null) {
+        if ($username === 'admin') {
+            $users = admin_users_list();
+            $user = admin_ensure_super_admin_record($users);
+        } else {
+            return false;
+        }
+    }
+
+    if (($user['status'] ?? 'active') !== 'active') {
+        return false;
+    }
+
+    $calc = admin_user_effective_permissions($user);
+    if (!empty($calc['isSuperAdmin'])) {
+        return true;
+    }
+
+    return in_array($permissionKey, $calc['effectivePermissions'] ?? [], true);
+}
+
+

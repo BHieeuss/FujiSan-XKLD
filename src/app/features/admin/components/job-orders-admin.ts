@@ -516,6 +516,10 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     this.wizardEditingId = undefined;
     const refreshed = this.orders.find((o) => o.id === order.id) || order;
     this.selectedOrder = refreshed;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { section: 'orders', id: order.id },
+    });
     this.toast.success(
       `Đơn hàng "${getJobOrderTitle(order)}" đã được cập nhật thành công vào danh sách.`,
       'Lưu thành công'

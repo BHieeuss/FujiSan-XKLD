@@ -9,11 +9,22 @@ const VIEJAP_ACTIVITY_IMAGE_MAX_SIZE = 12 * 1024 * 1024; // 12MB
 function admin_activity_image_directory(): string
 {
     $directory = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'activities';
-    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
-        admin_respond(500, ['message' => 'Không thể tạo thư mục lưu ảnh hoạt động trên máy chủ.']);
+    if (!is_dir($directory)) {
+        @mkdir($directory, 0755, true);
     }
 
     if (!is_writable($directory)) {
+        @chmod($directory, 0755);
+        if (!is_writable($directory)) {
+            @chmod($directory, 0777);
+        }
+    }
+
+    if (!is_dir($directory) || !is_writable($directory)) {
+        $parent = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads';
+        if (is_dir($parent) && is_writable($parent)) {
+            return $parent;
+        }
         admin_respond(500, ['message' => 'Thư mục uploads/activities chưa có quyền ghi.']);
     }
 
@@ -69,11 +80,17 @@ try {
     $targetPath = $targetDir . DIRECTORY_SEPARATOR . $uniqueName;
 
     if (!@move_uploaded_file($tmpPath, $targetPath)) {
-        admin_respond(500, ['message' => 'Không thể lưu tệp ảnh vào thư mục máy chủ.']);
+        if (!@copy($tmpPath, $targetPath)) {
+            admin_respond(500, ['message' => 'Không thể lưu tệp ảnh vào thư mục máy chủ.']);
+        }
+        @unlink($tmpPath);
     }
 
     @chmod($targetPath, 0644);
-    $publicUrl = '/uploads/activities/' . $uniqueName;
+    $defaultDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'activities';
+    $publicUrl = ($targetDir === $defaultDir)
+        ? ('/uploads/activities/' . $uniqueName)
+        : ('/uploads/' . $uniqueName);
 
     admin_respond(200, [
         'success' => true,

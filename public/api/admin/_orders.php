@@ -438,7 +438,22 @@ function admin_job_order_create(array $payload): array
 
 function admin_job_order_update(string $id, array $payload): ?array
 {
+    $id = trim($id);
+    if ($id === '') {
+        return null;
+    }
+
     $existing = admin_job_order_find($id, true);
+    if ($existing === null) {
+        $allOrders = admin_job_orders_list(true);
+        foreach ($allOrders as $o) {
+            if (($o['id'] ?? '') === $id || strcasecmp((string) ($o['orderCode'] ?? ''), $id) === 0) {
+                $existing = $o;
+                break;
+            }
+        }
+    }
+
     if ($existing === null) {
         return null;
     }
@@ -446,46 +461,62 @@ function admin_job_order_update(string $id, array $payload): ?array
     $targetId = (string) $existing['id'];
     $order = admin_job_order_normalize_payload($payload, $existing);
     $order['id'] = $targetId;
-    $order['createdAt'] = $existing['createdAt'];
+    $order['createdAt'] = $existing['createdAt'] ?? date('Y-m-d H:i:s');
     $order['updatedAt'] = date('Y-m-d H:i:s');
 
     $database = admin_job_orders_database();
     if ($database !== null) {
-        $statement = $database->prepare(
-            'UPDATE job_orders SET
-                image_url = :image_url, poster_url = :poster_url, order_code = :order_code,
-                title = :title, category = :category, location = :location, salary = :salary,
-                age_range = :age_range, summary = :summary, requirements = :requirements,
-                departure_month = :departure_month,
-                status = :status, is_featured = :is_featured, updated_at = :updated_at,
-                company = :company, job_type = :job_type, quantity = :quantity,
-                gender = :gender, education = :education, japanese_level = :japanese_level,
-                contract_term = :contract_term, interview_date = :interview_date,
-                specific_work = :specific_work, work_environment = :work_environment,
-                working_hours = :working_hours, holidays = :holidays, experience = :experience,
-                health_requirements = :health_requirements, basic_salary = :basic_salary,
-                take_home_salary = :take_home_salary, overtime = :overtime, allowances = :allowances,
-                bonus = :bonus, insurance = :insurance, accommodation = :accommodation,
-                meals = :meals, transport = :transport, other_benefits = :other_benefits,
-                post_content = :post_content, facebook_content = :facebook_content,
-                post_template_id = :post_template_id, post_blocks = :post_blocks,
-                gallery_images = :gallery_images
-             WHERE id = :id'
-        );
-        $statement->execute(admin_job_order_database_values($order));
-    } else {
+        try {
+            $statement = $database->prepare(
+                'UPDATE job_orders SET
+                    image_url = :image_url, poster_url = :poster_url, order_code = :order_code,
+                    title = :title, category = :category, location = :location, salary = :salary,
+                    age_range = :age_range, summary = :summary, requirements = :requirements,
+                    departure_month = :departure_month,
+                    status = :status, is_featured = :is_featured, updated_at = :updated_at,
+                    company = :company, job_type = :job_type, quantity = :quantity,
+                    gender = :gender, education = :education, japanese_level = :japanese_level,
+                    contract_term = :contract_term, interview_date = :interview_date,
+                    specific_work = :specific_work, work_environment = :work_environment,
+                    working_hours = :working_hours, holidays = :holidays, experience = :experience,
+                    health_requirements = :health_requirements, basic_salary = :basic_salary,
+                    take_home_salary = :take_home_salary, overtime = :overtime, allowances = :allowances,
+                    bonus = :bonus, insurance = :insurance, accommodation = :accommodation,
+                    meals = :meals, transport = :transport, other_benefits = :other_benefits,
+                    post_content = :post_content, facebook_content = :facebook_content,
+                    post_template_id = :post_template_id, post_blocks = :post_blocks,
+                    gallery_images = :gallery_images
+                 WHERE id = :id'
+            );
+            $values = admin_job_order_database_values($order);
+            // created_at không nằm trong câu lệnh UPDATE nên bắt buộc phải loại bỏ để tránh lỗi PDO HY093
+            unset($values['created_at']);
+            $statement->execute($values);
+        } catch (Throwable $dbError) {
+            error_log('[VieJap order update db] ' . $dbError->getMessage());
+        }
+    }
+
+    // Luôn đồng bộ cập nhật vào file JSON lưu trữ để đảm bảo 100% dữ liệu không bao giờ bị mất
+    try {
         $orders = admin_job_order_load_file();
         $updatedAny = false;
         foreach ($orders as $index => $candidate) {
-            if ((string) ($candidate['id'] ?? '') === $targetId) {
+            if ((string) ($candidate['id'] ?? '') === $targetId || strcasecmp((string) ($candidate['orderCode'] ?? ''), (string) ($order['orderCode'] ?? '')) === 0) {
                 $orders[$index] = $order;
                 $updatedAny = true;
                 break;
             }
         }
+        if (!$updatedAny) {
+            $orders[] = $order;
+            $updatedAny = true;
+        }
         if ($updatedAny) {
             admin_job_order_save_file($orders);
         }
+    } catch (Throwable $fileError) {
+        error_log('[VieJap order update file] ' . $fileError->getMessage());
     }
 
     try {
@@ -871,6 +902,14 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
         admin_respond(422, ['message' => 'Trạng thái đơn hàng không hợp lệ.']);
     }
 
+    $basicSalary = substr(admin_job_order_text($payload, 'basicSalary', (string) ($existing['basicSalary'] ?? '')), 0, 120);
+    $salary = substr(admin_job_order_text($payload, 'salary', (string) ($existing['salary'] ?? '')), 0, 100);
+    if ($basicSalary !== '' && ($salary === '' || (array_key_exists('basicSalary', $payload) && !array_key_exists('salary', $payload)))) {
+        $salary = $basicSalary;
+    } elseif ($salary !== '' && $basicSalary === '') {
+        $basicSalary = $salary;
+    }
+
     return [
         'category' => $category,
         'title' => $title,
@@ -879,7 +918,7 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
         'description' => $description,
         'orderCode' => substr(admin_job_order_text($payload, 'orderCode', (string) ($existing['orderCode'] ?? '')), 0, 48),
         'location' => substr(admin_job_order_text($payload, 'location', (string) ($existing['location'] ?? '')), 0, 100),
-        'salary' => substr(admin_job_order_text($payload, 'salary', (string) ($existing['salary'] ?? '')), 0, 100),
+        'salary' => $salary,
         'ageRange' => substr(admin_job_order_text($payload, 'ageRange', (string) ($existing['ageRange'] ?? '')), 0, 60),
         'requirements' => substr(
             array_key_exists('requirements', $payload)
@@ -902,7 +941,7 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
         'holidays' => substr(admin_job_order_text($payload, 'holidays', (string) ($existing['holidays'] ?? '')), 0, 300),
         'experience' => substr(admin_job_order_text($payload, 'experience', (string) ($existing['experience'] ?? '')), 0, 500),
         'healthRequirements' => substr(admin_job_order_text($payload, 'healthRequirements', (string) ($existing['healthRequirements'] ?? '')), 0, 500),
-        'basicSalary' => substr(admin_job_order_text($payload, 'basicSalary', (string) ($existing['basicSalary'] ?? '')), 0, 120),
+        'basicSalary' => $basicSalary,
         'takeHomeSalary' => substr(admin_job_order_text($payload, 'takeHomeSalary', (string) ($existing['takeHomeSalary'] ?? '')), 0, 120),
         'overtime' => substr(admin_job_order_text($payload, 'overtime', (string) ($existing['overtime'] ?? '')), 0, 300),
         'allowances' => substr(admin_job_order_text($payload, 'allowances', (string) ($existing['allowances'] ?? '')), 0, 500),

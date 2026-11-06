@@ -9,11 +9,22 @@ const VIEJAP_EVENT_IMAGE_MAX_SIZE = 12 * 1024 * 1024; // 12MB
 function admin_event_image_directory(): string
 {
     $directory = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'events';
-    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
-        admin_respond(500, ['message' => 'Không thể tạo thư mục lưu ảnh sự kiện trên máy chủ.']);
+    if (!is_dir($directory)) {
+        @mkdir($directory, 0755, true);
     }
 
     if (!is_writable($directory)) {
+        @chmod($directory, 0755);
+        if (!is_writable($directory)) {
+            @chmod($directory, 0777);
+        }
+    }
+
+    if (!is_dir($directory) || !is_writable($directory)) {
+        $parent = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads';
+        if (is_dir($parent) && is_writable($parent)) {
+            return $parent;
+        }
         admin_respond(500, ['message' => 'Thư mục uploads/events chưa có quyền ghi.']);
     }
 
@@ -68,11 +79,18 @@ try {
     $uniqueName = 'evt_' . date('Ymd_His') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
     $targetPath = $targetDir . DIRECTORY_SEPARATOR . $uniqueName;
 
-    if (!move_uploaded_file($tmpPath, $targetPath)) {
-        admin_respond(500, ['message' => 'Không thể lưu tệp ảnh sự kiện vào máy chủ.']);
+    if (!@move_uploaded_file($tmpPath, $targetPath)) {
+        if (!@copy($tmpPath, $targetPath)) {
+            admin_respond(500, ['message' => 'Không thể lưu tệp ảnh sự kiện vào máy chủ.']);
+        }
+        @unlink($tmpPath);
     }
 
-    $publicUrl = '/uploads/events/' . $uniqueName;
+    @chmod($targetPath, 0644);
+    $defaultDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'events';
+    $publicUrl = ($targetDir === $defaultDir)
+        ? ('/uploads/events/' . $uniqueName)
+        : ('/uploads/' . $uniqueName);
     admin_respond(200, [
         'message' => 'Tải ảnh sự kiện thành công.',
         'url' => $publicUrl,
