@@ -2112,29 +2112,58 @@
       font-size: 0.75rem;
       font-weight: 800;
       letter-spacing: 0.05em;
+      color: #ffffff;
     }
 
     strong {
       font-size: 1.5rem;
       font-weight: 800;
+      color: #ffffff !important;
     }
 
     small {
       font-size: 0.8rem;
-      color: #64748b;
+      color: #ffffff;
+      opacity: 0.92;
+      line-height: 1.5;
     }
 
+    /* Thẻ Lương cơ bản: Background xanh navy đậm chữ trắng */
     &.basic-sal {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      .sub-label { color: #0369a1; }
-      strong { color: #0284c7; }
+      background: #0b192c;
+      border: 1.5px solid #1e293b;
+      box-shadow: 0 6px 20px rgba(11, 25, 44, 0.18);
+
+      .sub-label {
+        color: #ffffff;
+        opacity: 0.95;
+      }
+      strong {
+        color: #ffffff !important;
+      }
+      small {
+        color: #ffffff;
+        opacity: 0.9;
+      }
     }
 
+    /* Thẻ Thực lĩnh dự kiến: Background xanh navy nhạt chữ trắng */
     &.take-home-sal {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      .sub-label { color: #15803d; }
+      background: #172b4d;
+      border: 1.5px solid #203a66;
+      box-shadow: 0 6px 20px rgba(23, 43, 77, 0.22);
+
+      .sub-label {
+        color: #ffffff;
+        opacity: 0.95;
+      }
+      strong {
+        color: #ffffff !important;
+      }
+      small {
+        color: #ffffff;
+        opacity: 0.9;
+      }
     }
   }
 }
