@@ -764,7 +764,8 @@
     margin: 0 0 0.85rem;
   }
 
-  ul, ol {
+  ul,
+  ol {
     margin: 0 0 1rem;
     padding-left: 1.4rem;
 
@@ -921,7 +922,8 @@
   gap: 1.25rem;
   padding: 1.4rem;
   border-radius: 16px;
-  background: #0b192c; /* Xanh navy đậm */
+  background: #0b192c;
+  /* Xanh navy đậm */
   border: 1.5px solid #1e293b;
   box-shadow: 0 8px 24px rgba(11, 25, 44, 0.16);
 
@@ -946,7 +948,8 @@
   .loc-text {
     h4 {
       margin: 0 0 0.35rem;
-      color: #ffffff; /* Chữ trắng */
+      color: #ffffff;
+      /* Chữ trắng */
       font-size: 1.08rem;
       font-weight: 800;
       letter-spacing: -0.01em;
@@ -954,7 +957,8 @@
 
     p {
       margin: 0;
-      color: #ffffff; /* Chữ trắng */
+      color: #ffffff;
+      /* Chữ trắng */
       font-size: 0.925rem;
       line-height: 1.65;
       opacity: 0.95;
@@ -1978,13 +1982,25 @@
 }
 
 @keyframes modal-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modal-pop {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 
@@ -2079,6 +2095,7 @@
   &:hover {
     color: #0284c7;
     background: #f0f9ff;
+
     i {
       color: #0284c7;
     }
@@ -2294,6 +2311,7 @@
   .detail-tabs-nav {
     grid-template-columns: repeat(3, 1fr);
   }
+
   .salary-breakdown-cards {
     grid-template-columns: 1fr;
   }
@@ -2303,12 +2321,17 @@
   .detail-tabs-nav {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .allowances-details-list .allowance-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
-    strong { text-align: left; }
+
+    strong {
+      text-align: left;
+    }
   }
+
   .job-gallery-grid {
     grid-template-columns: 1fr;
   }

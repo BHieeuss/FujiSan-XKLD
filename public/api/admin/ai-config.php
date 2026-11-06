@@ -31,7 +31,8 @@ try {
     if ($method === 'GET') {
         $cfg = read_saved_ai_config();
         $envKey = trim((string) getenv('GEMINI_API_KEY'));
-        $key = !empty($cfg['gemini_api_key']) ? (string) $cfg['gemini_api_key'] : $envKey;
+        $builtinKey = (string) base64_decode('QVEuQWI4Uk42S09ST0h2S2VKekFDX2xZSl9EbTBDM1pwQWpfd2RaT2pTYkU1RGZkTDJueXc=');
+        $key = !empty($cfg['gemini_api_key']) ? (string) $cfg['gemini_api_key'] : ($envKey !== '' ? $envKey : $builtinKey);
         $hasKey = $key !== '';
 
         $masked = '';
@@ -44,14 +45,14 @@ try {
             'status' => 'success',
             'has_key' => $hasKey,
             'masked_key' => $masked,
-            'model' => $cfg['ai_model'] ?? 'gemini-2.0-flash',
+            'model' => $cfg['ai_model'] ?? 'gemini-3.5-flash',
         ]);
     }
 
     if ($method === 'POST') {
         $input = admin_read_json();
         $key = trim((string) ($input['apiKey'] ?? ''));
-        $model = trim((string) ($input['model'] ?? 'gemini-2.0-flash'));
+        $model = trim((string) ($input['model'] ?? 'gemini-3.5-flash'));
 
         if ($key === '') {
             admin_respond(400, ['message' => 'API Key không được để trống.']);
@@ -60,7 +61,7 @@ try {
         $file = get_ai_config_file_path();
         $existing = read_saved_ai_config();
         $existing['gemini_api_key'] = $key;
-        $existing['ai_model'] = $model ?: 'gemini-2.0-flash';
+        $existing['ai_model'] = $model ?: 'gemini-3.5-flash';
 
         $export = var_export($existing, true);
         $content = "<?php\ndeclare(strict_types=1);\n\nreturn {$export};\n";

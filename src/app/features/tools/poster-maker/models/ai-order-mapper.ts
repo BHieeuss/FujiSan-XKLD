@@ -1,6 +1,25 @@
 import { RecruitmentPosterData } from '../poster-maker.model';
 import { AiStructuredOrder } from './ai-order-extraction.model';
 
+function isKnownDummyTemplateValue(val?: string | null): boolean {
+  if (!val) return true;
+  const normalized = val.trim().toUpperCase();
+  return (
+    normalized === 'TDTN21' ||
+    normalized === 'LINH KIỆN ĐIỆN TỬ' ||
+    normalized === 'FUKUSHIMA' ||
+    normalized.includes('LINH KIỆN ĐIỆN TỬ DÙNG TRONG Ô TÔ') ||
+    normalized.includes('1.049 YÊN/GIỜ') ||
+    normalized === 'TC059M' ||
+    normalized === 'TSUBAMA' ||
+    normalized === '20261120' ||
+    normalized === 'YAMAWA' ||
+    normalized === '20261027' ||
+    normalized === 'SANKOCHI' ||
+    normalized === 'TÊN ĐƠN HÀNG TUYỂN DỤNG'
+  );
+}
+
 /**
  * Ánh xạ (Map) dữ liệu AI trích xuất có cấu trúc sang RecruitmentPosterData của Form hiện tại.
  * Đảm bảo 100% khả năng tương thích và cho phép người dùng tùy ý chỉnh sửa lại trên form.
@@ -15,6 +34,15 @@ export function mapAiOrderToPosterData(
   const selection = aiOrder.selection;
   const departure = aiOrder.departure;
 
+  // Làm sạch existingPoster để không bị rò rỉ dữ liệu mẫu mặc định (dummy mock) vào đơn AI
+  const safeExistingOrderCode = isKnownDummyTemplateValue(existingPoster?.orderCode) ? '' : existingPoster?.orderCode;
+  const safeExistingTitle = isKnownDummyTemplateValue(existingPoster?.title) ? '' : existingPoster?.title;
+  const safeExistingLocation = isKnownDummyTemplateValue(existingPoster?.location) ? '' : existingPoster?.location;
+  const safeExistingDesc = isKnownDummyTemplateValue(existingPoster?.jobDescription) ? '' : existingPoster?.jobDescription;
+  const safeExistingSalary = isKnownDummyTemplateValue(existingPoster?.salary) ? '' : existingPoster?.salary;
+  const safeExistingInterview = existingPoster?.interviewDate === '2026-07-07' ? '' : existingPoster?.interviewDate;
+  const safeExistingDeparture = existingPoster?.departureDate === '12/2026' ? '' : existingPoster?.departureDate;
+
   // 1. Tên công ty tiêu đề
   const companyHeader =
     order.company.value ||
@@ -27,24 +55,26 @@ export function mapAiOrderToPosterData(
   const orderCode =
     order.order_code.value ||
     order.order_name.value ||
-    existingPoster?.orderCode ||
+    safeExistingOrderCode ||
     '';
 
   // 3. Tiêu đề công việc
   const title = (
     order.job_title.value ||
-    existingPoster?.title ||
+    order.order_name.value ||
+    safeExistingTitle ||
     'ĐƠN TUYỂN DỤNG NHẬT BẢN'
   ).toUpperCase();
 
   // 4. Nội dung công việc
   const jobDescription =
     order.job_description.value ||
-    existingPoster?.jobDescription ||
+    (order.job_title.value ? `Công việc: ${order.job_title.value}` : '') ||
+    safeExistingDesc ||
     'Nội dung công việc chi tiết theo thông báo đơn tuyển';
 
   // 5. Chuẩn hóa chuỗi Lương hiển thị
-  const salaryText = buildSalaryDisplayString(salary, existingPoster?.salary);
+  const salaryText = buildSalaryDisplayString(salary, safeExistingSalary);
 
   // 6. Quyền lợi và yêu cầu (mỗi dòng 1 gạch đầu dòng, tối ưu 3-4 dòng)
   const requirementsList: string[] = [];
@@ -102,8 +132,8 @@ export function mapAiOrderToPosterData(
   let location = 'NHẬT BẢN';
   if (order.work_location.value && order.work_location.value.length > 0) {
     location = order.work_location.value.join(', ').toUpperCase();
-  } else if (existingPoster?.location) {
-    location = existingPoster.location;
+  } else if (safeExistingLocation) {
+    location = safeExistingLocation;
   }
 
   // 8. Độ tuổi
@@ -119,13 +149,13 @@ export function mapAiOrderToPosterData(
   }
 
   // 9. Ngày phỏng vấn (YYYY-MM-DD)
-  let interviewDate = existingPoster?.interviewDate || '';
+  let interviewDate = safeExistingInterview || '';
   if (selection.interview_date.value) {
     interviewDate = normalizeDateToIso(selection.interview_date.value);
   }
 
   // 10. Thời gian xuất cảnh
-  let departureDate = departure.date.value || existingPoster?.departureDate || '';
+  let departureDate = departure.date.value || safeExistingDeparture || '';
   if (!departureDate) {
     departureDate = 'Dự kiến 4-6 tháng sau trúng tuyển';
   }
