@@ -101,6 +101,7 @@ try {
                 'idNumber' => $_POST['idNumber'] ?? '',
                 'birthDate' => $_POST['birthDate'] ?? '',
                 'address' => $_POST['address'] ?? '',
+                'progressPercent' => (int) ($_POST['progressPercent'] ?? 0),
                 'data' => !empty($_POST['data']) && is_string($_POST['data']) ? json_decode($_POST['data'], true) : [],
             ];
 

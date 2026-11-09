@@ -3,7 +3,7 @@
 <!-- ========================================================================= -->
 @if (showWizard) {
 <app-job-order-wizard [initialData]="wizardInitialData" [isEditing]="isEditingWizard" [editingId]="wizardEditingId"
-  (orderSaved)="onWizardOrderSaved($event)" (cancelled)="closeWizard()"></app-job-order-wizard>
+  (orderSaved)="onWizardOrderSaved($event)" (orderDeleted)="onWizardOrderDeleted($event)" (cancelled)="closeWizard()"></app-job-order-wizard>
 } @else if (selectedOrder) {
 <!-- ======================================================================= -->
 <!-- SUB-VIEW: CHI TIẾT ĐƠN HÀNG (FULL ADMIN TAB / DEDICATED VIEW)            -->
@@ -57,7 +57,7 @@
       }
 
       @if (canDelete()) {
-      <button type="button" class="btn btn-outline-danger" (click)="openDeleteConfirm(selectedOrder)"
+      <button type="button" class="btn btn-outline-danger" (click)="openDeleteConfirm(selectedOrder, $event)"
         title="Xóa đơn hàng">
         <i class="fas fa-trash-can"></i>
         <span>Xóa đơn</span>
@@ -178,64 +178,82 @@
           <strong class="info-val text-primary font-bold">{{ selectedOrder.orderCode || selectedOrder.id }}</strong>
         </div>
 
+        @if (selectedOrder.company) {
         <div class="info-item">
           <span class="info-label">Công ty tiếp nhận:</span>
-          <span class="info-val font-semibold">{{ selectedOrder.company || 'Đang cập nhật' }}</span>
+          <span class="info-val font-semibold">{{ selectedOrder.company }}</span>
         </div>
+        }
 
         <div class="info-item">
           <span class="info-label">Ngành nghề chính:</span>
           <span class="info-val"><i [class]="cat.icon" class="text-primary me-1"></i> {{ cat.label }}</span>
         </div>
 
+        @if (selectedOrder.location) {
         <div class="info-item">
           <span class="info-label">Địa điểm làm việc:</span>
           <span class="info-val font-semibold text-danger">
-            <i class="fas fa-location-dot"></i> {{ selectedOrder.location || 'Nhật Bản' }}
+            <i class="fas fa-location-dot"></i> {{ selectedOrder.location }}
           </span>
         </div>
+        }
 
+        @if (selectedOrder.quantity) {
         <div class="info-item">
           <span class="info-label">Số lượng tuyển dụng:</span>
-          <span class="info-val font-semibold">{{ selectedOrder.quantity || 'Không giới hạn' }}</span>
+          <span class="info-val font-semibold">{{ selectedOrder.quantity }}</span>
         </div>
+        }
 
+        @if (selectedOrder.gender) {
         <div class="info-item">
           <span class="info-label">Giới tính yêu cầu:</span>
-          <span class="info-val">{{ selectedOrder.gender || 'Nam/Nữ' }}</span>
+          <span class="info-val">{{ selectedOrder.gender }}</span>
         </div>
+        }
 
+        @if (selectedOrder.ageRange) {
         <div class="info-item">
           <span class="info-label">Độ tuổi tiếp nhận:</span>
-          <span class="info-val">{{ selectedOrder.ageRange || '18 - 35 tuổi' }}</span>
+          <span class="info-val">{{ selectedOrder.ageRange }}</span>
         </div>
+        }
 
+        @if (selectedOrder.education) {
         <div class="info-item">
           <span class="info-label">Trình độ văn hóa:</span>
-          <span class="info-val">{{ selectedOrder.education || 'Tốt nghiệp THPT trở lên' }}</span>
+          <span class="info-val">{{ selectedOrder.education }}</span>
         </div>
+        }
 
+        @if (selectedOrder.japaneseLevel) {
         <div class="info-item">
           <span class="info-label">Trình độ tiếng Nhật:</span>
-          <span class="info-val font-semibold text-primary">{{ selectedOrder.japaneseLevel || 'Không yêu cầu khi thi
-            tuyển' }}</span>
+          <span class="info-val font-semibold text-primary">{{ selectedOrder.japaneseLevel }}</span>
         </div>
+        }
 
+        @if (selectedOrder.contractTerm) {
         <div class="info-item">
           <span class="info-label">Thời hạn hợp đồng:</span>
-          <span class="info-val font-semibold">{{ selectedOrder.contractTerm || '3 năm (Có thể gia hạn)' }}</span>
+          <span class="info-val font-semibold">{{ selectedOrder.contractTerm }}</span>
         </div>
+        }
 
+        @if (selectedOrder.interviewDate) {
         <div class="info-item">
           <span class="info-label">Ngày phỏng vấn dự kiến:</span>
-          <span class="info-val text-primary font-semibold">{{ selectedOrder.interviewDate || 'Chưa ấn định' }}</span>
+          <span class="info-val text-primary font-semibold">{{ selectedOrder.interviewDate }}</span>
         </div>
+        }
 
+        @if (selectedOrder.departureMonth) {
         <div class="info-item">
           <span class="info-label">Dự kiến xuất cảnh:</span>
-          <span class="info-val text-info font-semibold">{{ selectedOrder.departureMonth || 'Theo tiến độ hồ sơ'
-            }}</span>
+          <span class="info-val text-info font-semibold">{{ selectedOrder.departureMonth }}</span>
         </div>
+        }
 
         <div class="info-item">
           <span class="info-label">Thời điểm tạo đơn:</span>
@@ -253,116 +271,152 @@
     <!-- TAB 2: CÔNG VIỆC & YÊU CẦU -->
     @if (detailActiveTab === 'work') {
     <div class="tab-panel animate-fade-in">
+      @if (selectedOrder.specificWork || selectedOrder.description) {
       <div class="detail-block">
         <h4 class="block-title"><i class="fas fa-hammer text-primary"></i> Công việc cụ thể</h4>
         <div class="block-content rich-text-preview">
-          {{ selectedOrder.specificWork || stripHtml(selectedOrder.description) || 'Chưa có thông tin công việc cụ thể.'
-          }}
+          {{ selectedOrder.specificWork || stripHtml(selectedOrder.description) }}
         </div>
       </div>
+      }
 
+      @if (selectedOrder.workEnvironment) {
       <div class="detail-block">
         <h4 class="block-title"><i class="fas fa-building text-primary"></i> Môi trường làm việc</h4>
         <div class="block-content">
-          {{ selectedOrder.workEnvironment || 'Nhà máy hiện đại, môi trường sạch sẽ, trang thiết bị an toàn đạt chuẩn
-          Nhật Bản.' }}
+          {{ selectedOrder.workEnvironment }}
         </div>
       </div>
+      }
 
+      @if (selectedOrder.workingHours || selectedOrder.holidays) {
       <div class="detail-block">
         <h4 class="block-title"><i class="fas fa-clock text-primary"></i> Thời gian làm việc & Ngày nghỉ</h4>
         <div class="info-grid-two">
+          @if (selectedOrder.workingHours) {
           <div class="info-item">
             <span class="info-label">Giờ làm việc:</span>
-            <span class="info-val">{{ selectedOrder.workingHours || '08:00 - 17:00 (Nghỉ trưa 60 phút)' }}</span>
+            <span class="info-val">{{ selectedOrder.workingHours }}</span>
           </div>
+          }
+          @if (selectedOrder.holidays) {
           <div class="info-item">
             <span class="info-label">Chế độ ngày nghỉ:</span>
-            <span class="info-val">{{ selectedOrder.holidays || 'Nghỉ Thứ 7, Chủ Nhật và các ngày Lễ theo lịch Nhật Bản'
-              }}</span>
+            <span class="info-val">{{ selectedOrder.holidays }}</span>
           </div>
+          }
         </div>
       </div>
+      }
 
+      @if (selectedOrder.experience || selectedOrder.healthRequirements) {
       <div class="detail-block">
         <h4 class="block-title"><i class="fas fa-clipboard-check text-primary"></i> Yêu cầu tuyển chọn khác</h4>
         <div class="info-grid-two">
+          @if (selectedOrder.experience) {
           <div class="info-item">
             <span class="info-label">Kinh nghiệm:</span>
-            <span class="info-val">{{ selectedOrder.experience || 'Không yêu cầu kinh nghiệm, tiếp nhận đào tạo bài bản'
-              }}</span>
+            <span class="info-val">{{ selectedOrder.experience }}</span>
           </div>
+          }
+          @if (selectedOrder.healthRequirements) {
           <div class="info-item">
             <span class="info-label">Yêu cầu sức khỏe:</span>
-            <span class="info-val">{{ selectedOrder.healthRequirements || 'Sức khỏe tốt, không mắc bệnh truyền nhiễm
-              theo quy định đi Nhật' }}</span>
+            <span class="info-val">{{ selectedOrder.healthRequirements }}</span>
           </div>
+          }
         </div>
       </div>
+      }
     </div>
     }
 
     <!-- TAB 3: LƯƠNG & PHÚC LỢI -->
     @if (detailActiveTab === 'salary') {
     <div class="tab-panel animate-fade-in">
+      @if (selectedOrder.basicSalary || selectedOrder.takeHomeSalary || selectedOrder.salary) {
       <div class="salary-highlight-card">
+        @if (selectedOrder.basicSalary || selectedOrder.salary) {
         <div class="salary-pair">
           <span class="salary-pair-label">LƯƠNG CƠ BẢN</span>
           <strong class="salary-pair-val text-primary">
-            {{ selectedOrder.basicSalary || selectedOrder.salary || 'Theo quy định vùng' }}
+            {{ selectedOrder.basicSalary || selectedOrder.salary }}
           </strong>
         </div>
+        }
+        @if ((selectedOrder.basicSalary || selectedOrder.salary) && selectedOrder.takeHomeSalary) {
         <div class="salary-pair-divider"></div>
+        }
+        @if (selectedOrder.takeHomeSalary) {
         <div class="salary-pair">
           <span class="salary-pair-label">LƯƠNG THỰC LĨNH TAY</span>
           <strong class="salary-pair-val text-success">
-            {{ selectedOrder.takeHomeSalary || selectedOrder.salary || 'Khoảng 140.000 - 180.000 Yên/tháng' }}
+            {{ selectedOrder.takeHomeSalary }}
           </strong>
         </div>
+        }
       </div>
+      }
 
+      @if (selectedOrder.overtime || selectedOrder.allowances || selectedOrder.bonus || selectedOrder.insurance || selectedOrder.accommodation || selectedOrder.meals || selectedOrder.transport || selectedOrder.otherBenefits) {
       <div class="info-grid-two mt-4">
+        @if (selectedOrder.overtime) {
         <div class="info-item">
           <span class="info-label">Làm thêm giờ (Tăng ca):</span>
-          <span class="info-val">{{ selectedOrder.overtime || 'Bình quân 20 - 40 giờ/tháng, tính 125% - 150% lương cơ
-            bản' }}</span>
+          <span class="info-val">{{ selectedOrder.overtime }}</span>
         </div>
+        }
 
+        @if (selectedOrder.allowances) {
         <div class="info-item">
           <span class="info-label">Các khoản phụ cấp:</span>
-          <span class="info-val">{{ selectedOrder.allowances || 'Phụ cấp ca kíp, chuyên cần, sinh hoạt phí tháng đầu'
-            }}</span>
+          <span class="info-val">{{ selectedOrder.allowances }}</span>
         </div>
+        }
 
+        @if (selectedOrder.bonus) {
         <div class="info-item">
           <span class="info-label">Thưởng & Tăng lương:</span>
-          <span class="info-val">{{ selectedOrder.bonus || 'Xét tăng lương theo năng suất hàng năm' }}</span>
+          <span class="info-val">{{ selectedOrder.bonus }}</span>
         </div>
+        }
 
+        @if (selectedOrder.insurance) {
         <div class="info-item">
           <span class="info-label">Chế độ bảo hiểm:</span>
-          <span class="info-val">{{ selectedOrder.insurance || 'Đầy đủ BH Y tế, Nenkin, Thất nghiệp, Tai nạn theo Luật
-            Nhật Bản' }}</span>
+          <span class="info-val">{{ selectedOrder.insurance }}</span>
         </div>
+        }
 
+        @if (selectedOrder.accommodation) {
         <div class="info-item">
           <span class="info-label">Ký túc xá / Nhà ở:</span>
-          <span class="info-val">{{ selectedOrder.accommodation || 'Ký túc xá đầy đủ điều hòa, máy giặt, bếp nấu, wifi'
-            }}</span>
+          <span class="info-val">{{ selectedOrder.accommodation }}</span>
         </div>
+        }
 
+        @if (selectedOrder.meals) {
         <div class="info-item">
-          <span class="info-label">Hỗ trợ ăn uống & Đi lại:</span>
-          <span class="info-val">{{ selectedOrder.meals || selectedOrder.transport || 'Cung cấp xe đạp hoặc hỗ trợ 100%
-            vé tàu điện' }}</span>
+          <span class="info-label">Hỗ trợ ăn uống:</span>
+          <span class="info-val">{{ selectedOrder.meals }}</span>
         </div>
+        }
 
+        @if (selectedOrder.transport) {
+        <div class="info-item">
+          <span class="info-label">Phương tiện đi lại:</span>
+          <span class="info-val">{{ selectedOrder.transport }}</span>
+        </div>
+        }
+
+        @if (selectedOrder.otherBenefits) {
         <div class="info-item field-full">
           <span class="info-label">Quyền lợi khác:</span>
-          <span class="info-val">{{ selectedOrder.otherBenefits || 'Hỗ trợ thủ tục hoàn thuế Nenkin khi hoàn thành hợp
-            đồng về nước' }}</span>
+          <span class="info-val">{{ selectedOrder.otherBenefits }}</span>
         </div>
+        }
       </div>
+      }
     </div>
     }
 
@@ -478,7 +532,7 @@
       }
 
       @if (canDelete()) {
-      <button type="button" class="btn btn-outline-danger" (click)="openDeleteConfirm(selectedOrder)">
+      <button type="button" class="btn btn-outline-danger" (click)="openDeleteConfirm(selectedOrder, $event)">
         <i class="fas fa-trash-can"></i>
         <span>Xóa đơn hàng</span>
       </button>
@@ -906,13 +960,6 @@
               <!-- THAO TÁC -->
               <td class="col-actions text-right" (click)="$event.stopPropagation()">
                 <div class="row-actions-group">
-                  <!-- Primary Action: Xem chi tiết -->
-                  <button type="button" class="btn-row-action btn-view" (click)="openDetailModal(order, $event)"
-                    title="Xem toàn bộ thông tin chi tiết đơn hàng">
-                    <i class="fas fa-eye"></i>
-                    <span class="action-label">Chi tiết</span>
-                  </button>
-
                   <!-- Edit Action -->
                   @if (canUpdate()) {
                   <button type="button" class="btn-row-action btn-edit" (click)="openEditWizard(order, $event)"
@@ -938,6 +985,12 @@
 
                     @if (activeDropdownId === order.id) {
                     <div class="dropdown-menu animate-fade-in" (click)="$event.stopPropagation()">
+                      <!-- Xem chi tiết đơn hàng -->
+                      <button type="button" class="dropdown-item" (click)="openDetailModal(order, $event); closeDropdowns()">
+                        <i class="fas fa-eye text-primary"></i>
+                        <span>Xem chi tiết đơn hàng</span>
+                      </button>
+
                       <!-- Xem trang web công khai -->
                       <a [href]="'/don-hang/' + order.id" target="_blank" class="dropdown-item"
                         (click)="closeDropdowns()">
@@ -1161,7 +1214,7 @@
 <!-- MODAL: XÁC NHẬN XÓA ĐƠN HÀNG AN TOÀN                                    -->
 <!-- ======================================================================= -->
 @if (showDeleteConfirmModal && orderToDelete) {
-<div class="modal-backdrop animate-fade-in" (click)="closeDeleteConfirm()">
+<div class="modal-backdrop animate-fade-in" (click)="onDeleteBackdropClick($event)">
   <div class="modal-dialog modal-sm delete-dialog animate-scale-up" (click)="$event.stopPropagation()">
     <div class="delete-icon-circle">
       <i class="fas fa-triangle-exclamation"></i>

@@ -9,6 +9,7 @@ import {
   RecruitmentPosterAssets,
   RecruitmentPosterData,
 } from '../../tools/poster-maker/poster-maker.model';
+import { AiStructuredOrder } from '../../tools/poster-maker/models/ai-order-extraction.model';
 
 const STORAGE_KEY = 'viejap_order_draft_transfer';
 const POSTER_PREVIEW_KEY = 'viejap_order_poster_preview';
@@ -41,41 +42,97 @@ export class JobOrderDraftTransferService {
     posterData: RecruitmentPosterData,
     assets?: RecruitmentPosterAssets,
     posterDataUrl?: string,
+    aiOrder?: AiStructuredOrder,
   ): JobOrderPayload {
     const category = this.detectCategory(posterData);
     const parsedSalary = this.parseSalary(posterData.salary || '');
 
+    // Trích xuất dữ liệu thực do AI quét nếu có (Chỉ lấy khi thực sự được nhận diện từ ảnh/tài liệu đơn hàng)
+    const scannedOvertime = aiOrder?.salary?.overtime?.value?.trim() || '';
+    const scannedBasicSalary =
+      (aiOrder?.salary?.basic?.value ? `${aiOrder.salary.basic.value.toLocaleString('vi-VN')} Yên/tháng` : '') ||
+      parsedSalary.basic ||
+      posterData.salary?.trim() ||
+      '';
+    const scannedTakeHome =
+      (aiOrder?.salary?.take_home?.value ? `${aiOrder.salary.take_home.value.toLocaleString('vi-VN')} Yên/tháng` : '') ||
+      parsedSalary.takeHome ||
+      '';
+    const scannedCompany =
+      aiOrder?.order?.company?.value?.trim() ||
+      aiOrder?.order?.receiving_company?.value?.trim() ||
+      (posterData.companyHeader && !posterData.companyHeader.includes('VIEJAP') ? posterData.companyHeader.trim() : '');
+    const scannedJobType = aiOrder?.order?.job_title?.value?.trim() || '';
+    const scannedQuantity =
+      aiOrder?.recruitment?.quantity?.value !== null && aiOrder?.recruitment?.quantity?.value !== undefined
+        ? String(aiOrder.recruitment.quantity.value)
+        : posterData.quantity?.trim() || '';
+    const scannedGender =
+      aiOrder?.recruitment?.gender?.value === 'male'
+        ? 'Nam'
+        : aiOrder?.recruitment?.gender?.value === 'female'
+        ? 'Nữ'
+        : aiOrder?.recruitment?.gender?.value === 'both'
+        ? 'Nam/Nữ'
+        : posterData.gender?.trim() || 'Nam/Nữ';
+
+    // Rà soát các ghi chú (notes) thực tế trích xuất được từ đơn
+    const aiNotes = aiOrder?.notes || [];
+    const findNote = (keywords: string[]): string => {
+      const found = aiNotes.find((n) => keywords.some((k) => n.toLowerCase().includes(k.toLowerCase())));
+      return found?.trim() || '';
+    };
+
+    const scannedMeals = findNote(['ăn', 'cơm', 'bữa ăn', 'suất ăn', 'nhà ăn']);
+    const scannedHousing =
+      (aiOrder?.salary?.housing?.value ? `Tiền nhà: ${aiOrder.salary.housing.value.toLocaleString('vi-VN')} Yên/tháng` : '') ||
+      findNote(['ký túc xá', 'ktx', 'nhà ở', 'phòng ở', 'thuê nhà']);
+    const scannedInsurance =
+      (aiOrder?.salary?.insurance?.value ? `Bảo hiểm: ${aiOrder.salary.insurance.value.toLocaleString('vi-VN')} Yên/tháng` : '') ||
+      findNote(['bảo hiểm', 'bh y tế', 'nenkin']);
+    const scannedBonus = findNote(['thưởng', 'tăng lương', 'năng suất']);
+    const scannedAllowances = findNote(['trợ cấp', 'phụ cấp']);
+    const scannedTransport = findNote(['xe đạp', 'tàu điện', 'đi lại', 'xe buýt']);
+    const scannedHours = findNote(['giờ làm', 'ca làm', '08:', '07:', '09:']);
+    const scannedHolidays = findNote(['ngày nghỉ', 'thứ 7', 'chủ nhật', 'lễ']);
+    const scannedWorkEnv = findNote(['môi trường', 'nhà xưởng', 'ngoài trời', 'xưởng']);
+
     const draft: JobOrderPayload = {
       ...createEmptyJobOrder(),
-      title: posterData.title?.trim() || `Đơn tuyển dụng ${posterData.location || 'Nhật Bản'}`,
+      title: posterData.title?.trim() || (posterData.location ? `Đơn tuyển dụng ${posterData.location}` : ''),
       category,
-      orderCode: posterData.orderCode?.trim() || '',
-      location: posterData.location?.trim() || 'Nhật Bản',
+      orderCode: posterData.orderCode?.trim() || aiOrder?.order?.order_code?.value?.trim() || '',
+      location: posterData.location?.trim() || aiOrder?.order?.work_location?.value?.join(', ') || '',
       salary: posterData.salary?.trim() || '',
-      basicSalary: parsedSalary.basic || posterData.salary?.trim() || '',
-      takeHomeSalary: parsedSalary.takeHome || '',
-      ageRange: posterData.ageRange?.trim() || '18 - 35 tuổi',
-      description: posterData.jobDescription?.trim() || '',
-      specificWork: posterData.jobDescription?.trim() || '',
+      basicSalary: scannedBasicSalary,
+      takeHomeSalary: scannedTakeHome,
+      ageRange: posterData.ageRange?.trim() || '',
+      description: posterData.jobDescription?.trim() || aiOrder?.order?.job_description?.value?.trim() || '',
+      specificWork: posterData.jobDescription?.trim() || aiOrder?.order?.job_description?.value?.trim() || '',
       requirements: posterData.requirements?.trim() || '',
       interviewDate: posterData.interviewDate?.trim() || '',
       departureMonth: posterData.departureDate?.trim() || '',
-      company: '',
+      company: scannedCompany,
+      jobType: scannedJobType,
+      quantity: scannedQuantity,
+      gender: scannedGender,
       status: 'draft',
       isFeatured: false,
-      workEnvironment: this.suggestWorkEnvironment(category),
-      workingHours: '08:00 - 17:00 (Nghỉ trưa 60 phút, có tăng ca 20 - 40h/tháng)',
-      holidays: 'Nghỉ Thứ 7, Chủ Nhật và các ngày Lễ theo lịch Nhật Bản (105-115 ngày/năm)',
-      experience: 'Không yêu cầu kinh nghiệm, tiếp nhận đào tạo bài bản từ đầu',
-      healthRequirements: 'Sức khỏe tốt, không mắc bệnh truyền nhiễm, thị lực tốt, không mù màu',
-      overtime: 'Nhiều việc làm thêm, bình quân 25 - 40 giờ/tháng, nhân hệ số 125% - 150%',
-      allowances: 'Trợ cấp đào tạo tháng đầu 60.000 Yên, phụ cấp ca kíp, chuyên cần',
-      bonus: 'Xét tăng lương hàng năm, thưởng theo năng suất làm việc',
-      insurance: 'Đầy đủ BH Y tế, Nenkin hưu trí, Tai nạn lao động, Thất nghiệp theo Luật Nhật Bản',
-      accommodation: 'Ký túc xá đầy đủ tiện nghi: điều hòa, máy giặt, bếp nấu, wifi, gần công ty',
-      meals: 'Bếp tự nấu ăn tại KTX, hỗ trợ bữa ăn ca tại nhà máy',
-      transport: 'Cung cấp xe đạp hoặc hỗ trợ 100% vé tháng tàu điện',
-      otherBenefits: 'Hỗ trợ thủ tục hoàn thuế Nenkin khi hết hạn hợp đồng về nước',
+
+      // NẾU KHÔNG CÓ DỮ LIỆU DO AI QUÉT TỪ ĐƠN THỰC THÌ ĐỂ TRỐNG HOÀN TOÀN ĐỂ QUẢN TRỊ TỰ NHẬP:
+      workEnvironment: scannedWorkEnv,
+      workingHours: scannedHours,
+      holidays: scannedHolidays,
+      experience: '',
+      healthRequirements: '',
+      overtime: scannedOvertime,
+      allowances: scannedAllowances,
+      bonus: scannedBonus,
+      insurance: scannedInsurance,
+      accommodation: scannedHousing,
+      meals: scannedMeals,
+      transport: scannedTransport,
+      otherBenefits: '',
       postTemplateId: this.suggestTemplateId(category),
       galleryImages: this.extractGalleryImages(assets),
       imageUrl: assets?.primaryPhotoSrc || '',
@@ -268,9 +325,15 @@ export class JobOrderDraftTransferService {
   private extractGalleryImages(assets?: RecruitmentPosterAssets): string[] {
     if (!assets) return [];
     const list: string[] = [];
-    if (assets.primaryPhotoSrc) list.push(assets.primaryPhotoSrc);
-    if (assets.secondaryPhotoSrc) list.push(assets.secondaryPhotoSrc);
-    if (assets.tertiaryPhotoSrc) list.push(assets.tertiaryPhotoSrc);
+    const candidates = [assets.secondaryPhotoSrc, assets.tertiaryPhotoSrc, assets.primaryPhotoSrc].filter(
+      (src): src is string => Boolean(src && typeof src === 'string' && src.trim())
+    );
+    for (const src of candidates) {
+      if (!list.includes(src)) {
+        list.push(src);
+      }
+      if (list.length >= 2) break;
+    }
     return list;
   }
 }

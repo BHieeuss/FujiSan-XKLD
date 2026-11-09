@@ -246,10 +246,76 @@ export class StudentProfilesAdminService {
     };
   }
 
+  async deleteFile(
+    profileId: string,
+    fileId: string,
+  ): Promise<{ profile: StudentProfileDetail; message: string }> {
+    const csrfToken = this.auth.session()?.csrfToken;
+    if (!csrfToken) {
+      throw new AdminApiError('Phiên đăng nhập đã hết hạn.', 401);
+    }
+
+    const res = await this.request(
+      `${this.endpoint}?action=delete-file&profile_id=${encodeURIComponent(
+        profileId,
+      )}&file_id=${encodeURIComponent(fileId)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ profileId, fileId }),
+      },
+    );
+
+    return {
+      profile: res['profile'] as StudentProfileDetail,
+      message: (res['message'] as string) || 'Đã xóa tệp tin thành công.',
+    };
+  }
+
   getDownloadUrl(profileId: string, fileId: string): string {
     return `${this.endpoint}?action=download-file&profile_id=${encodeURIComponent(
       profileId,
     )}&file_id=${encodeURIComponent(fileId)}`;
+  }
+
+  async createSupplementCode(profileId: string): Promise<{
+    success: boolean;
+    code: string;
+    codeId: string;
+    studentName: string;
+    studentCode: string;
+    expiresAt: string;
+    directUrl: string;
+    message: string;
+  }> {
+    const csrfToken = this.auth.session()?.csrfToken;
+    if (!csrfToken) {
+      throw new AdminApiError('Phiên đăng nhập đã hết hạn.', 401);
+    }
+    const res = await this.request(
+      `${this.endpoint}?action=create-supplement-code&id=${encodeURIComponent(profileId)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ profileId }),
+      },
+    );
+    return res as unknown as {
+      success: boolean;
+      code: string;
+      codeId: string;
+      studentName: string;
+      studentCode: string;
+      expiresAt: string;
+      directUrl: string;
+      message: string;
+    };
   }
 
   async fetchFileBlob(profileId: string, fileId: string): Promise<Blob> {

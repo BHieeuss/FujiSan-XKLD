@@ -386,17 +386,21 @@
               </div>
             </fieldset>
 
-            <!-- NHÓM 4: ẢNH MINH HỌA ĐƠN HÀNG -->
+            <!-- NHÓM 4: ẢNH MINH HỌA ĐƠN HÀNG (BẮT BUỘC) -->
             <fieldset class="form-section">
-              <legend class="section-legend">4. Hình ảnh minh họa đơn hàng</legend>
-              <p class="section-subtext">Đã chọn sẵn ảnh mẫu chuẩn. Nhấp "Đổi ảnh" nếu bạn muốn tải ảnh thực tế từ thiết bị.</p>
+              <legend class="section-legend">
+                <i class="fas fa-images me-1 text-primary"></i> 4. Hình ảnh minh họa đơn hàng (Bắt buộc)
+              </legend>
+              <p class="section-subtext">
+                Hệ thống tự động thêm sẵn: <strong>Ảnh 1</strong>, <strong>Ảnh 2</strong><ng-container *ngIf="is3PhotoTemplate">, <strong>Ảnh 3</strong></ng-container>. Bạn có thể bấm "Đổi ảnh" nếu muốn thay bằng ảnh thực tế từ thiết bị.
+              </p>
               
               <div class="photo-slots-grid" [class.three-slots]="is3PhotoTemplate">
                 <!-- Ảnh 1 -->
-                <div class="photo-slot-card">
-                  <img [src]="stagedAssets?.primaryPhotoSrc || 'assets/images/KySu/1.png'" class="slot-thumb" alt="Ảnh 1" />
+                <div class="photo-slot-card" [class.empty]="!stagedAssets?.primaryPhotoSrc">
+                  <img [src]="stagedAssets?.primaryPhotoSrc || defaultPhotos.primaryPhotoSrc" class="slot-thumb" alt="Ảnh 1" />
                   <div class="slot-info">
-                    <span class="slot-name">Ảnh 1: Công việc</span>
+                    <span class="slot-name"><i class="fas fa-image me-1"></i> Ảnh 1 <span class="badge-required">Bắt buộc</span></span>
                     <label class="btn-slot-upload">
                       <i class="fas fa-camera me-1"></i> Đổi ảnh
                       <input type="file" accept="image/png,image/jpeg,image/webp" class="d-none" (change)="onLocalBatchFileSelected($event, 'primary')" />
@@ -405,10 +409,10 @@
                 </div>
 
                 <!-- Ảnh 2 -->
-                <div class="photo-slot-card">
-                  <img [src]="stagedAssets?.secondaryPhotoSrc || 'assets/images/KySu/2.png'" class="slot-thumb" alt="Ảnh 2" />
+                <div class="photo-slot-card" [class.empty]="!stagedAssets?.secondaryPhotoSrc">
+                  <img [src]="stagedAssets?.secondaryPhotoSrc || defaultPhotos.secondaryPhotoSrc" class="slot-thumb" alt="Ảnh 2" />
                   <div class="slot-info">
-                    <span class="slot-name">Ảnh 2: Môi trường</span>
+                    <span class="slot-name"><i class="fas fa-image me-1"></i> Ảnh 2 <span class="badge-required">Bắt buộc</span></span>
                     <label class="btn-slot-upload">
                       <i class="fas fa-camera me-1"></i> Đổi ảnh
                       <input type="file" accept="image/png,image/jpeg,image/webp" class="d-none" (change)="onLocalBatchFileSelected($event, 'secondary')" />
@@ -417,10 +421,10 @@
                 </div>
 
                 <!-- Ảnh 3 (nếu là mẫu 3 ảnh) -->
-                <div class="photo-slot-card" *ngIf="is3PhotoTemplate">
-                  <img [src]="stagedAssets?.tertiaryPhotoSrc || 'assets/images/KySu/3.png'" class="slot-thumb" alt="Ảnh 3" />
+                <div class="photo-slot-card" *ngIf="is3PhotoTemplate" [class.empty]="!stagedAssets?.tertiaryPhotoSrc">
+                  <img [src]="stagedAssets?.tertiaryPhotoSrc || defaultPhotos.tertiaryPhotoSrc" class="slot-thumb" alt="Ảnh 3" />
                   <div class="slot-info">
-                    <span class="slot-name">Ảnh 3: Hoạt động</span>
+                    <span class="slot-name"><i class="fas fa-image me-1"></i> Ảnh 3 <span class="badge-required">Bắt buộc</span></span>
                     <label class="btn-slot-upload">
                       <i class="fas fa-camera me-1"></i> Đổi ảnh
                       <input type="file" accept="image/png,image/jpeg,image/webp" class="d-none" (change)="onLocalBatchFileSelected($event, 'tertiary')" />

@@ -238,79 +238,19 @@ export class JobOrderDetailPage implements OnInit, OnDestroy {
   }
 
   orderLocation(order?: JobOrder): string {
-    if (!order) return 'Nhật Bản';
-    if (order.location && order.location.trim()) {
-      return `${order.location.trim()} - Nhật Bản`;
-    }
-    const text = `${order.title || ''} ${order.description || ''}`;
-    const cities = [
-      'Tokyo', 'Chiba', 'Aichi', 'Kagoshima', 'Osaka', 'Kanagawa',
-      'Saitama', 'Fukuoka', 'Hiroshima', 'Shizuoka', 'Hyogo', 'Kyoto',
-      'Ibaraki', 'Gunma', 'Mie', 'Gifu', 'Tochigi', 'Nagano', 'Okayama', 'Fukushima'
-    ];
-    for (const city of cities) {
-      if (new RegExp(`\\b${city}\\b`, 'i').test(text)) {
-        return `${city} - Nhật Bản`;
-      }
-    }
-    const defaults: Record<JobOrderCategory, string> = {
-      'nong-nghiep': 'Kagoshima - Nhật Bản',
-      'thuc-pham': 'Chiba - Nhật Bản',
-      'co-khi': 'Aichi - Nhật Bản',
-      'xay-dung': 'Tokyo - Nhật Bản',
-      'dien-tu': 'Osaka - Nhật Bản',
-      'khac': 'Fukuoka - Nhật Bản',
-      'ky-su': 'Tokyo - Nhật Bản',
-      'tokutei': 'Aichi - Nhật Bản',
-      'thuc-tap-sinh': 'Chiba - Nhật Bản',
-      'du-hoc': 'Osaka - Nhật Bản',
-    };
-    return defaults[order.category] || 'Chiba - Nhật Bản';
+    if (!order || !order.location || !order.location.trim()) return '';
+    const loc = order.location.trim();
+    if (loc.toLowerCase().includes('nhật bản')) return loc;
+    return `${loc} - Nhật Bản`;
   }
 
   orderLocationDescription(order?: JobOrder): string {
-    const loc = this.orderLocation(order).split(' - ')[0];
-    const map: Record<string, string> = {
-      Chiba: 'Tỉnh Chiba nằm giáp ranh thủ đô Tokyo, là trung tâm công nghiệp chế biến và logistics hàng đầu Nhật Bản với khí hậu ôn hòa và cộng đồng người Việt đông đảo.',
-      Tokyo: 'Thủ đô Tokyo là trung tâm kinh tế, khoa học và xây dựng sôi động nhất nước Nhật với mức lương cơ bản cao nhất toàn quốc và tiện ích công cộng hiện đại bậc nhất.',
-      Aichi: 'Tỉnh Aichi (thủ phủ Nagoya) là cái nôi công nghiệp cơ khí chế tạo và tự động hóa của Nhật Bản, tập trung nhiều xí nghiệp danh tiếng với thu nhập tăng ca hấp dẫn.',
-      Kagoshima: 'Tỉnh Kagoshima thuộc vùng Kyushu có khí hậu ấm áp quanh năm, môi trường sống thanh bình, chi phí sinh hoạt thấp và nền nông nghiệp công nghệ cao phát triển mạnh.',
-      Osaka: 'Thành phố Osaka là trung tâm giao thương lớn thứ hai Nhật Bản, con người thân thiện, ẩm thực phong phú và chi phí sinh hoạt vừa phải hơn Tokyo.',
-      Fukushima: 'Tỉnh Fukushima có nền công nghiệp sản xuất linh kiện điện tử và ô tô hiện đại, nhiều chính sách trợ cấp sinh hoạt thiết thực cho lao động nước ngoài.',
-    };
-    return (
-      map[loc] ||
-      `Khu vực ${loc} có môi trường sống an toàn, văn minh, hệ thống tàu điện thuận tiện và chi phí sinh hoạt hợp lý cho lao động nước ngoài.`
-    );
+    return '';
   }
 
   orderSalary(order?: JobOrder): string {
-    if (!order) return '175.000 ~ 210.000 Yên/tháng';
-    let val = (order.basicSalary || order.salary || '').trim();
-    if (val) {
-      val = val.replace(/\s*\([^)]*(?:triệu|vnđ|vnd|đồng)[^)]*\)/gi, '').trim();
-      if (val.match(/(?:yên|¥|man|vạn)/i)) {
-        return val;
-      }
-    }
-    const text = order.description || '';
-    const matchYen = text.match(/(\d{1,3}(?:[.,]\d{3})*|\d+[\s–-]+\d+)\s*(?:yên|¥|man|vạn)(?:\/tháng)?/i);
-    if (matchYen) {
-      return matchYen[0].trim();
-    }
-    const defaults: Record<JobOrderCategory, string> = {
-      'nong-nghiep': '165.000 ~ 180.000 Yên/tháng',
-      'thuc-pham': '175.000 ~ 195.000 Yên/tháng',
-      'co-khi': '190.000 ~ 230.000 Yên/tháng',
-      'xay-dung': '185.000 ~ 220.000 Yên/tháng',
-      'dien-tu': '170.000 ~ 195.000 Yên/tháng',
-      'khac': '165.000 ~ 185.000 Yên/tháng',
-      'ky-su': '220.000 ~ 300.000 Yên/tháng',
-      'tokutei': '195.000 ~ 250.000 Yên/tháng',
-      'thuc-tap-sinh': '170.000 ~ 195.000 Yên/tháng',
-      'du-hoc': '120.000 ~ 150.000 Yên/tháng',
-    };
-    return defaults[order.category] || '175.000 ~ 200.000 Yên/tháng';
+    if (!order) return '';
+    return (order.basicSalary || order.salary || '').trim();
   }
 
   orderSalaryYen(order?: JobOrder): string {
@@ -318,69 +258,49 @@ export class JobOrderDetailPage implements OnInit, OnDestroy {
   }
 
   orderDuration(order?: JobOrder): string {
-    if (!order) return '3 năm';
-    const text = order.description || '';
-    const match = text.match(/([1-5]\s*năm)/i);
-    if (match) return match[1].trim();
-    if (order.category === 'tokutei') return '5 năm';
-    if (order.category === 'ky-su') return 'Dài hạn (Gia hạn tự do)';
-    return '3 năm (Có thể gia hạn Tokutei)';
+    if (!order || !order.contractTerm || !order.contractTerm.trim()) return '';
+    return order.contractTerm.trim();
   }
 
   orderDeparture(order?: JobOrder): string {
-    if (!order) return 'Dự kiến 2025';
-    if (order.departureMonth && order.departureMonth.trim()) {
-      return `Dự kiến ${order.departureMonth.trim()}`;
-    }
-    const text = order.description || '';
-    const match = text.match(/(202[5-7])/);
-    if (match) return `Dự kiến ${match[1]}`;
-    return 'Dự kiến 2025 - 2026';
+    if (!order || !order.departureMonth || !order.departureMonth.trim()) return '';
+    const dep = order.departureMonth.trim();
+    if (dep.toLowerCase().startsWith('dự kiến')) return dep;
+    return `Dự kiến ${dep}`;
   }
 
   orderAge(order?: JobOrder): string {
-    if (!order) return '18 - 35 tuổi';
-    if (order.ageRange && order.ageRange.trim()) return order.ageRange.trim();
-    const text = order.description || '';
-    const match = text.match(/(\d{2}\s*[-–]\s*\d{2})\s*tuổi?/i);
-    if (match) return `${match[1]} tuổi`;
-    return '18 - 32 tuổi (Nam / Nữ)';
+    if (!order || !order.ageRange || !order.ageRange.trim()) return '';
+    return order.ageRange.trim();
   }
 
   orderGender(order?: JobOrder): string {
-    if (!order) return 'Nam hoặc Nữ';
-    const text = `${order.title || ''} ${order.description || ''}`.toLowerCase();
-    if (text.includes('ưu tiên nữ') || text.includes('phù hợp với nữ')) return 'Ưu tiên Nữ';
-    if (text.includes('ưu tiên nam') || text.includes('dành cho nam')) return 'Ưu tiên Nam';
-    if (order.category === 'co-khi' || order.category === 'xay-dung') return 'Nam';
-    if (order.category === 'thuc-pham' || order.category === 'nong-nghiep') return 'Nam hoặc Nữ';
-    return 'Nam hoặc Nữ';
+    if (!order || !order.gender || !order.gender.trim()) return '';
+    return order.gender.trim();
   }
 
   orderEducation(order?: JobOrder): string {
-    if (!order) return 'Tốt nghiệp THPT trở lên';
-    const text = `${order.requirements || ''} ${order.description || ''}`.toLowerCase();
-    if (text.includes('cấp 2')) return 'Tốt nghiệp THCS (Cấp 2) trở lên';
-    if (text.includes('trung cấp') || text.includes('cao đẳng') || text.includes('đại học')) {
-      return 'Tốt nghiệp Trung cấp / Cao đẳng / Đại học';
-    }
-    return 'Tốt nghiệp THPT (Cấp 3) trở lên';
+    if (!order || !order.education || !order.education.trim()) return '';
+    return order.education.trim();
   }
 
   orderExperience(order?: JobOrder): string {
-    if (!order) return 'Không yêu cầu (Được đào tạo từ đầu)';
-    const text = `${order.requirements || ''} ${order.description || ''}`.toLowerCase();
-    if (text.includes('không có kinh nghiệm') || text.includes('được đào tạo')) {
-      return 'Không yêu cầu (Được đào tạo tay nghề miễn phí)';
-    }
-    if (text.includes('có kinh nghiệm') || text.includes('tay nghề')) {
-      return 'Ưu tiên người đã có tay nghề hoặc kinh nghiệm thực tế';
-    }
-    return 'Không yêu cầu (Được đào tạo bài bản từ đầu)';
+    if (!order || !order.experience || !order.experience.trim()) return '';
+    return order.experience.trim();
   }
 
   orderQuantity(order?: JobOrder): string {
-    return '09 - 15 chỉ tiêu / đợt tuyển';
+    if (!order || !order.quantity || !order.quantity.trim()) return '';
+    return order.quantity.trim();
+  }
+
+  get galleryImages(): string[] {
+    if (!this.order?.galleryImages || !Array.isArray(this.order.galleryImages)) {
+      return [];
+    }
+    return this.order.galleryImages
+      .filter((src) => Boolean(src && typeof src === 'string' && src.trim()))
+      .slice(0, 2);
   }
 
   get displayImageUrl(): string {

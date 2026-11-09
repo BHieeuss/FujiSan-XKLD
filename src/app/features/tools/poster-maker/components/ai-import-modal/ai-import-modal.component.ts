@@ -8,7 +8,12 @@ import {
 } from '../../models/ai-order-extraction.model';
 import { mapAiOrderToPosterData } from '../../models/ai-order-mapper';
 import { PosterTemplateDefinition, TemplateId } from '../../models/poster-template.model';
-import { RecruitmentPosterAssets, RecruitmentPosterData } from '../../poster-maker.model';
+import {
+  createDefaultPosterAssets,
+  getDefaultPosterPhotos,
+  RecruitmentPosterAssets,
+  RecruitmentPosterData,
+} from '../../poster-maker.model';
 import { exportPosterAsBlob, renderRecruitmentPoster } from '../../poster-renderer';
 import { AiOrderExtractorService } from '../../services/ai-order-extractor.service';
 import { AiPosterQaService, MAX_AUTO_RETRY, PosterQaReport } from '../../services/ai-poster-qa.service';
@@ -34,12 +39,14 @@ export class AiImportModalComponent implements OnInit {
     data: RecruitmentPosterData;
     assets: RecruitmentPosterAssets;
     templateId: TemplateId;
+    aiOrder?: AiStructuredOrder;
   }>();
 
   @Output() createWebsiteOrder = new EventEmitter<{
     data: RecruitmentPosterData;
     assets: RecruitmentPosterAssets;
     templateId: TemplateId;
+    aiOrder?: AiStructuredOrder;
   }>();
 
   @Output() modalClosed = new EventEmitter<void>();
@@ -336,6 +343,30 @@ export class AiImportModalComponent implements OnInit {
     return (tpl?.recommendedPhotoCount ?? 2) === 3;
   }
 
+  get defaultPhotos(): {
+    primaryPhotoSrc: string;
+    secondaryPhotoSrc: string;
+    tertiaryPhotoSrc: string;
+  } {
+    return getDefaultPosterPhotos(this.stagedPosterData?.category || this.currentPosterData?.category);
+  }
+
+  get requiredPhotoCount(): number {
+    return this.is3PhotoTemplate ? 3 : 2;
+  }
+
+  get hasAllRequiredPhotos(): boolean {
+    if (!this.stagedAssets) return false;
+    if (this.is3PhotoTemplate) {
+      return Boolean(
+        this.stagedAssets.primaryPhotoSrc &&
+        this.stagedAssets.secondaryPhotoSrc &&
+        this.stagedAssets.tertiaryPhotoSrc
+      );
+    }
+    return Boolean(this.stagedAssets.primaryPhotoSrc && this.stagedAssets.secondaryPhotoSrc);
+  }
+
   assignPhotoPathToSlot(slot: 'primary' | 'secondary' | 'tertiary', path: string): void {
     this.assembleStagedAssets();
     if (!this.stagedAssets) return;
@@ -368,13 +399,11 @@ export class AiImportModalComponent implements OnInit {
       return;
     }
     this.assembleStagedAssets();
-    const assets = this.stagedAssets || {
-      logoSrc: 'assets/images/logo.png',
-      backgroundSrc: 'assets/images/poster/fuji-sakura-background.jpg',
-      primaryPhotoSrc: 'assets/images/KySu/1.png',
-      secondaryPhotoSrc: 'assets/images/KySu/2.png',
-      tertiaryPhotoSrc: 'assets/images/KySu/3.png',
-    };
+    if (!this.hasAllRequiredPhotos) {
+      alert(`Vui lòng cung cấp đủ ${this.requiredPhotoCount} ảnh bắt buộc (Ảnh 1, Ảnh 2...) trước khi tiếp tục.`);
+      return;
+    }
+    const assets = this.stagedAssets!;
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem(
         'viejap_applied_poster',
@@ -382,6 +411,7 @@ export class AiImportModalComponent implements OnInit {
           data: this.stagedPosterData,
           assets,
           templateId: this.selectedTemplateId,
+          aiOrder: this.extractedOrder,
         })
       );
     }
@@ -389,6 +419,7 @@ export class AiImportModalComponent implements OnInit {
       data: this.stagedPosterData,
       assets,
       templateId: this.selectedTemplateId,
+      aiOrder: this.extractedOrder,
     });
     if (this.isPageMode) {
       this.router.navigate(['/quan-tri-viejap'], { queryParams: { section: 'poster' } });
@@ -400,13 +431,11 @@ export class AiImportModalComponent implements OnInit {
       return;
     }
     this.assembleStagedAssets();
-    const assets = this.stagedAssets || {
-      logoSrc: 'assets/images/logo.png',
-      backgroundSrc: 'assets/images/poster/fuji-sakura-background.jpg',
-      primaryPhotoSrc: 'assets/images/KySu/1.png',
-      secondaryPhotoSrc: 'assets/images/KySu/2.png',
-      tertiaryPhotoSrc: 'assets/images/KySu/3.png',
-    };
+    if (!this.hasAllRequiredPhotos) {
+      alert(`Vui lòng cung cấp đủ ${this.requiredPhotoCount} ảnh bắt buộc (Ảnh 1, Ảnh 2...) trước khi tiếp tục.`);
+      return;
+    }
+    const assets = this.stagedAssets!;
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem(
         'viejap_applied_poster',
@@ -414,6 +443,7 @@ export class AiImportModalComponent implements OnInit {
           data: this.stagedPosterData,
           assets,
           templateId: this.selectedTemplateId,
+          aiOrder: this.extractedOrder,
         })
       );
     }
@@ -421,6 +451,7 @@ export class AiImportModalComponent implements OnInit {
       data: this.stagedPosterData,
       assets,
       templateId: this.selectedTemplateId,
+      aiOrder: this.extractedOrder,
     });
     if (this.isPageMode) {
       this.router.navigate(['/quan-tri-viejap'], {
@@ -430,8 +461,12 @@ export class AiImportModalComponent implements OnInit {
   }
 
   async proceedToQaAndPreview(): Promise<void> {
-    this.currentStep = 'qa_preview';
     this.assembleStagedAssets();
+    if (!this.hasAllRequiredPhotos) {
+      alert(`Vui lòng cung cấp đủ ${this.requiredPhotoCount} ảnh bắt buộc (Ảnh 1, Ảnh 2...) trước khi xem trước.`);
+      return;
+    }
+    this.currentStep = 'qa_preview';
     this.scrollToFocusArea();
 
     setTimeout(() => {
@@ -440,13 +475,19 @@ export class AiImportModalComponent implements OnInit {
   }
 
   assembleStagedAssets(): void {
+    const defaults = createDefaultPosterAssets(
+      this.stagedPosterData?.category || this.currentPosterData?.category
+    );
     this.stagedAssets = {
-      logoSrc: this.stagedAssets?.logoSrc || this.currentAssets?.logoSrc || 'assets/images/logo.png',
+      logoSrc: this.stagedAssets?.logoSrc || this.currentAssets?.logoSrc || defaults.logoSrc,
       backgroundSrc:
-        this.stagedAssets?.backgroundSrc || this.currentAssets?.backgroundSrc || 'assets/images/poster/fuji-sakura-background.jpg',
-      primaryPhotoSrc: this.stagedAssets?.primaryPhotoSrc || this.currentAssets?.primaryPhotoSrc || 'assets/images/KySu/1.png',
-      secondaryPhotoSrc: this.stagedAssets?.secondaryPhotoSrc || this.currentAssets?.secondaryPhotoSrc || 'assets/images/KySu/2.png',
-      tertiaryPhotoSrc: this.stagedAssets?.tertiaryPhotoSrc || this.currentAssets?.tertiaryPhotoSrc || 'assets/images/KySu/3.png',
+        this.stagedAssets?.backgroundSrc || this.currentAssets?.backgroundSrc || defaults.backgroundSrc,
+      primaryPhotoSrc:
+        this.stagedAssets?.primaryPhotoSrc || this.currentAssets?.primaryPhotoSrc || defaults.primaryPhotoSrc,
+      secondaryPhotoSrc:
+        this.stagedAssets?.secondaryPhotoSrc || this.currentAssets?.secondaryPhotoSrc || defaults.secondaryPhotoSrc,
+      tertiaryPhotoSrc:
+        this.stagedAssets?.tertiaryPhotoSrc || this.currentAssets?.tertiaryPhotoSrc || defaults.tertiaryPhotoSrc,
     };
   }
 
@@ -494,6 +535,11 @@ export class AiImportModalComponent implements OnInit {
   async downloadDirectly(format: 'png' | 'jpg' | 'pdf'): Promise<void> {
     const canvas = this.qaCanvasRef?.nativeElement;
     if (!canvas) {
+      return;
+    }
+    this.assembleStagedAssets();
+    if (!this.hasAllRequiredPhotos) {
+      alert(`Vui lòng cung cấp đủ ${this.requiredPhotoCount} ảnh bắt buộc trước khi tải ảnh poster.`);
       return;
     }
 

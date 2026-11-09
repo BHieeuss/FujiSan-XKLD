@@ -32,6 +32,7 @@ export class StudentFormSubmissionService {
     photo?: File,
     documentPdf?: File,
     cvPdf?: Blob,
+    progressPercent?: number,
   ): Promise<StudentFormSubmissionResult> {
     const workbook = await this.excelService.build(data, photo);
     const payload = new FormData();
@@ -44,6 +45,9 @@ export class StudentFormSubmissionService {
     payload.append('data', JSON.stringify(data));
     payload.append('consent', 'accepted');
     payload.append('website', '');
+    if (progressPercent !== undefined) {
+      payload.append('progressPercent', String(progressPercent));
+    }
 
     if (photo) {
       const photoName = (photo as any).name || 'portrait.png';

@@ -27,113 +27,277 @@
 
     <!-- Loading Skeleton State -->
     @if (isLoading) {
-      <div class="home-activities-grid">
-        @for (i of [1, 2, 3]; track i) {
-          <div class="activity-card-skeleton" aria-hidden="true">
-            <div class="skeleton-thumb"></div>
-            <div class="skeleton-content">
-              <div class="skeleton-line line-meta"></div>
-              <div class="skeleton-line line-title"></div>
-              <div class="skeleton-line line-desc"></div>
-              <div class="skeleton-line line-footer"></div>
+      <div class="home-activities-skeleton-wrapper">
+        <div class="skeleton-main">
+          <div class="skeleton-thumb-large"></div>
+          <div class="skeleton-line-title"></div>
+          <div class="skeleton-line-desc"></div>
+        </div>
+        <div class="skeleton-sub-row">
+          @for (i of [1, 2, 3]; track i) {
+            <div class="skeleton-sub-card">
+              <div class="skeleton-sub-thumb"></div>
+              <div class="skeleton-sub-title"></div>
             </div>
-          </div>
-        }
+          }
+        </div>
       </div>
     } @else if (activities.length > 0) {
-      <!-- Dynamic Activities Grid (3 cols desktop, 2 cols tablet, 1 col mobile) -->
-      <div class="home-activities-grid">
-        @for (act of activities; track act.id) {
-          <article class="home-activity-card">
-            <!-- Cover image link with responsive aspect ratio & badges -->
-            <a [routerLink]="['/hoat-dong', act.slug]" class="card-thumb-link" [attr.aria-label]="act.title">
-              <div class="card-thumb-wrap">
-                <img
-                  [src]="getCoverImageUrl(act.coverImage)"
-                  (error)="onImageError($event)"
-                  alt="Ảnh hoạt động VieJap"
-                  [alt]="act.title"
-                  class="card-thumb-img"
-                  loading="lazy"
-                />
-                <div class="card-badges-row">
-                  <span class="badge-cat">
+
+      <!-- 1. BẢNG HOẠT ĐỘNG TRÊN MÁY TÍNH & TABLET (Desktop Newspaper / Portal Layout) -->
+      <div class="home-activities-desktop-layout desktop-only">
+        <!-- CỘT CHÍNH BÊN TRÁI (LEFT MAIN COLUMN: ~68%) -->
+        <div class="desktop-main-column">
+          @if (desktopMainFeatured; as main) {
+            <!-- Bài viết đinh nổi bật nhất (Top Featured Story) -->
+            <article class="desktop-main-story">
+              <a [routerLink]="['/hoat-dong', main.slug]" class="main-story-media" [attr.aria-label]="main.title">
+                <div class="media-thumb-wrap">
+                  <img
+                    [src]="getCoverImageUrl(main.coverImage)"
+                    (error)="onImageError($event)"
+                    [alt]="main.title"
+                    class="media-thumb-img"
+                    loading="eager"
+                  />
+                  <div class="media-badges">
+                    <span class="badge-cat">{{ main.categoryName || main.category }}</span>
+                    @if (main.hotBadge?.enabled) {
+                      <span class="badge-hot">
+                        <i class="fas fa-fire" aria-hidden="true"></i> HOT
+                      </span>
+                    } @else if (main.featuredBadge?.enabled || main.level === 'featured' || main.level === 'special') {
+                      <span class="badge-featured">
+                        <i class="fas fa-star" aria-hidden="true"></i> Nổi bật
+                      </span>
+                    }
+                  </div>
+                </div>
+              </a>
+
+              <div class="main-story-content">
+                <div class="story-meta">
+                  @if (formatDisplayDate(main)) {
+                    <span class="meta-item meta-date">
+                      <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                      <span>{{ formatDisplayDate(main) }}</span>
+                    </span>
+                  }
+                  @if (main.location) {
+                    <span class="meta-item meta-loc" [title]="main.location">
+                      <i class="fas fa-location-dot" aria-hidden="true"></i>
+                      <span>{{ main.location }}</span>
+                    </span>
+                  }
+                </div>
+
+                <h3 class="main-story-title">
+                  <a [routerLink]="['/hoat-dong', main.slug]" [title]="main.title">
+                    {{ main.title }}
+                  </a>
+                </h3>
+
+                @if (main.summary) {
+                  <p class="main-story-lead">
+                    {{ main.summary }}
+                  </p>
+                }
+              </div>
+            </article>
+          }
+
+          <!-- Hàng 3 bài viết phụ ngay phía dưới (Sub-grid 3 Columns) -->
+          @if (desktopSubActivities.length > 0) {
+            <div class="desktop-sub-grid">
+              @for (act of desktopSubActivities; track act.id) {
+                <article class="desktop-sub-card">
+                  <a [routerLink]="['/hoat-dong', act.slug]" class="sub-card-media" [attr.aria-label]="act.title">
+                    <div class="sub-media-wrap">
+                      <img
+                        [src]="getCoverImageUrl(act.coverImage)"
+                        (error)="onImageError($event)"
+                        [alt]="act.title"
+                        loading="lazy"
+                      />
+                    </div>
+                  </a>
+
+                  <div class="sub-card-body">
+                    <div class="sub-meta">
+                      @if (formatDisplayDate(act)) {
+                        <span class="sub-date">
+                          <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                          <span>{{ formatDisplayDate(act) }}</span>
+                        </span>
+                      }
+                      <span class="sub-cat">{{ act.categoryName || act.category }}</span>
+                    </div>
+
+                    <h4 class="sub-card-title">
+                      <a [routerLink]="['/hoat-dong', act.slug]" [title]="act.title">
+                        {{ act.title }}
+                      </a>
+                    </h4>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- CỘT PHỤ BÊN PHẢI (RIGHT SIDEBAR COLUMN: ~32%) -->
+        <aside class="desktop-sidebar-column">
+          <div class="sidebar-header">
+            <h4 class="sidebar-heading">
+              <i class="fas fa-newspaper" aria-hidden="true"></i>
+              <span>TIN MỚI CẬP NHẬT</span>
+            </h4>
+          </div>
+
+          <div class="sidebar-news-list">
+            @for (act of desktopSidebarActivities; track act.id) {
+              <article class="sidebar-news-item">
+                <a [routerLink]="['/hoat-dong', act.slug]" class="sidebar-news-link" [title]="act.title">
+                  <span class="sidebar-cat-label">
                     {{ act.categoryName || act.category }}
                   </span>
-                  @if (act.hotBadge.enabled) {
+                  <h5 class="sidebar-item-title">
+                    {{ act.title }}
+                  </h5>
+                  <div class="sidebar-meta-row">
+                    @if (formatDisplayDate(act)) {
+                      <span class="sidebar-date">
+                        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                        <span>{{ formatDisplayDate(act) }}</span>
+                      </span>
+                    }
+                    @if (act.location) {
+                      <span class="sidebar-loc">
+                        <i class="fas fa-location-dot" aria-hidden="true"></i>
+                        <span>{{ act.location }}</span>
+                      </span>
+                    }
+                  </div>
+                </a>
+              </article>
+            }
+          </div>
+
+          <div class="sidebar-action">
+            <a routerLink="/hoat-dong" class="btn-sidebar-viewall">
+              <span>Xem tất cả hoạt động</span>
+              <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      <!-- 2. BẢNG HOẠT ĐỘNG TRÊN MOBILE (1 THẺ LỚN MỚI NHẤT + 3 BÀI VIẾT TIẾP THEO DẠNG DANH SÁCH BÁO CHÍ) -->
+      <div class="home-activities-mobile-feed mobile-only">
+        @if (mobileLatestActivity; as latest) {
+          <!-- Thẻ lớn: Bài đăng gần nhất -->
+          <article class="mobile-featured-card">
+            <a [routerLink]="['/hoat-dong', latest.slug]" class="featured-thumb-link" [attr.aria-label]="latest.title">
+              <div class="featured-thumb-wrap">
+                <img
+                  [src]="getCoverImageUrl(latest.coverImage)"
+                  (error)="onImageError($event)"
+                  [alt]="latest.title"
+                  class="featured-thumb-img"
+                  loading="eager"
+                />
+                <div class="featured-badges">
+                  <span class="badge-cat">{{ latest.categoryName || latest.category }}</span>
+                  @if (latest.hotBadge?.enabled) {
                     <span class="badge-hot">
                       <i class="fas fa-fire" aria-hidden="true"></i> HOT
                     </span>
-                  } @else if (act.featuredBadge.enabled || act.level === 'featured' || act.level === 'special') {
+                  } @else if (latest.featuredBadge?.enabled || latest.level === 'featured' || latest.level === 'special') {
                     <span class="badge-featured">
-                      <i class="fas fa-star" aria-hidden="true"></i> Nổi bật
+                      <i class="fas fa-star" aria-hidden="true"></i> Mới nhất
                     </span>
                   }
                 </div>
               </div>
             </a>
 
-            <!-- Card Body Content -->
-            <div class="card-body-content">
-              <!-- Meta info: Date & Location -->
-              <div class="card-meta">
-                @if (act.eventDate) {
-                  <span class="meta-item meta-date">
+            <div class="featured-body">
+              <div class="featured-meta">
+                @if (formatDisplayDate(latest)) {
+                  <span class="meta-date">
                     <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-                    <span>{{ act.eventDate }}</span>
+                    <span>{{ formatDisplayDate(latest) }}</span>
                   </span>
                 }
-                @if (act.location) {
-                  <span class="meta-item meta-loc" [title]="act.location">
+                @if (latest.location) {
+                  <span class="meta-loc">
                     <i class="fas fa-location-dot" aria-hidden="true"></i>
-                    <span>{{ act.location }}</span>
+                    <span>{{ latest.location }}</span>
                   </span>
                 }
               </div>
 
-              <!-- Title (Clamped to 2 lines) -->
-              <h3 class="card-title">
-                <a [routerLink]="['/hoat-dong', act.slug]" [title]="act.title">
-                  {{ act.title }}
+              <h3 class="featured-title">
+                <a [routerLink]="['/hoat-dong', latest.slug]">
+                  {{ latest.title }}
                 </a>
               </h3>
 
-              <!-- Summary (Clamped to 2 lines) -->
-              <p class="card-desc">
-                {{ act.summary }}
-              </p>
-
-              <!-- Footer with highlight metric and "Xem chi tiết" action -->
-              <div class="card-footer-action">
-                <div class="card-stat">
-                  @if (act.metric) {
-                    <strong class="stat-number">{{ act.metric }}</strong>
-                    <span class="stat-label">{{ act.metricLabel || 'tham gia' }}</span>
-                  } @else {
-                    <span class="stat-views">
-                      <i class="fas fa-eye" aria-hidden="true"></i>
-                      <span>{{ ((act.metrics ? act.metrics.viewCount : 0) || act.viewCount || 0) | number }} xem</span>
-                    </span>
-                  }
-                </div>
-
-                <a [routerLink]="['/hoat-dong', act.slug]" class="card-readmore-link" [attr.aria-label]="'Xem chi tiết: ' + act.title">
-                  <span>Xem chi tiết</span>
-                  <i class="fas fa-arrow-right" aria-hidden="true"></i>
-                </a>
-              </div>
+              @if (latest.summary) {
+                <p class="featured-summary">
+                  {{ latest.summary }}
+                </p>
+              }
             </div>
           </article>
         }
-      </div>
 
-      <!-- Action Button: "Xem tất cả hoạt động" -->
-      <div class="home-activities-footer text-center">
-        <a routerLink="/hoat-dong" class="btn-all-activities">
-          <i class="fas fa-newspaper" aria-hidden="true"></i>
-          <span>Xem tất cả hoạt động</span>
-          <i class="fas fa-arrow-right" aria-hidden="true"></i>
-        </a>
+        <!-- 3 bài viết lần lượt tiếp theo phía dưới -->
+        @if (mobileNextActivities.length > 0) {
+          <div class="mobile-sub-activities-list">
+            @for (act of mobileNextActivities; track act.id) {
+              <article class="mobile-news-item">
+                <a [routerLink]="['/hoat-dong', act.slug]" class="news-item-link" [attr.aria-label]="act.title">
+                  <div class="news-item-thumb">
+                    <img
+                      [src]="getCoverImageUrl(act.coverImage)"
+                      (error)="onImageError($event)"
+                      [alt]="act.title"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  <div class="news-item-info">
+                    <h4 class="news-item-title">
+                      {{ act.title }}
+                    </h4>
+                    <div class="news-item-meta">
+                      @if (formatDisplayDate(act)) {
+                        <span class="news-date">
+                          <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                          <span>{{ formatDisplayDate(act) }}</span>
+                        </span>
+                      }
+                      @if (act.categoryName || act.category) {
+                        <span class="news-cat">
+                          {{ act.categoryName || act.category }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </a>
+              </article>
+            }
+          </div>
+        }
+
+        <!-- Button "Xem thêm" chuyển sang trang Góc hoạt động -->
+        <div class="mobile-actions-footer">
+          <a routerLink="/hoat-dong" class="btn-mobile-more">
+            <span>Xem thêm</span>
+            <i class="fas fa-chevron-right" aria-hidden="true"></i>
+          </a>
+        </div>
       </div>
     }
   </div>

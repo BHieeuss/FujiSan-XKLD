@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminPaginationComponent } from '../shared/admin-pagination/admin-pagination.component';
@@ -99,6 +99,9 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
 
   uploadingPhoto = false;
   uploadingDoc = false;
+  deletingFileId: string | null = null;
+  modalSuccessMessage = '';
+  modalErrorMessage = '';
 
   // Preview Modal
   showPreviewModal = false;
@@ -108,12 +111,26 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
   previewFileName = '';
   previewFileType = '';
 
+  // Cấp mã bổ sung hồ sơ
+  showSupplementCodeModal = false;
+  generatingSupplementCode = false;
+  supplementCodeData?: {
+    code: string;
+    studentName: string;
+    studentCode: string;
+    expiresAt: string;
+    directUrl: string;
+  };
+  copiedCode = false;
+  copiedLink = false;
+
   constructor(
     private readonly service: StudentProfilesAdminService,
     private readonly auth: AdminAuthService,
     private readonly excelService: StudentFormExcelService,
     private readonly pdfService: StudentFormPdfService,
     private readonly sanitizer: DomSanitizer,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -209,6 +226,8 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
   openEditModal(tab?: 'personal' | 'health' | 'personality' | 'plans' | 'education' | 'work' | 'family' | 'media'): void {
     if (!this.selectedProfile) return;
     this.editActiveTab = tab || 'personal';
+    this.modalSuccessMessage = '';
+    this.modalErrorMessage = '';
     const p = this.selectedProfile;
     const defaults = createStudentFormData();
     const d = (p.data || {}) as Partial<StudentFormData>;
@@ -280,6 +299,8 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
 
   closeEditModal(): void {
     this.showEditModal = false;
+    this.modalSuccessMessage = '';
+    this.modalErrorMessage = '';
   }
 
   setEditTab(tab: 'personal' | 'health' | 'personality' | 'plans' | 'education' | 'work' | 'family' | 'media'): void {
@@ -339,16 +360,23 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
     if (!input.files || input.files.length === 0 || !this.selectedProfile) return;
     const file = input.files[0];
     this.uploadingPhoto = true;
+    this.modalErrorMessage = '';
+    this.modalSuccessMessage = '';
     this.errorMessage = '';
     try {
       const res = await this.service.uploadFile(this.selectedProfile.id, 'photo', file);
       this.selectedProfile = res.profile;
-      this.successMessage = `Đã cập nhật ảnh thẻ học viên (${res.fileName}) thành công!`;
+      this.updateProfileInList(res.profile);
+      this.modalSuccessMessage = `Đã cập nhật ảnh thẻ mới (${res.fileName}) thành công!`;
+      this.successMessage = `Đã cập nhật ảnh thẻ mới cho học viên ${this.selectedProfile.fullName}.`;
     } catch (err) {
-      this.errorMessage = err instanceof Error ? err.message : 'Không thể tải ảnh thẻ lên.';
+      const msg = err instanceof Error ? err.message : 'Không thể tải ảnh thẻ lên.';
+      this.modalErrorMessage = msg;
+      this.errorMessage = msg;
     } finally {
       this.uploadingPhoto = false;
       input.value = '';
+      this.cdr.markForCheck();
     }
   }
 
@@ -357,16 +385,57 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
     if (!input.files || input.files.length === 0 || !this.selectedProfile) return;
     const file = input.files[0];
     this.uploadingDoc = true;
+    this.modalErrorMessage = '';
+    this.modalSuccessMessage = '';
     this.errorMessage = '';
     try {
       const res = await this.service.uploadFile(this.selectedProfile.id, 'document', file);
       this.selectedProfile = res.profile;
-      this.successMessage = `Đã tải lên tài liệu bổ sung (${res.fileName}) thành công!`;
+      this.updateProfileInList(res.profile);
+      this.modalSuccessMessage = `Đã tải lên tài liệu bổ sung (${res.fileName}) thành công!`;
+      this.successMessage = `Đã tải lên tài liệu mới cho học viên ${this.selectedProfile.fullName}.`;
     } catch (err) {
-      this.errorMessage = err instanceof Error ? err.message : 'Không thể tải tài liệu lên.';
+      const msg = err instanceof Error ? err.message : 'Không thể tải tài liệu lên.';
+      this.modalErrorMessage = msg;
+      this.errorMessage = msg;
     } finally {
       this.uploadingDoc = false;
       input.value = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  async deleteFile(file: StudentProfileFile, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    if (!this.selectedProfile || this.deletingFileId) return;
+
+    const confirmMsg =
+      file.fileType === 'photo'
+        ? `Bạn có chắc chắn muốn xóa ảnh thẻ "${file.fileName}" không?`
+        : `Bạn có chắc chắn muốn xóa tệp "${file.fileName}" không?`;
+
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+
+    this.deletingFileId = file.id;
+    this.modalErrorMessage = '';
+    this.modalSuccessMessage = '';
+    this.errorMessage = '';
+
+    try {
+      const res = await this.service.deleteFile(this.selectedProfile.id, file.id);
+      this.selectedProfile = res.profile;
+      this.updateProfileInList(res.profile);
+      this.modalSuccessMessage = `Đã xóa tệp "${file.fileName}" thành công.`;
+      this.successMessage = `Đã xóa tệp "${file.fileName}" của học viên ${this.selectedProfile.fullName}.`;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Không thể xóa tệp tin.';
+      this.modalErrorMessage = msg;
+      this.errorMessage = msg;
+    } finally {
+      this.deletingFileId = null;
+      this.cdr.markForCheck();
     }
   }
 
@@ -447,6 +516,7 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
       });
 
       this.selectedProfile = updated;
+      this.updateProfileInList(updated);
       this.showEditModal = false;
       this.successMessage = 'Đã cập nhật toàn bộ 100% các trường thông tin hồ sơ học viên thành công.';
     } catch (error) {
@@ -751,17 +821,113 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
   }
 
   getExcelFiles(): StudentProfileFile[] {
-    return (this.selectedProfile?.files || []).filter((f) => f.fileType === 'excel');
+    return (this.selectedProfile?.files || [])
+      .filter((f) => f.fileType === 'excel')
+      .sort((a, b) => (b.version || 0) - (a.version || 0));
   }
 
   getPdfFiles(): StudentProfileFile[] {
-    return (this.selectedProfile?.files || []).filter(
-      (f) => f.fileType === 'pdf' || f.fileName.toLowerCase().endsWith('.pdf'),
-    );
+    return (this.selectedProfile?.files || [])
+      .filter(
+        (f) =>
+          f.fileType === 'pdf' ||
+          f.fileType === 'document' ||
+          f.fileName.toLowerCase().endsWith('.pdf'),
+      )
+      .sort((a, b) => (b.version || 0) - (a.version || 0));
   }
 
   getPhotoFiles(): StudentProfileFile[] {
-    return (this.selectedProfile?.files || []).filter((f) => f.fileType === 'photo');
+    return (this.selectedProfile?.files || [])
+      .filter((f) => f.fileType === 'photo')
+      .sort((a, b) => (b.version || 0) - (a.version || 0));
+  }
+
+  getLatestPhoto(): StudentProfileFile | undefined {
+    const photos = this.getPhotoFiles();
+    return photos.length > 0 ? photos[0] : undefined;
+  }
+
+  getPhotoUrl(file: StudentProfileFile): string {
+    if (!this.selectedProfile) return '';
+    return `${this.service.getDownloadUrl(this.selectedProfile.id, file.id)}&preview=1`;
+  }
+
+  async openSupplementCodeModal(profile?: StudentProfileDetail | StudentProfileSummary, event?: Event): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
+    const target = profile || this.selectedProfile;
+    if (!target) return;
+
+    this.generatingSupplementCode = true;
+    this.copiedCode = false;
+    this.copiedLink = false;
+    this.supplementCodeData = undefined;
+    this.showSupplementCodeModal = true;
+
+    try {
+      const res = await this.service.createSupplementCode(target.id);
+      this.supplementCodeData = {
+        code: res.code,
+        studentName: res.studentName || target.fullName,
+        studentCode: res.studentCode || target.studentCode,
+        expiresAt: res.expiresAt,
+        directUrl: window.location.origin + (res.directUrl || `/student-form?code=${res.code}`),
+      };
+      this.cdr.detectChanges();
+    } catch (err: unknown) {
+      this.errorMessage = (err as Error)?.message || 'Không thể tạo mã bổ sung hồ sơ.';
+      this.closeSupplementCodeModal();
+    } finally {
+      this.generatingSupplementCode = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  closeSupplementCodeModal(): void {
+    this.showSupplementCodeModal = false;
+    this.supplementCodeData = undefined;
+    this.copiedCode = false;
+    this.copiedLink = false;
+  }
+
+  async copySupplementCode(): Promise<void> {
+    if (!this.supplementCodeData?.code) return;
+    try {
+      await navigator.clipboard.writeText(this.supplementCodeData.code);
+      this.copiedCode = true;
+      setTimeout(() => { this.copiedCode = false; }, 3000);
+    } catch {
+      // fallback
+    }
+  }
+
+  async copySupplementLink(): Promise<void> {
+    if (!this.supplementCodeData?.directUrl) return;
+    try {
+      await navigator.clipboard.writeText(this.supplementCodeData.directUrl);
+      this.copiedLink = true;
+      setTimeout(() => { this.copiedLink = false; }, 3000);
+    } catch {
+      // fallback
+    }
+  }
+
+  private updateProfileInList(updated: StudentProfileDetail): void {
+    const idx = this.profiles.findIndex((p) => p.id === updated.id);
+    if (idx !== -1) {
+      this.profiles[idx] = {
+        ...this.profiles[idx],
+        fullName: updated.fullName,
+        birthDate: updated.birthDate,
+        phone: updated.phone,
+        idNumber: updated.idNumber,
+        address: updated.address,
+        status: updated.status,
+        updatedAt: updated.updatedAt,
+      };
+    }
   }
 
   private downloadBlob(blob: Blob, filename: string): void {

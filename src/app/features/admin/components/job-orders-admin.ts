@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -106,6 +106,7 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
   private readonly toast = inject(AdminToastService);
   private readonly ordersApi = inject(JobOrdersApiService);
   private readonly elementRef = inject(ElementRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -527,6 +528,20 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  async onWizardOrderDeleted(id: string): Promise<void> {
+    this.showWizard = false;
+    this.wizardEditingId = undefined;
+    this.wizardInitialData = undefined;
+    this.selectedOrder = null;
+    this.orders = this.orders.filter((item) => item.id !== id);
+    await this.reload();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { section: 'orders' },
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   // ---------------------------------------------------------------------------
   // DETAIL VIEW / DRAWER
   // ---------------------------------------------------------------------------
@@ -540,6 +555,10 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
 
   closeDetailModal(): void {
     this.selectedOrder = null;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { section: 'orders' },
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -699,7 +718,10 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
   // DELETE CONFIRMATION
   // ---------------------------------------------------------------------------
   openDeleteConfirm(order?: JobOrder | null, event?: Event): void {
-    if (event) event.stopPropagation();
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (!order) return;
     this.closeDropdowns();
 
@@ -709,11 +731,19 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     }
     this.orderToDelete = order;
     this.showDeleteConfirmModal = true;
+    this.cdr.markForCheck();
   }
 
   closeDeleteConfirm(): void {
     this.orderToDelete = null;
     this.showDeleteConfirmModal = false;
+    this.cdr.markForCheck();
+  }
+
+  onDeleteBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.closeDeleteConfirm();
+    }
   }
 
   async executeDelete(): Promise<void> {
@@ -722,6 +752,7 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     const id = this.orderToDelete.id;
     const title = getJobOrderTitle(this.orderToDelete);
     this.deletingId = id;
+    this.cdr.markForCheck();
     try {
       await this.ordersApi.remove(id);
       this.orders = this.orders.filter((item) => item.id !== id);
@@ -729,6 +760,8 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
       if (this.selectedOrder && this.selectedOrder.id === id) {
         this.closeDetailModal();
       }
+
+      await this.reload();
 
       const maxPages = Math.ceil(this.filteredOrders.length / this.pageSize) || 1;
       if (this.currentPage > maxPages) {
@@ -742,6 +775,7 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
       this.toast.error(msg, 'Lỗi xóa đơn hàng');
     } finally {
       this.deletingId = '';
+      this.cdr.markForCheck();
     }
   }
 

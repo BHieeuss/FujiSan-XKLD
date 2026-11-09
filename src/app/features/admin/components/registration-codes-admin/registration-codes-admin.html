@@ -666,13 +666,13 @@ LÊ THỊ MAI, 0987654321</code>
               </div>
             </div>
 
-            <div class="timeline-item" [class.complete]="selectedProgressCode.firstUsedAt">
+            <div class="timeline-item" [class.complete]="selectedProgressCode.firstUsedAt || selectedProgressCode.verifiedAt">
               <div class="t-icon">
-                <i [class]="selectedProgressCode.firstUsedAt ? 'fas fa-check' : 'fas fa-spinner'"></i>
+                <i [class]="(selectedProgressCode.firstUsedAt || selectedProgressCode.verifiedAt) ? 'fas fa-check' : 'fas fa-spinner'"></i>
               </div>
               <div class="t-content">
                 <strong>Học viên xác thực mở form</strong>
-                <small>{{ selectedProgressCode.firstUsedAt ? formatDateTime(selectedProgressCode.firstUsedAt) : 'Chưa truy cập' }}</small>
+                <small>{{ (selectedProgressCode.firstUsedAt || selectedProgressCode.verifiedAt) ? formatDateTime(selectedProgressCode.firstUsedAt || selectedProgressCode.verifiedAt) : 'Chưa truy cập' }}</small>
               </div>
             </div>
 
@@ -686,13 +686,13 @@ LÊ THỊ MAI, 0987654321</code>
               </div>
             </div>
 
-            <div class="timeline-item" [class.complete]="selectedProgressCode.status === 'used'">
+            <div class="timeline-item" [class.complete]="selectedProgressCode.status === 'used' || selectedProgressCode.progressStatus === 'submitted'">
               <div class="t-icon">
-                <i [class]="selectedProgressCode.status === 'used' ? 'fas fa-check-double' : 'far fa-circle'"></i>
+                <i [class]="(selectedProgressCode.status === 'used' || selectedProgressCode.progressStatus === 'submitted') ? 'fas fa-check-double' : 'far fa-circle'"></i>
               </div>
               <div class="t-content">
                 <strong>Nộp hồ sơ hoàn tất</strong>
-                <small>{{ selectedProgressCode.completedAt ? formatDateTime(selectedProgressCode.completedAt) : 'Chưa gửi hồ sơ' }}</small>
+                <small>{{ (selectedProgressCode.completedAt || selectedProgressCode.usedAt || selectedProgressCode.submittedAt) ? formatDateTime(selectedProgressCode.completedAt || selectedProgressCode.usedAt || selectedProgressCode.submittedAt) : 'Chưa gửi hồ sơ' }}</small>
               </div>
             </div>
           </div>

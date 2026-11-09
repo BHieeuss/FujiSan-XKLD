@@ -431,3 +431,13 @@ function admin_handle_exception(Throwable $error): never
     error_log('[VieJap admin] ' . $error->getMessage());
     admin_respond(500, ['message' => 'Hệ thống quản trị tạm thời không khả dụng.']);
 }
+
+if (!function_exists('clean_text')) {
+    function clean_text(mixed $value, int $maxLength): string
+    {
+        $text = trim((string) $value);
+        $text = (string) preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $text);
+        $text = (string) preg_replace('/\s+/u', ' ', $text);
+        return mb_substr($text, 0, $maxLength);
+    }
+}

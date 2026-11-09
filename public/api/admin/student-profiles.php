@@ -241,6 +241,32 @@ try {
         ]);
     }
 
+    // 3b2. POST or DELETE Delete File (Photo or Document)
+    if (($method === 'POST' || $method === 'DELETE') && $action === 'delete-file') {
+        admin_assert_same_origin();
+        $session = admin_require_session();
+        admin_require_csrf($session);
+        admin_require_permission($session, 'students.update');
+
+        $payload = $method === 'POST' ? admin_read_json() : [];
+        $profileId = trim((string) ($_GET['profile_id'] ?? $_GET['id'] ?? $payload['profileId'] ?? $payload['profile_id'] ?? $payload['id'] ?? ''));
+        $fileId = trim((string) ($_GET['file_id'] ?? $payload['fileId'] ?? $payload['file_id'] ?? ''));
+
+        if ($profileId === '' || $fileId === '') {
+            admin_respond(422, ['message' => 'Thiếu thông tin profile_id hoặc file_id cần xóa.']);
+        }
+
+        $updated = admin_student_profile_delete_file($profileId, $fileId, $session['username']);
+        if ($updated === null) {
+            admin_respond(404, ['message' => 'Không tìm thấy hồ sơ hoặc tệp tin cần xóa.']);
+        }
+
+        admin_respond(200, [
+            'message' => 'Đã xóa tệp tin thành công.',
+            'profile' => $updated,
+        ]);
+    }
+
     // 3c. POST Move to Trash
     if ($method === 'POST' && $action === 'trash') {
         admin_assert_same_origin();
@@ -327,6 +353,24 @@ try {
             'deletedCount' => $deletedCount,
             'trashCount' => 0,
         ]);
+    }
+
+    // 3g. POST Create Supplement Code for Student Profile
+    if ($method === 'POST' && $action === 'create-supplement-code') {
+        admin_assert_same_origin();
+        $session = admin_require_session();
+        admin_require_csrf($session);
+        admin_require_permission($session, 'students.update');
+
+        $payload = admin_read_json();
+        $profileId = trim((string) ($_GET['id'] ?? $payload['profileId'] ?? $payload['id'] ?? ''));
+        if ($profileId === '') {
+            admin_respond(422, ['message' => 'Thiếu ID học viên để cấp mã bổ sung.']);
+        }
+
+        require_once __DIR__ . '/_student_registration_codes.php';
+        $res = admin_student_registration_code_create_for_profile($profileId, $session['username']);
+        admin_respond(200, $res);
     }
 
     // 4. PUT / PATCH Update Profile Info & Status

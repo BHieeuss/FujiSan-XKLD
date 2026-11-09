@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -67,7 +68,11 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
   @Input() editingId?: string;
 
   @Output() orderSaved = new EventEmitter<JobOrder>();
+  @Output() orderDeleted = new EventEmitter<string>();
   @Output() cancelled = new EventEmitter<void>();
+
+  showDeleteConfirmModal = false;
+  isDeleting = false;
 
   readonly categories = JOB_ORDER_CATEGORIES;
   readonly wizardSteps = WIZARD_STEPS;
@@ -93,6 +98,7 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
   postVersions: PostVersion[] = [];
   // RBAC Authentication
   readonly auth = inject(AdminAuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   activeSectionTab: 'sections' | 'fulltext' | 'risk' | 'proposal' | 'html' = 'sections';
   isDraftModified = false;
@@ -796,6 +802,54 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
 
   onCancel(): void {
     this.cancelled.emit();
+  }
+
+  canDelete(): boolean {
+    return this.auth.hasPermission('orders.delete');
+  }
+
+  openDeleteConfirm(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (!this.canDelete()) {
+      this.toast.error('Bạn không có quyền xóa đơn hàng này.', 'Truy cập bị từ chối');
+      return;
+    }
+    this.showDeleteConfirmModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closeDeleteConfirm(): void {
+    this.showDeleteConfirmModal = false;
+    this.cdr.markForCheck();
+  }
+
+  onDeleteBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.closeDeleteConfirm();
+    }
+  }
+
+  async executeDelete(): Promise<void> {
+    const targetId = this.editingId || (this.initialData as any)?.id;
+    if (!targetId) return;
+
+    this.isDeleting = true;
+    this.cdr.markForCheck();
+    try {
+      await this.ordersApi.remove(targetId);
+      this.toast.success('Đã xóa vĩnh viễn đơn hàng thành công.', 'Xóa thành công');
+      this.showDeleteConfirmModal = false;
+      this.orderDeleted.emit(targetId);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Không thể xóa đơn hàng.';
+      this.toast.error(msg, 'Lỗi xóa đơn hàng');
+    } finally {
+      this.isDeleting = false;
+      this.cdr.markForCheck();
+    }
   }
 
   private dataUrlToFile(dataUrl: string, filename: string): File {

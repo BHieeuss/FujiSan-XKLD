@@ -557,15 +557,23 @@
                 <div class="format-subconfig">
                   <label class="sub-label">Bố cục Popup:</label>
                   <select [(ngModel)]="formEvent.displayConfig.popupCenter.layout" class="form-select form-select-sm">
-                    <option value="banner_top">Banner ở trên - Nội dung ở dưới</option>
-                    <option value="horizontal">Ảnh bên trái - Nội dung bên phải (PC)</option>
-                    <option value="vertical">Dạng thẻ dọc</option>
+                    <option value="banner_top">Banner ở trên - Nội dung ở dưới (Chuẩn phổ biến)</option>
+                    <option value="horizontal">Ảnh bên trái - Nội dung bên phải (Ngang PC)</option>
+                    <option value="vertical">Dạng thẻ dọc (Hình ảnh nổi bật)</option>
                   </select>
 
-                  <label class="checkbox-inline mt-2">
-                    <input type="checkbox" [(ngModel)]="formEvent.displayConfig.popupCenter.backdropClickClose" />
-                    <span>Cho phép nhấn ra ngoài để đóng</span>
-                  </label>
+                  <div class="row g-2 mt-2">
+                    <div class="col-7">
+                      <label class="sub-label">Tự đóng sau (giây, 0 = không đóng):</label>
+                      <input type="number" min="0" max="60" [(ngModel)]="formEvent.displayConfig.popupCenter.autoCloseSeconds" class="form-control form-control-sm" placeholder="0" />
+                    </div>
+                    <div class="col-5 d-flex align-items-end">
+                      <label class="checkbox-inline mb-2">
+                        <input type="checkbox" [(ngModel)]="formEvent.displayConfig.popupCenter.backdropClickClose" />
+                        <span>Bấm ra ngoài để đóng</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 }
               </div>
@@ -590,6 +598,11 @@
                     <option value="bottom_right">Góc dưới bên phải</option>
                     <option value="bottom_left">Góc dưới bên trái</option>
                   </select>
+
+                  <label class="checkbox-inline mt-2">
+                    <input type="checkbox" [(ngModel)]="formEvent.displayConfig.popupCorner.autoMinimize" />
+                    <span>Tự động thu nhỏ thành nút chuông thông báo sau 5 giây</span>
+                  </label>
                 </div>
                 }
               </div>
@@ -640,12 +653,19 @@
 
                 @if (isFormatSelected('index_banner')) {
                 <div class="format-subconfig">
-                  <label class="sub-label">Vị trí chèn:</label>
+                  <label class="sub-label">Vị trí chèn trên Trang chủ:</label>
                   <select [(ngModel)]="formEvent.displayConfig.indexBanner.position" class="form-select form-select-sm">
-                    <option value="below_hero">Ngay dưới Hero Section</option>
+                    <option value="below_hero">Ngay dưới Hero Section (Đầu trang chủ)</option>
                     <option value="below_orders">Ngay dưới Danh sách đơn hàng</option>
                     <option value="in_activities">Bên trong Góc hoạt động</option>
                     <option value="bottom">Cuối trang chủ</option>
+                  </select>
+
+                  <label class="sub-label mt-2">Phong cách thiết kế Banner:</label>
+                  <select [(ngModel)]="formEvent.displayConfig.indexBanner.style" class="form-select form-select-sm">
+                    <option value="highlight">1. Nổi bật Gradient Vàng / Cam (Highlight)</option>
+                    <option value="navy">2. Xanh Navy chuyên nghiệp (Navy)</option>
+                    <option value="card">3. Thẻ bo góc thanh lịch (Card)</option>
                   </select>
                 </div>
                 }
@@ -824,13 +844,14 @@
           </div>
 
           <div class="preview-format-select">
-            <label class="format-select-label">Định dạng xem:</label>
-            <select [(ngModel)]="previewFormat" class="form-select form-select-sm">
+            <label for="previewFormatSelect" class="format-select-label">Định dạng xem:</label>
+            <select id="previewFormatSelect" [(ngModel)]="previewFormat" class="form-select form-select-sm fmt-select">
               <option value="popup_center">1. Popup giữa màn hình</option>
               <option value="popup_corner">2. Popup góc màn hình</option>
               <option value="top_bar">3. Thanh thông báo đầu trang</option>
               <option value="index_banner">4. Banner trên trang chủ</option>
-              <option value="floating_button">5. Nút sự kiện nổi</option>
+              <option value="floating_button">5. Nút sự kiện nổi (FAB)</option>
+              <option value="list">6. Ngăn kéo danh sách sự kiện</option>
             </select>
           </div>
         </div>
@@ -840,7 +861,6 @@
           <span class="bar-title">Đang kích hoạt:</span>
           <div class="bar-pills">
             @for (fmt of formEvent.displayFormats; track fmt) {
-              @if (fmt !== 'list') {
               <button
                 type="button"
                 class="fmt-pill"
@@ -850,114 +870,334 @@
                 <i [class]="fmt === 'popup_center' ? 'fas fa-window-restore' :
                             fmt === 'popup_corner' ? 'fas fa-envelope-open-text' :
                             fmt === 'top_bar' ? 'fas fa-heading' :
-                            fmt === 'index_banner' ? 'fas fa-image' : 'fas fa-circle-dot'"></i>
+                            fmt === 'index_banner' ? 'fas fa-image' :
+                            fmt === 'list' ? 'fas fa-list' : 'fas fa-circle-dot'"></i>
                 {{ getFormatLabel(fmt) }}
               </button>
-              }
             }
           </div>
         </div>
 
-        <!-- Device Mockup Stage -->
+        <!-- Realistic Website Liveview Mockup Stage -->
         <div class="preview-stage-wrap">
-          <div class="preview-stage" [class.stage-mobile]="previewDevice === 'mobile'">
-            <!-- Preview: TOP BAR -->
-            @if (previewFormat === 'top_bar') {
-            <div class="mockup-top-bar" [style.backgroundColor]="formEvent.displayConfig.topBar.bgColor"
-              [style.color]="formEvent.displayConfig.topBar.textColor">
-              <div class="mockup-top-bar-content">
-                <i [class]="formEvent.displayConfig.topBar.icon"></i>
-                <span><strong>{{ formEvent.displayTitle || formEvent.title }}</strong>: {{ formEvent.summary }}</span>
-                @if (formEvent.cta.enabled) {
-                <a class="mockup-bar-link" [href]="formEvent.cta.url">
-                  {{ formEvent.cta.label }} <i class="fas fa-arrow-right"></i>
-                </a>
-                }
+          <div class="simulated-browser-frame" [class.frame-mobile]="previewDevice === 'mobile'">
+            <!-- Browser Chrome Header Bar -->
+            <div class="browser-chrome-bar">
+              <div class="browser-window-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
               </div>
-              @if (formEvent.displayConfig.topBar.isClosable) {
-              <button type="button" class="mockup-bar-close"><i class="fas fa-xmark"></i></button>
+              <div class="browser-address-bar">
+                <i class="fas fa-lock text-success"></i>
+                <span class="address-url">https://viejap.vn</span>
+                <i class="fas fa-rotate-right refresh-icon"></i>
+              </div>
+              <div class="browser-device-tag">
+                <i [class]="previewDevice === 'mobile' ? 'fas fa-mobile-screen' : 'fas fa-desktop'"></i>
+                <span>{{ previewDevice === 'mobile' ? 'Mobile (390px)' : 'Website Desktop' }}</span>
+              </div>
+            </div>
+
+            <!-- Simulated VieJap Website Canvas -->
+            <div class="simulated-website-canvas" [class.canvas-mobile]="previewDevice === 'mobile'">
+
+              <!-- 1. TOP ANNOUNCEMENT BAR (If active or selected) -->
+              @if (previewFormat === 'top_bar' || isFormatSelected('top_bar')) {
+                <div class="sim-top-announcement-bar"
+                  [style.backgroundColor]="formEvent.displayConfig.topBar.bgColor || '#0f2b48'"
+                  [style.color]="formEvent.displayConfig.topBar.textColor || '#ffffff'">
+                  <div class="sim-bar-inner">
+                    <div class="sim-bar-msg">
+                      <i [class]="formEvent.displayConfig.topBar.icon || 'fas fa-bullhorn'"></i>
+                      <strong>{{ formEvent.displayTitle || formEvent.title }}</strong>
+                      @if (formEvent.summary) {
+                        <span class="sim-bar-summary">— {{ formEvent.summary }}</span>
+                      }
+                    </div>
+                    <div class="sim-bar-actions">
+                      @if (formEvent.cta.enabled) {
+                        <span class="sim-bar-cta">
+                          {{ formEvent.cta.label }} <i class="fas fa-arrow-right"></i>
+                        </span>
+                      }
+                      @if (formEvent.displayConfig.topBar.isClosable) {
+                        <button type="button" class="sim-bar-close"><i class="fas fa-xmark"></i></button>
+                      }
+                    </div>
+                  </div>
+                </div>
               }
-            </div>
-            }
 
-            <!-- Preview: POPUP CENTER -->
-            @if (previewFormat === 'popup_center') {
-            <div class="mockup-popup-backdrop">
-              <div class="mockup-popup-center"
-                [class.layout-horizontal]="formEvent.displayConfig.popupCenter.layout === 'horizontal' && previewDevice === 'desktop'">
-                <button type="button" class="mockup-popup-close"><i class="fas fa-xmark"></i></button>
-                <div class="mockup-popup-img">
-                  <img [src]="getCoverImageUrl(formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước ảnh popup sự kiện" />
+              <!-- 2. SIMULATED VIEJAP SITE HEADER -->
+              <header class="sim-site-header">
+                <div class="sim-header-microbar">
+                  <div class="sim-microbar-left">
+                    <i class="fas fa-shield-halved text-warning"></i>
+                    <span>Thông tin chương trình rõ ràng, tư vấn trực tiếp</span>
+                  </div>
+                  <div class="sim-microbar-right">
+                    <span><i class="fas fa-phone"></i> 0966966284</span>
+                    <span><i class="fab fa-facebook-messenger"></i> Tư vấn Zalo</span>
+                  </div>
                 </div>
-                <div class="mockup-popup-body">
-                  <span class="mockup-badge">{{ formEvent.categoryName }}</span>
-                  <h3 class="mockup-popup-title">{{ formEvent.displayTitle || formEvent.title }}</h3>
-                  <p class="mockup-popup-desc">{{ formEvent.summary || formEvent.content }}</p>
-                  @if (formEvent.cta.enabled) {
-                  <a class="mockup-cta-btn" [href]="formEvent.cta.url">
-                    <span>{{ formEvent.cta.label }}</span>
-                    <i class="fas fa-arrow-right"></i>
-                  </a>
+
+                <nav class="sim-navbar">
+                  <div class="sim-logo-wrap">
+                    <img src="assets/images/logo.png" alt="VieJap" class="sim-logo-img" />
+                    <div class="sim-brand-text">
+                      <span class="sim-brand-name">VieJap</span>
+                      <small class="sim-brand-slogan">Cầu nối việc làm Nhật Bản</small>
+                    </div>
+                  </div>
+
+                  @if (previewDevice === 'desktop') {
+                    <ul class="sim-nav-links">
+                      <li class="active">Trang chủ</li>
+                      <li>Đơn hàng XKLĐ</li>
+                      <li>Học tiếng Nhật</li>
+                      <li>Góc hoạt động</li>
+                      <li>Giới thiệu</li>
+                    </ul>
+                    <div class="sim-nav-btn">
+                      <span>Tư vấn ngay</span>
+                    </div>
+                  } @else {
+                    <div class="sim-nav-hamburger">
+                      <i class="fas fa-bars"></i>
+                    </div>
                   }
-                </div>
-              </div>
-            </div>
-            }
+                </nav>
+              </header>
 
-            <!-- Preview: POPUP CORNER -->
-            @if (previewFormat === 'popup_corner') {
-            <div class="mockup-corner-container"
-              [class.corner-left]="formEvent.displayConfig.popupCorner.position === 'bottom_left'">
-              <div class="mockup-corner-card">
-                <button type="button" class="mockup-corner-close"><i class="fas fa-xmark"></i></button>
-                <div class="mockup-corner-thumb">
-                  <img [src]="getCoverImageUrl(formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước ảnh góc màn hình" />
+              <!-- 3. SIMULATED WEBSITE BODY (Hero & Content) -->
+              <div class="sim-website-body">
+                <!-- Simulated Hero Banner -->
+                <div class="sim-hero-section">
+                  <div class="sim-hero-decor-circle"></div>
+                  <div class="sim-hero-content">
+                    <span class="sim-hero-pill">
+                      <i class="fas fa-certificate"></i> Giấy phép Bộ LĐ-TB&XH
+                    </span>
+                    <h1 class="sim-hero-title">
+                      Một lựa chọn tốt — Đầu tư cho tương lai
+                    </h1>
+                    <p class="sim-hero-desc">
+                      Cầu nối việc làm và đào tạo Nhật Bản uy tín với hơn 50 đơn hàng Tokutei lương cao.
+                    </p>
+                    <div class="sim-hero-stats-row">
+                      <div class="sim-stat-box"><strong>50+</strong> Đơn hàng</div>
+                      <div class="sim-stat-box"><strong>100%</strong> Bay đúng hạn</div>
+                      <div class="sim-stat-box"><strong>20-35 Man</strong> Thu nhập</div>
+                    </div>
+                  </div>
                 </div>
-                <div class="mockup-corner-info">
-                  <small class="mockup-corner-cat">{{ formEvent.categoryName }}</small>
-                  <h4 class="mockup-corner-title">{{ formEvent.displayTitle || formEvent.title }}</h4>
-                  @if (formEvent.cta.enabled) {
-                  <a class="mockup-corner-link" [href]="formEvent.cta.url">
-                    {{ formEvent.cta.label }} <i class="fas fa-arrow-right"></i>
-                  </a>
-                  }
-                </div>
-              </div>
-            </div>
-            }
 
-            <!-- Preview: INDEX BANNER -->
-            @if (previewFormat === 'index_banner') {
-            <div class="mockup-index-banner-wrap">
-              <div class="mockup-index-banner">
-                <div class="banner-left">
-                  <span class="banner-badge">{{ formEvent.categoryName }}</span>
-                  <h3 class="banner-title">{{ formEvent.displayTitle || formEvent.title }}</h3>
-                  <p class="banner-desc">{{ formEvent.summary }}</p>
-                  @if (formEvent.cta.enabled) {
-                  <a class="mockup-cta-btn" [href]="formEvent.cta.url">
-                    <span>{{ formEvent.cta.label }}</span>
-                    <i class="fas fa-arrow-right"></i>
-                  </a>
-                  }
-                </div>
-                <div class="banner-right">
-                  <img [src]="getCoverImageUrl(formEvent.bannerImage || formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước banner sự kiện" />
-                </div>
-              </div>
-            </div>
-            }
+                <!-- 4. IF INDEX BANNER PREVIEW OR ACTIVE -->
+                @if (previewFormat === 'index_banner' || isFormatSelected('index_banner')) {
+                  <div class="sim-index-banner-insertion">
+                    <div class="sim-insertion-label">
+                      <i class="fas fa-location-dot"></i>
+                      <span>Vị trí chèn: {{ getPositionLabel(formEvent.displayConfig.indexBanner.position) }}</span>
+                    </div>
+                    <div class="home-event-banner-card"
+                      [class.style-navy]="formEvent.displayConfig.indexBanner.style === 'navy'"
+                      [class.style-card]="formEvent.displayConfig.indexBanner.style === 'card'"
+                      [class.style-highlight]="formEvent.displayConfig.indexBanner.style === 'highlight' || !formEvent.displayConfig.indexBanner.style">
+                      <div class="banner-decor-circle" aria-hidden="true"></div>
+                      <div class="banner-copy">
+                        <span class="banner-tag">
+                          <i class="fas fa-sparkles"></i>
+                          {{ formEvent.categoryName || 'Hoạt động & Sự kiện' }}
+                        </span>
+                        <h2 class="banner-title">{{ formEvent.displayTitle || formEvent.title }}</h2>
+                        <p class="banner-desc">{{ formEvent.summary || formEvent.content }}</p>
+                        <div class="banner-actions">
+                          @if (formEvent.cta.enabled) {
+                            <a class="banner-cta-btn" href="javascript:void(0)">
+                              <span>{{ formEvent.cta.label }}</span>
+                              <i class="fas fa-arrow-right"></i>
+                            </a>
+                          }
+                          <span class="banner-time-note">
+                            <i class="fas fa-calendar-check"></i>
+                            Diễn ra đến: {{ formEvent.schedule.endDate ? (formEvent.schedule.endDate | date:'dd/MM/yyyy') : 'Hạn đăng ký có hạn' }}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="banner-visual">
+                        <img [src]="getCoverImageUrl(formEvent.bannerImage || formEvent.coverImage)" (error)="onImageError($event)" alt="Banner sự kiện" />
+                      </div>
+                    </div>
+                  </div>
+                }
 
-            <!-- Preview: FLOATING BUTTON -->
-            @if (previewFormat === 'floating_button') {
-            <div class="mockup-fab-container">
-              <div class="mockup-fab-button">
-                <i class="fas fa-gift"></i>
-                <span>Sự kiện</span>
-                <span class="mockup-fab-badge">1</span>
+                <!-- Mini Order Cards Mock -->
+                <div class="sim-orders-preview-section">
+                  <div class="sim-section-header">
+                    <h4>Đơn hàng kỹ năng đặc định & Thực tập sinh nổi bật</h4>
+                    <span class="text-primary text-sm font-semibold">Xem tất cả 52 đơn →</span>
+                  </div>
+                  <div class="sim-orders-grid" [class.grid-mobile]="previewDevice === 'mobile'">
+                    <div class="sim-order-mini-card">
+                      <div class="order-badge-row">
+                        <span class="mini-badge bg-primary">Chế biến thực phẩm</span>
+                        <span class="mini-badge-sub">Tokyo</span>
+                      </div>
+                      <div class="order-title-txt">Đóng gói cơm hộp & Bento cao cấp</div>
+                      <div class="order-salary-txt">215,000 ¥ / tháng (36.5 triệu VNĐ)</div>
+                    </div>
+                    <div class="sim-order-mini-card">
+                      <div class="order-badge-row">
+                        <span class="mini-badge bg-success">Cơ khí điện tử</span>
+                        <span class="mini-badge-sub">Aichi</span>
+                      </div>
+                      <div class="order-title-txt">Vận hành máy gia công tiện CNC</div>
+                      <div class="order-salary-txt">230,000 ¥ / tháng (39.1 triệu VNĐ)</div>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              <!-- =================================================================== -->
+              <!-- 5. REALISTIC POPUPS & OVERLAYS                                     -->
+              <!-- =================================================================== -->
+
+              <!-- 5.1 POPUP CENTER (PIXEL-PERFECT WITH REAL SITE) -->
+              @if (previewFormat === 'popup_center') {
+                <div class="sim-center-popup-backdrop">
+                  <div class="site-center-popup-dialog"
+                    [class.layout-horizontal]="formEvent.displayConfig.popupCenter.layout === 'horizontal' && previewDevice === 'desktop'"
+                    [class.layout-vertical]="formEvent.displayConfig.popupCenter.layout === 'vertical'"
+                    [class.layout-banner-top]="formEvent.displayConfig.popupCenter.layout === 'banner_top' || !formEvent.displayConfig.popupCenter.layout">
+
+                    <!-- Close Button -->
+                    <button type="button" class="popup-close-btn" aria-label="Đóng thông báo">
+                      <i class="fas fa-xmark"></i>
+                    </button>
+
+                    <!-- Visual Cover / Banner -->
+                    <div class="popup-visual">
+                      <img [src]="getCoverImageUrl(formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước ảnh popup sự kiện" />
+                      <span class="popup-cat-badge">
+                        {{ formEvent.categoryName || 'Sự kiện VieJap' }}
+                      </span>
+                    </div>
+
+                    <!-- Popup Content -->
+                    <div class="popup-content">
+                      <h3 class="popup-title">
+                        {{ formEvent.displayTitle || formEvent.title }}
+                      </h3>
+
+                      @if (formEvent.summary) {
+                        <p class="popup-summary">
+                          {{ formEvent.summary }}
+                        </p>
+                      }
+
+                      @if (formEvent.content) {
+                        <p class="popup-detail">
+                          {{ formEvent.content }}
+                        </p>
+                      }
+
+                      <!-- Actions Row -->
+                      <div class="popup-actions-row">
+                        @if (formEvent.cta.enabled) {
+                          <a class="popup-cta-btn" href="javascript:void(0)">
+                            <span>{{ formEvent.cta.label }}</span>
+                            <i class="fas fa-arrow-right"></i>
+                          </a>
+                        }
+
+                        <button type="button" class="popup-dismiss-btn">
+                          Đóng thông báo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- 5.2 CORNER POPUP TOAST -->
+              @if (previewFormat === 'popup_corner') {
+                <div class="sim-corner-toast-wrap"
+                  [class.corner-left]="formEvent.displayConfig.popupCorner.position === 'bottom_left'">
+                  <div class="corner-toast-card">
+                    <div class="corner-controls">
+                      <button type="button" class="ctrl-btn" title="Thu nhỏ"><i class="fas fa-window-minimize"></i></button>
+                      <button type="button" class="ctrl-btn" title="Đóng"><i class="fas fa-xmark"></i></button>
+                    </div>
+                    <div class="corner-body">
+                      <div class="corner-thumb">
+                        <img [src]="getCoverImageUrl(formEvent.coverImage)" (error)="onImageError($event)" alt="Xem trước ảnh góc màn hình" />
+                      </div>
+                      <div class="corner-info">
+                        <span class="corner-cat">{{ formEvent.categoryName || 'Thông báo' }}</span>
+                        <strong class="corner-title">{{ formEvent.displayTitle || formEvent.title }}</strong>
+                        @if (formEvent.summary) {
+                          <p class="corner-desc">{{ formEvent.summary }}</p>
+                        }
+                        @if (formEvent.cta.enabled) {
+                          <a class="corner-cta-link" href="javascript:void(0)">
+                            <span>{{ formEvent.cta.label }}</span> <i class="fas fa-arrow-right"></i>
+                          </a>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- 5.3 FLOATING EVENT BUTTON (FAB) -->
+              @if (previewFormat === 'floating_button' || isFormatSelected('floating_button')) {
+                <div class="sim-fab-wrap">
+                  <div class="site-events-fab-btn">
+                    <div class="fab-icon-wrap"><i class="fas fa-gift"></i></div>
+                    <span class="fab-label">Sự kiện</span>
+                    <span class="fab-count-badge">1</span>
+                  </div>
+                </div>
+              }
+
+              <!-- 5.4 EVENTS SLIDE-OVER DRAWER -->
+              @if (previewFormat === 'list') {
+                <div class="sim-drawer-backdrop">
+                  <div class="sim-drawer-panel" [class.drawer-mobile]="previewDevice === 'mobile'">
+                    <div class="drawer-header">
+                      <div class="drawer-header-title">
+                        <div class="drawer-icon-wrap"><i class="fas fa-calendar-check"></i></div>
+                        <div>
+                          <h4>Sự kiện & Hoạt động</h4>
+                          <small class="drawer-sub">Chương trình ưu đãi đang diễn ra</small>
+                        </div>
+                      </div>
+                      <button type="button" class="drawer-close-btn"><i class="fas fa-xmark"></i></button>
+                    </div>
+                    <div class="drawer-events-list">
+                      <div class="drawer-event-card">
+                        <div class="card-thumb">
+                          <img [src]="getCoverImageUrl(formEvent.coverImage)" (error)="onImageError($event)" alt="Sự kiện" />
+                          <span class="card-cat-badge">{{ formEvent.categoryName }}</span>
+                        </div>
+                        <div class="card-body">
+                          <h4 class="card-title">{{ formEvent.displayTitle || formEvent.title }}</h4>
+                          <p class="card-summary">{{ formEvent.summary || formEvent.content }}</p>
+                          <div class="card-footer-meta">
+                            <span class="meta-date"><i class="fas fa-calendar"></i> Đến {{ formEvent.schedule.endDate ? (formEvent.schedule.endDate | date:'dd/MM/yyyy') : 'Có hạn' }}</span>
+                            @if (formEvent.cta.enabled) {
+                              <span class="meta-link">{{ formEvent.cta.label }} →</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
             </div>
-            }
           </div>
         </div>
       </div>

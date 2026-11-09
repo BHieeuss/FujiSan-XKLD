@@ -15,6 +15,7 @@ import { AdminAuthService } from '../../admin/services/admin-auth.service';
 import { JobOrderDraftTransferService } from '../../jobs/services/job-order-draft-transfer.service';
 import { JobOrdersApiService } from '../../jobs/services/job-orders-api.service';
 import {
+  createDefaultPosterAssets,
   createRecruitmentPosterData,
   RecruitmentPosterAssets,
   RecruitmentPosterData,
@@ -29,6 +30,7 @@ import { AiImportModalComponent } from './components/ai-import-modal/ai-import-m
 import { JobOrderConfirmModalComponent } from './components/job-order-confirm-modal/job-order-confirm-modal.component';
 import { TemplateId } from './models/poster-template.model';
 import { POSTER_TEMPLATES } from './templates/poster-template-registry';
+import { AiStructuredOrder } from './models/ai-order-extraction.model';
 
 type PhotoSlot = 'primary' | 'secondary' | 'tertiary';
 
@@ -62,9 +64,9 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
 
   data: RecruitmentPosterData = createRecruitmentPosterData();
   assets: RecruitmentPosterAssets = this.createDefaultAssets();
-  primaryPhotoName = 'Ảnh mẫu công việc chính';
-  secondaryPhotoName = 'Ảnh mẫu môi trường làm việc';
-  tertiaryPhotoName = 'Ảnh mẫu công việc bổ sung';
+  primaryPhotoName = 'Ảnh 1 (Mặc định: 1.png)';
+  secondaryPhotoName = 'Ảnh 2 (Mặc định: 2.png)';
+  tertiaryPhotoName = 'Ảnh 3 (Mặc định: 3.png)';
   selectedTemplateId: TemplateId = 'japan_signature';
   showAiModal = false;
   showJobConfirmModal = false;
@@ -72,6 +74,7 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
   rendering = false;
   renderError = '';
   downloadMessage = '';
+  private currentAiOrder?: AiStructuredOrder;
 
   ngOnInit(): void {
     if (typeof sessionStorage !== 'undefined') {
@@ -87,6 +90,9 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
           }
           if (parsed?.templateId) {
             this.selectedTemplateId = parsed.templateId;
+          }
+          if (parsed?.aiOrder) {
+            this.currentAiOrder = parsed.aiOrder;
           }
           sessionStorage.removeItem('viejap_applied_poster');
         } catch (e) {
@@ -105,8 +111,12 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
     let count = 0;
     if (this.assets.primaryPhotoSrc) count++;
     if (this.assets.secondaryPhotoSrc) count++;
-    if (this.assets.tertiaryPhotoSrc) count++;
+    if (this.is3PhotoTemplate && this.assets.tertiaryPhotoSrc) count++;
     return count;
+  }
+
+  get requiredPhotoCount(): number {
+    return this.is3PhotoTemplate ? 3 : 2;
   }
 
   get hasAllRequiredPhotos(): boolean {
@@ -225,8 +235,18 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
     data: RecruitmentPosterData;
     assets: RecruitmentPosterAssets;
     templateId: TemplateId;
+    aiOrder?: AiStructuredOrder;
   }): void {
     this.data = result.data;
+    if (result.aiOrder) {
+      this.currentAiOrder = result.aiOrder;
+    }
+    if (result.assets) {
+      this.assets = { ...result.assets };
+      this.primaryPhotoName = 'Ảnh 1 (Tự động thêm)';
+      this.secondaryPhotoName = 'Ảnh 2 (Tự động thêm)';
+      this.tertiaryPhotoName = 'Ảnh 3 (Tự động thêm)';
+    }
     if (result.templateId) {
       this.selectedTemplateId = result.templateId;
     }
@@ -238,8 +258,18 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
     data: RecruitmentPosterData;
     assets: RecruitmentPosterAssets;
     templateId: TemplateId;
+    aiOrder?: AiStructuredOrder;
   }): Promise<void> {
     this.data = result.data;
+    if (result.aiOrder) {
+      this.currentAiOrder = result.aiOrder;
+    }
+    if (result.assets) {
+      this.assets = { ...result.assets };
+      this.primaryPhotoName = 'Ảnh 1 (Tự động thêm)';
+      this.secondaryPhotoName = 'Ảnh 2 (Tự động thêm)';
+      this.tertiaryPhotoName = 'Ảnh 3 (Tự động thêm)';
+    }
     if (result.templateId) {
       this.selectedTemplateId = result.templateId;
     }
@@ -257,7 +287,7 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
       if (canvas) {
         dataUrl = canvas.toDataURL('image/jpeg', 0.92);
       }
-      const draft = this.draftTransfer.setDraftFromPoster(this.data, this.assets, dataUrl);
+      const draft = this.draftTransfer.setDraftFromPoster(this.data, this.assets, dataUrl, this.currentAiOrder);
 
       // Best-effort auto sync with server draft if logged in
       if (this.auth.session()) {
@@ -286,7 +316,7 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
 
   async downloadPoster(format: 'png' | 'jpg' | 'pdf' = 'png'): Promise<void> {
     if (!this.canDownloadPoster()) {
-      this.renderError = 'Mẫu thiết kế này yêu cầu đủ 3 ảnh bắt buộc. Vui lòng bổ sung đầy đủ trước khi tải poster.';
+      this.renderError = `Vui lòng bổ sung đầy đủ ${this.requiredPhotoCount} ảnh bắt buộc trước khi tải poster.`;
       return;
     }
 
@@ -332,9 +362,9 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
     this.data = createRecruitmentPosterData();
     this.assets = this.createDefaultAssets();
     this.selectedTemplateId = 'japan_signature';
-    this.primaryPhotoName = 'Ảnh mẫu công việc chính';
-    this.secondaryPhotoName = 'Ảnh mẫu môi trường làm việc';
-    this.tertiaryPhotoName = 'Ảnh mẫu công việc bổ sung';
+    this.primaryPhotoName = 'Ảnh 1 (Mặc định: 1.png)';
+    this.secondaryPhotoName = 'Ảnh 2 (Mặc định: 2.png)';
+    this.tertiaryPhotoName = 'Ảnh 3 (Mặc định: 3.png)';
     this.renderError = '';
     this.downloadMessage = '';
     if (this.primaryPhotoInput) {
@@ -376,13 +406,7 @@ export class PosterMakerPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private createDefaultAssets(): RecruitmentPosterAssets {
-    return {
-      logoSrc: 'assets/images/logo.png',
-      backgroundSrc: 'assets/images/poster/fuji-sakura-background.jpg',
-      primaryPhotoSrc: 'assets/images/KySu/1.png',
-      secondaryPhotoSrc: 'assets/images/KySu/2.png',
-      tertiaryPhotoSrc: 'assets/images/KySu/3.png',
-    };
+    return createDefaultPosterAssets(this.data?.category);
   }
 
   private createFilename(extension = 'png'): string {

@@ -248,6 +248,8 @@ function admin_student_profiles_list(array $filters = []): array
                 'idNumber' => (string) $row['id_number'],
                 'address' => (string) $row['address'],
                 'status' => (string) $row['status'],
+                'progressPercent' => isset($row['progress_percent']) ? (int) $row['progress_percent'] : 45,
+                'registrationCode' => (string) ($row['registration_code'] ?? ''),
                 'deletedAt' => $deletedAt,
                 'previousStatus' => !empty($row['previous_status']) ? (string) $row['previous_status'] : null,
                 'daysRemaining' => $daysRemaining,
@@ -311,6 +313,8 @@ function admin_student_profiles_list(array $filters = []): array
             'idNumber' => (string) ($p['idNumber'] ?? ''),
             'address' => (string) ($p['address'] ?? ''),
             'status' => $pStatus,
+            'progressPercent' => isset($p['progressPercent']) ? (int) $p['progressPercent'] : 45,
+            'registrationCode' => (string) ($p['registrationCode'] ?? ''),
             'deletedAt' => $deletedAt,
             'previousStatus' => !empty($p['previousStatus']) ? (string) $p['previousStatus'] : null,
             'daysRemaining' => $daysRemaining,
@@ -857,6 +861,93 @@ function admin_student_profile_get_file_record(string $profileId, string $fileId
         }
     }
     return null;
+}
+
+function admin_student_profile_delete_file(string $profileId, string $fileId, string $actor = 'Admin'): ?array
+{
+    $existing = admin_student_profile_find($profileId);
+    if ($existing === null) {
+        return null;
+    }
+
+    $fileRecord = admin_student_profile_get_file_record($profileId, $fileId);
+    if ($fileRecord === null) {
+        return null;
+    }
+
+    $filePath = (string) ($fileRecord['file_path'] ?? $fileRecord['filePath'] ?? '');
+    if ($filePath !== '' && is_file($filePath)) {
+        @unlink($filePath);
+    }
+
+    $fileName = (string) ($fileRecord['file_name'] ?? $fileRecord['fileName'] ?? 'file');
+    $fileType = (string) ($fileRecord['file_type'] ?? $fileRecord['fileType'] ?? 'document');
+    $version = (int) ($fileRecord['version'] ?? 1);
+    $now = date('Y-m-d H:i:s');
+
+    $database = admin_student_profiles_database();
+    if ($database !== null) {
+        $stmt = $database->prepare('DELETE FROM student_profile_files WHERE id = :id AND profile_id = :profile_id');
+        $stmt->execute(['id' => $fileId, 'profile_id' => $profileId]);
+
+        $logId = admin_student_profile_generate_id();
+        $details = "Đã xóa tệp {$fileName} (loại: {$fileType}, v{$version})";
+        $logStmt = $database->prepare(
+            'INSERT INTO student_profile_audit_logs (id, profile_id, action, actor, details, created_at)
+             VALUES (:id, :profile_id, :action, :actor, :details, :created_at)'
+        );
+        $logStmt->execute([
+            'id' => $logId,
+            'profile_id' => $profileId,
+            'action' => 'deleted_file',
+            'actor' => $actor,
+            'details' => $details,
+            'created_at' => $now,
+        ]);
+
+        return admin_student_profile_find($profileId);
+    }
+
+    // JSON file fallback
+    $profiles = admin_student_profiles_load_file();
+    foreach ($profiles as &$p) {
+        if (($p['id'] ?? '') === $profileId) {
+            $filteredFiles = [];
+            foreach ($p['files'] ?? [] as $f) {
+                if (($f['id'] ?? '') !== $fileId) {
+                    $filteredFiles[] = $f;
+                }
+            }
+            $p['files'] = $filteredFiles;
+
+            $p['auditLogs'][] = [
+                'id' => admin_student_profile_generate_id(),
+                'action' => 'deleted_file',
+                'actor' => $actor,
+                'details' => "Đã xóa tệp {$fileName} (loại: {$fileType}, v{$version})",
+                'createdAt' => $now,
+            ];
+            $p['updatedAt'] = $now;
+            break;
+        }
+    }
+    unset($p);
+    admin_student_profiles_save_file($profiles);
+
+    try {
+        require_once __DIR__ . '/_bootstrap.php';
+        admin_activity_log_create([
+            'actorName' => $actor,
+            'actorRole' => 'Quản trị viên',
+            'action' => 'Xóa tệp đính kèm: ' . $fileName,
+            'targetType' => 'student',
+            'targetId' => $profileId,
+            'targetName' => $existing['fullName'],
+            'details' => 'Xóa tệp: ' . $fileName . ' | Loại: ' . strtoupper($fileType) . ' | v' . $version,
+        ]);
+    } catch (Throwable) {}
+
+    return admin_student_profile_find($profileId);
 }
 
 

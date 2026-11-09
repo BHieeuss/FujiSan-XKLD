@@ -113,46 +113,58 @@
             <h1 class="hero-job-title">{{ orderTitle(order) }}</h1>
 
             <!-- Clean, professional Japanese salary presentation -->
-            <div class="hero-salary-row">
-              <span class="salary-label">MỨC LƯƠNG CƠ BẢN DỰ KIẾN</span>
-              <strong class="salary-amount">{{ orderSalary(order) }}</strong>
-              <span class="salary-note">Chưa tính làm thêm</span>
-            </div>
+            @if (orderSalary(order)) {
+              <div class="hero-salary-row">
+                <span class="salary-label">MỨC LƯƠNG CƠ BẢN DỰ KIẾN</span>
+                <strong class="salary-amount">{{ orderSalary(order) }}</strong>
+                <span class="salary-note">Chưa tính làm thêm</span>
+              </div>
+            }
 
             <!-- 4 Quick Key Highlights -->
-            <div class="hero-quick-specs">
-              <div class="quick-spec-item">
-                <i class="fas fa-map-location-dot"></i>
-                <div>
-                  <small>Địa điểm làm việc</small>
-                  <strong>{{ orderLocation(order) }}</strong>
-                </div>
-              </div>
+            @if (orderLocation(order) || orderDuration(order) || orderDeparture(order) || orderAge(order)) {
+              <div class="hero-quick-specs">
+                @if (orderLocation(order)) {
+                  <div class="quick-spec-item">
+                    <i class="fas fa-map-location-dot"></i>
+                    <div>
+                      <small>Địa điểm làm việc</small>
+                      <strong>{{ orderLocation(order) }}</strong>
+                    </div>
+                  </div>
+                }
 
-              <div class="quick-spec-item">
-                <i class="fas fa-business-time"></i>
-                <div>
-                  <small>Thời hạn hợp đồng</small>
-                  <strong>{{ orderDuration(order) }}</strong>
-                </div>
-              </div>
+                @if (orderDuration(order)) {
+                  <div class="quick-spec-item">
+                    <i class="fas fa-business-time"></i>
+                    <div>
+                      <small>Thời hạn hợp đồng</small>
+                      <strong>{{ orderDuration(order) }}</strong>
+                    </div>
+                  </div>
+                }
 
-              <div class="quick-spec-item">
-                <i class="fas fa-plane-departure"></i>
-                <div>
-                  <small>Dự kiến xuất cảnh</small>
-                  <strong>{{ orderDeparture(order) }}</strong>
-                </div>
-              </div>
+                @if (orderDeparture(order)) {
+                  <div class="quick-spec-item">
+                    <i class="fas fa-plane-departure"></i>
+                    <div>
+                      <small>Dự kiến xuất cảnh</small>
+                      <strong>{{ orderDeparture(order) }}</strong>
+                    </div>
+                  </div>
+                }
 
-              <div class="quick-spec-item">
-                <i class="fas fa-user-check"></i>
-                <div>
-                  <small>Độ tuổi tiếp nhận</small>
-                  <strong>{{ orderAge(order) }}</strong>
-                </div>
+                @if (orderAge(order)) {
+                  <div class="quick-spec-item">
+                    <i class="fas fa-user-check"></i>
+                    <div>
+                      <small>Độ tuổi tiếp nhận</small>
+                      <strong>{{ orderAge(order) }}</strong>
+                    </div>
+                  </div>
+                }
               </div>
-            </div>
+            }
 
             <!-- Primary Action Buttons -->
             <div class="hero-action-buttons">
@@ -225,230 +237,329 @@
                 </h2>
 
                 <div class="specs-grid">
-                  <div class="spec-card">
-                    <div class="spec-card-icon"><i class="fas fa-briefcase"></i></div>
-                    <div class="spec-card-meta">
-                      <span class="label">Ngành nghề</span>
-                      <strong>{{ orderCategory(order).label }}</strong>
+                  @if (orderCategory(order)) {
+                    <div class="spec-card">
+                      <div class="spec-card-icon"><i class="fas fa-briefcase"></i></div>
+                      <div class="spec-card-meta">
+                        <span class="label">Ngành nghề</span>
+                        <strong>{{ orderCategory(order).label }}</strong>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="spec-card">
-                    <div class="spec-card-icon"><i class="fas fa-location-dot"></i></div>
-                    <div class="spec-card-meta">
-                      <span class="label">Nơi làm việc</span>
-                      <strong>{{ orderLocation(order) }}</strong>
+                  @if (orderLocation(order)) {
+                    <div class="spec-card">
+                      <div class="spec-card-icon"><i class="fas fa-location-dot"></i></div>
+                      <div class="spec-card-meta">
+                        <span class="label">Nơi làm việc</span>
+                        <strong>{{ orderLocation(order) }}</strong>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="spec-card">
-                    <div class="spec-card-icon"><i class="fas fa-venus-mars"></i></div>
-                    <div class="spec-card-meta">
-                      <span class="label">Giới tính & Chỉ tiêu</span>
-                      <strong>{{ orderGender(order) }} ({{ orderQuantity(order) }})</strong>
+                  @if (orderGender(order) || orderQuantity(order)) {
+                    <div class="spec-card">
+                      <div class="spec-card-icon"><i class="fas fa-venus-mars"></i></div>
+                      <div class="spec-card-meta">
+                        <span class="label">Giới tính & Chỉ tiêu</span>
+                        <strong>
+                          @if (orderGender(order) && orderQuantity(order)) {
+                            {{ orderGender(order) }} ({{ orderQuantity(order) }})
+                          } @else if (orderGender(order)) {
+                            {{ orderGender(order) }}
+                          } @else {
+                            {{ orderQuantity(order) }}
+                          }
+                        </strong>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="spec-card">
-                    <div class="spec-card-icon"><i class="fas fa-calendar-days"></i></div>
-                    <div class="spec-card-meta">
-                      <span class="label">Độ tuổi tiếp nhận</span>
-                      <strong>{{ orderAge(order) }}</strong>
+                  @if (orderAge(order)) {
+                    <div class="spec-card">
+                      <div class="spec-card-icon"><i class="fas fa-calendar-days"></i></div>
+                      <div class="spec-card-meta">
+                        <span class="label">Độ tuổi tiếp nhận</span>
+                        <strong>{{ orderAge(order) }}</strong>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="spec-card highlight spec-card--salary">
-                    <div class="spec-card-meta">
-                      <span class="label">MỨC LƯƠNG CƠ BẢN</span>
-                      <strong class="salary-val">{{ orderSalary(order) }}</strong>
+                  @if (orderSalary(order)) {
+                    <div class="spec-card highlight spec-card--salary">
+                      <div class="spec-card-meta">
+                        <span class="label">MỨC LƯƠNG CƠ BẢN</span>
+                        <strong class="salary-val">{{ orderSalary(order) }}</strong>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="spec-card">
-                    <div class="spec-card-icon"><i class="fas fa-hourglass-half"></i></div>
-                    <div class="spec-card-meta">
-                      <span class="label">Thời hạn làm việc</span>
-                      <strong>{{ orderDuration(order) }}</strong>
+                  @if (orderDuration(order)) {
+                    <div class="spec-card">
+                      <div class="spec-card-icon"><i class="fas fa-hourglass-half"></i></div>
+                      <div class="spec-card-meta">
+                        <span class="label">Thời hạn làm việc</span>
+                        <strong>{{ orderDuration(order) }}</strong>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="spec-card">
-                    <div class="spec-card-icon"><i class="fas fa-plane-departure"></i></div>
-                    <div class="spec-card-meta">
-                      <span class="label">Thời gian xuất cảnh</span>
-                      <strong>{{ orderDeparture(order) }}</strong>
+                  @if (orderDeparture(order)) {
+                    <div class="spec-card">
+                      <div class="spec-card-icon"><i class="fas fa-plane-departure"></i></div>
+                      <div class="spec-card-meta">
+                        <span class="label">Thời gian xuất cảnh</span>
+                        <strong>{{ orderDeparture(order) }}</strong>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="spec-card">
-                    <div class="spec-card-icon"><i class="fas fa-user-graduate"></i></div>
-                    <div class="spec-card-meta">
-                      <span class="label">Trình độ học vấn</span>
-                      <strong>{{ orderEducation(order) }}</strong>
+                  @if (orderEducation(order)) {
+                    <div class="spec-card">
+                      <div class="spec-card-icon"><i class="fas fa-user-graduate"></i></div>
+                      <div class="spec-card-meta">
+                        <span class="label">Trình độ học vấn</span>
+                        <strong>{{ orderEducation(order) }}</strong>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="spec-card">
-                    <div class="spec-card-icon"><i class="fas fa-wrench"></i></div>
-                    <div class="spec-card-meta">
-                      <span class="label">Yêu cầu tay nghề</span>
-                      <strong>{{ orderExperience(order) }}</strong>
+                  @if (orderExperience(order)) {
+                    <div class="spec-card">
+                      <div class="spec-card-icon"><i class="fas fa-wrench"></i></div>
+                      <div class="spec-card-meta">
+                        <span class="label">Yêu cầu tay nghề</span>
+                        <strong>{{ orderExperience(order) }}</strong>
+                      </div>
                     </div>
-                  </div>
+                  }
                 </div>
               </section>
 
               <!-- Section B: Job Description & Tasks -->
-              <section class="detail-section animate-fade-in">
-                <h2 class="section-title">
-                  <i class="fas fa-file-lines text-primary"></i>
-                  <span>Mô tả công việc & Nhà xưởng</span>
-                </h2>
+              @if (order.description || order.specificWork || order.workEnvironment || order.workingHours || order.holidays) {
+                <section class="detail-section animate-fade-in">
+                  <h2 class="section-title">
+                    <i class="fas fa-file-lines text-primary"></i>
+                    <span>Mô tả công việc & Nhà xưởng</span>
+                  </h2>
 
-                <div class="job-description-content">
                   @if (order.description) {
-                    <div class="formatted-description" [innerHTML]="order.description"></div>
-                  } @else {
-                    <p>Công việc thực tế tại nhà máy theo dây chuyền chuẩn Nhật Bản, được quản lý người Nhật và đồng hương hướng dẫn tận tình.</p>
+                    <div class="job-description-content">
+                      <div class="formatted-description" [innerHTML]="order.description"></div>
+                    </div>
+                  } @else if (order.specificWork) {
+                    <div class="job-description-content">
+                      <p>{{ order.specificWork }}</p>
+                    </div>
                   }
-                </div>
 
-                <!-- Factory Environment Highlights -->
-                <div class="factory-features-grid">
-                  <div class="factory-feature-item">
-                    <i class="fas fa-snowflake"></i>
-                    <div>
-                      <strong>Môi trường làm việc</strong>
-                      <p>{{ order.workEnvironment || 'Trong nhà máy hiện đại, sạch sẽ, hệ thống điều hòa nhiệt độ ổn định quanh năm.' }}</p>
-                    </div>
-                  </div>
+                  <!-- Factory Environment Highlights -->
+                  @if (order.workEnvironment || order.workingHours || order.holidays) {
+                    <div class="factory-features-grid">
+                      @if (order.workEnvironment) {
+                        <div class="factory-feature-item">
+                          <i class="fas fa-snowflake"></i>
+                          <div>
+                            <strong>Môi trường làm việc</strong>
+                            <p>{{ order.workEnvironment }}</p>
+                          </div>
+                        </div>
+                      }
 
-                  <div class="factory-feature-item">
-                    <i class="fas fa-vest"></i>
-                    <div>
-                      <strong>Trang thiết bị bảo hộ</strong>
-                      <p>Được xí nghiệp Nhật trang bị đầy đủ đồng phục, mũ, găng tay, giày chống trượt miễn phí.</p>
-                    </div>
-                  </div>
+                      @if (order.workingHours) {
+                        <div class="factory-feature-item">
+                          <i class="fas fa-clock"></i>
+                          <div>
+                            <strong>Thời gian làm việc</strong>
+                            <p>{{ order.workingHours }}</p>
+                          </div>
+                        </div>
+                      }
 
-                  <div class="factory-feature-item">
-                    <i class="fas fa-clock"></i>
-                    <div>
-                      <strong>Thời gian làm việc</strong>
-                      <p>{{ order.workingHours || '8 giờ/ngày, 5 ngày/tuần. Nghỉ thứ 7, Chủ Nhật và tất cả các ngày lễ theo lịch Nhật Bản.' }}</p>
+                      @if (order.holidays) {
+                        <div class="factory-feature-item">
+                          <i class="fas fa-calendar-check"></i>
+                          <div>
+                            <strong>Chế độ nghỉ lễ</strong>
+                            <p>{{ order.holidays }}</p>
+                          </div>
+                        </div>
+                      }
                     </div>
-                  </div>
-                </div>
-              </section>
+                  }
+                </section>
+              }
 
               <!-- Section E: Work Location & Region -->
-              <section class="detail-section animate-fade-in">
-                <h2 class="section-title">
-                  <i class="fas fa-map-location-dot text-primary"></i>
-                  <span>Địa điểm làm việc: {{ orderLocation(order) }}</span>
-                </h2>
+              @if (orderLocation(order)) {
+                <section class="detail-section animate-fade-in">
+                  <h2 class="section-title">
+                    <i class="fas fa-map-location-dot text-primary"></i>
+                    <span>Địa điểm làm việc: {{ orderLocation(order) }}</span>
+                  </h2>
 
-                <div class="location-overview-card">
-                  <div class="loc-icon-bubble">
-                    <i class="fas fa-building-circle-check"></i>
+                  <div class="location-overview-card">
+                    <div class="loc-icon-bubble">
+                      <i class="fas fa-building-circle-check"></i>
+                    </div>
+                    <div class="loc-text">
+                      <h4>{{ orderLocation(order) }}</h4>
+                      @if (order.company) {
+                        <p>Xí nghiệp tiếp nhận: <strong>{{ order.company }}</strong></p>
+                      }
+                    </div>
                   </div>
-                  <div class="loc-text">
-                    <h4>Vùng kinh tế {{ orderLocation(order).split(' - ')[0] }}</h4>
-                    <p>{{ orderLocationDescription(order) }}</p>
-                  </div>
-                </div>
-              </section>
+                </section>
+              }
             }
 
             <!-- TAB 2: THÔNG TIN TUYỂN DỤNG & LƯƠNG -->
             @if (activeTab === 'specs') {
-              <section class="detail-section salary-breakdown-section animate-fade-in">
-                <h2 class="section-title">
-                  <i class="fas fa-sack-dollar text-primary"></i>
-                  <span>Chi tiết Lương cơ bản & Lương thực lĩnh</span>
-                </h2>
+              @if (order.basicSalary || order.takeHomeSalary || order.salary || order.overtime || order.allowances || order.bonus || order.insurance || order.accommodation || order.meals || order.transport || order.otherBenefits) {
+                <section class="detail-section salary-breakdown-section animate-fade-in">
+                  <h2 class="section-title">
+                    <i class="fas fa-sack-dollar text-primary"></i>
+                    <span>Chi tiết Lương cơ bản & Lương thực lĩnh</span>
+                  </h2>
 
-                <div class="salary-breakdown-cards">
-                  <div class="salary-card-box basic-sal">
-                    <span class="sub-label">LƯƠNG CƠ BẢN (GROSS)</span>
-                    <strong>{{ order.basicSalary || orderSalary(order) }}</strong>
-                    <small>Theo hợp đồng lao động ký với xí nghiệp tiếp nhận Nhật Bản</small>
-                  </div>
-                  <div class="salary-card-box take-home-sal">
-                    <span class="sub-label">THỰC LĨNH DỰ KIẾN (NET)</span>
-                    <strong>{{ order.takeHomeSalary || orderSalary(order) }}</strong>
-                    <small>Đã trừ tiền thuế, bảo hiểm xã hội Nenkin và tiền nhà ở ký túc xá</small>
-                  </div>
-                </div>
+                  @if (order.basicSalary || order.takeHomeSalary || order.salary) {
+                    <div class="salary-breakdown-cards">
+                      @if (order.basicSalary || order.salary) {
+                        <div class="salary-card-box basic-sal">
+                          <span class="sub-label">LƯƠNG CƠ BẢN (GROSS)</span>
+                          <strong>{{ order.basicSalary || order.salary }}</strong>
+                          <small>Theo hợp đồng lao động ký với xí nghiệp tiếp nhận Nhật Bản</small>
+                        </div>
+                      }
+                      @if (order.takeHomeSalary) {
+                        <div class="salary-card-box take-home-sal">
+                          <span class="sub-label">THỰC LĨNH DỰ KIẾN (NET)</span>
+                          <strong>{{ order.takeHomeSalary }}</strong>
+                          <small>Đã trừ tiền thuế, bảo hiểm xã hội Nenkin và tiền nhà ở ký túc xá</small>
+                        </div>
+                      }
+                    </div>
+                  }
 
-                <div class="allowances-details-list">
-                  <div class="allowance-row">
-                    <span><i class="fas fa-clock"></i> Tiền làm thêm giờ (Tăng ca):</span>
-                    <strong>{{ order.overtime || 'Bình quân 25 - 40h/tháng, nhân hệ số 125% - 150%' }}</strong>
-                  </div>
-                  <div class="allowance-row">
-                    <span><i class="fas fa-hand-holding-dollar"></i> Trợ cấp & Phụ cấp:</span>
-                    <strong>{{ order.allowances || 'Trợ cấp đào tạo tháng đầu 60.000 Yên, phụ cấp chuyên cần' }}</strong>
-                  </div>
-                  <div class="allowance-row">
-                    <span><i class="fas fa-shield-heart"></i> Chế độ bảo hiểm:</span>
-                    <strong>{{ order.insurance || 'Đầy đủ BH Y tế, Nenkin, Thất nghiệp theo Luật Nhật Bản' }}</strong>
-                  </div>
-                  <div class="allowance-row">
-                    <span><i class="fas fa-house-chimney"></i> Ký túc xá & Nhà ở:</span>
-                    <strong>{{ order.accommodation || 'KTX đầy đủ điều hòa, máy giặt, bếp nấu, wifi, gần nơi làm' }}</strong>
-                  </div>
-                  <div class="allowance-row">
-                    <span><i class="fas fa-utensils"></i> Tiền ăn & Phương tiện:</span>
-                    <strong>{{ (order.meals || 'Tự nấu ăn tại KTX') + ' · ' + (order.transport || 'Cấp xe đạp / vé tháng') }}</strong>
-                  </div>
-                </div>
-              </section>
+                  @if (order.overtime || order.allowances || order.bonus || order.insurance || order.accommodation || order.meals || order.transport || order.otherBenefits) {
+                    <div class="allowances-details-list">
+                      @if (order.overtime) {
+                        <div class="allowance-row">
+                          <span><i class="fas fa-clock"></i> Tiền làm thêm giờ (Tăng ca):</span>
+                          <strong>{{ order.overtime }}</strong>
+                        </div>
+                      }
+                      @if (order.allowances) {
+                        <div class="allowance-row">
+                          <span><i class="fas fa-hand-holding-dollar"></i> Trợ cấp & Phụ cấp:</span>
+                          <strong>{{ order.allowances }}</strong>
+                        </div>
+                      }
+                      @if (order.bonus) {
+                        <div class="allowance-row">
+                          <span><i class="fas fa-arrow-trend-up"></i> Thưởng & Tăng lương:</span>
+                          <strong>{{ order.bonus }}</strong>
+                        </div>
+                      }
+                      @if (order.insurance) {
+                        <div class="allowance-row">
+                          <span><i class="fas fa-shield-heart"></i> Chế độ bảo hiểm:</span>
+                          <strong>{{ order.insurance }}</strong>
+                        </div>
+                      }
+                      @if (order.accommodation) {
+                        <div class="allowance-row">
+                          <span><i class="fas fa-house-chimney"></i> Ký túc xá & Nhà ở:</span>
+                          <strong>{{ order.accommodation }}</strong>
+                        </div>
+                      }
+                      @if (order.meals) {
+                        <div class="allowance-row">
+                          <span><i class="fas fa-utensils"></i> Tiền ăn:</span>
+                          <strong>{{ order.meals }}</strong>
+                        </div>
+                      }
+                      @if (order.transport) {
+                        <div class="allowance-row">
+                          <span><i class="fas fa-train-subway"></i> Phương tiện đi lại:</span>
+                          <strong>{{ order.transport }}</strong>
+                        </div>
+                      }
+                      @if (order.otherBenefits) {
+                        <div class="allowance-row">
+                          <span><i class="fas fa-gift"></i> Quyền lợi khác:</span>
+                          <strong>{{ order.otherBenefits }}</strong>
+                        </div>
+                      }
+                    </div>
+                  }
+                </section>
+              }
 
               <!-- Section D: Requirements & Eligibility -->
-              <section class="detail-section animate-fade-in">
-                <h2 class="section-title">
-                  <i class="fas fa-user-check text-primary"></i>
-                  <span>Điều kiện & Tiêu chí tuyển chọn</span>
-                </h2>
+              @if (orderAge(order) || orderGender(order) || orderEducation(order) || order.japaneseLevel || orderExperience(order) || order.healthRequirements) {
+                <section class="detail-section animate-fade-in">
+                  <h2 class="section-title">
+                    <i class="fas fa-user-check text-primary"></i>
+                    <span>Điều kiện & Tiêu chí tuyển chọn</span>
+                  </h2>
 
-                <div class="requirements-checklist">
-                  <div class="req-item">
-                    <i class="fas fa-circle-check text-success"></i>
-                    <div>
-                      <strong>Độ tuổi & Giới tính:</strong> {{ orderAge(order) }} ({{ orderGender(order) }}).
-                    </div>
-                  </div>
+                  <div class="requirements-checklist">
+                    @if (orderAge(order) || orderGender(order)) {
+                      <div class="req-item">
+                        <i class="fas fa-circle-check text-success"></i>
+                        <div>
+                          <strong>Độ tuổi & Giới tính:</strong>
+                          @if (orderAge(order) && orderGender(order)) {
+                            {{ orderAge(order) }} ({{ orderGender(order) }}).
+                          } @else if (orderAge(order)) {
+                            {{ orderAge(order) }}.
+                          } @else {
+                            {{ orderGender(order) }}.
+                          }
+                        </div>
+                      </div>
+                    }
 
-                  <div class="req-item">
-                    <i class="fas fa-circle-check text-success"></i>
-                    <div>
-                      <strong>Trình độ học vấn:</strong> {{ order.education || orderEducation(order) }}.
-                    </div>
-                  </div>
+                    @if (orderEducation(order)) {
+                      <div class="req-item">
+                        <i class="fas fa-circle-check text-success"></i>
+                        <div>
+                          <strong>Trình độ học vấn:</strong> {{ orderEducation(order) }}.
+                        </div>
+                      </div>
+                    }
 
-                  <div class="req-item">
-                    <i class="fas fa-circle-check text-success"></i>
-                    <div>
-                      <strong>Trình độ tiếng Nhật:</strong> {{ order.japaneseLevel || 'Không yêu cầu khi thi tuyển, trúng tuyển được đào tạo tại VieJap' }}.
-                    </div>
-                  </div>
+                    @if (order.japaneseLevel) {
+                      <div class="req-item">
+                        <i class="fas fa-circle-check text-success"></i>
+                        <div>
+                          <strong>Trình độ tiếng Nhật:</strong> {{ order.japaneseLevel }}.
+                        </div>
+                      </div>
+                    }
 
-                  <div class="req-item">
-                    <i class="fas fa-circle-check text-success"></i>
-                    <div>
-                      <strong>Kinh nghiệm & Kỹ năng:</strong> {{ order.experience || orderExperience(order) }}.
-                    </div>
-                  </div>
+                    @if (orderExperience(order)) {
+                      <div class="req-item">
+                        <i class="fas fa-circle-check text-success"></i>
+                        <div>
+                          <strong>Kinh nghiệm & Kỹ năng:</strong> {{ orderExperience(order) }}.
+                        </div>
+                      </div>
+                    }
 
-                  <div class="req-item">
-                    <i class="fas fa-circle-check text-success"></i>
-                    <div>
-                      <strong>Sức khỏe:</strong> {{ order.healthRequirements || 'Đạt tiêu chuẩn khám sức khỏe đi Nhật (không mắc viêm gan B, HIV và các bệnh truyền nhiễm cấm nhập cảnh)' }}.
-                    </div>
+                    @if (order.healthRequirements) {
+                      <div class="req-item">
+                        <i class="fas fa-circle-check text-success"></i>
+                        <div>
+                          <strong>Sức khỏe:</strong> {{ order.healthRequirements }}.
+                        </div>
+                      </div>
+                    }
                   </div>
-                </div>
-              </section>
+                </section>
+              }
 
               <!-- Section C: Benefits & Welfare -->
               <section class="detail-section animate-fade-in">
@@ -539,20 +650,22 @@
                   <i class="fas fa-images text-primary"></i>
                   <span>Hình ảnh môi trường làm việc & Ký túc xá</span>
                 </h2>
-                <div class="job-gallery-grid">
-                  <div class="gallery-card">
-                    <img [src]="displayImageUrl" alt="Xưởng sản xuất" />
-                    <span>Môi trường làm việc thực tế</span>
+
+                @if (galleryImages.length > 0) {
+                  <div class="job-gallery-grid" [class.job-gallery-grid--two]="galleryImages.length === 2" [class.job-gallery-grid--single]="galleryImages.length === 1">
+                    @for (imgSrc of galleryImages; track imgSrc; let idx = $index) {
+                      <div class="gallery-card">
+                        <img [src]="imgSrc" [alt]="'Hình ảnh thực tế ' + (idx + 1) + ' - ' + orderTitle(order)" loading="lazy" />
+                        <span>Hình ảnh thực tế {{ idx + 1 }}</span>
+                      </div>
+                    }
                   </div>
-                  <div class="gallery-card">
-                    <img src="assets/images/jobs/job-thuc-pham.jpg" alt="Dây chuyền" />
-                    <span>Dây chuyền sản xuất hiện đại</span>
+                } @else {
+                  <div class="empty-gallery-state">
+                    <i class="fas fa-images" aria-hidden="true"></i>
+                    <p>Chưa có hình ảnh môi trường làm việc & ký túc xá cho đơn hàng này.</p>
                   </div>
-                  <div class="gallery-card">
-                    <img src="assets/images/jobs/job-nong-nghiep.jpg" alt="Ký túc xá" />
-                    <span>Ký túc xá & Đời sống học viên</span>
-                  </div>
-                </div>
+                }
               </section>
             }
 

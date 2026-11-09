@@ -387,3 +387,10 @@ body:has(app-student-form-page) {
     display: none !important;
   }
 }
+
+/* Khóa cuộn trang chính khi mở popup sự kiện / slide-over */
+html.site-event-modal-open,
+body.site-event-modal-open {
+  overflow: hidden !important;
+  touch-action: none;
+}

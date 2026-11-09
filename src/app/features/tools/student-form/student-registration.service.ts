@@ -164,7 +164,8 @@ export class StudentRegistrationService {
     photo?: File,
     documentPdf?: File,
     cvPdfBlob?: Blob,
-    workbookBlob?: Blob
+    workbookBlob?: Blob,
+    progressPercent?: number,
   ): Promise<StudentSubmitResponse> {
     const fd = new FormData();
     fd.append('codeId', codeId);
@@ -176,6 +177,9 @@ export class StudentRegistrationService {
     fd.append('birthDate', formData.birthDate || '');
     fd.append('address', formData.address || '');
     fd.append('data', JSON.stringify(formData));
+    if (progressPercent !== undefined) {
+      fd.append('progressPercent', String(progressPercent));
+    }
 
     if (workbookBlob) {
       const safeName = (formData.fullName || 'HOC_VIEN')
@@ -202,12 +206,14 @@ export class StudentRegistrationService {
       method: 'POST',
       body: fd,
     });
-    const result = (await res.json()) as StudentSubmitResponse;
+    const result = (await res.json().catch(() => null)) as StudentSubmitResponse | null;
+
+    if (!res.ok || !result || !result.success) {
+      throw new Error(result?.message || 'Máy chủ không thể tiếp nhận hồ sơ. Vui lòng thử lại.');
+    }
 
     // Submission succeeded, clear stored student registration code session
-    if (result.success) {
-      this.clearSession();
-    }
+    this.clearSession();
     return result;
   }
 }

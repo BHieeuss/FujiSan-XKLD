@@ -18,6 +18,7 @@ export class SiteEventsCoordinatorComponent implements OnInit, OnDestroy {
 
   private routerSub?: Subscription;
   private popupTimer?: number;
+  private autoCloseTimer?: number;
 
   // Active items coordinated for display
   topBarEvent: EventItem | null = null;
@@ -37,6 +38,12 @@ export class SiteEventsCoordinatorComponent implements OnInit, OnDestroy {
     this.routerSub = this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((nav) => {
+        if (this.isCenterPopupOpen) {
+          this.closeCenterPopup();
+        }
+        if (this.isDrawerOpen) {
+          this.closeDrawer();
+        }
         this.evaluateEventsForRoute(nav.urlAfterRedirects.split('?')[0]);
       });
 
@@ -48,6 +55,9 @@ export class SiteEventsCoordinatorComponent implements OnInit, OnDestroy {
     if (this.popupTimer) {
       clearTimeout(this.popupTimer);
     }
+    this.isCenterPopupOpen = false;
+    this.isDrawerOpen = false;
+    this.updateScrollLock();
   }
 
   @HostListener('document:keydown.escape')
@@ -56,6 +66,19 @@ export class SiteEventsCoordinatorComponent implements OnInit, OnDestroy {
       this.closeCenterPopup();
     } else if (this.isDrawerOpen) {
       this.closeDrawer();
+    }
+  }
+
+  private updateScrollLock(): void {
+    const shouldLock = this.isCenterPopupOpen || this.isDrawerOpen;
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = shouldLock ? 'hidden' : '';
+      document.documentElement.style.overflow = shouldLock ? 'hidden' : '';
+      if (shouldLock) {
+        document.body.classList.add('site-event-modal-open');
+      } else {
+        document.body.classList.remove('site-event-modal-open');
+      }
     }
   }
 
@@ -85,7 +108,16 @@ export class SiteEventsCoordinatorComponent implements OnInit, OnDestroy {
               this.centerPopupEvent = validCenter;
               this.isCenterPopupOpen = true;
               this.hasShownCenterPopupInSession = true;
+              this.updateScrollLock();
               this.eventsService.recordShown(validCenter, 'popup_center');
+
+              const autoCloseSec = validCenter.displayConfig?.popupCenter?.autoCloseSeconds || 0;
+              if (autoCloseSec > 0) {
+                if (this.autoCloseTimer) window.clearTimeout(this.autoCloseTimer);
+                this.autoCloseTimer = window.setTimeout(() => {
+                  this.closeCenterPopup();
+                }, autoCloseSec * 1000);
+              }
             }, 1200);
           }
         }
@@ -115,10 +147,15 @@ export class SiteEventsCoordinatorComponent implements OnInit, OnDestroy {
   }
 
   closeCenterPopup(): void {
+    if (this.autoCloseTimer) {
+      window.clearTimeout(this.autoCloseTimer);
+      this.autoCloseTimer = undefined;
+    }
     if (this.centerPopupEvent) {
       this.eventsService.recordDismissed(this.centerPopupEvent, 'popup_center');
-      this.isCenterPopupOpen = false;
     }
+    this.isCenterPopupOpen = false;
+    this.updateScrollLock();
   }
 
   closeCornerPopup(): void {
@@ -134,20 +171,24 @@ export class SiteEventsCoordinatorComponent implements OnInit, OnDestroy {
 
   toggleDrawer(): void {
     this.isDrawerOpen = !this.isDrawerOpen;
+    this.updateScrollLock();
   }
 
   closeDrawer(): void {
     this.isDrawerOpen = false;
+    this.updateScrollLock();
   }
 
   onCtaClick(event: EventItem, format: any): void {
     this.eventsService.recordClick(event, format);
     if (format === 'popup_center') {
       this.isCenterPopupOpen = false;
+      this.updateScrollLock();
     } else if (format === 'popup_corner') {
       this.isCornerPopupOpen = false;
     } else if (format === 'list') {
       this.isDrawerOpen = false;
+      this.updateScrollLock();
     }
   }
 }

@@ -36,6 +36,8 @@ export interface StudentProfileSummary {
   idNumber: string;
   address: string;
   status: StudentProfileStatus;
+  progressPercent?: number;
+  registrationCode?: string;
   deletedAt?: string | null;
   previousStatus?: StudentProfileStatus | null;
   daysRemaining?: number | null;

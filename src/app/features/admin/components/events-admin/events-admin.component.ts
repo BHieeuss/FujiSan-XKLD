@@ -17,7 +17,7 @@ import { EventsAdminService } from './events-admin.service';
 
 type WizardTab = 'basic' | 'formats' | 'cta' | 'schedule' | 'preview';
 type PreviewDevice = 'desktop' | 'mobile';
-type PreviewFormat = 'popup_center' | 'popup_corner' | 'top_bar' | 'index_banner' | 'floating_button';
+type PreviewFormat = 'popup_center' | 'popup_corner' | 'top_bar' | 'index_banner' | 'floating_button' | 'list';
 
 @Component({
   selector: 'app-events-admin',
@@ -403,6 +403,16 @@ export class EventsAdminComponent implements OnInit {
       list: 'Danh sách sự kiện',
     };
     return map[fmt] || fmt;
+  }
+
+  getPositionLabel(position: string): string {
+    const map: Record<string, string> = {
+      below_hero: 'Ngay dưới Hero Section (Đầu trang chủ)',
+      below_orders: 'Ngay dưới Danh sách đơn hàng',
+      in_activities: 'Bên trong Góc hoạt động',
+      bottom: 'Cuối trang chủ',
+    };
+    return map[position] || 'Đầu trang chủ';
   }
 
   getStatusBadgeClass(status: EventStatus): string {

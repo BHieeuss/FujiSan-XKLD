@@ -181,11 +181,11 @@ try {
         return in_array('homepage', $positions, true) ||
                in_array('featured', $positions, true);
     }));
-    if (count($homepageList) < 6) {
+    if (count($homepageList) < 10) {
         foreach ($published as $act) {
             if (!in_array($act['id'] ?? '', array_column($homepageList, 'id'), true)) {
                 $homepageList[] = $act;
-                if (count($homepageList) >= 6) {
+                if (count($homepageList) >= 10) {
                     break;
                 }
             }
@@ -201,7 +201,7 @@ try {
         $dateB = $b['publishedAt'] ?? $b['createdAt'] ?? '';
         return strcmp($dateB, $dateA);
     });
-    $homepageList = array_slice($homepageList, 0, 6);
+    $homepageList = array_slice($homepageList, 0, 10);
 
     // Category counts
     $rawCategories = admin_activity_categories();

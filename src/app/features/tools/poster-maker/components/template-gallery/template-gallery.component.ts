@@ -12,7 +12,11 @@ import {
   ViewChildren,
 } from '@angular/core';
 import { PosterTemplateDefinition, TemplateId } from '../../models/poster-template.model';
-import { RecruitmentPosterAssets, RecruitmentPosterData } from '../../poster-maker.model';
+import {
+  createDefaultPosterAssets,
+  RecruitmentPosterAssets,
+  RecruitmentPosterData,
+} from '../../poster-maker.model';
 import { POSTER_HEIGHT, POSTER_WIDTH, renderRecruitmentPoster } from '../../poster-renderer';
 import { POSTER_TEMPLATES } from '../../templates/poster-template-registry';
 import { renderTemplateLayoutWireframe } from '../../templates/poster-wireframe-renderer';
@@ -171,13 +175,8 @@ export class TemplateGalleryComponent implements AfterViewInit, OnChanges {
 
     // Khi người dùng chọn xem theo dữ liệu đơn hàng hiện có
     const dataToUse = this.existingPosterData!;
-    const assetsToUse = this.existingAssets || {
-      logoSrc: 'assets/images/logo.png',
-      backgroundSrc: 'assets/images/poster/fuji-sakura-background.jpg',
-      primaryPhotoSrc: 'assets/images/KySu/1.png',
-      secondaryPhotoSrc: 'assets/images/KySu/2.png',
-      tertiaryPhotoSrc: 'assets/images/KySu/3.png',
-    };
+    const assetsToUse =
+      this.existingAssets || createDefaultPosterAssets(dataToUse.category);
 
     for (let i = 0; i < this.templates.length; i++) {
       const canvasEl = canvasArray[i]?.nativeElement;
@@ -205,13 +204,8 @@ export class TemplateGalleryComponent implements AfterViewInit, OnChanges {
       }
 
       const dataToUse = this.existingPosterData!;
-      const assetsToUse = this.existingAssets || {
-        logoSrc: 'assets/images/logo.png',
-        backgroundSrc: 'assets/images/poster/fuji-sakura-background.jpg',
-        primaryPhotoSrc: 'assets/images/KySu/1.png',
-        secondaryPhotoSrc: 'assets/images/KySu/2.png',
-        tertiaryPhotoSrc: 'assets/images/KySu/3.png',
-      };
+      const assetsToUse =
+        this.existingAssets || createDefaultPosterAssets(dataToUse.category);
 
       await renderRecruitmentPoster(canvas, dataToUse, assetsToUse, this.previewingTemplate.id);
     } finally {

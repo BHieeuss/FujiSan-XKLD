@@ -889,6 +889,20 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+
+            .badge-required {
+              display: inline-block;
+              padding: 0.05rem 0.3rem;
+              font-size: 0.62rem;
+              font-weight: 700;
+              color: #dc2626;
+              background: #fef2f2;
+              border: 1px solid #fecaca;
+              border-radius: 4px;
+              margin-left: 0.35rem;
+            }
           }
 
           .btn-slot-upload {

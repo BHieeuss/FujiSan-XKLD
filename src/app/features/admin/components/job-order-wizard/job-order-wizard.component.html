@@ -32,12 +32,23 @@
         </div>
 
         <div class="wizard-header-actions">
+          @if (isEditing && canDelete()) {
+            <button
+              type="button"
+              class="btn-delete-order"
+              (click)="openDeleteConfirm($event)"
+              [disabled]="isSaving || isDeleting"
+              title="Xóa vĩnh viễn đơn hàng này khỏi hệ thống"
+            >
+              <i class="fas fa-trash-can"></i> Xóa đơn
+            </button>
+          }
           @if (isEditing) {
             <button
               type="button"
               class="btn-quick-save"
               (click)="saveOrder('keep_current')"
-              [disabled]="isSaving"
+              [disabled]="isSaving || isDeleting"
               title="Lưu ngay toàn bộ thay đổi vừa chỉnh sửa mà không cần chuyển bước"
             >
               @if (isSaving) {
@@ -47,7 +58,7 @@
               }
             </button>
           }
-          <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSaving">
+          <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSaving || isDeleting">
             <i class="fas fa-xmark"></i> Hủy bỏ
           </button>
         </div>
@@ -802,22 +813,25 @@
                     type="button"
                     [class.active]="activeSectionTab === 'sections'"
                     (click)="activeSectionTab = 'sections'"
+                    title="Chỉnh sửa chi tiết từng đoạn ({{ currentSections.length }} đoạn)"
                   >
-                    <i class="fas fa-list-check"></i> Sửa từng đoạn ({{ currentSections.length }})
+                    <i class="fas fa-list-check"></i> Từng đoạn ({{ currentSections.length }})
                   </button>
                   <button
                     type="button"
                     [class.active]="activeSectionTab === 'fulltext'"
                     (click)="activeSectionTab = 'fulltext'"
+                    title="Xem và chỉnh sửa toàn văn bài đăng"
                   >
-                    <i class="fab fa-facebook"></i> Toàn văn bài đăng
+                    <i class="fab fa-facebook"></i> Toàn văn
                   </button>
                   <button
                     type="button"
                     [class.active]="activeSectionTab === 'risk'"
                     (click)="runRiskCheck()"
+                    title="Kiểm tra an toàn nội dung quảng cáo và chính sách"
                   >
-                    <i class="fas fa-shield-halved"></i> Kiểm tra nội dung
+                    <i class="fas fa-shield-halved"></i> Kiểm tra
                     @if (riskResult) {
                       <span
                         class="tab-badge"
@@ -825,7 +839,7 @@
                         [class.badge-warn]="riskResult.overallRisk === 'medium'"
                         [class.badge-danger]="riskResult.overallRisk === 'high'"
                       >
-                        {{ riskResult.overallLabel }}
+                        {{ riskResult.overallRisk === 'low' ? 'Ít rủi ro' : (riskResult.overallRisk === 'high' ? 'Rủi ro cao' : 'Cần xem xét') }}
                       </span>
                     }
                   </button>
@@ -835,16 +849,18 @@
                       class="tab-proposal-btn"
                       [class.active]="activeSectionTab === 'proposal'"
                       (click)="activeSectionTab = 'proposal'"
+                      title="Bản đề xuất chỉnh sửa tối ưu hóa từ AI"
                     >
-                      <i class="fas fa-wand-magic-sparkles"></i> AI Đề xuất (So sánh)
+                      <i class="fas fa-wand-magic-sparkles"></i> AI Đề xuất
                     </button>
                   }
                   <button
                     type="button"
                     [class.active]="activeSectionTab === 'html'"
                     (click)="activeSectionTab = 'html'"
+                    title="Mã nguồn HTML nhúng Website"
                   >
-                    <i class="fas fa-code"></i> HTML Website
+                    <i class="fas fa-code"></i> HTML Web
                   </button>
                 </div>
 
@@ -1314,12 +1330,23 @@
       </div>
 
       <div class="footer-action-group">
+        @if (isEditing && canDelete()) {
+          <button
+            type="button"
+            class="btn-delete-order-footer"
+            (click)="openDeleteConfirm($event)"
+            [disabled]="isSaving || isDeleting"
+            title="Xóa vĩnh viễn đơn hàng này khỏi hệ thống"
+          >
+            <i class="fas fa-trash-can"></i> Xóa đơn
+          </button>
+        }
         @if (isEditing) {
           <button
             type="button"
             class="btn-quick-save-footer"
             (click)="saveOrder('keep_current')"
-            [disabled]="isSaving"
+            [disabled]="isSaving || isDeleting"
             title="Lưu ngay thay đổi của đơn hàng mà không cần đợi sang bước cuối"
           >
             @if (isSaving) {
@@ -1438,6 +1465,34 @@
             (click)="onSelectLayout(viewingOutlineLayout.id); closeOutlineModal()"
           >
             <i class="fas fa-check"></i> Áp dụng mẫu này ngay
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- DELETE CONFIRM MODAL -->
+  @if (showDeleteConfirmModal) {
+    <div class="modal-overlay animate-fade-in" (click)="onDeleteBackdropClick($event)">
+      <div class="modal-dialog modal-sm delete-confirm-dialog animate-scale-up" (click)="$event.stopPropagation()">
+        <div class="delete-icon-circle">
+          <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <h3>Xác nhận xóa đơn hàng?</h3>
+        <p class="delete-desc">
+          Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng <strong>"{{ draft.title || 'Đơn hàng' }}"</strong> (Mã: {{ draft.orderCode || editingId }})?
+        </p>
+        <p class="delete-warning">
+          <i class="fas fa-circle-exclamation"></i>
+          Thao tác này sẽ xóa vĩnh viễn đơn hàng khỏi cơ sở dữ liệu và không thể hoàn tác.
+        </p>
+        <div class="delete-actions-row">
+          <button type="button" class="btn btn-secondary" (click)="closeDeleteConfirm()" [disabled]="isDeleting">
+            Hủy bỏ
+          </button>
+          <button type="button" class="btn btn-danger" (click)="executeDelete()" [disabled]="isDeleting">
+            <i [class]="isDeleting ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+            <span>{{ isDeleting ? 'Đang xóa...' : 'Xóa vĩnh viễn' }}</span>
           </button>
         </div>
       </div>

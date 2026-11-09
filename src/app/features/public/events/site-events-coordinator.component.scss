@@ -87,7 +87,7 @@
 .site-center-popup-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 43, 72, 0.65);
+  background: rgba(15, 43, 72, 0.68);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
   z-index: 1060;
@@ -96,6 +96,11 @@
   justify-content: center;
   padding: 1.25rem;
   animation: fadeInBackdrop 0.25s ease;
+  overscroll-behavior: contain;
+
+  @media (max-width: 640px) {
+    padding: 0.65rem;
+  }
 }
 
 @keyframes fadeInBackdrop {
@@ -109,7 +114,9 @@
   overflow: hidden;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  max-height: calc(100dvh - 2.5rem);
+  max-height: calc(100svh - 2.5rem);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -123,6 +130,7 @@
 
       .popup-visual {
         width: 45%;
+        max-height: none;
         aspect-ratio: auto;
       }
 
@@ -132,14 +140,32 @@
     }
   }
 
+  &.layout-vertical {
+    max-width: 440px;
+
+    .popup-visual {
+      max-height: 280px;
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  &.layout-banner-top {
+    max-width: 500px;
+
+    .popup-visual {
+      max-height: 220px;
+      aspect-ratio: 16 / 9;
+    }
+  }
+
   .popup-close-btn {
     position: absolute;
     top: 0.85rem;
     right: 0.85rem;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.55);
     color: #ffffff;
     border: none;
     cursor: pointer;
@@ -147,32 +173,36 @@
     align-items: center;
     justify-content: center;
     font-size: 0.95rem;
-    z-index: 5;
-    transition: background 0.2s;
+    z-index: 10;
+    transition: background 0.2s, transform 0.15s;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.8);
+      transform: scale(1.05);
     }
   }
 
   .popup-visual {
     position: relative;
     width: 100%;
+    max-height: 220px;
     aspect-ratio: 16 / 9;
-    background: #0f2b48;
+    background: #0c2340;
     overflow: hidden;
+    flex-shrink: 0;
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
 
     .popup-cat-badge {
       position: absolute;
       top: 0.85rem;
       left: 0.85rem;
-      background: rgba(15, 43, 72, 0.85);
+      background: rgba(12, 35, 64, 0.88);
       -webkit-backdrop-filter: blur(4px);
       backdrop-filter: blur(4px);
       color: #ffffff;
@@ -180,6 +210,7 @@
       font-weight: 700;
       padding: 0.25rem 0.65rem;
       border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
   }
 
@@ -187,6 +218,26 @@
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    /* Custom Sleek Scrollbar */
+    &::-webkit-scrollbar {
+      width: 5px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+      &:hover {
+        background: #94a3b8;
+      }
+    }
 
     .popup-title {
       font-size: 1.25rem;
@@ -216,24 +267,42 @@
       align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
+      margin-top: auto;
+      padding-top: 0.5rem;
+      flex-shrink: 0;
 
       .popup-cta-btn {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
         padding: 0.75rem 1.65rem;
-        background: linear-gradient(135deg, #0f2b48 0%, #2563eb 100%);
-        color: #ffffff;
+        background: #091a30;
+        background: linear-gradient(135deg, #071527 0%, #0f2b48 100%);
+        color: #ffffff !important;
         font-size: 0.92rem;
         font-weight: 700;
         border-radius: 9999px;
         text-decoration: none;
-        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
-        transition: all 0.2s;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 16px rgba(10, 25, 47, 0.35);
+        transition: all 0.2s ease;
+
+        span,
+        i {
+          color: #ffffff !important;
+        }
 
         &:hover {
+          background: #040b15;
+          background: linear-gradient(135deg, #030810 0%, #0c2340 100%);
+          color: #ffffff !important;
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+          box-shadow: 0 8px 24px rgba(10, 25, 47, 0.5);
+        }
+
+        &:active {
+          transform: translateY(0);
         }
       }
 
@@ -245,10 +314,89 @@
         font-weight: 600;
         cursor: pointer;
         padding: 0.5rem;
+        transition: color 0.15s;
 
         &:hover {
           color: #0f2b48;
           text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  /* ── Mobile Optimization (max-width: 640px) ── */
+  @media (max-width: 640px) {
+    max-height: calc(100dvh - 1.25rem);
+    max-height: calc(100svh - 1.25rem);
+    border-radius: 16px;
+
+    .popup-close-btn {
+      top: 0.6rem;
+      right: 0.6rem;
+      width: 32px;
+      height: 32px;
+      font-size: 0.88rem;
+    }
+
+    .popup-visual {
+      height: 140px;
+      max-height: 140px;
+      aspect-ratio: unset;
+
+      img {
+        object-position: center 25%;
+      }
+
+      .popup-cat-badge {
+        top: 0.6rem;
+        left: 0.6rem;
+        font-size: 0.68rem;
+        padding: 0.2rem 0.55rem;
+      }
+    }
+
+    .popup-content {
+      padding: 0.95rem 1.05rem 1rem;
+
+      .popup-title {
+        font-size: 1.05rem;
+        line-height: 1.35;
+        margin-bottom: 0.35rem;
+      }
+
+      .popup-summary {
+        font-size: 0.82rem;
+        line-height: 1.45;
+        margin-bottom: 0.35rem;
+      }
+
+      .popup-detail {
+        font-size: 0.78rem;
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
+      }
+
+      .popup-actions-row {
+        flex-direction: column;
+        gap: 0.35rem;
+        align-items: stretch;
+        width: 100%;
+        margin-top: 0.25rem;
+        padding-top: 0.25rem;
+
+        .popup-cta-btn {
+          width: 100%;
+          justify-content: center;
+          padding: 0.68rem 1.25rem;
+          font-size: 0.88rem;
+        }
+
+        .popup-dismiss-btn {
+          width: 100%;
+          text-align: center;
+          padding: 0.35rem;
+          font-size: 0.82rem;
+          margin: 0;
         }
       }
     }

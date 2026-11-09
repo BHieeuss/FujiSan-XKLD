@@ -128,7 +128,11 @@ export class JobOrdersApiService {
     init: RequestInit = {},
     requiresAdminSession = false,
   ): Promise<JobOrdersResponse> {
-    const csrfToken = this.auth.session()?.csrfToken;
+    let csrfToken = this.auth.session()?.csrfToken;
+    if (requiresAdminSession && !csrfToken) {
+      await this.auth.checkSession();
+      csrfToken = this.auth.session()?.csrfToken;
+    }
     if (requiresAdminSession && !csrfToken) {
       throw new JobOrdersApiError('Phiên đăng nhập đã hết hạn.', 401);
     }

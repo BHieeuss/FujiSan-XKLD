@@ -122,7 +122,7 @@
             <th>Họ và tên</th>
             <th>Ngày sinh</th>
             <th>Số điện thoại</th>
-            <th>Địa chỉ</th>
+            <th>Tiến độ</th>
             <th>Ngày nộp</th>
             <th>Trạng thái</th>
             <th class="text-right">Thao tác</th>
@@ -145,7 +145,14 @@
                 <i class="fas fa-phone"></i> {{ p.phone }}
               </a>
             </td>
-            <td class="address-cell" [title]="p.address">{{ p.address || '---' }}</td>
+            <td>
+              <div class="progress-cell-wrap" [title]="'Độ hoàn thiện hồ sơ: ' + (p.progressPercent || 0) + '%'">
+                <div class="mini-progress-bar">
+                  <div class="mini-progress-fill" [style.width.%]="p.progressPercent || 0" [class.full]="(p.progressPercent || 0) >= 100"></div>
+                </div>
+                <span class="progress-text">{{ p.progressPercent || 0 }}%</span>
+              </div>
+            </td>
             <td>{{ p.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td>
               <div class="status-cell-wrap">
@@ -167,6 +174,17 @@
               >
                 <i class="fas fa-eye"></i> Xem chi tiết
               </button>
+
+              @if (p.status !== 'trash') {
+                <button
+                  type="button"
+                  class="btn-row-action btn-supplement-row"
+                  (click)="openSupplementCodeModal(p, $event)"
+                  title="Cấp mã bổ sung hồ sơ cho học viên tiếp tục hoàn thiện"
+                >
+                  <i class="fas fa-key"></i> Mã bổ sung
+                </button>
+              }
 
               @if (p.status !== 'trash' && canDelete) {
                 <button
@@ -225,11 +243,25 @@
           <div><i class="fas fa-location-dot"></i> {{ p.address || '---' }}</div>
           <div><i class="fas fa-clock"></i> {{ p.createdAt | date: 'dd/MM/yyyy HH:mm' }}</div>
         </div>
+        <div class="card-progress-bar-wrap">
+          <div class="card-progress-header">
+            <span>Độ hoàn thiện:</span>
+            <strong>{{ p.progressPercent || 0 }}%</strong>
+          </div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" [style.width.%]="p.progressPercent || 0" [class.full]="(p.progressPercent || 0) >= 100"></div>
+          </div>
+        </div>
         <div class="card-footer">
           <button type="button" class="btn-card-view">
             <span>Xem chi tiết hồ sơ & tải tài liệu</span> <i class="fas fa-chevron-right"></i>
           </button>
           <div class="card-extra-actions" (click)="$event.stopPropagation()">
+            @if (p.status !== 'trash') {
+              <button type="button" class="btn-card-supplement" (click)="openSupplementCodeModal(p, $event)">
+                <i class="fas fa-key"></i> Mã bổ sung
+              </button>
+            }
             @if (p.status !== 'trash' && canDelete) {
               <button type="button" class="btn-card-delete" (click)="openTrashConfirmModal(p, $event)">
                 <i class="fas fa-trash-can"></i> Xóa vào thùng rác
@@ -328,6 +360,16 @@
 
         <button
           type="button"
+          class="btn-action btn-supplement"
+          (click)="openSupplementCodeModal(selectedProfile)"
+          [disabled]="actionLoading || selectedProfile.status === 'trash'"
+          title="Tạo mã 6 số để học viên tự tiếp tục hoàn thiện thông tin còn thiếu trên website"
+        >
+          <i class="fas fa-key"></i> <span>Cấp mã bổ sung</span>
+        </button>
+
+        <button
+          type="button"
           class="btn-action btn-edit"
           (click)="openEditModal()"
           [disabled]="actionLoading || reexporting"
@@ -405,6 +447,38 @@
     <!-- TAB 1: THÔNG TIN HỌC VIÊN                                                 -->
     <!-- ========================================================================= -->
     <div class="tab-content info-tab" *ngIf="activeTab === 'info'">
+      <!-- TIẾN ĐỘ HOÀN THIỆN HỒ SƠ & CẤP MÃ BỔ SUNG -->
+      <div class="profile-progress-banner">
+        <div class="ppb-left">
+          <div class="ppb-metric">
+            <span class="ppb-label">Độ hoàn thiện hồ sơ:</span>
+            <span class="ppb-percentage" [class.complete]="(selectedProfile.progressPercent || 0) >= 100">
+              {{ selectedProfile.progressPercent || 0 }}%
+            </span>
+          </div>
+          <div class="ppb-track">
+            <div class="ppb-bar" [style.width.%]="selectedProfile.progressPercent || 0" [class.complete]="(selectedProfile.progressPercent || 0) >= 100"></div>
+          </div>
+          <span class="ppb-hint" *ngIf="(selectedProfile.progressPercent || 0) < 100">
+            Hồ sơ còn thiếu một số mục thông tin. Bạn có thể cấp mã để học viên đăng nhập bổ sung trên website.
+          </span>
+          <span class="ppb-hint text-success" *ngIf="(selectedProfile.progressPercent || 0) >= 100">
+            <i class="fas fa-circle-check"></i> Hồ sơ đã hoàn tất 100% tất cả các mục thông tin.
+          </span>
+        </div>
+        <div class="ppb-right">
+          <button
+            type="button"
+            class="btn-supplement-banner"
+            (click)="openSupplementCodeModal(selectedProfile)"
+            [disabled]="selectedProfile.status === 'trash'"
+          >
+            <i class="fas fa-key"></i>
+            <span>Cấp mã bổ sung hồ sơ</span>
+          </button>
+        </div>
+      </div>
+
       <!-- THÔNG TIN CƠ BẢN -->
       <div class="info-card">
         <div class="card-header">
@@ -809,6 +883,9 @@
               <button type="button" class="btn-file-dl" (click)="downloadFile(f)">
                 <i class="fas fa-download"></i> Tải xuống PDF
               </button>
+              <button type="button" class="btn-file-del" (click)="deleteFile(f, $event)" [disabled]="deletingFileId === f.id" title="Xóa tài liệu này">
+                <i [class]="deletingFileId === f.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i> Xóa
+              </button>
             </div>
           </div>
         </div>
@@ -851,6 +928,9 @@
               </button>
               <button type="button" class="btn-file-dl" (click)="downloadFile(f)">
                 <i class="fas fa-download"></i> Tải ảnh
+              </button>
+              <button type="button" class="btn-file-del" (click)="deleteFile(f, $event)" [disabled]="deletingFileId === f.id" title="Xóa ảnh này">
+                <i [class]="deletingFileId === f.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i> Xóa
               </button>
             </div>
           </div>
@@ -935,6 +1015,18 @@
       </nav>
 
       <div class="modal-body-scroll">
+        <!-- In-Modal Feedback Alerts -->
+        <div class="modal-alert-box alert-success animate-fade-in" *ngIf="modalSuccessMessage">
+          <i class="fas fa-circle-check"></i>
+          <span>{{ modalSuccessMessage }}</span>
+          <button type="button" class="btn-close-alert" (click)="modalSuccessMessage = ''">×</button>
+        </div>
+        <div class="modal-alert-box alert-danger animate-fade-in" *ngIf="modalErrorMessage">
+          <i class="fas fa-circle-exclamation"></i>
+          <span>{{ modalErrorMessage }}</span>
+          <button type="button" class="btn-close-alert" (click)="modalErrorMessage = ''">×</button>
+        </div>
+
         <!-- ============================================== -->
         <!-- TAB 1: THÔNG TIN CÁ NHÂN & LIÊN LẠC            -->
         <!-- ============================================== -->
@@ -1423,40 +1515,109 @@
         <!-- ============================================== -->
         <div class="tab-pane" *ngIf="editActiveTab === 'media'">
           <div class="form-pane-intro">
-            <h5><i class="fas fa-paperclip"></i> Ảnh thẻ chân dung & Tài liệu PDF hồ sơ</h5>
-            <p>Admin có thể thay thế ảnh thẻ học viên hoặc tải bổ sung tài liệu trực tiếp từ máy tính.</p>
+            <h5><i class="fas fa-paperclip"></i> Ảnh thẻ chân dung & Tài liệu hồ sơ</h5>
+            <p>Admin có thể cập nhật ảnh thẻ mới, xóa ảnh cũ, hoặc tải bổ sung/xóa tài liệu trực tiếp từ máy tính.</p>
           </div>
 
           <div class="media-upload-grid">
             <!-- PHOTO UPLOAD CARD -->
             <div class="media-card">
-              <h6><i class="fas fa-image text-primary"></i> Ảnh Thẻ Chân Dung (4x6 / 3x4)</h6>
-              <div class="current-media-preview" *ngIf="getPhotoFiles().length > 0">
-                <span class="preview-badge">Đang có {{ getPhotoFiles().length }} ảnh</span>
-                <p class="file-name">{{ getPhotoFiles()[0].fileName }}</p>
+              <div class="media-card-header">
+                <h6><i class="fas fa-image text-primary"></i> Ảnh Thẻ Chân Dung (4x6 / 3x4)</h6>
+                <span class="preview-badge" *ngIf="getPhotoFiles().length > 0">
+                  {{ getPhotoFiles().length }} phiên bản ảnh
+                </span>
               </div>
+
+              <!-- PHOTO PREVIEW (If photo exists) -->
+              <div class="photo-preview-box" *ngIf="getLatestPhoto() as photo">
+                <div class="photo-thumb-frame">
+                  <img [src]="getPhotoUrl(photo)" alt="Ảnh thẻ học viên" class="student-portrait-img" />
+                </div>
+                <div class="photo-details-col">
+                  <div class="photo-badge-row">
+                    <span class="badge-current-photo"><i class="fas fa-circle-check"></i> Ảnh thẻ hiện tại (v{{ photo.version || 1 }})</span>
+                  </div>
+                  <p class="photo-file-name" [title]="photo.fileName">{{ photo.fileName }}</p>
+                  <p class="photo-meta-info">Dung lượng: {{ formatFileSize(photo.fileSize) }}</p>
+                  <div class="photo-actions-row">
+                    <button type="button" class="btn-sub-action btn-sub-pv" (click)="previewFile(photo)" title="Xem ảnh kích thước lớn">
+                      <i class="fas fa-eye"></i> Xem ảnh
+                    </button>
+                    <button type="button" class="btn-sub-action btn-sub-del" (click)="deleteFile(photo, $event)" [disabled]="deletingFileId === photo.id" title="Xóa ảnh thẻ này">
+                      <i [class]="deletingFileId === photo.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+                      <span>{{ deletingFileId === photo.id ? 'Đang xóa...' : 'Xóa ảnh' }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- EMPTY PHOTO STATE -->
               <div class="empty-media-note" *ngIf="getPhotoFiles().length === 0">
                 <i class="fas fa-circle-exclamation text-warning"></i>
-                <span>Học viên chưa có ảnh thẻ. Chọn tệp dưới đây để tải lên.</span>
+                <span>Học viên chưa có ảnh thẻ. Chọn tệp ảnh dưới đây để tải lên.</span>
               </div>
+
+              <!-- UPLOAD PHOTO BUTTON -->
               <label class="btn-upload-file" [class.uploading]="uploadingPhoto">
                 <i [class]="uploadingPhoto ? 'fas fa-spinner fa-spin' : 'fas fa-camera'"></i>
-                <span>{{ uploadingPhoto ? 'Đang tải ảnh...' : 'Chọn ảnh thẻ mới để tải lên' }}</span>
+                <span>{{ uploadingPhoto ? 'Đang tải ảnh...' : (getPhotoFiles().length > 0 ? 'Tải lên ảnh mới (Thay thế / Thêm phiên bản)' : 'Chọn ảnh thẻ để tải lên') }}</span>
                 <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAdminPhotoChange($event)" [disabled]="uploadingPhoto" />
               </label>
+
+              <!-- ALL PHOTO VERSIONS LIST (If > 1 photo) -->
+              <div class="older-files-section" *ngIf="getPhotoFiles().length > 1">
+                <p class="older-files-title"><i class="fas fa-history"></i> Các phiên bản ảnh đã tải lên:</p>
+                <div class="older-file-item" *ngFor="let pFile of getPhotoFiles()">
+                  <div class="older-file-info">
+                    <span class="version-tag">v{{ pFile.version || 1 }}</span>
+                    <span class="file-text" [title]="pFile.fileName">{{ pFile.fileName }}</span>
+                    <span class="size-text">({{ formatFileSize(pFile.fileSize) }})</span>
+                  </div>
+                  <div class="older-file-actions">
+                    <button type="button" class="btn-icon-pv" (click)="previewFile(pFile)" title="Xem">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button type="button" class="btn-icon-del" (click)="deleteFile(pFile, $event)" [disabled]="deletingFileId === pFile.id" title="Xóa ảnh này">
+                      <i [class]="deletingFileId === pFile.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- PDF DOCUMENT UPLOAD CARD -->
             <div class="media-card">
-              <h6><i class="fas fa-file-pdf text-danger"></i> Tài Liệu Bổ Sung (PDF)</h6>
-              <div class="current-media-preview" *ngIf="getPdfFiles().length > 0">
-                <span class="preview-badge">Đang có {{ getPdfFiles().length }} tài liệu</span>
-                <p class="file-name">{{ getPdfFiles()[0].fileName }}</p>
+              <div class="media-card-header">
+                <h6><i class="fas fa-file-pdf text-danger"></i> Tài Liệu Bổ Sung (PDF)</h6>
+                <span class="preview-badge" *ngIf="getPdfFiles().length > 0">
+                  {{ getPdfFiles().length }} tài liệu
+                </span>
               </div>
+
+              <div class="doc-files-list" *ngIf="getPdfFiles().length > 0">
+                <div class="older-file-item" *ngFor="let dFile of getPdfFiles()">
+                  <div class="older-file-info">
+                    <i class="fas fa-file-pdf text-danger file-type-icon"></i>
+                    <span class="file-text" [title]="dFile.fileName">{{ dFile.fileName }}</span>
+                    <span class="size-text">({{ formatFileSize(dFile.fileSize) }})</span>
+                  </div>
+                  <div class="older-file-actions">
+                    <button type="button" class="btn-icon-pv" (click)="previewFile(dFile)" title="Xem trước PDF">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button type="button" class="btn-icon-del" (click)="deleteFile(dFile, $event)" [disabled]="deletingFileId === dFile.id" title="Xóa tài liệu này">
+                      <i [class]="deletingFileId === dFile.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div class="empty-media-note" *ngIf="getPdfFiles().length === 0">
                 <i class="fas fa-circle-exclamation text-warning"></i>
                 <span>Chưa có file PDF đính kèm. Chọn tệp dưới đây để tải lên.</span>
               </div>
+
               <label class="btn-upload-file" [class.uploading]="uploadingDoc">
                 <i [class]="uploadingDoc ? 'fas fa-spinner fa-spin' : 'fas fa-file-arrow-up'"></i>
                 <span>{{ uploadingDoc ? 'Đang tải tài liệu...' : 'Chọn file PDF để tải lên' }}</span>
@@ -1599,6 +1760,68 @@
         <button type="button" class="btn-danger" (click)="confirmEmptyTrash()" [disabled]="isProcessingTrash">
           <i [class]="isProcessingTrash ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
           <span>{{ isProcessingTrash ? 'Đang dọn sạch...' : 'Dọn sạch thùng rác ngay' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CẤP MÃ BỔ SUNG HỒ SƠ                                              -->
+  <!-- ========================================================================= -->
+  <div class="viejap-modal-backdrop animate-fade-in" *ngIf="showSupplementCodeModal" (click)="closeSupplementCodeModal()">
+    <div class="viejap-modal-card modal-supplement-code" (click)="$event.stopPropagation()">
+      <div class="modal-header primary">
+        <div class="header-icon primary"><i class="fas fa-key"></i></div>
+        <div class="header-text">
+          <h4>Cấp mã bổ sung hồ sơ học viên</h4>
+          <p>Mã dùng để học viên tiếp tục hoàn thiện hồ sơ trên website</p>
+        </div>
+        <button type="button" class="btn-close-x" (click)="closeSupplementCodeModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body-supplement" *ngIf="generatingSupplementCode">
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin loading-icon"></i>
+          <p>Đang tạo mã bổ sung và đồng bộ dữ liệu hồ sơ...</p>
+        </div>
+      </div>
+
+      <div class="modal-body-supplement" *ngIf="!generatingSupplementCode && supplementCodeData">
+        <div class="supplement-info-callout">
+          <i class="fas fa-circle-info"></i>
+          <div>
+            Học viên <strong>{{ supplementCodeData.studentName }}</strong> (Mã HV: <strong>{{ supplementCodeData.studentCode }}</strong>) khi nhập mã này tại form sơ yếu lý lịch sẽ tự động được tải lại toàn bộ thông tin đã lưu trước đó để tiếp tục khai nốt các mục còn thiếu.
+          </div>
+        </div>
+
+        <div class="code-display-box">
+          <span class="code-label">MÃ BỔ SUNG HỒ SƠ (6 CHỮ SỐ):</span>
+          <div class="code-row">
+            <span class="the-code">{{ supplementCodeData.code }}</span>
+            <button type="button" class="btn-copy-code" (click)="copySupplementCode()">
+              <i [class]="copiedCode ? 'fas fa-check' : 'fas fa-copy'"></i>
+              <span>{{ copiedCode ? 'Đã sao chép' : 'Sao chép mã' }}</span>
+            </button>
+          </div>
+          <small class="code-expiry"><i class="fas fa-clock"></i> Hiệu lực trong 72 giờ (Hết hạn: {{ supplementCodeData.expiresAt | date: 'HH:mm dd/MM/yyyy' }})</small>
+        </div>
+
+        <div class="direct-link-box">
+          <label>Đường dẫn truy cập trực tiếp kèm mã:</label>
+          <div class="link-input-group">
+            <input type="text" readonly [value]="supplementCodeData.directUrl" (click)="$any($event.target).select()" />
+            <button type="button" class="btn-copy-link" (click)="copySupplementLink()">
+              <i [class]="copiedLink ? 'fas fa-check' : 'fas fa-link'"></i>
+              <span>{{ copiedLink ? 'Đã sao chép link' : 'Sao chép link' }}</span>
+            </button>
+          </div>
+          <small class="link-hint">Gửi đường dẫn này cho học viên, khi mở ra hệ thống sẽ tự động xác thực và nạp lại toàn bộ hồ sơ.</small>
+        </div>
+      </div>
+
+      <div class="modal-footer" *ngIf="!generatingSupplementCode">
+        <button type="button" class="btn-primary" (click)="closeSupplementCodeModal()">
+          <i class="fas fa-check"></i> Hoàn tất & Đóng
         </button>
       </div>
     </div>

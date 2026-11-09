@@ -808,10 +808,19 @@ function admin_student_registration_codes_list(array $filters = []): array
     $totalPages = (int) ceil($total / $pageSize);
     $offset = ($page - 1) * $pageSize;
     $paged = array_slice($filtered, $offset, $pageSize);
+    $normalized = array_map(static function (array $c): array {
+        $verified = $c['verifiedAt'] ?? $c['firstUsedAt'] ?? null;
+        $completed = $c['completedAt'] ?? $c['usedAt'] ?? $c['submittedAt'] ?? null;
+        $c['verifiedAt'] = $verified;
+        $c['firstUsedAt'] = $verified;
+        $c['completedAt'] = $completed;
+        $c['usedAt'] = $completed;
+        return $c;
+    }, $paged);
 
     return [
-        'items' => array_values($paged),
-        'codes' => array_values($paged),
+        'items' => array_values($normalized),
+        'codes' => array_values($normalized),
         'total' => $total,
         'page' => $page,
         'pageSize' => $pageSize,
@@ -1152,9 +1161,45 @@ function student_registration_submit(string $codeId, string $sessionToken, array
     $idNumber = clean_text($postData['idNumber'] ?? '', 30);
     $birthDate = clean_text($postData['birthDate'] ?? '', 20);
     $address = clean_text($postData['address'] ?? '', 255);
+    $progressPercent = isset($postData['progressPercent'])
+        ? (int) $postData['progressPercent']
+        : (isset($_POST['progressPercent']) ? (int) $_POST['progressPercent'] : (int) ($codeItem['progressPercent'] ?? 45));
+    if ($progressPercent <= 0) $progressPercent = 45;
 
-    $profileId = admin_student_profile_generate_id();
-    $studentCode = admin_student_profile_generate_code();
+    // Decode full form data
+    $formData = [];
+    $rawFormData = $postData['data'] ?? ($_POST['data'] ?? null);
+    if (is_string($rawFormData)) {
+        $decoded = json_decode($rawFormData, true);
+        if (is_array($decoded) && !empty($decoded)) {
+            $formData = $decoded;
+        }
+    } elseif (is_array($rawFormData) && !empty($rawFormData)) {
+        $formData = $rawFormData;
+    }
+    if (empty($formData) && !empty($codeItem['draftData']) && is_array($codeItem['draftData'])) {
+        $formData = $codeItem['draftData'];
+    }
+
+    $existingStudentId = trim((string) ($codeItem['studentId'] ?? ''));
+    $allProfiles = admin_student_profiles_load_file();
+    $targetProfileIndex = -1;
+    if ($existingStudentId !== '') {
+        foreach ($allProfiles as $pIdx => $p) {
+            if (($p['id'] ?? '') === $existingStudentId) {
+                $targetProfileIndex = $pIdx;
+                break;
+            }
+        }
+    }
+
+    if ($targetProfileIndex !== -1) {
+        $profileId = $existingStudentId;
+        $studentCode = $allProfiles[$targetProfileIndex]['studentCode'] ?? admin_student_profile_generate_code();
+    } else {
+        $profileId = admin_student_profile_generate_id();
+        $studentCode = admin_student_profile_generate_code();
+    }
 
     // Directory for files
     $studentDir = admin_student_files_directory($profileId);
@@ -1165,13 +1210,16 @@ function student_registration_submit(string $codeId, string $sessionToken, array
     if (isset($filesData['workbook']) && is_array($filesData['workbook']) && ($filesData['workbook']['error'] ?? -1) === UPLOAD_ERR_OK) {
         $wb = $filesData['workbook'];
         $safeWbName = 'HO_SO_' . $studentCode . '.xlsx';
-        move_uploaded_file($wb['tmp_name'], $studentDir . DIRECTORY_SEPARATOR . $safeWbName);
+        $wbPath = $studentDir . DIRECTORY_SEPARATOR . $safeWbName;
+        move_uploaded_file($wb['tmp_name'], $wbPath);
         $savedFiles[] = [
-            'id' => 'file-' . bin2hex(random_bytes(6)),
-            'fileType' => 'workbook',
+            'id' => admin_student_profile_generate_id(),
+            'fileType' => 'excel',
             'version' => 1,
             'fileName' => $safeWbName,
+            'filePath' => $wbPath,
             'fileSize' => (int) $wb['size'],
+            'mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'createdAt' => $now,
         ];
     }
@@ -1180,13 +1228,16 @@ function student_registration_submit(string $codeId, string $sessionToken, array
     if (isset($filesData['cv_pdf']) && is_array($filesData['cv_pdf']) && ($filesData['cv_pdf']['error'] ?? -1) === UPLOAD_ERR_OK) {
         $cv = $filesData['cv_pdf'];
         $safeCvName = 'CV_' . $studentCode . '.pdf';
-        move_uploaded_file($cv['tmp_name'], $studentDir . DIRECTORY_SEPARATOR . $safeCvName);
+        $cvPath = $studentDir . DIRECTORY_SEPARATOR . $safeCvName;
+        move_uploaded_file($cv['tmp_name'], $cvPath);
         $savedFiles[] = [
-            'id' => 'file-' . bin2hex(random_bytes(6)),
-            'fileType' => 'cv_pdf',
+            'id' => admin_student_profile_generate_id(),
+            'fileType' => 'pdf',
             'version' => 1,
             'fileName' => $safeCvName,
+            'filePath' => $cvPath,
             'fileSize' => (int) $cv['size'],
+            'mimeType' => 'application/pdf',
             'createdAt' => $now,
         ];
     }
@@ -1197,13 +1248,16 @@ function student_registration_submit(string $codeId, string $sessionToken, array
         $ext = strtolower(pathinfo($ph['name'], PATHINFO_EXTENSION));
         if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) $ext = 'jpg';
         $safePhotoName = 'PHOTO_' . $studentCode . '.' . $ext;
-        move_uploaded_file($ph['tmp_name'], $studentDir . DIRECTORY_SEPARATOR . $safePhotoName);
+        $phPath = $studentDir . DIRECTORY_SEPARATOR . $safePhotoName;
+        move_uploaded_file($ph['tmp_name'], $phPath);
         $savedFiles[] = [
-            'id' => 'file-' . bin2hex(random_bytes(6)),
+            'id' => admin_student_profile_generate_id(),
             'fileType' => 'photo',
             'version' => 1,
             'fileName' => $safePhotoName,
+            'filePath' => $phPath,
             'fileSize' => (int) $ph['size'],
+            'mimeType' => $ext === 'jpg' || $ext === 'jpeg' ? 'image/jpeg' : 'image/png',
             'createdAt' => $now,
         ];
     }
@@ -1212,84 +1266,217 @@ function student_registration_submit(string $codeId, string $sessionToken, array
     if (isset($filesData['document_pdf']) && is_array($filesData['document_pdf']) && ($filesData['document_pdf']['error'] ?? -1) === UPLOAD_ERR_OK) {
         $doc = $filesData['document_pdf'];
         $safeDocName = 'TAI_LIEU_' . $studentCode . '.pdf';
-        move_uploaded_file($doc['tmp_name'], $studentDir . DIRECTORY_SEPARATOR . $safeDocName);
+        $docPath = $studentDir . DIRECTORY_SEPARATOR . $safeDocName;
+        move_uploaded_file($doc['tmp_name'], $docPath);
         $savedFiles[] = [
-            'id' => 'file-' . bin2hex(random_bytes(6)),
-            'fileType' => 'document_pdf',
+            'id' => admin_student_profile_generate_id(),
+            'fileType' => 'document',
             'version' => 1,
             'fileName' => $safeDocName,
+            'filePath' => $docPath,
             'fileSize' => (int) $doc['size'],
+            'mimeType' => 'application/pdf',
             'createdAt' => $now,
         ];
     }
 
-    // Create student profile record
-    $profileRecord = [
-        'id' => $profileId,
-        'studentCode' => $studentCode,
-        'registrationCode' => $codeItem['code'],
-        'registrationCodeId' => $codeId,
-        'fullName' => $fullName,
-        'birthDate' => $birthDate,
-        'phone' => $phone,
-        'idNumber' => $idNumber,
-        'address' => $address,
-        'status' => 'tiep_nhan', // tiep_nhan, dang_xu_ly, hoan_thanh, bo_sung, tu_choi
-        'assignedTo' => $codeItem['assignedTo'] ?? '',
-        'assignedStaffName' => $codeItem['assignedStaffName'] ?? '',
-        'notes' => $codeItem['notes'] ?? '',
-        'createdAt' => $now,
-        'updatedAt' => $now,
-        'files' => $savedFiles,
-        'data' => $postData['data'] ?? [],
-    ];
+    if ($targetProfileIndex !== -1) {
+        // UPDATE existing student profile
+        $allProfiles[$targetProfileIndex]['fullName'] = $fullName ?: $allProfiles[$targetProfileIndex]['fullName'];
+        $allProfiles[$targetProfileIndex]['phone'] = $phone ?: $allProfiles[$targetProfileIndex]['phone'];
+        $allProfiles[$targetProfileIndex]['birthDate'] = $birthDate ?: $allProfiles[$targetProfileIndex]['birthDate'];
+        $allProfiles[$targetProfileIndex]['idNumber'] = $idNumber ?: $allProfiles[$targetProfileIndex]['idNumber'];
+        $allProfiles[$targetProfileIndex]['address'] = $address ?: $allProfiles[$targetProfileIndex]['address'];
+        $allProfiles[$targetProfileIndex]['progressPercent'] = $progressPercent;
+        $allProfiles[$targetProfileIndex]['status'] = 'tiep_nhan';
+        $allProfiles[$targetProfileIndex]['updatedAt'] = $now;
+        $allProfiles[$targetProfileIndex]['data'] = !empty($formData) ? $formData : ($allProfiles[$targetProfileIndex]['data'] ?? []);
+        if (!isset($allProfiles[$targetProfileIndex]['files'])) {
+            $allProfiles[$targetProfileIndex]['files'] = [];
+        }
+        foreach ($savedFiles as $sf) {
+            $allProfiles[$targetProfileIndex]['files'][] = $sf;
+        }
+        $allProfiles[$targetProfileIndex]['auditLogs'][] = [
+            'id' => admin_student_profile_generate_id(),
+            'action' => 'student_supplemented',
+            'actor' => $fullName,
+            'details' => "Học viên cập nhật bổ sung hồ sơ qua mã {$codeItem['code']} (độ hoàn thiện: {$progressPercent}%).",
+            'createdAt' => $now,
+        ];
+    } else {
+        // CREATE new student profile record
+        $profileRecord = [
+            'id' => $profileId,
+            'studentCode' => $studentCode,
+            'registrationCode' => $codeItem['code'],
+            'registrationCodeId' => $codeId,
+            'fullName' => $fullName,
+            'birthDate' => $birthDate,
+            'phone' => $phone,
+            'idNumber' => $idNumber,
+            'address' => $address,
+            'status' => 'tiep_nhan',
+            'progressPercent' => $progressPercent,
+            'assignedTo' => $codeItem['assignedTo'] ?? '',
+            'assignedStaffName' => $codeItem['assignedStaffName'] ?? '',
+            'notes' => $codeItem['notes'] ?? '',
+            'createdAt' => $now,
+            'updatedAt' => $now,
+            'files' => $savedFiles,
+            'data' => $formData,
+            'auditLogs' => [
+                [
+                    'id' => admin_student_profile_generate_id(),
+                    'action' => 'submitted',
+                    'actor' => $fullName,
+                    'details' => "Nộp hồ sơ trực tuyến qua mã {$codeItem['code']} (độ hoàn thiện: {$progressPercent}%).",
+                    'createdAt' => $now,
+                ]
+            ],
+        ];
+        $allProfiles[] = $profileRecord;
+    }
 
-    $allProfiles = admin_student_profiles_load_file();
-    $allProfiles[] = $profileRecord;
     admin_student_profiles_save_file($allProfiles);
 
-    // Consume the registration code: mark as used
+    // Consume the registration code: mark as used & submitted
     $codes[$targetIndex]['status'] = 'used';
     $codes[$targetIndex]['usedAt'] = $now;
+    $codes[$targetIndex]['completedAt'] = $now;
+    $codes[$targetIndex]['submittedAt'] = $now;
     $codes[$targetIndex]['studentId'] = $profileId;
     $codes[$targetIndex]['studentCode'] = $studentCode;
     $codes[$targetIndex]['progressStatus'] = 'submitted';
-    $codes[$targetIndex]['progressPercent'] = 100;
+    $codes[$targetIndex]['progressPercent'] = $progressPercent;
     $codes[$targetIndex]['updatedAt'] = $now;
     admin_student_registration_codes_save($codes);
 
     // Send Admin Notification
-    admin_notification_create([
-        'title' => "Hồ sơ mới từ học viên: {$fullName}",
-        'message' => "Học viên {$fullName} ({$phone}) đã gửi hồ sơ sơ yếu lý lịch qua mã đăng ký {$codeItem['code']}. Mã hồ sơ: {$studentCode}.",
-        'event' => 'student_form_submitted',
-        'type' => 'success',
-        'targetType' => 'student',
-        'targetId' => $profileId,
-        'actorName' => $fullName,
-    ]);
+    try {
+        admin_notification_create([
+            'title' => "Hồ sơ mới từ học viên: {$fullName}",
+            'message' => "Học viên {$fullName} ({$phone}) đã gửi hồ sơ sơ yếu lý lịch qua mã đăng ký {$codeItem['code']}. Mã hồ sơ: {$studentCode}.",
+            'event' => 'student_form_submitted',
+            'type' => 'success',
+            'targetType' => 'student',
+            'targetId' => $profileId,
+            'actorName' => $fullName,
+        ]);
+    } catch (Throwable) {}
 
     // Send Activity Log
-    admin_activity_log_create([
-        'actorId' => 'student',
-        'actorName' => $fullName,
-        'action' => 'student_profile_submitted',
-        'actionLabel' => 'Học viên nộp hồ sơ',
-        'targetType' => 'student_profile',
-        'targetId' => $profileId,
-        'targetLabel' => "Hồ sơ {$studentCode} - {$fullName}",
-        'details' => [
-            'registrationCode' => $codeItem['code'],
-            'phone' => $phone,
-            'filesCount' => count($savedFiles),
-        ],
-    ]);
+    try {
+        admin_activity_log_create([
+            'actorId' => 'student',
+            'actorName' => $fullName,
+            'action' => 'student_profile_submitted',
+            'actionLabel' => 'Học viên nộp hồ sơ',
+            'targetType' => 'student_profile',
+            'targetId' => $profileId,
+            'targetLabel' => "Hồ sơ {$studentCode} - {$fullName}",
+            'details' => [
+                'registrationCode' => $codeItem['code'],
+                'phone' => $phone,
+                'progressPercent' => $progressPercent,
+                'filesCount' => count($savedFiles),
+            ],
+        ]);
+    } catch (Throwable) {}
 
     return [
         'success' => true,
         'profileId' => $profileId,
         'studentCode' => $studentCode,
-        'message' => "Hồ sơ học viên của bạn đã được gửi thành công đến Trung tâm VieJap. Mã hồ sơ của bạn là: {$studentCode}.",
+        'message' => "Hồ sơ học viên đã được tiếp nhận và lưu an toàn trong hệ thống VieJap. Mã hồ sơ của bạn là: {$studentCode}.",
+    ];
+}
+
+/**
+ * Admin: Generate a supplement code for an existing student profile
+ */
+function admin_student_registration_code_create_for_profile(string $profileId, string $actor = 'Admin'): array
+{
+    require_once __DIR__ . '/_student_profiles.php';
+    $profile = admin_student_profile_find($profileId);
+    if ($profile === null) {
+        throw new RuntimeException('Không tìm thấy thông tin học viên để cấp mã.');
+    }
+
+    $codes = admin_student_registration_codes_load();
+    $now = date('c');
+    $codeId = 'src-' . date('ymd') . '-' . substr(bin2hex(random_bytes(3)), 0, 6);
+    $code = admin_student_registration_code_generate_unique($codes);
+
+    $codeRecord = [
+        'id' => $codeId,
+        'studentId' => $profileId,
+        'studentCode' => $profile['studentCode'] ?? '',
+        'studentName' => $profile['fullName'] ?? '',
+        'phone' => $profile['phone'] ?? '',
+        'email' => $profile['email'] ?? '',
+        'notes' => 'Mã bổ sung / hoàn thiện hồ sơ cho học viên: ' . ($profile['fullName'] ?? ''),
+        'assignedTo' => $profile['assignedTo'] ?? '',
+        'assignedStaffName' => $profile['assignedStaffName'] ?? '',
+        'code' => $code,
+        'codeHash' => hash('sha256', $code),
+        'accessToken' => bin2hex(random_bytes(32)),
+        'status' => 'pending',
+        'progressStatus' => 'draft_saved',
+        'progressPercent' => (int) ($profile['progressPercent'] ?? 45),
+        'draftData' => $profile['data'] ?? [],
+        'currentStep' => 0,
+        'type' => 'supplement',
+        'createdAt' => $now,
+        'expiresAt' => date('c', time() + (72 * 3600)),
+        'createdBy' => $actor,
+        'updatedAt' => $now,
+    ];
+
+    $codes[] = $codeRecord;
+    admin_student_registration_codes_save($codes);
+
+    // Update registrationCode in student profile
+    $allProfiles = admin_student_profiles_load_file();
+    foreach ($allProfiles as &$p) {
+        if (($p['id'] ?? '') === $profileId) {
+            $p['registrationCode'] = $code;
+            $p['registrationCodeId'] = $codeId;
+            $p['updatedAt'] = $now;
+            $p['auditLogs'][] = [
+                'id' => admin_student_profile_generate_id(),
+                'action' => 'issued_supplement_code',
+                'actor' => $actor,
+                'details' => "Cán bộ đã cấp mã {$code} để học viên truy cập biểu mẫu bổ sung hồ sơ trực tuyến.",
+                'createdAt' => $now,
+            ];
+            break;
+        }
+    }
+    unset($p);
+    admin_student_profiles_save_file($allProfiles);
+
+    try {
+        admin_activity_log_create([
+            'actorName' => $actor,
+            'actorRole' => 'Quản trị viên',
+            'action' => 'Cấp mã bổ sung hồ sơ học viên: ' . ($profile['fullName'] ?? ''),
+            'targetType' => 'student',
+            'targetId' => $profileId,
+            'targetName' => $profile['fullName'] ?? '',
+            'details' => "Cấp mã xác thực {$code} cho học viên {$profile['fullName']} ({$profile['studentCode']}) để bổ sung hồ sơ.",
+        ]);
+    } catch (Throwable) {}
+
+    return [
+        'success' => true,
+        'code' => $code,
+        'codeId' => $codeId,
+        'studentName' => $profile['fullName'] ?? '',
+        'studentCode' => $profile['studentCode'] ?? '',
+        'expiresAt' => $codeRecord['expiresAt'],
+        'directUrl' => '/student-form?code=' . $code,
+        'message' => "Đã cấp mã bổ sung hồ sơ {$code} thành công cho học viên {$profile['fullName']}.",
     ];
 }
 

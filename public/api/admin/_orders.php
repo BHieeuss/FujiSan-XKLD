@@ -636,7 +636,7 @@ function admin_job_order_delete(string $id): bool
         $remaining = array_values(array_filter($orders, static function (array $order) use ($targetId, $targetCode, $id): bool {
             $orderId = trim((string) ($order['id'] ?? ''));
             $orderCode = trim((string) ($order['orderCode'] ?? ''));
-            if ($orderId === $targetId || $orderId === $id) {
+            if ($orderId !== '' && (strcasecmp($orderId, $targetId) === 0 || strcasecmp($orderId, $id) === 0)) {
                 return false;
             }
             if ($targetCode !== '' && strcasecmp($orderCode, $targetCode) === 0) {
@@ -1230,7 +1230,19 @@ function admin_job_order_code_exists(string $code, ?string $excludeId = null): b
 
 function admin_job_order_save_file(array $orders): void
 {
-    admin_write_json_file(admin_job_order_file_path(), array_values($orders));
+    $values = array_values($orders);
+    admin_write_json_file(admin_job_order_file_path(), $values);
+
+    // Đồng bộ cả kho private dự phòng nếu tồn tại trên máy chủ
+    try {
+        $home = admin_home_directory();
+        if ($home !== null) {
+            $privatePath = $home . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'viejap' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . 'job-orders.json';
+            if (is_file($privatePath) && realpath($privatePath) !== realpath(admin_job_order_file_path())) {
+                admin_write_json_file($privatePath, $values);
+            }
+        }
+    } catch (Throwable) {}
 }
 
 function admin_job_order_compare(array $left, array $right): int

@@ -19,8 +19,10 @@ export interface StudentRegistrationCodeItem {
   accessToken?: string;
   expiresAt: string;
   firstUsedAt: string | null;
+  verifiedAt?: string | null;
   completedAt: string | null;
   usedAt?: string | null;
+  submittedAt?: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

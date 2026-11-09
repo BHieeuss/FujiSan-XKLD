@@ -192,38 +192,38 @@
           <span>03</span>
           <div class="panel-heading-row">
             <div>
-              <h2>Ảnh đơn tuyển</h2>
+              <h2>Ảnh đơn tuyển (Bắt buộc)</h2>
               <p *ngIf="is3PhotoTemplate">
-                Mẫu thiết kế này yêu cầu cung cấp đủ <strong>3 ảnh riêng biệt</strong> để ghép cụm hình ảnh nghệ thuật.
+                Mẫu thiết kế này yêu cầu cung cấp đủ <strong>3 ảnh bắt buộc</strong> (Ảnh 1, Ảnh 2, Ảnh 3).
               </p>
               <p *ngIf="!is3PhotoTemplate">
-                Ảnh ngang hoặc dọc đều được tự động cắt vừa khung.
+                Mẫu thiết kế này yêu cầu cung cấp đủ <strong>2 ảnh bắt buộc</strong> (Ảnh 1, Ảnh 2).
               </p>
             </div>
-            <div *ngIf="is3PhotoTemplate" class="photo-quota-pill" [class.complete]="photoCountSelected === 3">
-              <i [class]="photoCountSelected === 3 ? 'fas fa-check-circle' : 'fas fa-triangle-exclamation'"></i>
-              <span>{{ photoCountSelected === 3 ? 'Đủ 3/3 ảnh' : 'Đã chọn ' + photoCountSelected + '/3 ảnh' }}</span>
+            <div class="photo-quota-pill" [class.complete]="hasAllRequiredPhotos">
+              <i [class]="hasAllRequiredPhotos ? 'fas fa-check-circle' : 'fas fa-triangle-exclamation'"></i>
+              <span>{{ hasAllRequiredPhotos ? 'Đủ ' + requiredPhotoCount + '/' + requiredPhotoCount + ' ảnh' : 'Đã chọn ' + photoCountSelected + '/' + requiredPhotoCount + ' ảnh' }}</span>
             </div>
           </div>
         </div>
 
-        <div *ngIf="is3PhotoTemplate && photoCountSelected < 3" class="photo-warning-box">
+        <div *ngIf="!hasAllRequiredPhotos" class="photo-warning-box">
           <i class="fas fa-circle-info"></i>
-          <span>Vui lòng bổ sung đầy đủ 3 ảnh bắt buộc bên dưới để hệ thống dựng poster và mở khóa nút tải ảnh.</span>
+          <span>Vui lòng bổ sung đầy đủ {{ requiredPhotoCount }} ảnh bắt buộc bên dưới để hệ thống dựng poster và mở khóa nút tải ảnh.</span>
         </div>
 
         <!-- 3-PHOTO SLOTS FOR EDITORIAL HIRING -->
         <div class="photo-grid photo-grid-3" *ngIf="is3PhotoTemplate">
-          <!-- Slot 1: Ảnh công việc chính -->
+          <!-- Slot 1: Ảnh 1 -->
           <div class="photo-picker-card" [class.empty]="!assets.primaryPhotoSrc">
             <div class="photo-card-header">
               <span class="photo-number">Ảnh 1</span>
               <span class="photo-required-badge">Bắt buộc</span>
             </div>
-            <strong class="photo-role-label">Ảnh công việc chính</strong>
+            <strong class="photo-role-label">Ảnh 1</strong>
 
             <div class="photo-thumb-wrap">
-              <img *ngIf="assets.primaryPhotoSrc" [src]="assets.primaryPhotoSrc" alt="Ảnh công việc chính" />
+              <img *ngIf="assets.primaryPhotoSrc" [src]="assets.primaryPhotoSrc" alt="Ảnh 1" />
               <div *ngIf="!assets.primaryPhotoSrc" class="photo-empty-placeholder">
                 <i class="fas fa-camera"></i>
                 <span>Chưa có ảnh</span>
@@ -257,16 +257,16 @@
             </div>
           </div>
 
-          <!-- Slot 2: Ảnh môi trường làm việc -->
+          <!-- Slot 2: Ảnh 2 -->
           <div class="photo-picker-card" [class.empty]="!assets.secondaryPhotoSrc">
             <div class="photo-card-header">
               <span class="photo-number">Ảnh 2</span>
               <span class="photo-required-badge">Bắt buộc</span>
             </div>
-            <strong class="photo-role-label">Ảnh môi trường làm việc</strong>
+            <strong class="photo-role-label">Ảnh 2</strong>
 
             <div class="photo-thumb-wrap">
-              <img *ngIf="assets.secondaryPhotoSrc" [src]="assets.secondaryPhotoSrc" alt="Ảnh môi trường làm việc" />
+              <img *ngIf="assets.secondaryPhotoSrc" [src]="assets.secondaryPhotoSrc" alt="Ảnh 2" />
               <div *ngIf="!assets.secondaryPhotoSrc" class="photo-empty-placeholder">
                 <i class="fas fa-building-wheat"></i>
                 <span>Chưa có ảnh</span>
@@ -300,16 +300,16 @@
             </div>
           </div>
 
-          <!-- Slot 3: Ảnh công việc bổ sung -->
+          <!-- Slot 3: Ảnh 3 -->
           <div class="photo-picker-card" [class.empty]="!assets.tertiaryPhotoSrc">
             <div class="photo-card-header">
               <span class="photo-number">Ảnh 3</span>
               <span class="photo-required-badge">Bắt buộc</span>
             </div>
-            <strong class="photo-role-label">Ảnh công việc bổ sung</strong>
+            <strong class="photo-role-label">Ảnh 3</strong>
 
             <div class="photo-thumb-wrap">
-              <img *ngIf="assets.tertiaryPhotoSrc" [src]="assets.tertiaryPhotoSrc" alt="Ảnh công việc bổ sung" />
+              <img *ngIf="assets.tertiaryPhotoSrc" [src]="assets.tertiaryPhotoSrc" alt="Ảnh 3" />
               <div *ngIf="!assets.tertiaryPhotoSrc" class="photo-empty-placeholder">
                 <i class="fas fa-wrench"></i>
                 <span>Chưa có ảnh</span>
@@ -348,10 +348,13 @@
         <div class="photo-grid" *ngIf="!is3PhotoTemplate">
           <div class="photo-picker-container">
             <label class="photo-picker">
-              <span class="photo-number">Ảnh lớn (Ảnh 1)</span>
-              <img [src]="assets.primaryPhotoSrc" alt="Ảnh chính đang chọn" />
+              <div class="photo-card-header mb-1">
+                <span class="photo-number">Ảnh 1</span>
+                <span class="photo-required-badge">Bắt buộc</span>
+              </div>
+              <img [src]="assets.primaryPhotoSrc" alt="Ảnh 1" />
               <strong>{{ primaryPhotoName }}</strong>
-              <span class="pick-action"><i class="fas fa-upload"></i> Tải ảnh từ máy</span>
+              <span class="pick-action"><i class="fas fa-upload"></i> Đổi ảnh</span>
               <input
                 #primaryPhotoInput
                 type="file"
@@ -363,10 +366,13 @@
 
           <div class="photo-picker-container">
             <label class="photo-picker">
-              <span class="photo-number">Ảnh phụ (Ảnh 2)</span>
-              <img [src]="assets.secondaryPhotoSrc" alt="Ảnh phụ đang chọn" />
+              <div class="photo-card-header mb-1">
+                <span class="photo-number">Ảnh 2</span>
+                <span class="photo-required-badge">Bắt buộc</span>
+              </div>
+              <img [src]="assets.secondaryPhotoSrc" alt="Ảnh 2" />
               <strong>{{ secondaryPhotoName }}</strong>
-              <span class="pick-action"><i class="fas fa-upload"></i> Tải ảnh từ máy</span>
+              <span class="pick-action"><i class="fas fa-upload"></i> Đổi ảnh</span>
               <input
                 #secondaryPhotoInput
                 type="file"
@@ -476,9 +482,9 @@
           Tải PDF
         </button>
       </div>
-      <p class="photo-download-warning" *ngIf="is3PhotoTemplate && !hasAllRequiredPhotos">
+      <p class="photo-download-warning" *ngIf="!hasAllRequiredPhotos">
         <i class="fas fa-triangle-exclamation"></i>
-        Mẫu này yêu cầu đủ 3 ảnh bắt buộc trước khi tải ảnh poster.
+        Vui lòng bổ sung đầy đủ {{ requiredPhotoCount }} ảnh bắt buộc trước khi tải ảnh poster.
       </p>
 
       <small class="privacy-note">

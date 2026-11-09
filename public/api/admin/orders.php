@@ -70,7 +70,8 @@ try {
     $isDeleteAction = ($method === 'DELETE') || ($method === 'POST' && ($action === 'delete' || ($payload['action'] ?? '') === 'delete'));
     if ($isDeleteAction) {
         admin_require_permission($session, 'orders.delete');
-        $id = trim((string) ($_GET['id'] ?? ($payload['id'] ?? '')));
+        $pathId = !empty($_SERVER['PATH_INFO']) ? trim((string) basename($_SERVER['PATH_INFO'])) : '';
+        $id = trim((string) ($_GET['id'] ?? ($payload['id'] ?? ($pathId !== '' ? $pathId : ''))));
         if ($id === '') {
             admin_respond(422, ['message' => 'Thiếu mã đơn hàng cần xóa.']);
         }

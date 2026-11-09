@@ -595,6 +595,7 @@ export class StudentFormPage implements OnInit, OnDestroy {
       }
 
       let result: StudentFormSubmissionResult;
+      const progressPercent = this.completionPercentage;
       if (this.studentSession?.codeId && this.studentSession?.sessionToken) {
         // Pre-build workbook
         const workbook = await this.excelService.build(this.data, this.photo);
@@ -605,7 +606,8 @@ export class StudentFormPage implements OnInit, OnDestroy {
           this.photo,
           this.documentPdf,
           cvPdf?.blob,
-          workbook.blob
+          workbook.blob,
+          progressPercent,
         );
         result = {
           success: true,
@@ -622,6 +624,7 @@ export class StudentFormPage implements OnInit, OnDestroy {
           this.photo,
           this.documentPdf,
           cvPdf?.blob,
+          progressPercent,
         );
       }
       this.submissionResult = result;

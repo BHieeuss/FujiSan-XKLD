@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { AiImportModalComponent } from '../../components/ai-import-modal/ai-import-modal.component';
 import { TemplateId } from '../../models/poster-template.model';
 import { RecruitmentPosterAssets, RecruitmentPosterData } from '../../poster-maker.model';
+import { AiStructuredOrder } from '../../models/ai-order-extraction.model';
+import { JobOrderDraftTransferService } from '../../../../jobs/services/job-order-draft-transfer.service';
 
 @Component({
   selector: 'app-auto-poster-page',
@@ -14,6 +16,7 @@ import { RecruitmentPosterAssets, RecruitmentPosterData } from '../../poster-mak
 })
 export class AutoPosterPage implements OnInit {
   private readonly router = inject(Router);
+  private readonly draftTransfer = inject(JobOrderDraftTransferService);
 
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
@@ -25,6 +28,7 @@ export class AutoPosterPage implements OnInit {
     data: RecruitmentPosterData;
     assets: RecruitmentPosterAssets;
     templateId: TemplateId;
+    aiOrder?: AiStructuredOrder;
   }): void {
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem('viejap_applied_poster', JSON.stringify(result));
@@ -38,12 +42,14 @@ export class AutoPosterPage implements OnInit {
     data: RecruitmentPosterData;
     assets: RecruitmentPosterAssets;
     templateId: TemplateId;
+    aiOrder?: AiStructuredOrder;
   }): void {
+    this.draftTransfer.setDraftFromPoster(result.data, result.assets, undefined, result.aiOrder);
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem('viejap_applied_poster', JSON.stringify(result));
     }
     this.router.navigate(['/quan-tri-viejap'], {
-      queryParams: { section: 'orders', action: 'create' },
+      queryParams: { section: 'orders', action: 'create', source: 'poster' },
     });
   }
 
