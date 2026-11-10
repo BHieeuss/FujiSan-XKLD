@@ -252,6 +252,58 @@
   font-weight: 700;
 }
 
+.reg-code-sub {
+  margin-top: 0.25rem;
+  font-size: 0.76rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  code {
+    background: #f1f5f9;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.5px;
+  }
+}
+
+.reg-code-badge-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.reg-code-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  strong {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #14532d;
+    letter-spacing: 0.5px;
+  }
+}
+
 .student-name-cell {
   display: flex;
   flex-direction: column;

@@ -62,11 +62,11 @@
                   />
                   <div class="media-badges">
                     <span class="badge-cat">{{ main.categoryName || main.category }}</span>
-                    @if (main.hotBadge?.enabled) {
+                    @if (main.hotBadge.enabled) {
                       <span class="badge-hot">
                         <i class="fas fa-fire" aria-hidden="true"></i> HOT
                       </span>
-                    } @else if (main.featuredBadge?.enabled || main.level === 'featured' || main.level === 'special') {
+                    } @else if (main.featuredBadge.enabled || main.level === 'featured' || main.level === 'special') {
                       <span class="badge-featured">
                         <i class="fas fa-star" aria-hidden="true"></i> Nổi bật
                       </span>
@@ -208,11 +208,11 @@
                 />
                 <div class="featured-badges">
                   <span class="badge-cat">{{ latest.categoryName || latest.category }}</span>
-                  @if (latest.hotBadge?.enabled) {
+                  @if (latest.hotBadge.enabled) {
                     <span class="badge-hot">
                       <i class="fas fa-fire" aria-hidden="true"></i> HOT
                     </span>
-                  } @else if (latest.featuredBadge?.enabled || latest.level === 'featured' || latest.level === 'special') {
+                  } @else if (latest.featuredBadge.enabled || latest.level === 'featured' || latest.level === 'special') {
                     <span class="badge-featured">
                       <i class="fas fa-star" aria-hidden="true"></i> Mới nhất
                     </span>

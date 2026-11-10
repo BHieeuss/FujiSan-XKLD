@@ -35,6 +35,8 @@ export interface StudentRegistrationCodeItem {
   ipAddresses?: string[];
   lastDraftSavedAt?: string;
   profileId?: string;
+  studentId?: string;
+  studentCode?: string;
 }
 
 export interface StudentRegistrationStats {

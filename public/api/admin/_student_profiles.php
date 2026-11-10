@@ -215,7 +215,7 @@ function admin_student_profiles_list(array $filters = []): array
             $params['to_date'] = $toDate . ' 23:59:59';
         }
 
-        $sql = 'SELECT id, student_code, full_name, birth_date, phone, id_number, address, status, deleted_at, previous_status, created_at, updated_at FROM student_profiles';
+        $sql = 'SELECT id, student_code, full_name, birth_date, phone, id_number, address, status, progress_percent, registration_code, assigned_to, assigned_staff_name, deleted_at, previous_status, created_at, updated_at FROM student_profiles';
         if (!empty($conditions)) {
             $sql .= ' WHERE ' . implode(' AND ', $conditions);
         }
@@ -289,7 +289,8 @@ function admin_student_profiles_list(array $filters = []): array
             $matched = mb_stripos($p['fullName'] ?? '', $search) !== false
                 || mb_stripos($p['phone'] ?? '', $search) !== false
                 || mb_stripos($p['studentCode'] ?? '', $search) !== false
-                || mb_stripos($p['idNumber'] ?? '', $search) !== false;
+                || mb_stripos($p['idNumber'] ?? '', $search) !== false
+                || mb_stripos($p['registrationCode'] ?? '', $search) !== false;
             if (!$matched) continue;
         }
 
@@ -343,31 +344,37 @@ function admin_student_profiles_list(array $filters = []): array
 
 function admin_student_profile_find(string $id): ?array
 {
+    $id = trim($id);
+    if ($id === '') {
+        return null;
+    }
+
     $database = admin_student_profiles_database();
     if ($database !== null) {
-        $stmt = $database->prepare('SELECT * FROM student_profiles WHERE id = :id LIMIT 1');
+        $stmt = $database->prepare('SELECT * FROM student_profiles WHERE id = :id OR student_code = :id OR registration_code = :id LIMIT 1');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
         if (!is_array($row)) {
             return null;
         }
 
+        $realId = (string) $row['id'];
         $filesStmt = $database->prepare(
             'SELECT * FROM student_profile_files WHERE profile_id = :profile_id ORDER BY file_type ASC, version DESC'
         );
-        $filesStmt->execute(['profile_id' => $id]);
+        $filesStmt->execute(['profile_id' => $realId]);
         $files = $filesStmt->fetchAll();
 
         $logsStmt = $database->prepare(
             'SELECT * FROM student_profile_audit_logs WHERE profile_id = :profile_id ORDER BY created_at DESC'
         );
-        $logsStmt->execute(['profile_id' => $id]);
+        $logsStmt->execute(['profile_id' => $realId]);
         $logs = $logsStmt->fetchAll();
 
         $formData = json_decode((string) $row['data_json'], true);
 
         return [
-            'id' => (string) $row['id'],
+            'id' => $realId,
             'studentCode' => (string) $row['student_code'],
             'fullName' => (string) $row['full_name'],
             'birthDate' => (string) $row['birth_date'],
@@ -375,6 +382,10 @@ function admin_student_profile_find(string $id): ?array
             'idNumber' => (string) $row['id_number'],
             'address' => (string) $row['address'],
             'status' => (string) $row['status'],
+            'progressPercent' => isset($row['progress_percent']) ? (int) $row['progress_percent'] : 45,
+            'registrationCode' => (string) ($row['registration_code'] ?? ''),
+            'assignedTo' => (string) ($row['assigned_to'] ?? ''),
+            'assignedStaffName' => (string) ($row['assigned_staff_name'] ?? ''),
             'deletedAt' => !empty($row['deleted_at']) ? (string) $row['deleted_at'] : null,
             'previousStatus' => !empty($row['previous_status']) ? (string) $row['previous_status'] : null,
             'daysRemaining' => !empty($row['deleted_at']) ? max(0, 30 - (int) floor((time() - strtotime((string) $row['deleted_at'])) / 86400)) : null,
@@ -403,7 +414,7 @@ function admin_student_profile_find(string $id): ?array
     // JSON file fallback
     $profiles = admin_student_profiles_load_file();
     foreach ($profiles as $p) {
-        if (($p['id'] ?? '') === $id) {
+        if (($p['id'] ?? '') === $id || ($p['studentCode'] ?? '') === $id || ($p['registrationCode'] ?? '') === $id) {
             $delAt = !empty($p['deletedAt']) ? (string) $p['deletedAt'] : null;
             $p['daysRemaining'] = $delAt !== null ? max(0, 30 - (int) floor((time() - strtotime($delAt)) / 86400)) : null;
             return $p;
@@ -415,122 +426,297 @@ function admin_student_profile_find(string $id): ?array
 
 function admin_student_profile_create(array $payload, array $initialFiles = []): array
 {
-    $id = admin_student_profile_generate_id();
-    $studentCode = admin_student_profile_generate_code();
+    return admin_student_profile_upsert_submission(
+        '',
+        $payload,
+        $initialFiles,
+        'Học viên',
+        'Đăng ký nộp hồ sơ sơ yếu lý lịch trực tuyến.'
+    );
+}
+
+/**
+ * Authoritative unified submission handler for student profiles:
+ * - Matches existing profile by ID, phone, or idNumber
+ * - Prevents duplicate student profiles
+ * - Restores from trash if previously deleted
+ * - Performs dual persistence (MySQL if active + JSON file fallback)
+ * - Returns the saved profile
+ */
+function admin_student_profile_upsert_submission(
+    string $targetProfileId,
+    array $profileData,
+    array $filesToSave,
+    string $actor = 'Học viên',
+    string $actionDetails = 'Nộp hồ sơ trực tuyến qua website.'
+): array
+{
     $now = date('Y-m-d H:i:s');
+    $fullName = trim((string) ($profileData['fullName'] ?? ''));
+    $phone = trim((string) ($profileData['phone'] ?? ''));
+    $idNumber = trim((string) ($profileData['idNumber'] ?? ''));
+    $birthDate = trim((string) ($profileData['birthDate'] ?? ''));
+    $address = trim((string) ($profileData['address'] ?? ''));
+    $progressPercent = isset($profileData['progressPercent']) ? (int) $profileData['progressPercent'] : 45;
+    $registrationCode = trim((string) ($profileData['registrationCode'] ?? ''));
+    $registrationCodeId = trim((string) ($profileData['registrationCodeId'] ?? ''));
+    $assignedTo = trim((string) ($profileData['assignedTo'] ?? ''));
+    $assignedStaffName = trim((string) ($profileData['assignedStaffName'] ?? ''));
+    $notes = trim((string) ($profileData['notes'] ?? ''));
 
-    $fullName = trim((string) ($payload['fullName'] ?? ''));
-    $birthDate = trim((string) ($payload['birthDate'] ?? ''));
-    $phone = trim((string) ($payload['phone'] ?? ''));
-    $idNumber = trim((string) ($payload['idNumber'] ?? ''));
-    $address = trim((string) ($payload['address'] ?? ''));
-    $dataJson = is_string($payload['data'] ?? null)
-        ? $payload['data']
-        : json_encode($payload['data'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    $status = 'tiep_nhan';
+    $data = $profileData['data'] ?? [];
+    if (is_string($data)) {
+        $decoded = json_decode($data, true);
+        $data = is_array($decoded) ? $decoded : [];
+    }
+    $dataJson = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-    $database = admin_student_profiles_database();
-    if ($database !== null) {
-        $stmt = $database->prepare(
-            'INSERT INTO student_profiles (id, student_code, full_name, birth_date, phone, id_number, address, data_json, status, created_at, updated_at)
-             VALUES (:id, :student_code, :full_name, :birth_date, :phone, :id_number, :address, :data_json, :status, :created_at, :updated_at)'
-        );
-        $stmt->execute([
-            'id' => $id,
-            'student_code' => $studentCode,
-            'full_name' => $fullName,
-            'birth_date' => $birthDate,
-            'phone' => $phone,
-            'id_number' => $idNumber,
-            'address' => $address,
-            'data_json' => $dataJson,
-            'status' => $status,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+    // 1. Try to find existing profile in JSON file
+    $allProfiles = admin_student_profiles_load_file();
+    $foundIndex = -1;
 
-        // Insert initial files
-        foreach ($initialFiles as $file) {
-            $fileId = admin_student_profile_generate_id();
-            $fileStmt = $database->prepare(
-                'INSERT INTO student_profile_files (id, profile_id, file_type, version, file_name, file_path, file_size, mime_type, created_at)
-                 VALUES (:id, :profile_id, :file_type, :version, :file_name, :file_path, :file_size, :mime_type, :created_at)'
-            );
-            $fileStmt->execute([
-                'id' => $fileId,
-                'profile_id' => $id,
-                'file_type' => $file['fileType'],
-                'version' => $file['version'] ?? 1,
-                'file_name' => $file['fileName'],
-                'file_path' => $file['filePath'],
-                'file_size' => $file['fileSize'] ?? 0,
-                'mime_type' => $file['mimeType'] ?? '',
-                'created_at' => $now,
-            ]);
+    // Check by targetProfileId
+    if ($targetProfileId !== '') {
+        foreach ($allProfiles as $idx => $p) {
+            if (($p['id'] ?? '') === $targetProfileId || ($p['studentCode'] ?? '') === $targetProfileId) {
+                $foundIndex = $idx;
+                break;
+            }
         }
-
-        // Audit log
-        $logId = admin_student_profile_generate_id();
-        $logStmt = $database->prepare(
-            'INSERT INTO student_profile_audit_logs (id, profile_id, action, actor, details, created_at)
-             VALUES (:id, :profile_id, :action, :actor, :details, :created_at)'
-        );
-        $logStmt->execute([
-            'id' => $logId,
-            'profile_id' => $id,
-            'action' => 'created',
-            'actor' => 'Học viên',
-            'details' => 'Đăng ký nộp hồ sơ sơ yếu lý lịch trực tuyến.',
-            'created_at' => $now,
-        ]);
-
-        return admin_student_profile_find($id) ?? [];
     }
 
-    // JSON file fallback
-    $profiles = admin_student_profiles_load_file();
+    // Check by registrationCodeId or registrationCode
+    if ($foundIndex === -1 && $registrationCode !== '') {
+        foreach ($allProfiles as $idx => $p) {
+            if (($p['registrationCode'] ?? '') === $registrationCode || ($p['registrationCodeId'] ?? '') === $registrationCodeId) {
+                $foundIndex = $idx;
+                break;
+            }
+        }
+    }
+
+    // Check by idNumber (CCCD)
+    if ($foundIndex === -1 && $idNumber !== '') {
+        foreach ($allProfiles as $idx => $p) {
+            if (!empty($p['idNumber']) && $p['idNumber'] === $idNumber) {
+                $foundIndex = $idx;
+                break;
+            }
+        }
+    }
+
+    // Check by phone
+    if ($foundIndex === -1 && $phone !== '') {
+        foreach ($allProfiles as $idx => $p) {
+            if (!empty($p['phone']) && $p['phone'] === $phone) {
+                $foundIndex = $idx;
+                break;
+            }
+        }
+    }
+
+    $isUpdate = ($foundIndex !== -1);
+    if ($isUpdate) {
+        $profileId = (string) $allProfiles[$foundIndex]['id'];
+        $studentCode = (string) ($allProfiles[$foundIndex]['studentCode'] ?? admin_student_profile_generate_code());
+        $createdAt = (string) ($allProfiles[$foundIndex]['createdAt'] ?? $now);
+    } else {
+        $profileId = $targetProfileId !== '' ? $targetProfileId : admin_student_profile_generate_id();
+        $studentCode = admin_student_profile_generate_code();
+        $createdAt = $now;
+    }
+
+    // Prepare files array
     $preparedFiles = [];
-    foreach ($initialFiles as $file) {
+    foreach ($filesToSave as $f) {
         $preparedFiles[] = [
-            'id' => admin_student_profile_generate_id(),
-            'fileType' => $file['fileType'],
-            'version' => $file['version'] ?? 1,
-            'fileName' => $file['fileName'],
-            'filePath' => $file['filePath'],
-            'fileSize' => $file['fileSize'] ?? 0,
-            'mimeType' => $file['mimeType'] ?? '',
+            'id' => $f['id'] ?? admin_student_profile_generate_id(),
+            'fileType' => $f['fileType'],
+            'version' => (int) ($f['version'] ?? 1),
+            'fileName' => $f['fileName'],
+            'filePath' => $f['filePath'] ?? '',
+            'fileSize' => (int) ($f['fileSize'] ?? 0),
+            'mimeType' => $f['mimeType'] ?? '',
             'createdAt' => $now,
         ];
     }
 
-    $newProfile = [
-        'id' => $id,
-        'studentCode' => $studentCode,
-        'fullName' => $fullName,
-        'birthDate' => $birthDate,
-        'phone' => $phone,
-        'idNumber' => $idNumber,
-        'address' => $address,
-        'status' => $status,
+    // Audit log
+    $auditLogItem = [
+        'id' => admin_student_profile_generate_id(),
+        'action' => $isUpdate ? 'updated_submission' : 'created',
+        'actor' => $actor ?: ($fullName ?: 'Học viên'),
+        'details' => $actionDetails,
         'createdAt' => $now,
-        'updatedAt' => $now,
-        'data' => is_string($payload['data'] ?? null) ? json_decode($payload['data'], true) : ($payload['data'] ?? []),
-        'files' => $preparedFiles,
-        'auditLogs' => [
-            [
-                'id' => admin_student_profile_generate_id(),
-                'action' => 'created',
-                'actor' => 'Học viên',
-                'details' => 'Đăng ký nộp hồ sơ sơ yếu lý lịch trực tuyến.',
-                'createdAt' => $now,
-            ],
-        ],
     ];
 
-    $profiles[] = $newProfile;
-    admin_student_profiles_save_file($profiles);
+    if ($isUpdate) {
+        // Merge with existing files
+        $existingFiles = $allProfiles[$foundIndex]['files'] ?? [];
+        foreach ($preparedFiles as $newF) {
+            $existingFiles[] = $newF;
+        }
 
-    return $newProfile;
+        $existingLogs = $allProfiles[$foundIndex]['auditLogs'] ?? [];
+        $existingLogs[] = $auditLogItem;
+
+        $allProfiles[$foundIndex]['fullName'] = $fullName ?: ($allProfiles[$foundIndex]['fullName'] ?? '');
+        $allProfiles[$foundIndex]['birthDate'] = $birthDate ?: ($allProfiles[$foundIndex]['birthDate'] ?? '');
+        $allProfiles[$foundIndex]['phone'] = $phone ?: ($allProfiles[$foundIndex]['phone'] ?? '');
+        $allProfiles[$foundIndex]['idNumber'] = $idNumber ?: ($allProfiles[$foundIndex]['idNumber'] ?? '');
+        $allProfiles[$foundIndex]['address'] = $address ?: ($allProfiles[$foundIndex]['address'] ?? '');
+        $allProfiles[$foundIndex]['status'] = 'tiep_nhan'; // always active!
+        $allProfiles[$foundIndex]['deletedAt'] = null; // restore from trash if mistakenly trashed
+        $allProfiles[$foundIndex]['previousStatus'] = null;
+        $allProfiles[$foundIndex]['progressPercent'] = $progressPercent;
+        if ($registrationCode !== '') $allProfiles[$foundIndex]['registrationCode'] = $registrationCode;
+        if ($registrationCodeId !== '') $allProfiles[$foundIndex]['registrationCodeId'] = $registrationCodeId;
+        if ($assignedTo !== '') $allProfiles[$foundIndex]['assignedTo'] = $assignedTo;
+        if ($assignedStaffName !== '') $allProfiles[$foundIndex]['assignedStaffName'] = $assignedStaffName;
+        if ($notes !== '') $allProfiles[$foundIndex]['notes'] = $notes;
+        $allProfiles[$foundIndex]['data'] = !empty($data) ? $data : ($allProfiles[$foundIndex]['data'] ?? []);
+        $allProfiles[$foundIndex]['files'] = $existingFiles;
+        $allProfiles[$foundIndex]['auditLogs'] = $existingLogs;
+        $allProfiles[$foundIndex]['updatedAt'] = $now;
+
+        $savedProfile = $allProfiles[$foundIndex];
+    } else {
+        $savedProfile = [
+            'id' => $profileId,
+            'studentCode' => $studentCode,
+            'registrationCode' => $registrationCode,
+            'registrationCodeId' => $registrationCodeId,
+            'fullName' => $fullName,
+            'birthDate' => $birthDate,
+            'phone' => $phone,
+            'idNumber' => $idNumber,
+            'address' => $address,
+            'status' => 'tiep_nhan',
+            'progressPercent' => $progressPercent,
+            'assignedTo' => $assignedTo,
+            'assignedStaffName' => $assignedStaffName,
+            'notes' => $notes,
+            'createdAt' => $createdAt,
+            'updatedAt' => $now,
+            'deletedAt' => null,
+            'previousStatus' => null,
+            'files' => $preparedFiles,
+            'data' => $data,
+            'auditLogs' => [$auditLogItem],
+        ];
+        $allProfiles[] = $savedProfile;
+    }
+
+    // Dual persistence: 1. Save to JSON file
+    admin_student_profiles_save_file($allProfiles);
+
+    // Dual persistence: 2. Save to MySQL (if configured)
+    $database = admin_student_profiles_database();
+    if ($database !== null) {
+        try {
+            if ($isUpdate) {
+                $stmt = $database->prepare(
+                    'UPDATE student_profiles
+                     SET student_code = :student_code, full_name = :full_name, birth_date = :birth_date,
+                         phone = :phone, id_number = :id_number, address = :address, data_json = :data_json,
+                         status = :status, deleted_at = NULL, previous_status = NULL,
+                         progress_percent = :progress_percent, registration_code = :registration_code,
+                         assigned_to = :assigned_to, assigned_staff_name = :assigned_staff_name,
+                         updated_at = :updated_at
+                     WHERE id = :id'
+                );
+                $stmt->execute([
+                    'id' => $profileId,
+                    'student_code' => $studentCode,
+                    'full_name' => $fullName,
+                    'birth_date' => $birthDate,
+                    'phone' => $phone,
+                    'id_number' => $idNumber,
+                    'address' => $address,
+                    'data_json' => $dataJson,
+                    'status' => 'tiep_nhan',
+                    'progress_percent' => $progressPercent,
+                    'registration_code' => $registrationCode,
+                    'assigned_to' => $assignedTo,
+                    'assigned_staff_name' => $assignedStaffName,
+                    'updated_at' => $now,
+                ]);
+            } else {
+                $stmt = $database->prepare(
+                    'INSERT INTO student_profiles (id, student_code, full_name, birth_date, phone, id_number, address, data_json, status, progress_percent, registration_code, assigned_to, assigned_staff_name, created_at, updated_at)
+                     VALUES (:id, :student_code, :full_name, :birth_date, :phone, :id_number, :address, :data_json, :status, :progress_percent, :registration_code, :assigned_to, :assigned_staff_name, :created_at, :updated_at)'
+                );
+                $stmt->execute([
+                    'id' => $profileId,
+                    'student_code' => $studentCode,
+                    'full_name' => $fullName,
+                    'birth_date' => $birthDate,
+                    'phone' => $phone,
+                    'id_number' => $idNumber,
+                    'address' => $address,
+                    'data_json' => $dataJson,
+                    'status' => 'tiep_nhan',
+                    'progress_percent' => $progressPercent,
+                    'registration_code' => $registrationCode,
+                    'assigned_to' => $assignedTo,
+                    'assigned_staff_name' => $assignedStaffName,
+                    'created_at' => $createdAt,
+                    'updated_at' => $now,
+                ]);
+            }
+
+            // Insert new files into student_profile_files
+            foreach ($preparedFiles as $file) {
+                $fileStmt = $database->prepare(
+                    'INSERT INTO student_profile_files (id, profile_id, file_type, version, file_name, file_path, file_size, mime_type, created_at)
+                     VALUES (:id, :profile_id, :file_type, :version, :file_name, :file_path, :file_size, :mime_type, :created_at)'
+                );
+                $fileStmt->execute([
+                    'id' => $file['id'],
+                    'profile_id' => $profileId,
+                    'file_type' => $file['fileType'],
+                    'version' => $file['version'],
+                    'file_name' => $file['fileName'],
+                    'file_path' => $file['filePath'],
+                    'file_size' => $file['fileSize'],
+                    'mime_type' => $file['mimeType'],
+                    'created_at' => $now,
+                ]);
+            }
+
+            // Insert audit log
+            $logStmt = $database->prepare(
+                'INSERT INTO student_profile_audit_logs (id, profile_id, action, actor, details, created_at)
+                 VALUES (:id, :profile_id, :action, :actor, :details, :created_at)'
+            );
+            $logStmt->execute([
+                'id' => $auditLogItem['id'],
+                'profile_id' => $profileId,
+                'action' => $auditLogItem['action'],
+                'actor' => $auditLogItem['actor'],
+                'details' => $auditLogItem['details'],
+                'created_at' => $now,
+            ]);
+        } catch (Throwable $e) {
+            // MySQL error fallback is safe since JSON was already saved
+        }
+    }
+
+    return $savedProfile;
+}
+
+/**
+ * Backward compatible alias for student-form-submit.php
+ */
+function admin_student_profile_create_with_id(string $id, array $payload, array $initialFiles): array
+{
+    return admin_student_profile_upsert_submission(
+        $id,
+        $payload,
+        $initialFiles,
+        'Học viên',
+        'Nộp hồ sơ sơ yếu lý lịch trực tuyến qua website.'
+    );
 }
 
 function admin_student_profile_update(string $id, array $updates, string $actor = 'Admin'): ?array

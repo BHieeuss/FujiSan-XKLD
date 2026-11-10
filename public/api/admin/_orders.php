@@ -8,6 +8,8 @@ const VIEJAP_JOB_ORDER_CATEGORIES = [
     'ky-su', 'tokutei', 'thuc-tap-sinh', 'du-hoc'
 ];
 
+const VIEJAP_ORDER_TRASH_RETENTION_DAYS = 10;
+
 function admin_job_order_seed_data(): array
 {
     $createdAt = '2026-10-15 08:30:00';
@@ -286,8 +288,10 @@ function admin_job_order_seed_data(): array
     ];
 }
 
-function admin_job_orders_list(bool $includeDrafts = false): array
+function admin_job_orders_list(bool $includeDrafts = false, bool $includeTrash = false, bool $onlyTrash = false): array
 {
+    admin_job_orders_purge_expired_trash();
+
     $database = admin_job_orders_database();
     if ($database !== null) {
         $sql = 'SELECT id, image_url, poster_url, order_code, title, category, location, salary,
@@ -297,10 +301,17 @@ function admin_job_orders_list(bool $includeDrafts = false): array
                        interview_date, specific_work, work_environment, working_hours, holidays,
                        experience, health_requirements, basic_salary, take_home_salary, overtime,
                        allowances, bonus, insurance, accommodation, meals, transport, other_benefits,
-                       post_content, facebook_content, post_template_id, post_blocks, gallery_images
+                       post_content, facebook_content, post_template_id, post_blocks, gallery_images,
+                       deleted_at, deleted_by, previous_status
                 FROM job_orders';
-        if (!$includeDrafts) {
-            $sql .= " WHERE status = 'published'";
+        if ($onlyTrash) {
+            $sql .= " WHERE status = 'trash'";
+        } elseif (!$includeTrash) {
+            if (!$includeDrafts) {
+                $sql .= " WHERE status = 'published'";
+            } else {
+                $sql .= " WHERE status != 'trash'";
+            }
         }
         $sql .= ' ORDER BY is_featured DESC, updated_at DESC';
         $rows = $database->query($sql)->fetchAll();
@@ -308,11 +319,23 @@ function admin_job_orders_list(bool $includeDrafts = false): array
     }
 
     $orders = admin_job_order_load_file();
-    if (!$includeDrafts) {
+    if ($onlyTrash) {
         $orders = array_values(array_filter(
             $orders,
-            static fn (array $order): bool => $order['status'] === 'published'
+            static fn (array $order): bool => ($order['status'] ?? '') === 'trash'
         ));
+    } elseif (!$includeTrash) {
+        if (!$includeDrafts) {
+            $orders = array_values(array_filter(
+                $orders,
+                static fn (array $order): bool => ($order['status'] ?? '') === 'published'
+            ));
+        } else {
+            $orders = array_values(array_filter(
+                $orders,
+                static fn (array $order): bool => ($order['status'] ?? '') !== 'trash'
+            ));
+        }
     }
     usort($orders, 'admin_job_order_compare');
     return $orders;
@@ -332,7 +355,7 @@ function admin_job_order_to_slug(string $text): string
     return trim($text, '-');
 }
 
-function admin_job_order_find(string $id, bool $includeDrafts = false): ?array
+function admin_job_order_find(string $id, bool $includeDrafts = false, bool $includeTrash = false): ?array
 {
     $id = trim($id);
     if ($id === '') {
@@ -351,10 +374,15 @@ function admin_job_order_find(string $id, bool $includeDrafts = false): ?array
                            interview_date, specific_work, work_environment, working_hours, holidays,
                            experience, health_requirements, basic_salary, take_home_salary, overtime,
                            allowances, bonus, insurance, accommodation, meals, transport, other_benefits,
-                           post_content, facebook_content, post_template_id, post_blocks, gallery_images
+                           post_content, facebook_content, post_template_id, post_blocks, gallery_images,
+                           deleted_at, deleted_by, previous_status
                     FROM job_orders WHERE id = :id';
-            if (!$includeDrafts) {
+            if ($includeTrash) {
+                // Cho phép tìm cả đơn trong thùng rác
+            } elseif (!$includeDrafts) {
                 $sql .= " AND status = 'published'";
+            } else {
+                $sql .= " AND status != 'trash'";
             }
             $statement = $database->prepare($sql);
             $statement->execute(['id' => $id]);
@@ -365,7 +393,7 @@ function admin_job_order_find(string $id, bool $includeDrafts = false): ?array
         }
 
         // Try lookup by order_code or slug
-        $allOrders = admin_job_orders_list($includeDrafts);
+        $allOrders = admin_job_orders_list($includeDrafts, $includeTrash);
         foreach ($allOrders as $item) {
             if (strcasecmp($item['orderCode'] ?? '', $id) === 0 || admin_job_order_to_slug($item['title'] ?? '') === $id) {
                 return $item;
@@ -374,7 +402,7 @@ function admin_job_order_find(string $id, bool $includeDrafts = false): ?array
         return null;
     }
 
-    $allOrders = admin_job_orders_list($includeDrafts);
+    $allOrders = admin_job_orders_list($includeDrafts, $includeTrash);
     foreach ($allOrders as $order) {
         if ($order['id'] === $id || strcasecmp($order['orderCode'] ?? '', $id) === 0 || admin_job_order_to_slug($order['title'] ?? '') === $id) {
             return $order;
@@ -443,9 +471,9 @@ function admin_job_order_update(string $id, array $payload): ?array
         return null;
     }
 
-    $existing = admin_job_order_find($id, true);
+    $existing = admin_job_order_find($id, true, true);
     if ($existing === null) {
-        $allOrders = admin_job_orders_list(true);
+        $allOrders = admin_job_orders_list(true, true);
         foreach ($allOrders as $o) {
             if (($o['id'] ?? '') === $id || strcasecmp((string) ($o['orderCode'] ?? ''), $id) === 0) {
                 $existing = $o;
@@ -485,7 +513,8 @@ function admin_job_order_update(string $id, array $payload): ?array
                     meals = :meals, transport = :transport, other_benefits = :other_benefits,
                     post_content = :post_content, facebook_content = :facebook_content,
                     post_template_id = :post_template_id, post_blocks = :post_blocks,
-                    gallery_images = :gallery_images
+                    gallery_images = :gallery_images,
+                    deleted_at = :deleted_at, deleted_by = :deleted_by, previous_status = :previous_status
                  WHERE id = :id'
             );
             $values = admin_job_order_database_values($order);
@@ -575,18 +604,413 @@ function admin_job_order_update(string $id, array $payload): ?array
     return $order;
 }
 
-function admin_job_order_delete(string $id): bool
+function admin_job_order_delete_owned_files(array $order): array
+{
+    $deletedFiles = [];
+    $skippedFiles = [];
+    $baseUploadDir = realpath(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'orders');
+    if ($baseUploadDir === false || !is_dir($baseUploadDir)) {
+        return ['deleted' => [], 'skipped' => []];
+    }
+
+    $candidates = [];
+    if (!empty($order['imageUrl'])) {
+        $candidates[] = (string) $order['imageUrl'];
+    }
+    if (!empty($order['posterUrl'])) {
+        $candidates[] = (string) $order['posterUrl'];
+    }
+    if (!empty($order['galleryImages']) && is_array($order['galleryImages'])) {
+        foreach ($order['galleryImages'] as $gImg) {
+            if (is_string($gImg) && trim($gImg) !== '') {
+                $candidates[] = trim($gImg);
+            }
+        }
+    }
+
+    foreach ($candidates as $candidate) {
+        $candidate = trim($candidate);
+        // BẢO VỆ TUYỆT ĐỐI: Không bao giờ xóa file assets tĩnh dùng chung (assets/images/...)
+        if (str_starts_with($candidate, 'assets/') || str_starts_with($candidate, '/assets/')) {
+            $skippedFiles[] = ['path' => $candidate, 'reason' => 'Tài nguyên dùng chung'];
+            continue;
+        }
+
+        // Chỉ xử lý nếu đường dẫn thuộc uploads/orders
+        if (!str_contains($candidate, 'uploads/orders/')) {
+            $skippedFiles[] = ['path' => $candidate, 'reason' => 'Không thuộc thư mục đơn hàng'];
+            continue;
+        }
+
+        // Lấy tên file thực tế (chống path traversal)
+        $fileName = basename($candidate);
+        if ($fileName === '' || $fileName === '.' || $fileName === '..') {
+            continue;
+        }
+
+        $fullPath = $baseUploadDir . DIRECTORY_SEPARATOR . $fileName;
+        $realPath = realpath($fullPath);
+
+        // Kiểm tra realpath phải nằm chính xác trong $baseUploadDir
+        if ($realPath !== false && str_starts_with($realPath, $baseUploadDir)) {
+            if (is_file($realPath) && @unlink($realPath)) {
+                $deletedFiles[] = $fileName;
+            } else {
+                $skippedFiles[] = ['path' => $fileName, 'reason' => 'Không thể xóa hoặc không tìm thấy file'];
+            }
+        }
+    }
+
+    return ['deleted' => $deletedFiles, 'skipped' => $skippedFiles];
+}
+
+function admin_job_orders_purge_expired_trash(bool $force = false): int
+{
+    static $alreadyRan = false;
+    if (!$force && $alreadyRan) {
+        return 0;
+    }
+    $alreadyRan = true;
+
+    $now = time();
+    $expiredThreshold = $now - (VIEJAP_ORDER_TRASH_RETENTION_DAYS * 86400); // 10 ngày
+    $expiredDateStr = date('Y-m-d H:i:s', $expiredThreshold);
+    $purgedCount = 0;
+
+    $database = admin_job_orders_database();
+    if ($database !== null) {
+        try {
+            $stmt = $database->prepare(
+                "SELECT id, order_code, title, image_url, poster_url, gallery_images
+                 FROM job_orders
+                 WHERE status = 'trash' AND deleted_at IS NOT NULL AND deleted_at <= :threshold"
+            );
+            $stmt->execute(['threshold' => $expiredDateStr]);
+            $expiredRows = $stmt->fetchAll();
+
+            foreach ($expiredRows as $row) {
+                $orderId = (string) $row['id'];
+                $orderCode = (string) ($row['order_code'] ?? '');
+                $title = (string) ($row['title'] ?? 'Đơn hàng');
+
+                $orderData = [
+                    'imageUrl' => $row['image_url'] ?? '',
+                    'posterUrl' => $row['poster_url'] ?? '',
+                    'galleryImages' => !empty($row['gallery_images']) ? json_decode($row['gallery_images'], true) : [],
+                ];
+                admin_job_order_delete_owned_files($orderData);
+
+                $delStmt = $database->prepare('DELETE FROM job_orders WHERE id = :id');
+                $delStmt->execute(['id' => $orderId]);
+
+                try {
+                    $stmtIdem = $database->prepare('DELETE FROM job_order_idempotency WHERE order_id = :id');
+                    $stmtIdem->execute(['id' => $orderId]);
+                } catch (Throwable) {}
+
+                $purgedCount++;
+
+                try {
+                    require_once __DIR__ . '/_bootstrap.php';
+                    admin_activity_log_create([
+                        'actorName' => 'Hệ thống tự động',
+                        'actorRole' => 'Hệ thống',
+                        'action' => 'Tự động dọn dẹp đơn hàng quá hạn 10 ngày trong thùng rác',
+                        'targetType' => 'order',
+                        'targetId' => $orderId,
+                        'targetName' => $title,
+                        'details' => "Đơn hàng {$title} (Mã: {$orderCode}) đã lưu trong thùng rác đủ 10 ngày. Hệ thống đã tự động xóa vĩnh viễn dữ liệu và hình ảnh.",
+                    ]);
+                } catch (Throwable) {}
+            }
+        } catch (Throwable $e) {
+            error_log('[VieJap order purge db error] ' . $e->getMessage());
+        }
+    }
+
+    // JSON file fallback
+    try {
+        $orders = admin_job_order_load_file();
+        $remaining = [];
+        $jsonPurged = 0;
+        foreach ($orders as $o) {
+            $isTrash = ($o['status'] ?? '') === 'trash';
+            $delAt = !empty($o['deletedAt']) ? strtotime((string) $o['deletedAt']) : 0;
+            if ($isTrash && $delAt > 0 && $delAt <= $expiredThreshold) {
+                admin_job_order_delete_owned_files($o);
+                $jsonPurged++;
+                $orderCode = $o['orderCode'] ?? ($o['id'] ?? '');
+                $title = $o['title'] ?? 'Đơn hàng';
+                try {
+                    require_once __DIR__ . '/_bootstrap.php';
+                    admin_activity_log_create([
+                        'actorName' => 'Hệ thống tự động',
+                        'actorRole' => 'Hệ thống',
+                        'action' => 'Tự động dọn dẹp đơn hàng quá hạn 10 ngày trong thùng rác',
+                        'targetType' => 'order',
+                        'targetId' => (string) ($o['id'] ?? ''),
+                        'targetName' => $title,
+                        'details' => "Đơn hàng {$title} (Mã: {$orderCode}) đã lưu trong thùng rác đủ 10 ngày. Hệ thống đã tự động xóa vĩnh viễn dữ liệu và hình ảnh.",
+                    ]);
+                } catch (Throwable) {}
+                continue;
+            }
+            $remaining[] = $o;
+        }
+        if ($jsonPurged > 0) {
+            admin_job_order_save_file($remaining);
+            $purgedCount += $jsonPurged;
+        }
+    } catch (Throwable $e) {
+        error_log('[VieJap order purge file error] ' . $e->getMessage());
+    }
+
+    return $purgedCount;
+}
+
+function admin_job_orders_trash_count(): int
+{
+    $database = admin_job_orders_database();
+    if ($database !== null) {
+        try {
+            $stmt = $database->query("SELECT COUNT(*) FROM job_orders WHERE status = 'trash'");
+            return (int) ($stmt ? $stmt->fetchColumn() : 0);
+        } catch (Throwable) {}
+    }
+
+    $orders = admin_job_order_load_file();
+    $count = 0;
+    foreach ($orders as $o) {
+        if (($o['status'] ?? '') === 'trash') {
+            $count++;
+        }
+    }
+    return $count;
+}
+
+function admin_job_orders_trash_list(): array
+{
+    admin_job_orders_purge_expired_trash();
+    $list = admin_job_orders_list(true, true, true);
+    usort($list, static function (array $a, array $b): int {
+        return strcmp((string) ($b['deletedAt'] ?? ''), (string) ($a['deletedAt'] ?? ''));
+    });
+    return $list;
+}
+
+function admin_job_order_move_to_trash(string $id, string $actor = 'Quản trị viên'): bool
 {
     $id = trim($id);
     if ($id === '') {
         return false;
     }
 
-    $existing = admin_job_order_find($id, true);
+    $existing = admin_job_order_find($id, true, true);
     if ($existing === null) {
-        $allOrders = admin_job_orders_list(true);
+        $allOrders = admin_job_orders_list(true, true);
         foreach ($allOrders as $o) {
-            if (($o['id'] ?? '') === $id || strcasecmp($o['orderCode'] ?? '', $id) === 0) {
+            if (($o['id'] ?? '') === $id || strcasecmp((string) ($o['orderCode'] ?? ''), $id) === 0) {
+                $existing = $o;
+                break;
+            }
+        }
+    }
+
+    if ($existing === null) {
+        return false;
+    }
+
+    if (($existing['status'] ?? '') === 'trash') {
+        return true; // Đã nằm trong thùng rác
+    }
+
+    $targetId = (string) $existing['id'];
+    $previousStatus = in_array($existing['status'] ?? '', ['published', 'draft'], true) ? $existing['status'] : 'draft';
+    $now = date('Y-m-d H:i:s');
+
+    $database = admin_job_orders_database();
+    if ($database !== null) {
+        try {
+            $stmt = $database->prepare(
+                "UPDATE job_orders
+                 SET status = 'trash', deleted_at = :deleted_at, deleted_by = :deleted_by, previous_status = :previous_status, updated_at = :updated_at
+                 WHERE id = :id OR order_code = :id"
+            );
+            $stmt->execute([
+                'id' => $targetId,
+                'deleted_at' => $now,
+                'deleted_by' => $actor,
+                'previous_status' => $previousStatus,
+                'updated_at' => $now,
+            ]);
+        } catch (Throwable $e) {
+            error_log('[VieJap order move to trash db error] ' . $e->getMessage());
+        }
+    }
+
+    // Update in JSON file
+    try {
+        $orders = admin_job_order_load_file();
+        foreach ($orders as $idx => $item) {
+            if ((string) ($item['id'] ?? '') === $targetId || strcasecmp((string) ($item['orderCode'] ?? ''), (string) ($existing['orderCode'] ?? '')) === 0) {
+                $orders[$idx]['status'] = 'trash';
+                $orders[$idx]['deletedAt'] = $now;
+                $orders[$idx]['deletedBy'] = $actor;
+                $orders[$idx]['previousStatus'] = $previousStatus;
+                $orders[$idx]['updatedAt'] = $now;
+                break;
+            }
+        }
+        admin_job_order_save_file($orders);
+    } catch (Throwable $e) {
+        error_log('[VieJap order move to trash file error] ' . $e->getMessage());
+    }
+
+    // Ghi audit log & thông báo
+    try {
+        require_once __DIR__ . '/_notifications.php';
+        admin_notification_create([
+            'eventType' => 'order.trashed',
+            'category' => 'orders',
+            'title' => 'Chuyển đơn hàng vào thùng rác: ' . ($existing['title'] ?? $targetId),
+            'message' => 'Đơn hàng ' . ($existing['orderCode'] ?? $targetId) . " được đưa vào thùng rác bởi {$actor}. Sẽ tự động xóa vĩnh viễn sau 10 ngày.",
+            'actor' => ['id' => 'admin', 'name' => $actor, 'role' => 'Admin'],
+            'target' => [
+                'type' => 'order',
+                'id' => $targetId,
+                'code' => $existing['orderCode'] ?? '',
+                'name' => $existing['title'] ?? 'Đơn hàng',
+                'url' => '/quan-tri-viejap?section=orders&tab=trash',
+            ],
+            'priority' => 'medium',
+        ]);
+        admin_activity_log_create([
+            'actorName' => $actor,
+            'actorRole' => 'Admin',
+            'action' => 'Chuyển đơn hàng vào thùng rác',
+            'targetType' => 'order',
+            'targetId' => $targetId,
+            'targetName' => $existing['title'] ?? 'Đơn hàng',
+            'details' => "Đơn hàng " . ($existing['orderCode'] ?? $targetId) . " được chuyển vào thùng rác. Hệ thống sẽ tự động xóa vĩnh viễn sau 10 ngày.",
+        ]);
+    } catch (Throwable) {}
+
+    return true;
+}
+
+function admin_job_order_restore(string $id, string $actor = 'Quản trị viên'): ?array
+{
+    $id = trim($id);
+    if ($id === '') {
+        return null;
+    }
+
+    $existing = admin_job_order_find($id, true, true);
+    if ($existing === null) {
+        $allOrders = admin_job_orders_list(true, true);
+        foreach ($allOrders as $o) {
+            if (($o['id'] ?? '') === $id || strcasecmp((string) ($o['orderCode'] ?? ''), $id) === 0) {
+                $existing = $o;
+                break;
+            }
+        }
+    }
+
+    if ($existing === null) {
+        return null;
+    }
+
+    $targetId = (string) $existing['id'];
+    $restoreStatus = (!empty($existing['previousStatus']) && in_array($existing['previousStatus'], ['published', 'draft'], true))
+        ? $existing['previousStatus']
+        : 'draft';
+    $now = date('Y-m-d H:i:s');
+
+    $database = admin_job_orders_database();
+    if ($database !== null) {
+        try {
+            $stmt = $database->prepare(
+                "UPDATE job_orders
+                 SET status = :status, deleted_at = NULL, deleted_by = NULL, previous_status = NULL, updated_at = :updated_at
+                 WHERE id = :id OR order_code = :id"
+            );
+            $stmt->execute([
+                'id' => $targetId,
+                'status' => $restoreStatus,
+                'updated_at' => $now,
+            ]);
+        } catch (Throwable $e) {
+            error_log('[VieJap order restore db error] ' . $e->getMessage());
+        }
+    }
+
+    // Update in JSON file
+    try {
+        $orders = admin_job_order_load_file();
+        foreach ($orders as $idx => $item) {
+            if ((string) ($item['id'] ?? '') === $targetId || strcasecmp((string) ($item['orderCode'] ?? ''), (string) ($existing['orderCode'] ?? '')) === 0) {
+                $orders[$idx]['status'] = $restoreStatus;
+                $orders[$idx]['deletedAt'] = null;
+                $orders[$idx]['deletedBy'] = null;
+                $orders[$idx]['previousStatus'] = null;
+                $orders[$idx]['updatedAt'] = $now;
+                $existing = $orders[$idx];
+                break;
+            }
+        }
+        admin_job_order_save_file($orders);
+    } catch (Throwable $e) {
+        error_log('[VieJap order restore file error] ' . $e->getMessage());
+    }
+
+    // Ghi audit log & thông báo
+    try {
+        require_once __DIR__ . '/_notifications.php';
+        admin_notification_create([
+            'eventType' => 'order.restored',
+            'category' => 'orders',
+            'title' => 'Khôi phục đơn hàng: ' . ($existing['title'] ?? $targetId),
+            'message' => 'Đơn hàng ' . ($existing['orderCode'] ?? $targetId) . " đã được khôi phục về trạng thái [{$restoreStatus}] bởi {$actor}.",
+            'actor' => ['id' => 'admin', 'name' => $actor, 'role' => 'Admin'],
+            'target' => [
+                'type' => 'order',
+                'id' => $targetId,
+                'code' => $existing['orderCode'] ?? '',
+                'name' => $existing['title'] ?? 'Đơn hàng',
+                'url' => '/quan-tri-viejap?section=orders&id=' . $targetId,
+            ],
+            'priority' => 'medium',
+        ]);
+        admin_activity_log_create([
+            'actorName' => $actor,
+            'actorRole' => 'Admin',
+            'action' => 'Khôi phục đơn hàng từ thùng rác',
+            'targetType' => 'order',
+            'targetId' => $targetId,
+            'targetName' => $existing['title'] ?? 'Đơn hàng',
+            'details' => "Đơn hàng " . ($existing['orderCode'] ?? $targetId) . " được khôi phục về trạng thái [{$restoreStatus}].",
+        ]);
+    } catch (Throwable) {}
+
+    $existing['status'] = $restoreStatus;
+    $existing['deletedAt'] = null;
+    $existing['deletedBy'] = null;
+    $existing['previousStatus'] = null;
+    return $existing;
+}
+
+function admin_job_order_delete_permanent(string $id, string $actor = 'Quản trị viên'): bool
+{
+    $id = trim($id);
+    if ($id === '') {
+        return false;
+    }
+
+    $existing = admin_job_order_find($id, true, true);
+    if ($existing === null) {
+        $allOrders = admin_job_orders_list(true, true);
+        foreach ($allOrders as $o) {
+            if (($o['id'] ?? '') === $id || strcasecmp((string) ($o['orderCode'] ?? ''), $id) === 0) {
                 $existing = $o;
                 break;
             }
@@ -595,44 +1019,35 @@ function admin_job_order_delete(string $id): bool
 
     $targetId = $existing ? (string) $existing['id'] : $id;
     $targetCode = $existing ? (string) ($existing['orderCode'] ?? '') : '';
-    $deleted = false;
+    $title = $existing ? (string) ($existing['title'] ?? 'Đơn hàng') : 'Đơn hàng';
 
-    // 1. Xóa khỏi MySQL nếu có cấu hình Database
+    // 1. Xóa toàn bộ file ảnh và tệp đính kèm thuộc đơn hàng này
+    if ($existing !== null) {
+        admin_job_order_delete_owned_files($existing);
+    }
+
+    // 2. Xóa khỏi MySQL nếu có
     $database = admin_job_orders_database();
     if ($database !== null) {
         try {
-            $statement = $database->prepare(
-                'DELETE FROM job_orders WHERE id = :id OR order_code = :id OR TRIM(id) = :id'
-            );
-            $statement->execute(['id' => $targetId]);
-            if ($statement->rowCount() > 0) {
-                $deleted = true;
-            }
-
+            $stmt = $database->prepare('DELETE FROM job_orders WHERE id = :id OR order_code = :id OR TRIM(id) = :id');
+            $stmt->execute(['id' => $targetId]);
             if ($targetCode !== '' && $targetCode !== $targetId) {
-                $statement = $database->prepare(
-                    'DELETE FROM job_orders WHERE order_code = :code OR id = :code'
-                );
-                $statement->execute(['code' => $targetCode]);
-                if ($statement->rowCount() > 0) {
-                    $deleted = true;
-                }
+                $stmt2 = $database->prepare('DELETE FROM job_orders WHERE order_code = :code OR id = :code');
+                $stmt2->execute(['code' => $targetCode]);
             }
-
-            // Dọn dẹp bản ghi khóa idempotency
             try {
                 $stmtIdem = $database->prepare('DELETE FROM job_order_idempotency WHERE order_id = :id');
                 $stmtIdem->execute(['id' => $targetId]);
             } catch (Throwable) {}
         } catch (Throwable $e) {
-            error_log('[VieJap order delete db] ' . $e->getMessage());
+            error_log('[VieJap order perm delete db error] ' . $e->getMessage());
         }
     }
 
-    // 2. Đồng thời xóa khỏi kho lưu trữ file JSON (bảo đảm cả 2 kho dữ liệu luôn đồng bộ)
+    // 3. Xóa khỏi JSON file
     try {
         $orders = admin_job_order_load_file();
-        $initialCount = count($orders);
         $remaining = array_values(array_filter($orders, static function (array $order) use ($targetId, $targetCode, $id): bool {
             $orderId = trim((string) ($order['id'] ?? ''));
             $orderCode = trim((string) ($order['orderCode'] ?? ''));
@@ -647,48 +1062,43 @@ function admin_job_order_delete(string $id): bool
             }
             return true;
         }));
-
-        if (count($remaining) !== $initialCount) {
-            admin_job_order_save_file($remaining);
-            $deleted = true;
-        }
+        admin_job_order_save_file($remaining);
     } catch (Throwable $e) {
-        error_log('[VieJap order delete file] ' . $e->getMessage());
+        error_log('[VieJap order perm delete file error] ' . $e->getMessage());
     }
 
-    // Luôn ghi log nếu có dữ liệu đơn hàng
-    if ($existing !== null) {
-        try {
-            require_once __DIR__ . '/_notifications.php';
-            admin_notification_create([
-                'eventType' => 'order.deleted',
-                'category' => 'orders',
-                'title' => 'Đơn hàng đã xóa: ' . ($existing['title'] ?? $targetId),
-                'message' => 'Đơn hàng ' . ($existing['orderCode'] ?? $targetId) . ' vừa được xóa khỏi hệ thống.',
-                'actor' => ['id' => 'admin', 'name' => 'Quản trị viên', 'role' => 'Admin'],
-                'target' => [
-                    'type' => 'order',
-                    'id' => $targetId,
-                    'code' => $existing['orderCode'] ?? '',
-                    'name' => $existing['title'] ?? 'Đơn hàng',
-                    'url' => '/quan-tri-viejap?section=orders',
-                ],
-                'priority' => 'high',
-            ]);
-            admin_activity_log_create([
-                'actorName' => 'Quản trị viên',
-                'actorRole' => 'Admin',
-                'action' => 'Xóa đơn hàng',
-                'targetType' => 'order',
-                'targetId' => $targetId,
-                'targetName' => $existing['title'] ?? 'Đơn hàng',
-                'details' => 'Đơn hàng đã được xóa khỏi danh sách.',
-            ]);
-        } catch (Throwable) {}
-    }
+    // 4. Ghi audit log
+    try {
+        require_once __DIR__ . '/_bootstrap.php';
+        admin_activity_log_create([
+            'actorName' => $actor,
+            'actorRole' => 'Admin',
+            'action' => 'Xóa vĩnh viễn đơn hàng',
+            'targetType' => 'order',
+            'targetId' => $targetId,
+            'targetName' => $title,
+            'details' => "Đơn hàng {$title} (Mã: {$targetCode}) cùng toàn bộ hình ảnh và dữ liệu đã bị xóa vĩnh viễn khỏi hệ thống bởi {$actor}.",
+        ]);
+    } catch (Throwable) {}
 
-    // Trả về true để bảo đảm thao tác xóa có tính lũy đẳng (Idempotent), tránh 404 gây lỗi cho giao diện
     return true;
+}
+
+function admin_job_orders_empty_trash(string $actor = 'Quản trị viên'): int
+{
+    $trashList = admin_job_orders_trash_list();
+    $count = 0;
+    foreach ($trashList as $order) {
+        if (admin_job_order_delete_permanent((string) $order['id'], $actor)) {
+            $count++;
+        }
+    }
+    return $count;
+}
+
+function admin_job_order_delete(string $id, string $actor = 'Quản trị viên'): bool
+{
+    return admin_job_order_move_to_trash($id, $actor);
 }
 
 function admin_job_orders_database(): ?PDO
@@ -722,7 +1132,8 @@ function admin_job_order_insert_database(PDO $database, array $order): void
             specific_work, work_environment, working_hours, holidays, experience, health_requirements,
             basic_salary, take_home_salary, overtime, allowances, bonus, insurance,
             accommodation, meals, transport, other_benefits,
-            post_content, facebook_content, post_template_id, post_blocks, gallery_images
+            post_content, facebook_content, post_template_id, post_blocks, gallery_images,
+            deleted_at, deleted_by, previous_status
         ) VALUES (
             :id, :image_url, :poster_url, :order_code, :title, :category, :location, :salary, :age_range, :summary,
             :requirements, :departure_month, :status, :is_featured, :created_at, :updated_at,
@@ -730,7 +1141,8 @@ function admin_job_order_insert_database(PDO $database, array $order): void
             :specific_work, :work_environment, :working_hours, :holidays, :experience, :health_requirements,
             :basic_salary, :take_home_salary, :overtime, :allowances, :bonus, :insurance,
             :accommodation, :meals, :transport, :other_benefits,
-            :post_content, :facebook_content, :post_template_id, :post_blocks, :gallery_images
+            :post_content, :facebook_content, :post_template_id, :post_blocks, :gallery_images,
+            :deleted_at, :deleted_by, :previous_status
         )'
     );
     $statement->execute(admin_job_order_database_values($order));
@@ -789,6 +1201,9 @@ function admin_job_order_database_values(array $order): array
         'post_template_id'   => substr((string) ($order['postTemplateId'] ?? 'standard_general'), 0, 80),
         'post_blocks'        => json_encode($order['postBlocks'] ?? [], JSON_UNESCAPED_UNICODE),
         'gallery_images'     => json_encode($order['galleryImages'] ?? [], JSON_UNESCAPED_UNICODE),
+        'deleted_at'         => $order['deletedAt'] ?? null,
+        'deleted_by'         => substr((string) ($order['deletedBy'] ?? ''), 0, 120),
+        'previous_status'    => substr((string) ($order['previousStatus'] ?? 'draft'), 0, 40),
     ];
 }
 
@@ -861,6 +1276,11 @@ function admin_job_order_from_database(array $order): array
         'postTemplateId'     => trim((string) ($order['post_template_id'] ?? 'standard_general')),
         'postBlocks'         => is_array($postBlocks) ? $postBlocks : [],
         'galleryImages'      => is_array($galleryImages) ? $galleryImages : [],
+        'previousStatus'     => !empty($order['previous_status']) ? (string) $order['previous_status'] : 'draft',
+        'deletedAt'          => !empty($order['deleted_at']) ? (string) $order['deleted_at'] : null,
+        'deletedBy'          => !empty($order['deleted_by']) ? (string) $order['deleted_by'] : null,
+        'daysRemaining'      => !empty($order['deleted_at']) ? max(0, VIEJAP_ORDER_TRASH_RETENTION_DAYS - (int) floor((time() - strtotime((string) $order['deleted_at'])) / 86400)) : null,
+        'autoDeleteAt'       => !empty($order['deleted_at']) ? date('Y-m-d H:i:s', strtotime((string) $order['deleted_at']) + (VIEJAP_ORDER_TRASH_RETENTION_DAYS * 86400)) : null,
     ];
 }
 
@@ -898,7 +1318,7 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
     }
 
     $status = admin_job_order_text($payload, 'status', $existing['status'] ?? 'published');
-    if (!in_array($status, ['draft', 'published'], true)) {
+    if (!in_array($status, ['draft', 'published', 'trash'], true)) {
         admin_respond(422, ['message' => 'Trạng thái đơn hàng không hợp lệ.']);
     }
 
@@ -958,6 +1378,9 @@ function admin_job_order_normalize_payload(array $payload, ?array $existing = nu
         'galleryImages' => is_array($payload['galleryImages'] ?? null) ? $payload['galleryImages'] : ($existing['galleryImages'] ?? []),
         'status' => $status,
         'isFeatured' => filter_var($payload['isFeatured'] ?? ($existing['isFeatured'] ?? false), FILTER_VALIDATE_BOOL),
+        'previousStatus' => $payload['previousStatus'] ?? ($existing['previousStatus'] ?? ($status === 'trash' ? 'draft' : $status)),
+        'deletedAt' => $payload['deletedAt'] ?? ($existing['deletedAt'] ?? ($status === 'trash' ? date('Y-m-d H:i:s') : null)),
+        'deletedBy' => $payload['deletedBy'] ?? ($existing['deletedBy'] ?? ($status === 'trash' ? 'Quản trị viên' : null)),
     ];
 }
 
@@ -1170,10 +1593,15 @@ function admin_job_order_from_file(array $order): array
         'postTemplateId' => trim((string) ($order['postTemplateId'] ?? 'standard_general')),
         'postBlocks' => is_array($order['postBlocks'] ?? null) ? $order['postBlocks'] : [],
         'galleryImages' => is_array($order['galleryImages'] ?? null) ? $order['galleryImages'] : [],
-        'status' => ($order['status'] ?? 'draft') === 'published' ? 'published' : 'draft',
+        'status' => in_array($order['status'] ?? '', ['published', 'draft', 'trash'], true) ? $order['status'] : 'draft',
         'isFeatured' => (bool) ($order['isFeatured'] ?? false),
         'createdAt' => (string) ($order['createdAt'] ?? date('Y-m-d H:i:s')),
         'updatedAt' => (string) ($order['updatedAt'] ?? date('Y-m-d H:i:s')),
+        'previousStatus' => !empty($order['previousStatus']) ? (string) $order['previousStatus'] : 'draft',
+        'deletedAt' => !empty($order['deletedAt']) ? (string) $order['deletedAt'] : null,
+        'deletedBy' => !empty($order['deletedBy']) ? (string) $order['deletedBy'] : null,
+        'daysRemaining' => !empty($order['deletedAt']) ? max(0, VIEJAP_ORDER_TRASH_RETENTION_DAYS - (int) floor((time() - strtotime((string) $order['deletedAt'])) / 86400)) : null,
+        'autoDeleteAt' => !empty($order['deletedAt']) ? date('Y-m-d H:i:s', strtotime((string) $order['deletedAt']) + (VIEJAP_ORDER_TRASH_RETENTION_DAYS * 86400)) : null,
     ];
 }
 

@@ -73,8 +73,8 @@
       </div>
 
       <div class="filter-select-wrap">
-        <label>Trạng thái:</label>
-        <select [(ngModel)]="filters.status" (change)="onFiltersChange()">
+        <label for="filterStudentStatusSelect">Trạng thái:</label>
+        <select id="filterStudentStatusSelect" name="filterStudentStatusSelect" title="Lọc theo trạng thái học viên" aria-label="Lọc theo trạng thái học viên" [(ngModel)]="filters.status" (change)="onFiltersChange()">
           <option value="all" *ngIf="viewMode === 'active'">Tất cả trạng thái hoạt động</option>
           <option value="tiep_nhan" *ngIf="viewMode === 'active'">Tiếp nhận mới</option>
           <option value="dang_xu_ly" *ngIf="viewMode === 'active'">Đang xử lý</option>
@@ -85,18 +85,18 @@
       </div>
 
       <div class="filter-select-wrap">
-        <label>Từ ngày:</label>
-        <input type="date" [(ngModel)]="filters.from_date" (change)="onFiltersChange()" />
+        <label for="filterStudentFromDate">Từ ngày:</label>
+        <input id="filterStudentFromDate" name="filterStudentFromDate" type="date" title="Lọc từ ngày" aria-label="Lọc từ ngày" [(ngModel)]="filters.from_date" (change)="onFiltersChange()" />
       </div>
 
       <div class="filter-select-wrap">
-        <label>Đến ngày:</label>
-        <input type="date" [(ngModel)]="filters.to_date" (change)="onFiltersChange()" />
+        <label for="filterStudentToDate">Đến ngày:</label>
+        <input id="filterStudentToDate" name="filterStudentToDate" type="date" title="Lọc đến ngày" aria-label="Lọc đến ngày" [(ngModel)]="filters.to_date" (change)="onFiltersChange()" />
       </div>
 
       <div class="filter-select-wrap">
-        <label>Sắp xếp:</label>
-        <select [(ngModel)]="filters.sort" (change)="onFiltersChange()">
+        <label for="filterStudentSortSelect">Sắp xếp:</label>
+        <select id="filterStudentSortSelect" name="filterStudentSortSelect" title="Sắp xếp danh sách học viên" aria-label="Sắp xếp danh sách học viên" [(ngModel)]="filters.sort" (change)="onFiltersChange()">
           <option value="newest">Mới nhất trước</option>
           <option value="oldest">Cũ nhất trước</option>
         </select>
@@ -132,6 +132,9 @@
           <tr *ngFor="let p of profiles" (click)="selectProfile(p.id)" class="clickable-row">
             <td>
               <strong class="student-code-badge">{{ p.studentCode }}</strong>
+              <div *ngIf="p.registrationCode" class="reg-code-sub" title="Mã đăng ký trực tuyến">
+                <i class="fas fa-ticket-simple text-primary"></i> <code>{{ p.registrationCode }}</code>
+              </div>
             </td>
             <td>
               <div class="student-name-cell">
@@ -230,6 +233,9 @@
       <div class="student-mobile-card" *ngFor="let p of profiles" (click)="selectProfile(p.id)">
         <div class="card-top">
           <span class="student-code-badge">{{ p.studentCode }}</span>
+          <span *ngIf="p.registrationCode" class="reg-code-badge-sm">
+            <i class="fas fa-ticket-simple"></i> {{ p.registrationCode }}
+          </span>
           <span class="status-badge" [ngClass]="statusMap[p.status].badgeClass">
             <i [class]="statusMap[p.status].icon"></i>
             {{ statusMap[p.status].label }}
@@ -339,6 +345,9 @@
         <div class="title-meta">
           <h2>{{ selectedProfile.fullName }}</h2>
           <span class="code-tag">{{ selectedProfile.studentCode }}</span>
+          <span *ngIf="selectedProfile.registrationCode" class="reg-code-tag" title="Mã đăng ký 6 chữ số học viên đã dùng">
+            <i class="fas fa-ticket-simple"></i> Mã ĐK: <strong>{{ selectedProfile.registrationCode }}</strong>
+          </span>
         </div>
       </div>
 

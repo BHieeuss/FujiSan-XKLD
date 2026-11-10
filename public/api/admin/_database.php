@@ -190,6 +190,9 @@ function admin_database_ensure_schema(PDO $database): void
         'post_template_id'   => "VARCHAR(80) NOT NULL DEFAULT 'standard_general'",
         'post_blocks'        => "LONGTEXT NOT NULL",
         'gallery_images'     => "LONGTEXT NOT NULL",
+        'deleted_at'         => "DATETIME NULL DEFAULT NULL",
+        'deleted_by'         => "VARCHAR(120) NOT NULL DEFAULT ''",
+        'previous_status'    => "VARCHAR(40) NOT NULL DEFAULT 'draft'",
     ];
     foreach ($extraColumns as $colName => $colDef) {
         try {
@@ -272,6 +275,24 @@ function admin_database_ensure_schema(PDO $database): void
     } catch (Throwable) {}
     try {
         $database->exec("CREATE INDEX student_profiles_deleted_at_index ON student_profiles (deleted_at)");
+    } catch (Throwable) {}
+    try {
+        $database->exec("ALTER TABLE student_profiles ADD COLUMN registration_code VARCHAR(32) NULL DEFAULT NULL");
+    } catch (Throwable) {}
+    try {
+        $database->exec("CREATE INDEX student_profiles_reg_code_index ON student_profiles (registration_code)");
+    } catch (Throwable) {}
+    try {
+        $database->exec("ALTER TABLE student_profiles ADD COLUMN progress_percent INT NOT NULL DEFAULT 45");
+    } catch (Throwable) {}
+    try {
+        $database->exec("ALTER TABLE student_profiles ADD COLUMN assigned_to VARCHAR(64) NULL DEFAULT NULL");
+    } catch (Throwable) {}
+    try {
+        $database->exec("ALTER TABLE student_profiles ADD COLUMN assigned_staff_name VARCHAR(120) NULL DEFAULT NULL");
+    } catch (Throwable) {}
+    try {
+        $database->exec("ALTER TABLE student_profiles ADD COLUMN notes TEXT NULL DEFAULT NULL");
     } catch (Throwable) {}
 
     $statement = $database->prepare(

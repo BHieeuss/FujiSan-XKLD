@@ -108,8 +108,8 @@
 
     <div class="filter-selects">
       <div class="select-group">
-        <label>Trạng thái mã:</label>
-        <select [(ngModel)]="statusFilter" (change)="onFilterChange()">
+        <label for="filterStatusSelect">Trạng thái mã:</label>
+        <select id="filterStatusSelect" name="filterStatusSelect" title="Lọc theo trạng thái mã đăng ký" aria-label="Lọc theo trạng thái mã đăng ký" [(ngModel)]="statusFilter" (change)="onFilterChange()">
           <option value="all">Tất cả trạng thái</option>
           <option value="pending">Chưa sử dụng</option>
           <option value="in_progress">Đang khai</option>
@@ -120,8 +120,8 @@
       </div>
 
       <div class="select-group">
-        <label>Tiến độ hồ sơ:</label>
-        <select [(ngModel)]="progressFilter" (change)="onFilterChange()">
+        <label for="filterProgressSelect">Tiến độ hồ sơ:</label>
+        <select id="filterProgressSelect" name="filterProgressSelect" title="Lọc theo tiến độ hồ sơ học viên" aria-label="Lọc theo tiến độ hồ sơ học viên" [(ngModel)]="progressFilter" (change)="onFilterChange()">
           <option value="all">Tất cả tiến độ</option>
           <option value="not_started">Chưa bắt đầu</option>
           <option value="filling">Đang khai thông tin</option>
@@ -134,8 +134,8 @@
       </div>
 
       <div class="select-group">
-        <label>Phụ trách:</label>
-        <select [(ngModel)]="assignedFilter" (change)="onFilterChange()">
+        <label for="filterAssignedSelect">Phụ trách:</label>
+        <select id="filterAssignedSelect" name="filterAssignedSelect" title="Lọc theo cán bộ phụ trách" aria-label="Lọc theo cán bộ phụ trách" [(ngModel)]="assignedFilter" (change)="onFilterChange()">
           <option value="all">Tất cả cán bộ</option>
           @for (u of staffUsers(); track u.userId) {
             <option [value]="u.userId">{{ u.fullName }}</option>
@@ -184,6 +184,13 @@
                 <td class="td-student">
                   <div class="student-info">
                     <strong class="student-name">{{ c.studentName }}</strong>
+                    @if (c.studentId || c.studentCode) {
+                      <div class="student-profile-link-wrap">
+                        <button type="button" class="btn-goto-profile" (click)="openStudentProfile(c)" title="Xem chi tiết hồ sơ trong Quản lý học viên">
+                          <i class="fas fa-file-invoice"></i> {{ c.studentCode || 'Xem hồ sơ' }}
+                        </button>
+                      </div>
+                    }
                     <div class="student-contacts">
                       @if (c.phone) {
                         <span class="contact-pill"><i class="fas fa-phone"></i> {{ c.phone }}</span>
@@ -275,6 +282,17 @@
                     >
                       <i class="fas fa-chart-pie"></i>
                     </button>
+
+                    @if (c.studentId || c.studentCode || c.status === 'used') {
+                      <button
+                        type="button"
+                        class="btn-tbl-action btn-tbl-profile"
+                        (click)="openStudentProfile(c)"
+                        title="Xem hồ sơ học viên chi tiết trong Quản lý học viên"
+                      >
+                        <i class="fas fa-file-invoice"></i>
+                      </button>
+                    }
 
                     @if (canReissue && (c.status === 'expired' || c.status === 'revoked')) {
                       <button
@@ -390,8 +408,8 @@
 
           <div class="form-row-2">
             <div class="form-group">
-              <label>Cán bộ phụ trách:</label>
-              <select class="form-control" [(ngModel)]="newAssignedTo" name="assignedTo">
+              <label for="newAssignedToSelect">Cán bộ phụ trách:</label>
+              <select id="newAssignedToSelect" class="form-control" title="Chọn cán bộ phụ trách" aria-label="Chọn cán bộ phụ trách" [(ngModel)]="newAssignedTo" name="assignedTo">
                 <option value="">Chưa phân công</option>
                 @for (u of staffUsers(); track u.userId) {
                   <option [value]="u.userId">{{ u.fullName }} ({{ u.role }})</option>
@@ -399,8 +417,8 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Thời hạn hiệu lực:</label>
-              <select class="form-control" [(ngModel)]="newValidityHours" name="validityHours">
+              <label for="newValidityHoursSelect">Thời hạn hiệu lực:</label>
+              <select id="newValidityHoursSelect" class="form-control" title="Chọn thời hạn hiệu lực" aria-label="Chọn thời hạn hiệu lực" [(ngModel)]="newValidityHours" name="validityHours">
                 <option [ngValue]="72">3 ngày (72 giờ - Mặc định)</option>
                 <option [ngValue]="48">2 ngày (48 giờ)</option>
                 <option [ngValue]="120">5 ngày (120 giờ)</option>
@@ -552,8 +570,8 @@ LÊ THỊ MAI, 0987654321</code>
           </div>
 
           <div class="form-group">
-            <label>Gán cán bộ phụ trách cho cả danh sách:</label>
-            <select class="form-control" [(ngModel)]="bulkAssignedTo">
+            <label for="bulkAssignedToSelect">Gán cán bộ phụ trách cho cả danh sách:</label>
+            <select id="bulkAssignedToSelect" name="bulkAssignedToSelect" class="form-control" title="Gán cán bộ phụ trách cho cả danh sách" aria-label="Gán cán bộ phụ trách cho cả danh sách" [(ngModel)]="bulkAssignedTo">
               <option value="">Chưa phân công</option>
               @for (u of staffUsers(); track u.userId) {
                 <option [value]="u.userId">{{ u.fullName }}</option>

@@ -1,4 +1,4 @@
-export type JobOrderStatus = 'draft' | 'published';
+export type JobOrderStatus = 'draft' | 'published' | 'trash';
 
 export type JobOrderCategory =
   | 'nong-nghiep'
@@ -86,6 +86,13 @@ export interface JobOrder {
 
   createdAt: string;
   updatedAt: string;
+
+  // Thùng rác (Lưu 10 ngày & tự động xóa vĩnh viễn)
+  previousStatus?: 'published' | 'draft';
+  deletedAt?: string | null;
+  deletedBy?: string | null;
+  daysRemaining?: number | null;
+  autoDeleteAt?: string | null;
 }
 
 export type JobOrderPayload = Omit<JobOrder, 'id' | 'createdAt' | 'updatedAt'>;

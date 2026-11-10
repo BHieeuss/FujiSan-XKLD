@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AdminPaginationComponent } from '../shared/admin-pagination/admin-pagination.component';
 import { StudentFormExcelService } from '../../../tools/student-form/student-form-excel.service';
 import { StudentFormPdfService } from '../../../tools/student-form/student-form-pdf.service';
@@ -123,6 +125,7 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
   };
   copiedCode = false;
   copiedLink = false;
+  private querySub?: Subscription;
 
   constructor(
     private readonly service: StudentProfilesAdminService,
@@ -131,13 +134,25 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
     private readonly pdfService: StudentFormPdfService,
     private readonly sanitizer: DomSanitizer,
     private readonly cdr: ChangeDetectorRef,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
   ) {}
 
   ngOnInit(): void {
     this.loadProfiles();
+    this.querySub = this.route.queryParams.subscribe((params) => {
+      const targetId = params['id'] || params['studentId'];
+      if (targetId && typeof targetId === 'string' && targetId.trim() !== '') {
+        const cleanId = targetId.trim();
+        if (!this.selectedProfile || (this.selectedProfile.id !== cleanId && this.selectedProfile.studentCode !== cleanId)) {
+          void this.selectProfile(cleanId);
+        }
+      }
+    });
   }
 
   ngOnDestroy(): void {
+    this.querySub?.unsubscribe();
     if (this.currentBlobUrl) {
       URL.revokeObjectURL(this.currentBlobUrl);
       this.currentBlobUrl = '';
@@ -194,6 +209,7 @@ export class StudentProfilesAdminComponent implements OnInit, OnDestroy {
     this.selectedProfile = undefined;
     this.successMessage = '';
     this.errorMessage = '';
+    this.router.navigate([], { relativeTo: this.route, queryParams: { id: null }, queryParamsHandling: 'merge' });
     this.loadProfiles();
   }
 

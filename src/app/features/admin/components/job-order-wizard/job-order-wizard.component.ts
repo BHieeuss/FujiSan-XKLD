@@ -220,20 +220,13 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
             this.codeCheckStatus !== 'duplicate'
         );
       case 2:
-        return Boolean(
-          this.draft.description?.trim() || this.draft.specificWork?.trim()
-        );
+        return true;
       case 3:
-        return Boolean(
-          this.draft.basicSalary?.trim() || this.draft.salary?.trim()
-        );
+        return true;
       case 4:
         return true;
       case 5:
-        return Boolean(
-          this.draft.title?.trim() &&
-            (this.thumbnailPreview || this.draft.imageUrl || this.posterPreview)
-        );
+        return Boolean(this.draft.title?.trim());
       default:
         return true;
     }
@@ -840,7 +833,7 @@ export class JobOrderWizardComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
     try {
       await this.ordersApi.remove(targetId);
-      this.toast.success('Đã xóa vĩnh viễn đơn hàng thành công.', 'Xóa thành công');
+      this.toast.success('Đã chuyển đơn hàng vào Thùng rác (lưu trữ 10 ngày).', 'Chuyển vào thùng rác');
       this.showDeleteConfirmModal = false;
       this.orderDeleted.emit(targetId);
     } catch (error) {

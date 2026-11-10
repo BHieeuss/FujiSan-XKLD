@@ -8,6 +8,7 @@ interface JobOrdersResponse {
   imageUrl?: string;
   deleted?: boolean;
   message?: string;
+  trashCount?: number;
 }
 
 export class JobOrdersApiError extends Error {
@@ -81,6 +82,73 @@ export class JobOrdersApiService {
       },
       true,
     );
+  }
+
+  async listTrash(): Promise<JobOrder[]> {
+    const response = await this.request('/admin-api/orders.php?action=trash_list', {}, true);
+    return response.orders ?? [];
+  }
+
+  async restoreFromTrash(id: string): Promise<JobOrder> {
+    const response = await this.request(
+      `/admin-api/orders.php?action=restore&id=${encodeURIComponent(id)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'restore', id }),
+      },
+      true,
+    );
+    if (!response.order) {
+      throw new JobOrdersApiError('Không thể khôi phục đơn hàng.', 500);
+    }
+    return response.order;
+  }
+
+  async deletePermanently(id: string): Promise<void> {
+    await this.request(
+      `/admin-api/orders.php?action=delete_permanent&id=${encodeURIComponent(id)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'delete_permanent', id }),
+      },
+      true,
+    );
+  }
+
+  async bulkRestore(ids: string[]): Promise<number> {
+    const response = await this.request(
+      '/admin-api/orders.php?action=bulk_restore',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'bulk_restore', ids }),
+      },
+      true,
+    );
+    return (response as any).restoredCount ?? ids.length;
+  }
+
+  async bulkDeletePermanently(ids: string[]): Promise<number> {
+    const response = await this.request(
+      '/admin-api/orders.php?action=bulk_delete_permanent',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'bulk_delete_permanent', ids }),
+      },
+      true,
+    );
+    return (response as any).deletedCount ?? ids.length;
+  }
+
+  async emptyTrash(): Promise<number> {
+    const response = await this.request(
+      '/admin-api/orders.php?action=empty_trash',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'empty_trash' }),
+      },
+      true,
+    );
+    return (response as any).purgedCount ?? 0;
   }
 
   async checkOrderCode(code: string, excludeId?: string): Promise<boolean> {

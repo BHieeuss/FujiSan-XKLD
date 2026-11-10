@@ -38,7 +38,7 @@
               class="btn-delete-order"
               (click)="openDeleteConfirm($event)"
               [disabled]="isSaving || isDeleting"
-              title="Xóa vĩnh viễn đơn hàng này khỏi hệ thống"
+              title="Chuyển đơn hàng vào Thùng rác (lưu trữ 10 ngày)"
             >
               <i class="fas fa-trash-can"></i> Xóa đơn
             </button>
@@ -56,6 +56,25 @@
               } @else {
                 <i class="fas fa-floppy-disk"></i> Lưu thay đổi
               }
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="btn-save-draft-header"
+              (click)="saveOrder('draft')"
+              [disabled]="isSaving || isDeleting"
+              title="Lưu bản nháp đơn hàng để tiếp tục chỉnh sửa sau"
+            >
+              <i class="fas fa-file-lines"></i> Lưu nháp
+            </button>
+            <button
+              type="button"
+              class="btn-publish-header"
+              (click)="saveOrder('published')"
+              [disabled]="isSaving || isDeleting"
+              title="Đăng tuyển đơn hàng chính thức lên website"
+            >
+              <i class="fas fa-paper-plane"></i> Đăng đơn ngay
             </button>
           }
           <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSaving || isDeleting">
@@ -222,7 +241,7 @@
           <!-- Giới tính -->
           <div class="form-group">
             <label for="gender">Giới tính yêu cầu</label>
-            <select id="gender" [(ngModel)]="draft.gender">
+            <select id="gender" name="gender" title="Giới tính yêu cầu" aria-label="Giới tính yêu cầu" [(ngModel)]="draft.gender">
               <option value="Nam/Nữ">Nam / Nữ đều được</option>
               <option value="Nam">Nam</option>
               <option value="Nữ">Nữ</option>
@@ -405,12 +424,12 @@
         <div class="form-grid">
           <!-- Lương cơ bản -->
           <div class="form-group field-highlight-blue">
-            <label for="basicSal">
+            <label for="basicSalary">
               <span>Lương cơ bản (Gross) <b>*</b></span>
               <small>Trước khi trừ thuế, BH, KTX</small>
             </label>
             <input
-              id="basicSal"
+              id="basicSalary"
               type="text"
               [(ngModel)]="draft.basicSalary"
               placeholder="Ví dụ: 185.000 Yên/tháng (~ 31.500.000 VNĐ)"
@@ -1336,7 +1355,7 @@
             class="btn-delete-order-footer"
             (click)="openDeleteConfirm($event)"
             [disabled]="isSaving || isDeleting"
-            title="Xóa vĩnh viễn đơn hàng này khỏi hệ thống"
+            title="Chuyển đơn hàng vào Thùng rác (lưu trữ 10 ngày)"
           >
             <i class="fas fa-trash-can"></i> Xóa đơn
           </button>
@@ -1354,6 +1373,25 @@
             } @else {
               <i class="fas fa-floppy-disk"></i> Lưu thay đổi
             }
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="btn-save-draft-footer"
+            (click)="saveOrder('draft')"
+            [disabled]="isSaving || isDeleting"
+            title="Lưu bản nháp đơn hàng để tiếp tục sau"
+          >
+            <i class="fas fa-file-lines"></i> Lưu nháp
+          </button>
+          <button
+            type="button"
+            class="btn-publish-footer"
+            (click)="saveOrder('published')"
+            [disabled]="isSaving || isDeleting"
+            title="Đăng tuyển đơn hàng chính thức lên website"
+          >
+            <i class="fas fa-paper-plane"></i> Đăng đơn
           </button>
         }
 

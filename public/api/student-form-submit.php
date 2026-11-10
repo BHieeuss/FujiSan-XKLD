@@ -285,121 +285,17 @@ respond(200, [
     'files' => $responseFiles,
 ]);
 
+if (!function_exists('admin_student_profile_create_with_id')) {
 function admin_student_profile_create_with_id(string $id, array $payload, array $initialFiles): array
 {
-    $studentCode = admin_student_profile_generate_code();
-    $now = date('Y-m-d H:i:s');
-
-    $fullName = trim((string) ($payload['fullName'] ?? ''));
-    $birthDate = trim((string) ($payload['birthDate'] ?? ''));
-    $phone = trim((string) ($payload['phone'] ?? ''));
-    $idNumber = trim((string) ($payload['idNumber'] ?? ''));
-    $address = trim((string) ($payload['address'] ?? ''));
-    $dataJson = is_string($payload['data'] ?? null)
-        ? $payload['data']
-        : json_encode($payload['data'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    $status = 'tiep_nhan';
-
-    $database = admin_student_profiles_database();
-    if ($database !== null) {
-        $stmt = $database->prepare(
-            'INSERT INTO student_profiles (id, student_code, full_name, birth_date, phone, id_number, address, data_json, status, created_at, updated_at)
-             VALUES (:id, :student_code, :full_name, :birth_date, :phone, :id_number, :address, :data_json, :status, :created_at, :updated_at)'
-        );
-        $stmt->execute([
-            'id' => $id,
-            'student_code' => $studentCode,
-            'full_name' => $fullName,
-            'birth_date' => $birthDate,
-            'phone' => $phone,
-            'id_number' => $idNumber,
-            'address' => $address,
-            'data_json' => $dataJson,
-            'status' => $status,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-
-        foreach ($initialFiles as $file) {
-            $fileId = admin_student_profile_generate_id();
-            $fileStmt = $database->prepare(
-                'INSERT INTO student_profile_files (id, profile_id, file_type, version, file_name, file_path, file_size, mime_type, created_at)
-                 VALUES (:id, :profile_id, :file_type, :version, :file_name, :file_path, :file_size, :mime_type, :created_at)'
-            );
-            $fileStmt->execute([
-                'id' => $fileId,
-                'profile_id' => $id,
-                'file_type' => $file['fileType'],
-                'version' => $file['version'] ?? 1,
-                'file_name' => $file['fileName'],
-                'file_path' => $file['filePath'],
-                'file_size' => $file['fileSize'] ?? 0,
-                'mime_type' => $file['mimeType'] ?? '',
-                'created_at' => $now,
-            ]);
-        }
-
-        $logId = admin_student_profile_generate_id();
-        $logStmt = $database->prepare(
-            'INSERT INTO student_profile_audit_logs (id, profile_id, action, actor, details, created_at)
-             VALUES (:id, :profile_id, :action, :actor, :details, :created_at)'
-        );
-        $logStmt->execute([
-            'id' => $logId,
-            'profile_id' => $id,
-            'action' => 'created',
-            'actor' => 'Học viên',
-            'details' => 'Nộp hồ sơ sơ yếu lý lịch trực tuyến qua website.',
-            'created_at' => $now,
-        ]);
-
-        return admin_student_profile_find($id) ?? [];
-    }
-
-    // JSON file fallback
-    $profiles = admin_student_profiles_load_file();
-    $preparedFiles = [];
-    foreach ($initialFiles as $file) {
-        $preparedFiles[] = [
-            'id' => admin_student_profile_generate_id(),
-            'fileType' => $file['fileType'],
-            'version' => $file['version'] ?? 1,
-            'fileName' => $file['fileName'],
-            'filePath' => $file['filePath'],
-            'fileSize' => $file['fileSize'] ?? 0,
-            'mimeType' => $file['mimeType'] ?? '',
-            'createdAt' => $now,
-        ];
-    }
-
-    $newProfile = [
-        'id' => $id,
-        'studentCode' => $studentCode,
-        'fullName' => $fullName,
-        'birthDate' => $birthDate,
-        'phone' => $phone,
-        'idNumber' => $idNumber,
-        'address' => $address,
-        'status' => $status,
-        'createdAt' => $now,
-        'updatedAt' => $now,
-        'data' => is_string($payload['data'] ?? null) ? json_decode($payload['data'], true) : ($payload['data'] ?? []),
-        'files' => $preparedFiles,
-        'auditLogs' => [
-            [
-                'id' => admin_student_profile_generate_id(),
-                'action' => 'created',
-                'actor' => 'Học viên',
-                'details' => 'Nộp hồ sơ sơ yếu lý lịch trực tuyến qua website.',
-                'createdAt' => $now,
-            ],
-        ],
-    ];
-
-    $profiles[] = $newProfile;
-    admin_student_profiles_save_file($profiles);
-
-    return $newProfile;
+    return admin_student_profile_upsert_submission(
+        $id,
+        $payload,
+        $initialFiles,
+        'Học viên',
+        'Nộp hồ sơ sơ yếu lý lịch trực tuyến qua website.'
+    );
+}
 }
 
 function validate_workbook(string $path): void

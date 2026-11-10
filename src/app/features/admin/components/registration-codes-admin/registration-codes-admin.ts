@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import QRCode from 'qrcode';
 import { AdminPaginationComponent } from '../shared/admin-pagination/admin-pagination.component';
 import { AdminAuthService } from '../../services/admin-auth.service';
@@ -24,6 +25,7 @@ export class RegistrationCodesAdminComponent implements OnInit {
   private readonly regService = inject(StudentRegistrationAdminService);
   private readonly dataService = inject(AdminDataService);
   private readonly scrollNav = inject(ScrollNavigationService);
+  private readonly router = inject(Router);
   readonly auth = inject(AdminAuthService);
 
   // Core Data Signals
@@ -227,6 +229,15 @@ export class RegistrationCodesAdminComponent implements OnInit {
     } finally {
       this.isCreating = false;
     }
+  }
+
+  // --- DIRECT NAVIGATION TO STUDENT PROFILE ---
+  openStudentProfile(c: StudentRegistrationCodeItem): void {
+    const targetId = c.studentId || c.studentCode;
+    if (!targetId) return;
+    this.router.navigate(['/quan-tri-viejap'], {
+      queryParams: { section: 'students', id: targetId },
+    });
   }
 
   // --- MODAL: VIEW CODE & QR ---

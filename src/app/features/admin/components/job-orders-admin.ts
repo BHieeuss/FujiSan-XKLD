@@ -60,6 +60,25 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
 
+  // Main Tab Navigation
+  activeMainTab: 'active' | 'trash' = 'active';
+
+  // Trash Data & Status
+  trashOrders: JobOrder[] = [];
+  trashLoading = false;
+  trashSearchTerm = '';
+  trashCurrentPage = 1;
+  trashPageSize = 10;
+  trashCount = 0;
+  selectedTrashIds = new Set<string>();
+
+  // Trash Delete & Restore States
+  orderToPermanentlyDelete: JobOrder | null = null;
+  showPermanentDeleteModal = false;
+  permanentlyDeletingId = '';
+  restoringId = '';
+  bulkActionLoading = false;
+
   // Search & Filtering
   searchTerm = '';
   statusFilter: 'all' | 'published' | 'draft' = 'all';
@@ -172,6 +191,35 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
 
   canExport(): boolean {
     return this.auth.hasPermission('orders.export');
+  }
+
+  canViewTrash(): boolean {
+    return this.auth.hasPermission('orders.trash.view') || this.auth.hasPermission('orders.view');
+  }
+
+  canRestoreTrash(): boolean {
+    return this.auth.hasPermission('orders.trash.restore') || this.auth.hasPermission('orders.update');
+  }
+
+  canPermanentDeleteTrash(): boolean {
+    return (
+      this.auth.hasPermission('orders.trash.delete_permanently') ||
+      this.auth.hasPermission('orders.delete')
+    );
+  }
+
+  canBulkRestoreTrash(): boolean {
+    return (
+      this.auth.hasPermission('orders.trash.bulk_restore') ||
+      this.auth.hasPermission('orders.update')
+    );
+  }
+
+  canBulkDeleteTrash(): boolean {
+    return (
+      this.auth.hasPermission('orders.trash.bulk_delete') ||
+      this.auth.hasPermission('orders.delete')
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -435,13 +483,21 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
     this.loading = true;
     this.errorMessage = '';
     try {
-      this.orders = await this.ordersApi.listAdmin();
+      const [orders, trashRes] = await Promise.all([
+        this.ordersApi.listAdmin(),
+        this.ordersApi.listTrash().catch(() => [] as JobOrder[]),
+      ]);
+      this.orders = orders;
+      this.trashCount = trashRes.length;
       this.sortOrders();
       if (this.selectedOrder) {
         const refreshed = this.orders.find((o) => o.id === this.selectedOrder?.id);
         if (refreshed) {
           this.selectedOrder = refreshed;
         }
+      }
+      if (this.activeMainTab === 'trash') {
+        this.trashOrders = trashRes;
       }
     } catch (error) {
       this.errorMessage =
@@ -451,6 +507,7 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
       this.toast.error(this.errorMessage, 'Lỗi tải dữ liệu');
     } finally {
       this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
@@ -751,6 +808,7 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
 
     const id = this.orderToDelete.id;
     const title = getJobOrderTitle(this.orderToDelete);
+    const orderCode = this.orderToDelete.orderCode || id;
     this.deletingId = id;
     this.cdr.markForCheck();
     try {
@@ -768,13 +826,240 @@ export class JobOrdersAdmin implements OnInit, OnDestroy {
         this.currentPage = maxPages;
       }
 
-      this.toast.success(`Đã xóa hoàn toàn đơn hàng "${title}".`, 'Xóa đơn hàng thành công');
+      this.toast.success(
+        `Đã chuyển đơn hàng "${title}" (${orderCode}) vào Thùng rác (lưu trữ 10 ngày).`,
+        'Đã chuyển vào thùng rác'
+      );
       this.closeDeleteConfirm();
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Không thể xóa đơn hàng.';
       this.toast.error(msg, 'Lỗi xóa đơn hàng');
     } finally {
       this.deletingId = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // TRASH BIN OPERATIONS (THÙNG RÁC 10 NGÀY)
+  // ---------------------------------------------------------------------------
+  async switchMainTab(tab: 'active' | 'trash'): Promise<void> {
+    if (tab === 'trash' && !this.canViewTrash()) {
+      this.toast.error('Bạn không có quyền truy cập Thùng rác đơn hàng.', 'Từ chối');
+      return;
+    }
+    this.activeMainTab = tab;
+    this.closeDropdowns();
+    if (tab === 'trash') {
+      await this.loadTrash();
+    } else {
+      await this.reload();
+    }
+  }
+
+  async loadTrash(): Promise<void> {
+    this.trashLoading = true;
+    try {
+      const res = await this.ordersApi.listTrash();
+      this.trashOrders = res;
+      this.trashCount = res.length;
+      this.selectedTrashIds.clear();
+      this.trashCurrentPage = 1;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Không thể tải danh sách thùng rác.';
+      this.toast.error(msg, 'Lỗi Thùng rác');
+    } finally {
+      this.trashLoading = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  get filteredTrashOrders(): JobOrder[] {
+    let result = [...this.trashOrders];
+    const q = this.trashSearchTerm.trim().toLowerCase();
+    if (q) {
+      result = result.filter((o) => {
+        const title = (getJobOrderTitle(o) || '').toLowerCase();
+        const code = (o.orderCode || '').toLowerCase();
+        const company = (o.company || '').toLowerCase();
+        const loc = (o.location || '').toLowerCase();
+        return title.includes(q) || code.includes(q) || company.includes(q) || loc.includes(q);
+      });
+    }
+    return result;
+  }
+
+  get pagedTrashOrders(): JobOrder[] {
+    const start = (this.trashCurrentPage - 1) * this.trashPageSize;
+    return this.filteredTrashOrders.slice(start, start + this.trashPageSize);
+  }
+
+  onTrashPageChange(page: number): void {
+    this.trashCurrentPage = page;
+    window.scrollTo({ top: 120, behavior: 'smooth' });
+  }
+
+  async restoreOrder(order: JobOrder, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    if (!this.canRestoreTrash()) {
+      this.toast.error('Bạn không có quyền khôi phục đơn hàng.', 'Từ chối');
+      return;
+    }
+    this.restoringId = order.id;
+    try {
+      await this.ordersApi.restoreFromTrash(order.id);
+      this.toast.success(
+        `Đã khôi phục đơn hàng "${getJobOrderTitle(order)}" về danh sách quản lý.`,
+        'Khôi phục thành công'
+      );
+      await this.loadTrash();
+      const activeList = await this.ordersApi.listAdmin();
+      this.orders = activeList;
+      this.sortOrders();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Không thể khôi phục đơn hàng.';
+      this.toast.error(msg, 'Lỗi khôi phục');
+    } finally {
+      this.restoringId = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  openPermanentDeleteConfirm(order: JobOrder, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (!this.canPermanentDeleteTrash()) {
+      this.toast.error('Bạn không có quyền xóa vĩnh viễn đơn hàng.', 'Từ chối');
+      return;
+    }
+    this.orderToPermanentlyDelete = order;
+    this.showPermanentDeleteModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closePermanentDeleteConfirm(): void {
+    this.orderToPermanentlyDelete = null;
+    this.showPermanentDeleteModal = false;
+    this.cdr.markForCheck();
+  }
+
+  async executePermanentDelete(): Promise<void> {
+    if (!this.orderToPermanentlyDelete) return;
+    const order = this.orderToPermanentlyDelete;
+    this.permanentlyDeletingId = order.id;
+    try {
+      await this.ordersApi.deletePermanently(order.id);
+      this.toast.success(
+        `Đã xóa vĩnh viễn đơn hàng "${getJobOrderTitle(order)}" cùng toàn bộ hình ảnh liên quan.`,
+        'Xóa vĩnh viễn thành công'
+      );
+      this.closePermanentDeleteConfirm();
+      await this.loadTrash();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Không thể xóa vĩnh viễn đơn hàng.';
+      this.toast.error(msg, 'Lỗi xóa vĩnh viễn');
+    } finally {
+      this.permanentlyDeletingId = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  // Bulk Actions for Trash
+  toggleSelectAllTrash(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.checked) {
+      this.filteredTrashOrders.forEach((o) => this.selectedTrashIds.add(o.id));
+    } else {
+      this.selectedTrashIds.clear();
+    }
+  }
+
+  toggleSelectTrash(id: string): void {
+    if (this.selectedTrashIds.has(id)) {
+      this.selectedTrashIds.delete(id);
+    } else {
+      this.selectedTrashIds.add(id);
+    }
+  }
+
+  isTrashSelected(id: string): boolean {
+    return this.selectedTrashIds.has(id);
+  }
+
+  get isAllTrashSelected(): boolean {
+    const items = this.filteredTrashOrders;
+    return items.length > 0 && items.every((o) => this.selectedTrashIds.has(o.id));
+  }
+
+  async bulkRestoreSelected(): Promise<void> {
+    if (this.selectedTrashIds.size === 0 || !this.canBulkRestoreTrash()) return;
+    const ids = Array.from(this.selectedTrashIds);
+    this.bulkActionLoading = true;
+    try {
+      const count = await this.ordersApi.bulkRestore(ids);
+      this.toast.success(
+        `Đã khôi phục ${count} đơn hàng về danh sách quản lý.`,
+        'Khôi phục thành công'
+      );
+      this.selectedTrashIds.clear();
+      await this.loadTrash();
+      const activeList = await this.ordersApi.listAdmin();
+      this.orders = activeList;
+      this.sortOrders();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Không thể khôi phục hàng loạt.';
+      this.toast.error(msg, 'Lỗi');
+    } finally {
+      this.bulkActionLoading = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  async bulkDeleteSelected(): Promise<void> {
+    if (this.selectedTrashIds.size === 0 || !this.canBulkDeleteTrash()) return;
+    const ids = Array.from(this.selectedTrashIds);
+    if (!confirm(`Bạn có chắc chắn muốn XÓA VĨNH VIỄN ${ids.length} đơn hàng đã chọn? Hành động này sẽ xóa vĩnh viễn dữ liệu và hình ảnh, không thể hoàn tác!`)) {
+      return;
+    }
+    this.bulkActionLoading = true;
+    try {
+      const count = await this.ordersApi.bulkDeletePermanently(ids);
+      this.toast.success(
+        `Đã xóa vĩnh viễn ${count} đơn hàng khỏi cơ sở dữ liệu.`,
+        'Xóa thành công'
+      );
+      this.selectedTrashIds.clear();
+      await this.loadTrash();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Không thể xóa vĩnh viễn hàng loạt.';
+      this.toast.error(msg, 'Lỗi');
+    } finally {
+      this.bulkActionLoading = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  async emptyTrash(): Promise<void> {
+    if (this.trashOrders.length === 0 || !this.canPermanentDeleteTrash()) return;
+    if (!confirm('Bạn có chắc chắn muốn DỌN SẠCH TOÀN BỘ THÙNG RÁC? Tất cả đơn hàng trong thùng rác và hình ảnh đính kèm sẽ bị xóa vĩnh viễn, không thể khôi phục!')) {
+      return;
+    }
+    this.bulkActionLoading = true;
+    try {
+      const count = await this.ordersApi.emptyTrash();
+      this.toast.success(
+        `Đã dọn sạch thùng rác (${count} đơn hàng đã xóa vĩnh viễn).`,
+        'Dọn sạch thành công'
+      );
+      this.selectedTrashIds.clear();
+      await this.loadTrash();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Không thể dọn sạch thùng rác.';
+      this.toast.error(msg, 'Lỗi');
+    } finally {
+      this.bulkActionLoading = false;
       this.cdr.markForCheck();
     }
   }

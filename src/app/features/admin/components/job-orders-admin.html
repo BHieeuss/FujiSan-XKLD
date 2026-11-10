@@ -589,6 +589,35 @@
     </div>
   </header>
 
+  <!-- 1.1. MAIN NAVIGATION TABS: ĐƠN HÀNG ĐANG QUẢN LÝ vs THÙNG RÁC -->
+  <nav class="orders-main-nav-tabs" aria-label="Phân loại đơn hàng chính">
+    <button
+      type="button"
+      class="nav-tab-btn"
+      [class.active]="activeMainTab === 'active'"
+      (click)="switchMainTab('active')"
+    >
+      <i class="fas fa-boxes-stacked"></i>
+      <span>Đơn hàng đang quản lý</span>
+      <span class="tab-badge active-badge">{{ totalCount }}</span>
+    </button>
+
+    @if (canViewTrash()) {
+      <button
+        type="button"
+        class="nav-tab-btn trash-tab"
+        [class.active]="activeMainTab === 'trash'"
+        (click)="switchMainTab('trash')"
+        title="Đơn hàng đã xóa - Lưu trữ an toàn 10 ngày trước khi xóa vĩnh viễn"
+      >
+        <i class="fas fa-trash-can"></i>
+        <span>Thùng rác</span>
+        <span class="tab-badge" [class.trash-badge-alert]="trashCount > 0">{{ trashCount }}</span>
+      </button>
+    }
+  </nav>
+
+  @if (activeMainTab === 'active') {
   <!-- 2. THỐNG KÊ TỔNG QUAN (STATS CARDS GRID) -->
   <section class="stats-overview-grid" aria-label="Thống kê nhanh đơn hàng">
     <!-- Tất cả đơn -->
@@ -667,16 +696,17 @@
         <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onFilterChange()"
           placeholder="Tìm theo mã đơn, tiêu đề, công ty, ngành nghề, địa điểm Nhật Bản..." class="search-input" />
         @if (searchTerm) {
-        <button type="button" class="btn-clear-search" (click)="searchTerm = ''; onFilterChange()" title="Xóa tìm kiếm">
-          <i class="fas fa-xmark"></i>
+        <button type="button" class="btn-clear-search" (click)="searchTerm = ''; onFilterChange()" title="Xóa tìm kiếm" aria-label="Xóa nội dung tìm kiếm">
+          <i class="fas fa-xmark" aria-hidden="true"></i>
+          <span class="sr-only">Xóa tìm kiếm</span>
         </button>
         }
       </div>
 
       <!-- Filter: Trạng thái -->
       <div class="filter-select-wrap">
-        <label>Trạng thái:</label>
-        <select [(ngModel)]="statusFilter" (change)="onFilterChange()">
+        <label for="filterStatusSelect">Trạng thái:</label>
+        <select id="filterStatusSelect" name="filterStatusSelect" title="Lọc theo trạng thái đơn hàng" aria-label="Lọc theo trạng thái đơn hàng" [(ngModel)]="statusFilter" (change)="onFilterChange()">
           <option value="all">Tất cả trạng thái</option>
           <option value="published">Đang tuyển dụng</option>
           <option value="draft">Bản nháp</option>
@@ -685,8 +715,8 @@
 
       <!-- Filter: Ngành nghề -->
       <div class="filter-select-wrap">
-        <label>Ngành nghề:</label>
-        <select [(ngModel)]="categoryFilter" (change)="onFilterChange()">
+        <label for="filterCategorySelect">Ngành nghề:</label>
+        <select id="filterCategorySelect" name="filterCategorySelect" title="Lọc theo ngành nghề tuyển dụng" aria-label="Lọc theo ngành nghề tuyển dụng" [(ngModel)]="categoryFilter" (change)="onFilterChange()">
           <option value="all">Tất cả ngành nghề</option>
           @for (cat of categories; track cat.key) {
           <option [value]="cat.key">{{ cat.label }}</option>
@@ -696,8 +726,8 @@
 
       <!-- Sort Option -->
       <div class="filter-select-wrap">
-        <label>Sắp xếp:</label>
-        <select [(ngModel)]="sortBy" (change)="onFilterChange()">
+        <label for="filterSortSelect">Sắp xếp:</label>
+        <select id="filterSortSelect" name="filterSortSelect" title="Sắp xếp danh sách đơn hàng" aria-label="Sắp xếp danh sách đơn hàng" [(ngModel)]="sortBy" (change)="onFilterChange()">
           <option value="updated_desc">Mới cập nhật nhất</option>
           <option value="updated_asc">Cũ nhất trước</option>
           <option value="code_asc">Mã đơn hàng (A-Z)</option>
@@ -717,12 +747,14 @@
       <!-- View Mode Switcher -->
       <div class="view-mode-switch" aria-label="Chuyển chế độ hiển thị">
         <button type="button" class="view-btn" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'"
-          title="Xem dạng Bảng dữ liệu">
-          <i class="fas fa-table-list"></i>
+          title="Xem dạng Bảng dữ liệu" aria-label="Xem danh sách dạng bảng">
+          <i class="fas fa-table-list" aria-hidden="true"></i>
+          <span class="sr-only">Xem dạng bảng</span>
         </button>
         <button type="button" class="view-btn" [class.active]="viewMode === 'cards'" (click)="viewMode = 'cards'"
-          title="Xem dạng Lưới thẻ">
-          <i class="fas fa-grip"></i>
+          title="Xem dạng Lưới thẻ" aria-label="Xem danh sách dạng lưới thẻ">
+          <i class="fas fa-grip" aria-hidden="true"></i>
+          <span class="sr-only">Xem dạng thẻ</span>
         </button>
       </div>
     </div>
@@ -733,8 +765,8 @@
       <div class="drawer-grid">
         <!-- Filter: Giới tính -->
         <div class="drawer-field">
-          <label>Giới tính tuyển dụng:</label>
-          <select [(ngModel)]="genderFilter" (change)="onFilterChange()">
+          <label for="filterGenderSelect">Giới tính tuyển dụng:</label>
+          <select id="filterGenderSelect" name="filterGenderSelect" title="Lọc theo giới tính tuyển dụng" aria-label="Lọc theo giới tính tuyển dụng" [(ngModel)]="genderFilter" (change)="onFilterChange()">
             <option value="all">Tất cả giới tính</option>
             <option value="Nam">Nam</option>
             <option value="Nữ">Nữ</option>
@@ -744,15 +776,15 @@
 
         <!-- Filter: Tỉnh / Thành Nhật Bản -->
         <div class="drawer-field">
-          <label>Tỉnh/Thành phố Nhật Bản:</label>
-          <input type="text" [(ngModel)]="locationFilter" (ngModelChange)="onFilterChange()"
+          <label for="filterLocationInput">Tỉnh/Thành phố Nhật Bản:</label>
+          <input id="filterLocationInput" type="text" [(ngModel)]="locationFilter" (ngModelChange)="onFilterChange()"
             placeholder="Ví dụ: Tokyo, Aichi, Osaka, Fukuoka..." />
         </div>
 
         <!-- Filter: Poster đồ họa -->
         <div class="drawer-field">
-          <label>Poster tuyển dụng:</label>
-          <select [(ngModel)]="hasPosterFilter" (change)="onFilterChange()">
+          <label for="filterPosterSelect">Poster tuyển dụng:</label>
+          <select id="filterPosterSelect" name="filterPosterSelect" title="Lọc theo trạng thái poster tuyển dụng" aria-label="Lọc theo trạng thái poster tuyển dụng" [(ngModel)]="hasPosterFilter" (change)="onFilterChange()">
             <option value="all">Tất cả</option>
             <option value="yes">Chỉ đơn ĐÃ CÓ Poster</option>
             <option value="no">Chưa gắn Poster</option>
@@ -761,8 +793,8 @@
 
         <!-- Filter: Nổi bật -->
         <div class="drawer-field">
-          <label>Độ ưu tiên:</label>
-          <select [(ngModel)]="featuredFilter" (change)="onFilterChange()">
+          <label for="filterFeaturedSelect">Độ ưu tiên:</label>
+          <select id="filterFeaturedSelect" name="filterFeaturedSelect" title="Lọc theo độ ưu tiên nổi bật" aria-label="Lọc theo độ ưu tiên nổi bật" [(ngModel)]="featuredFilter" (change)="onFilterChange()">
             <option value="all">Tất cả</option>
             <option value="yes">Chỉ đơn Nổi bật (Ưu tiên ⭐)</option>
             <option value="no">Đơn hàng thông thường</option>
@@ -782,8 +814,9 @@
         @for (badge of activeFilterBadges; track badge.id) {
         <span class="filter-badge-chip">
           {{ badge.label }}
-          <button type="button" (click)="badge.remove()" title="Xóa điều kiện này">
-            <i class="fas fa-xmark"></i>
+          <button type="button" (click)="badge.remove()" title="Xóa điều kiện này" aria-label="Xóa điều kiện lọc này">
+            <i class="fas fa-xmark" aria-hidden="true"></i>
+            <span class="sr-only">Xóa điều kiện</span>
           </button>
         </span>
         }
@@ -963,24 +996,27 @@
                   <!-- Edit Action -->
                   @if (canUpdate()) {
                   <button type="button" class="btn-row-action btn-edit" (click)="openEditWizard(order, $event)"
-                    title="Mở trình soạn thảo 5 bước để chỉnh sửa">
-                    <i class="fas fa-pen-to-square"></i>
+                    title="Mở trình soạn thảo 5 bước để chỉnh sửa" aria-label="Chỉnh sửa đơn hàng">
+                    <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                    <span class="sr-only">Chỉnh sửa đơn hàng</span>
                   </button>
                   }
 
                   <!-- Quick Delete Action -->
                   @if (canDelete()) {
                   <button type="button" class="btn-row-action btn-delete" (click)="openDeleteConfirm(order, $event)"
-                    title="Xóa đơn hàng này">
-                    <i class="fas fa-trash-can"></i>
+                    title="Xóa đơn hàng này" aria-label="Xóa đơn hàng này">
+                    <i class="fas fa-trash-can" aria-hidden="true"></i>
+                    <span class="sr-only">Xóa đơn hàng</span>
                   </button>
                   }
 
                   <!-- Menu More Dropdown -->
                   <div class="dropdown-wrap">
                     <button type="button" class="btn-row-action btn-more" (click)="toggleDropdown(order.id, $event)"
-                      title="Thao tác nâng cao">
-                      <i class="fas fa-ellipsis-vertical"></i>
+                      title="Thao tác nâng cao" aria-label="Thao tác nâng cao">
+                      <i class="fas fa-ellipsis-vertical" aria-hidden="true"></i>
+                      <span class="sr-only">Thao tác khác</span>
                     </button>
 
                     @if (activeDropdownId === order.id) {
@@ -1153,8 +1189,9 @@
           }
 
           <button type="button" class="btn-card-action btn-card-more" (click)="toggleDropdown(order.id, $event)"
-            title="Thao tác khác">
-            <i class="fas fa-ellipsis-vertical"></i>
+            title="Thao tác khác" aria-label="Thao tác khác">
+            <i class="fas fa-ellipsis-vertical" aria-hidden="true"></i>
+            <span class="sr-only">Thao tác khác</span>
           </button>
 
           <!-- Card Dropdown -->
@@ -1207,27 +1244,285 @@
       [disabled]="loading" itemLabel="đơn hàng" (pageChange)="onPageChange($event)"></app-admin-pagination>
     }
   </section>
+  }
+
+  <!-- ======================================================================= -->
+  <!-- SUB-PANEL: THÙNG RÁC ĐƠN HÀNG (LƯU TRỮ AN TOÀN 10 NGÀY)                 -->
+  <!-- ======================================================================= -->
+  @if (activeMainTab === 'trash') {
+  <section class="trash-view-panel animate-fade-in" aria-label="Khu vực thùng rác">
+    <!-- 1. Retention Notice Alert -->
+    <div class="trash-alert-banner">
+      <div class="trash-alert-icon">
+        <i class="fas fa-clock-rotate-left"></i>
+      </div>
+      <div class="trash-alert-text">
+        <h4>Thùng rác lưu trữ đơn hàng tuyển dụng (Thời hạn an toàn 10 ngày)</h4>
+        <p>
+          Các đơn hàng sau khi xóa được bảo lưu an toàn trong Thùng rác <strong>10 ngày</strong>. Bạn có thể bấm <strong>"Khôi phục"</strong> bất kỳ lúc nào để đưa đơn hàng trở lại danh sách quản lý. Sau 10 ngày, hệ thống sẽ tự động quét và xóa vĩnh viễn đơn hàng cùng toàn bộ hình ảnh đính kèm khỏi máy chủ.
+        </p>
+      </div>
+    </div>
+
+    <!-- 2. Trash Toolbar -->
+    <div class="trash-toolbar">
+      <div class="trash-search-wrap">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input
+          type="text"
+          [(ngModel)]="trashSearchTerm"
+          (ngModelChange)="trashCurrentPage = 1"
+          placeholder="Tìm trong thùng rác theo mã đơn, tiêu đề, công ty tiếp nhận..."
+          class="trash-search-input"
+        />
+        @if (trashSearchTerm) {
+          <button type="button" class="btn-clear-search" (click)="trashSearchTerm = ''; trashCurrentPage = 1" title="Xóa tìm kiếm" aria-label="Xóa nội dung tìm kiếm thùng rác">
+            <i class="fas fa-xmark" aria-hidden="true"></i>
+            <span class="sr-only">Xóa tìm kiếm</span>
+          </button>
+        }
+      </div>
+
+      <div class="trash-bulk-actions">
+        @if (canBulkRestoreTrash()) {
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-success"
+            (click)="bulkRestoreSelected()"
+            [disabled]="selectedTrashIds.size === 0 || bulkActionLoading"
+            title="Khôi phục các đơn hàng đã đánh dấu chọn"
+          >
+            <i class="fas fa-rotate-left"></i>
+            <span>Khôi phục ({{ selectedTrashIds.size }})</span>
+          </button>
+        }
+
+        @if (canBulkDeleteTrash()) {
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger"
+            (click)="bulkDeleteSelected()"
+            [disabled]="selectedTrashIds.size === 0 || bulkActionLoading"
+            title="Xóa vĩnh viễn các đơn hàng đã đánh dấu chọn"
+          >
+            <i class="fas fa-trash-can"></i>
+            <span>Xóa vĩnh viễn ({{ selectedTrashIds.size }})</span>
+          </button>
+        }
+
+        @if (canPermanentDeleteTrash()) {
+          <button
+            type="button"
+            class="btn btn-sm btn-danger btn-empty-trash"
+            (click)="emptyTrash()"
+            [disabled]="trashOrders.length === 0 || bulkActionLoading"
+            title="Dọn sạch toàn bộ thùng rác ngay lập tức"
+          >
+            <i class="fas fa-fire-flame-curved"></i>
+            <span>Dọn sạch thùng rác</span>
+          </button>
+        }
+
+        <button
+          type="button"
+          class="btn btn-sm btn-secondary"
+          (click)="loadTrash()"
+          [disabled]="trashLoading"
+          title="Làm mới thùng rác"
+        >
+          <i [class]="trashLoading ? 'fas fa-spinner fa-spin' : 'fas fa-rotate'"></i>
+          <span>Làm mới</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Trash Table / Empty State -->
+    @if (trashLoading) {
+      <div class="trash-loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Đang tải dữ liệu thùng rác...</span>
+      </div>
+    } @else if (!filteredTrashOrders.length) {
+      <div class="trash-empty-state">
+        <div class="empty-icon-circle">
+          <i class="fas fa-trash-arrow-up"></i>
+        </div>
+        <h3>Thùng rác trống</h3>
+        <p>
+          @if (trashSearchTerm) {
+            Không tìm thấy đơn hàng nào khớp với từ khóa "{{ trashSearchTerm }}".
+          } @else {
+            Hiện tại không có đơn hàng nào trong thùng rác. Các đơn hàng đã xóa sẽ được lưu trữ tại đây 10 ngày trước khi xóa vĩnh viễn.
+          }
+        </p>
+        @if (trashSearchTerm) {
+          <button type="button" class="btn btn-secondary btn-sm" (click)="trashSearchTerm = ''; trashCurrentPage = 1">
+            Xóa tìm kiếm
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="trash-table-container">
+        <table class="trash-table" aria-label="Bảng đơn hàng trong thùng rác">
+          <thead>
+            <tr>
+              <th class="col-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="isAllTrashSelected"
+                  (change)="toggleSelectAllTrash($event)"
+                  title="Chọn tất cả đơn hàng trang này"
+                />
+              </th>
+              <th class="col-thumb">Ảnh / Poster</th>
+              <th class="col-code">Mã đơn</th>
+              <th class="col-info">Tiêu đề & Doanh nghiệp</th>
+              <th class="col-status">Trạng thái trước</th>
+              <th class="col-deleted">Thời gian xóa</th>
+              <th class="col-expiry">Thời hạn lưu trữ</th>
+              <th class="col-actions">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of pagedTrashOrders; track order.id) {
+              @let cat = getCategory(order);
+              <tr [class.row-selected]="isTrashSelected(order.id)">
+                <td class="col-checkbox">
+                  <input
+                    type="checkbox"
+                    [checked]="isTrashSelected(order.id)"
+                    (change)="toggleSelectTrash(order.id)"
+                  />
+                </td>
+                <td class="col-thumb">
+                  <div class="trash-thumb-wrap">
+                    <img
+                      [src]="order.posterUrl || order.imageUrl || 'assets/images/defaults/order-fallback.webp'"
+                      [alt]="orderTitle(order)"
+                      (error)="useFallbackImage($event, order)"
+                      loading="lazy"
+                    />
+                  </div>
+                </td>
+                <td class="col-code">
+                  <span class="trash-order-code">{{ order.orderCode || order.id }}</span>
+                  <span class="trash-cat-badge">
+                    <i [class]="cat.icon"></i> {{ cat.shortLabel }}
+                  </span>
+                </td>
+                <td class="col-info">
+                  <h4 class="trash-order-title">{{ orderTitle(order) }}</h4>
+                  <div class="trash-order-sub">
+                    @if (order.company) {
+                      <span><i class="fas fa-building"></i> {{ order.company }}</span>
+                    }
+                    @if (order.location) {
+                      <span><i class="fas fa-location-dot"></i> {{ order.location }}</span>
+                    }
+                  </div>
+                </td>
+                <td class="col-status">
+                  <span class="status-pill-subtle" [class.was-published]="order.previousStatus === 'published'">
+                    {{ order.previousStatus === 'published' ? 'Đang tuyển' : 'Bản nháp' }}
+                  </span>
+                </td>
+                <td class="col-deleted">
+                  <div class="deleted-time-cell">
+                    <strong>{{ order.deletedAt ? (order.deletedAt | date: 'dd/MM/yyyy HH:mm') : 'Vừa xong' }}</strong>
+                    <small>Bởi: {{ order.deletedBy || 'Quản trị viên' }}</small>
+                  </div>
+                </td>
+                <td class="col-expiry">
+                  <div class="expiry-cell">
+                    @if ((order.daysRemaining ?? 10) > 3) {
+                      <span class="badge-days days-safe">
+                        <i class="fas fa-shield-halved"></i> Còn {{ order.daysRemaining ?? 10 }} ngày
+                      </span>
+                    } @else if ((order.daysRemaining ?? 10) > 0) {
+                      <span class="badge-days days-warning">
+                        <i class="fas fa-hourglass-half"></i> Còn {{ order.daysRemaining }} ngày
+                      </span>
+                    } @else {
+                      <span class="badge-days days-expired">
+                        <i class="fas fa-fire"></i> Sắp xóa tự động
+                      </span>
+                    }
+                    @if (order.autoDeleteAt) {
+                      <small class="auto-purge-date">
+                        Tự xóa: {{ order.autoDeleteAt | date: 'dd/MM/yyyy' }}
+                      </small>
+                    }
+                  </div>
+                </td>
+                <td class="col-actions">
+                  <div class="trash-action-btns">
+                    @if (canRestoreTrash()) {
+                      <button
+                        type="button"
+                        class="btn-action-restore"
+                        (click)="restoreOrder(order, $event)"
+                        [disabled]="restoringId === order.id"
+                        title="Khôi phục đơn hàng về danh sách đang quản lý"
+                      >
+                        <i [class]="restoringId === order.id ? 'fas fa-spinner fa-spin' : 'fas fa-rotate-left'"></i>
+                        <span>Khôi phục</span>
+                      </button>
+                    }
+                    @if (canPermanentDeleteTrash()) {
+                      <button
+                        type="button"
+                        class="btn-action-permanent-delete"
+                        (click)="openPermanentDeleteConfirm(order, $event)"
+                        [disabled]="permanentlyDeletingId === order.id"
+                        title="Xóa vĩnh viễn đơn hàng và ảnh ngay lập tức"
+                      >
+                        <i class="fas fa-trash-can"></i>
+                        <span>Xóa vĩnh viễn</span>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 4. Trash Pagination -->
+      @if (filteredTrashOrders.length > trashPageSize) {
+        <app-admin-pagination
+          [currentPage]="trashCurrentPage"
+          [pageSize]="trashPageSize"
+          [totalItems]="filteredTrashOrders.length"
+          [disabled]="trashLoading"
+          itemLabel="đơn hàng trong thùng rác"
+          (pageChange)="onTrashPageChange($event)"
+        ></app-admin-pagination>
+      }
+    }
+  </section>
+  }
 </div>
 }
 
 <!-- ======================================================================= -->
-<!-- MODAL: XÁC NHẬN XÓA ĐƠN HÀNG AN TOÀN                                    -->
+<!-- MODAL: XÁC NHẬN CHUYỂN VÀO THÙNG RÁC (LƯU TRỮ 10 NGÀY)                   -->
 <!-- ======================================================================= -->
 @if (showDeleteConfirmModal && orderToDelete) {
 <div class="modal-backdrop animate-fade-in" (click)="onDeleteBackdropClick($event)">
   <div class="modal-dialog modal-sm delete-dialog animate-scale-up" (click)="$event.stopPropagation()">
-    <div class="delete-icon-circle">
-      <i class="fas fa-triangle-exclamation"></i>
+    <div class="delete-icon-circle delete-icon-soft">
+      <i class="fas fa-trash-can"></i>
     </div>
 
-    <h3>Xác nhận xóa đơn hàng?</h3>
+    <h3>Chuyển đơn hàng vào Thùng rác?</h3>
     <p class="delete-desc">
-      Bạn có chắc chắn muốn xóa đơn hàng <strong>"{{ orderTitle(orderToDelete) }}"</strong> (Mã: {{
-      orderToDelete.orderCode || orderToDelete.id }})?
+      Bạn có chắc chắn muốn chuyển đơn hàng <strong>"{{ orderTitle(orderToDelete) }}"</strong> (Mã: {{
+      orderToDelete.orderCode || orderToDelete.id }}) vào Thùng rác?
     </p>
-    <p class="delete-warning">
-      <i class="fas fa-circle-exclamation"></i>
-      Thao tác này sẽ xóa vĩnh viễn đơn hàng khỏi cơ sở dữ liệu và không thể hoàn tác.
+    <p class="delete-warning delete-soft-notice">
+      <i class="fas fa-shield-halved"></i>
+      Đơn hàng sẽ được lưu trữ an toàn trong <strong>10 ngày</strong>. Bạn có thể khôi phục lại bất kỳ lúc nào. Sau 10 ngày, hệ thống sẽ tự động dọn dẹp và xóa vĩnh viễn cả thông tin và hình ảnh.
     </p>
 
     <div class="delete-actions-row">
@@ -1235,10 +1530,45 @@
         [disabled]="deletingId === orderToDelete.id">
         Hủy bỏ
       </button>
-      <button type="button" class="btn btn-danger" (click)="executeDelete()"
+      <button type="button" class="btn btn-danger btn-confirm-soft-delete" (click)="executeDelete()"
         [disabled]="deletingId === orderToDelete.id">
         <i [class]="deletingId === orderToDelete.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
-        <span>{{ deletingId === orderToDelete.id ? 'Đang xóa...' : 'Xóa vĩnh viễn' }}</span>
+        <span>{{ deletingId === orderToDelete.id ? 'Đang chuyển...' : 'Chuyển vào thùng rác' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- ======================================================================= -->
+<!-- MODAL: XÁC NHẬN XÓA VĨNH VIỄN KHỎI HỆ THỐNG                            -->
+<!-- ======================================================================= -->
+@if (showPermanentDeleteModal && orderToPermanentlyDelete) {
+<div class="modal-backdrop animate-fade-in" (click)="closePermanentDeleteConfirm()">
+  <div class="modal-dialog modal-sm delete-dialog animate-scale-up" (click)="$event.stopPropagation()">
+    <div class="delete-icon-circle delete-icon-danger">
+      <i class="fas fa-triangle-exclamation"></i>
+    </div>
+
+    <h3>Xác nhận xóa vĩnh viễn?</h3>
+    <p class="delete-desc">
+      Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng <strong>"{{ orderTitle(orderToPermanentlyDelete) }}"</strong> (Mã: {{
+      orderToPermanentlyDelete.orderCode || orderToPermanentlyDelete.id }})?
+    </p>
+    <p class="delete-warning delete-hard-notice">
+      <i class="fas fa-circle-exclamation"></i>
+      Hành động này <strong>KHÔNG THỂ HOÀN TÁC</strong>! Đơn hàng sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu cùng với toàn bộ tệp tin hình ảnh, poster tải lên trên máy chủ.
+    </p>
+
+    <div class="delete-actions-row">
+      <button type="button" class="btn btn-secondary" (click)="closePermanentDeleteConfirm()"
+        [disabled]="permanentlyDeletingId === orderToPermanentlyDelete.id">
+        Hủy bỏ
+      </button>
+      <button type="button" class="btn btn-danger" (click)="executePermanentDelete()"
+        [disabled]="permanentlyDeletingId === orderToPermanentlyDelete.id">
+        <i [class]="permanentlyDeletingId === orderToPermanentlyDelete.id ? 'fas fa-spinner fa-spin' : 'fas fa-trash-can'"></i>
+        <span>{{ permanentlyDeletingId === orderToPermanentlyDelete.id ? 'Đang xóa...' : 'Xóa vĩnh viễn ngay' }}</span>
       </button>
     </div>
   </div>
@@ -1250,8 +1580,9 @@
 <!-- ======================================================================= -->
 @if (showPosterLightbox && lightboxImageUrl) {
 <div class="lightbox-backdrop animate-fade-in" (click)="closePosterLightbox()">
-  <button type="button" class="btn-close-lightbox" (click)="closePosterLightbox()">
-    <i class="fas fa-xmark"></i>
+  <button type="button" class="btn-close-lightbox" (click)="closePosterLightbox()" title="Đóng xem ảnh poster" aria-label="Đóng xem ảnh poster">
+    <i class="fas fa-xmark" aria-hidden="true"></i>
+    <span class="sr-only">Đóng xem ảnh poster</span>
   </button>
   <div class="lightbox-img-wrapper" (click)="$event.stopPropagation()">
     <img [src]="lightboxImageUrl" alt="Poster phóng to" class="lightbox-img" />

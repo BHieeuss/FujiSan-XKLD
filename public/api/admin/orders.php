@@ -10,6 +10,14 @@ try {
 
     if ($method === 'GET') {
         $session = admin_require_session();
+
+        if ($action === 'trash_list') {
+            admin_require_permission($session, 'orders.trash.view');
+            $trashOrders = admin_job_orders_trash_list();
+            $total = count($trashOrders);
+            admin_respond(200, ['orders' => $trashOrders, 'total' => $total]);
+        }
+
         admin_require_permission($session, 'orders.view');
 
         if ($action === 'check_code') {
@@ -26,15 +34,16 @@ try {
 
         if ($action === 'find') {
             $id = trim((string) ($_GET['id'] ?? ''));
-            $order = admin_job_order_find($id, true);
+            $order = admin_job_order_find($id, true, true);
             if ($order === null) {
                 admin_respond(404, ['message' => 'Không tìm thấy đơn hàng.']);
             }
             admin_respond(200, ['order' => $order]);
         }
 
-        $allOrders = admin_job_orders_list(true);
+        $allOrders = admin_job_orders_list(true, false);
         $total = count($allOrders);
+        $trashCount = admin_job_orders_trash_count();
         $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : null;
         $limit = isset($_GET['limit']) ? max(1, (int) $_GET['limit']) : null;
 
@@ -46,13 +55,14 @@ try {
             admin_respond(200, [
                 'orders' => $pagedOrders,
                 'total' => $total,
+                'trashCount' => $trashCount,
                 'page' => $page,
                 'limit' => $limit,
                 'totalPages' => $totalPages,
             ]);
         }
 
-        admin_respond(200, ['orders' => $allOrders, 'total' => $total]);
+        admin_respond(200, ['orders' => $allOrders, 'total' => $total, 'trashCount' => $trashCount]);
     }
 
     if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
@@ -64,25 +74,84 @@ try {
     $session = admin_require_session();
     admin_require_csrf($session);
     $payload = admin_read_json();
+    $actor = $session['fullName'] ?? ($session['username'] ?? 'Quản trị viên');
 
-    // Xử lý XÓA ĐƠN HÀNG: Hỗ trợ cả HTTP DELETE lẫn POST (action=delete) để tương thích tuyệt đối
-    // với các hosting chặn DELETE method (cPanel ModSecurity / Cloudflare / Nginx proxy).
+    // 1. KHÔI PHỤC ĐƠN HÀNG TỪ THÙNG RÁC
+    if ($action === 'restore' || ($payload['action'] ?? '') === 'restore') {
+        admin_require_permission($session, 'orders.trash.restore');
+        $id = trim((string) ($_GET['id'] ?? ($payload['id'] ?? '')));
+        if ($id === '') {
+            admin_respond(422, ['message' => 'Thiếu mã đơn hàng cần khôi phục.']);
+        }
+        $restored = admin_job_order_restore($id, $actor);
+        if ($restored === null) {
+            admin_respond(404, ['message' => 'Không tìm thấy đơn hàng cần khôi phục trong thùng rác.']);
+        }
+        admin_respond(200, ['restored' => true, 'order' => $restored, 'message' => 'Đã khôi phục đơn hàng thành công.']);
+    }
+
+    // 2. KHÔI PHỤC NHIỀU ĐƠN HÀNG HÀNG LOẠT
+    if ($action === 'bulk_restore' || ($payload['action'] ?? '') === 'bulk_restore') {
+        admin_require_permission($session, 'orders.trash.restore');
+        $ids = (array) ($payload['ids'] ?? []);
+        $count = 0;
+        foreach ($ids as $oneId) {
+            if (admin_job_order_restore((string) $oneId, $actor) !== null) {
+                $count++;
+            }
+        }
+        admin_respond(200, ['restoredCount' => $count, 'message' => "Đã khôi phục {$count} đơn hàng thành công."]);
+    }
+
+    // 3. XÓA VĨNH VIỄN KHỎI THÙNG RÁC
+    if ($action === 'delete_permanent' || ($payload['action'] ?? '') === 'delete_permanent') {
+        admin_require_permission($session, 'orders.trash.delete_permanently');
+        $id = trim((string) ($_GET['id'] ?? ($payload['id'] ?? '')));
+        if ($id === '') {
+            admin_respond(422, ['message' => 'Thiếu mã đơn hàng cần xóa vĩnh viễn.']);
+        }
+        admin_job_order_delete_permanent($id, $actor);
+        admin_respond(200, ['deleted' => true, 'permanent' => true, 'message' => 'Đã xóa vĩnh viễn đơn hàng và toàn bộ tệp đính kèm.']);
+    }
+
+    // 4. XÓA VĨNH VIỄN NHIỀU ĐƠN HÀNG HÀNG LOẠT
+    if ($action === 'bulk_delete_permanent' || ($payload['action'] ?? '') === 'bulk_delete_permanent') {
+        admin_require_permission($session, 'orders.trash.delete_permanently');
+        $ids = (array) ($payload['ids'] ?? []);
+        $count = 0;
+        foreach ($ids as $oneId) {
+            if (admin_job_order_delete_permanent((string) $oneId, $actor)) {
+                $count++;
+            }
+        }
+        admin_respond(200, ['deletedCount' => $count, 'message' => "Đã xóa vĩnh viễn {$count} đơn hàng và các tệp liên quan."]);
+    }
+
+    // 5. DỌN SẠCH TOÀN BỘ THÙNG RÁC
+    if ($action === 'empty_trash' || ($payload['action'] ?? '') === 'empty_trash') {
+        admin_require_permission($session, 'orders.trash.delete_permanently');
+        $purged = admin_job_orders_empty_trash($actor);
+        admin_respond(200, ['purgedCount' => $purged, 'message' => "Đã dọn sạch thùng rác ({$purged} đơn hàng)."]);
+    }
+
+    // 6. XỬ LÝ XÓA MỀM (CHUYỂN VÀO THÙNG RÁC 10 NGÀY)
     $isDeleteAction = ($method === 'DELETE') || ($method === 'POST' && ($action === 'delete' || ($payload['action'] ?? '') === 'delete'));
     if ($isDeleteAction) {
         admin_require_permission($session, 'orders.delete');
         $pathId = !empty($_SERVER['PATH_INFO']) ? trim((string) basename($_SERVER['PATH_INFO'])) : '';
         $id = trim((string) ($_GET['id'] ?? ($payload['id'] ?? ($pathId !== '' ? $pathId : ''))));
         if ($id === '') {
-            admin_respond(422, ['message' => 'Thiếu mã đơn hàng cần xóa.']);
+            admin_respond(422, ['message' => 'Thiếu mã đơn hàng cần chuyển vào thùng rác.']);
         }
-        admin_job_order_delete($id);
-        admin_respond(200, ['deleted' => true, 'message' => 'Đã xóa đơn hàng thành công.']);
+        admin_job_order_move_to_trash($id, $actor);
+        admin_respond(200, ['trashed' => true, 'message' => 'Đã chuyển đơn hàng vào Thùng rác (lưu trữ 10 ngày).']);
     }
 
-    // Hỗ trợ POST+action=update cho hosting chặn HTTP PUT method (cPanel, shared hosting...)
+    // 7. CẬP NHẬT ĐƠN HÀNG
     $isUpdateAction = in_array($method, ['PUT', 'PATCH'], true) ||
         ($method === 'POST' && ($action === 'update' || ($payload['action'] ?? '') === 'update'));
 
+    // 8. TẠO ĐƠN HÀNG MỚI
     if ($method === 'POST' && !$isUpdateAction) {
         admin_require_permission($session, 'orders.create');
 
@@ -128,12 +197,6 @@ try {
     $id = trim((string) ($_GET['id'] ?? ($payload['id'] ?? '')));
     if ($id === '') {
         admin_respond(422, ['message' => 'Thiếu mã đơn hàng.']);
-    }
-
-    if ($method === 'DELETE') {
-        admin_require_permission($session, 'orders.delete');
-        admin_job_order_delete($id);
-        admin_respond(200, ['deleted' => true, 'message' => 'Đã xóa đơn hàng thành công.']);
     }
 
     admin_require_permission($session, 'orders.update');
