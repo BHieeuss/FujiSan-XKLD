@@ -421,11 +421,20 @@ function admin_job_order_create(array $payload): array
 
     $database = admin_job_orders_database();
     if ($database !== null) {
-        admin_job_order_insert_database($database, $order);
-    } else {
+        try {
+            admin_job_order_insert_database($database, $order);
+        } catch (Throwable $dbError) {
+            error_log('[VieJap order create db error] ' . $dbError->getMessage());
+        }
+    }
+
+    // Luôn đồng bộ lưu vào file JSON fallback để đảm bảo dữ liệu đơn hàng 100% không bị mất
+    try {
         $orders = admin_job_order_load_file();
         array_unshift($orders, $order);
         admin_job_order_save_file($orders);
+    } catch (Throwable $fileError) {
+        error_log('[VieJap order create file error] ' . $fileError->getMessage());
     }
 
     try {
@@ -495,32 +504,71 @@ function admin_job_order_update(string $id, array $payload): ?array
     $database = admin_job_orders_database();
     if ($database !== null) {
         try {
-            $statement = $database->prepare(
-                'UPDATE job_orders SET
-                    image_url = :image_url, poster_url = :poster_url, order_code = :order_code,
-                    title = :title, category = :category, location = :location, salary = :salary,
-                    age_range = :age_range, summary = :summary, requirements = :requirements,
-                    departure_month = :departure_month,
-                    status = :status, is_featured = :is_featured, updated_at = :updated_at,
-                    company = :company, job_type = :job_type, quantity = :quantity,
-                    gender = :gender, education = :education, japanese_level = :japanese_level,
-                    contract_term = :contract_term, interview_date = :interview_date,
-                    specific_work = :specific_work, work_environment = :work_environment,
-                    working_hours = :working_hours, holidays = :holidays, experience = :experience,
-                    health_requirements = :health_requirements, basic_salary = :basic_salary,
-                    take_home_salary = :take_home_salary, overtime = :overtime, allowances = :allowances,
-                    bonus = :bonus, insurance = :insurance, accommodation = :accommodation,
-                    meals = :meals, transport = :transport, other_benefits = :other_benefits,
-                    post_content = :post_content, facebook_content = :facebook_content,
-                    post_template_id = :post_template_id, post_blocks = :post_blocks,
-                    gallery_images = :gallery_images,
-                    deleted_at = :deleted_at, deleted_by = :deleted_by, previous_status = :previous_status
-                 WHERE id = :id'
-            );
             $values = admin_job_order_database_values($order);
-            // created_at không nằm trong câu lệnh UPDATE nên bắt buộc phải loại bỏ để tránh lỗi PDO HY093
-            unset($values['created_at']);
-            $statement->execute($values);
+            unset($values['created_at']); // created_at không nằm trong câu lệnh UPDATE
+
+            // Lấy danh sách cột thực tế của bảng job_orders trên máy chủ để tương thích 100% mọi schema
+            $existingCols = [];
+            try {
+                $colQuery = $database->query('SHOW COLUMNS FROM job_orders');
+                if ($colQuery) {
+                    while ($row = $colQuery->fetch(PDO::FETCH_ASSOC)) {
+                        $fieldName = strtolower((string) ($row['Field'] ?? ''));
+                        if ($fieldName !== '') {
+                            $existingCols[$fieldName] = true;
+                        }
+                    }
+                }
+            } catch (Throwable) {}
+
+            if (!empty($existingCols)) {
+                $setClauses = [];
+                $filteredValues = [];
+                foreach ($values as $col => $val) {
+                    if ($col === 'id') {
+                        continue;
+                    }
+                    if (isset($existingCols[strtolower($col)])) {
+                        $setClauses[] = "{$col} = :{$col}";
+                        $filteredValues[$col] = $val;
+                    }
+                }
+                $filteredValues['id'] = $targetId;
+                if (!empty($setClauses)) {
+                    $sql = 'UPDATE job_orders SET ' . implode(', ', $setClauses) . ' WHERE id = :id';
+                    $statement = $database->prepare($sql);
+                    $statement->execute($filteredValues);
+                }
+            } else {
+                // Fallback nếu không truy vấn được SHOW COLUMNS
+                $statement = $database->prepare(
+                    'UPDATE job_orders SET
+                        image_url = :image_url, poster_url = :poster_url, order_code = :order_code,
+                        title = :title, category = :category, location = :location, salary = :salary,
+                        age_range = :age_range, summary = :summary, requirements = :requirements,
+                        departure_month = :departure_month,
+                        status = :status, is_featured = :is_featured, updated_at = :updated_at
+                     WHERE id = :id'
+                );
+                $baseValues = [
+                    'id'              => $targetId,
+                    'image_url'       => $order['imageUrl'],
+                    'poster_url'      => $order['posterUrl'] ?? '',
+                    'order_code'      => substr((string) ($order['orderCode'] ?? ''), 0, 48),
+                    'title'           => $order['title'] ?? '',
+                    'category'        => $order['category'],
+                    'location'        => substr((string) ($order['location'] ?? ''), 0, 100),
+                    'salary'          => substr((string) ($order['salary'] ?? ''), 0, 100),
+                    'age_range'       => substr((string) ($order['ageRange'] ?? ''), 0, 60),
+                    'summary'         => $order['description'],
+                    'requirements'    => (string) ($order['requirements'] ?? ''),
+                    'departure_month' => substr((string) ($order['departureMonth'] ?? ''), 0, 48),
+                    'status'          => $order['status'],
+                    'is_featured'     => $order['isFeatured'] ? 1 : 0,
+                    'updated_at'      => $order['updatedAt'],
+                ];
+                $statement->execute($baseValues);
+            }
         } catch (Throwable $dbError) {
             error_log('[VieJap order update db] ' . $dbError->getMessage());
         }
@@ -1125,28 +1173,72 @@ function admin_job_orders_database(): ?PDO
 
 function admin_job_order_insert_database(PDO $database, array $order): void
 {
+    $values = admin_job_order_database_values($order);
+
+    // 1. Lấy danh sách cột thực tế của bảng job_orders để chỉ insert các cột đang tồn tại trong DB
+    try {
+        $existingCols = [];
+        $columnsQuery = $database->query('SHOW COLUMNS FROM job_orders');
+        if ($columnsQuery) {
+            while ($row = $columnsQuery->fetch(PDO::FETCH_ASSOC)) {
+                $fieldName = strtolower((string) ($row['Field'] ?? ''));
+                if ($fieldName !== '') {
+                    $existingCols[$fieldName] = true;
+                }
+            }
+        }
+
+        if (!empty($existingCols)) {
+            $colNames = [];
+            $paramTokens = [];
+            $filteredValues = [];
+            foreach ($values as $col => $val) {
+                if (isset($existingCols[strtolower($col)])) {
+                    $colNames[] = $col;
+                    $paramTokens[] = ':' . $col;
+                    $filteredValues[$col] = $val;
+                }
+            }
+            if (!empty($colNames)) {
+                $sql = 'INSERT INTO job_orders (' . implode(', ', $colNames) . ') VALUES (' . implode(', ', $paramTokens) . ')';
+                $stmt = $database->prepare($sql);
+                $stmt->execute($filteredValues);
+                return;
+            }
+        }
+    } catch (Throwable $dynErr) {
+        error_log('[VieJap order insert dynamic] ' . $dynErr->getMessage());
+    }
+
+    // 2. Fallback nếu không truy vấn được SHOW COLUMNS
     $statement = $database->prepare(
         'INSERT INTO job_orders (
             id, image_url, poster_url, order_code, title, category, location, salary, age_range, summary,
-            requirements, departure_month, status, is_featured, created_at, updated_at,
-            company, job_type, quantity, gender, education, japanese_level, contract_term, interview_date,
-            specific_work, work_environment, working_hours, holidays, experience, health_requirements,
-            basic_salary, take_home_salary, overtime, allowances, bonus, insurance,
-            accommodation, meals, transport, other_benefits,
-            post_content, facebook_content, post_template_id, post_blocks, gallery_images,
-            deleted_at, deleted_by, previous_status
+            requirements, departure_month, status, is_featured, created_at, updated_at
         ) VALUES (
             :id, :image_url, :poster_url, :order_code, :title, :category, :location, :salary, :age_range, :summary,
-            :requirements, :departure_month, :status, :is_featured, :created_at, :updated_at,
-            :company, :job_type, :quantity, :gender, :education, :japanese_level, :contract_term, :interview_date,
-            :specific_work, :work_environment, :working_hours, :holidays, :experience, :health_requirements,
-            :basic_salary, :take_home_salary, :overtime, :allowances, :bonus, :insurance,
-            :accommodation, :meals, :transport, :other_benefits,
-            :post_content, :facebook_content, :post_template_id, :post_blocks, :gallery_images,
-            :deleted_at, :deleted_by, :previous_status
+            :requirements, :departure_month, :status, :is_featured, :created_at, :updated_at
         )'
     );
-    $statement->execute(admin_job_order_database_values($order));
+    $baseValues = [
+        'id'              => $order['id'],
+        'image_url'       => $order['imageUrl'],
+        'poster_url'      => $order['posterUrl'] ?? '',
+        'order_code'      => substr((string) ($order['orderCode'] ?? ''), 0, 48),
+        'title'           => $order['title'] ?? '',
+        'category'        => $order['category'],
+        'location'        => substr((string) ($order['location'] ?? ''), 0, 100),
+        'salary'          => substr((string) ($order['salary'] ?? ''), 0, 100),
+        'age_range'       => substr((string) ($order['ageRange'] ?? ''), 0, 60),
+        'summary'         => $order['description'],
+        'requirements'    => (string) ($order['requirements'] ?? ''),
+        'departure_month' => substr((string) ($order['departureMonth'] ?? ''), 0, 48),
+        'status'          => $order['status'],
+        'is_featured'     => $order['isFeatured'] ? 1 : 0,
+        'created_at'      => $order['createdAt'],
+        'updated_at'      => $order['updatedAt'],
+    ];
+    $statement->execute($baseValues);
 }
 
 function admin_job_order_database_values(array $order): array

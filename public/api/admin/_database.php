@@ -169,27 +169,27 @@ function admin_database_ensure_schema(PDO $database): void
         'japanese_level'     => "VARCHAR(120) NOT NULL DEFAULT ''",
         'contract_term'      => "VARCHAR(60) NOT NULL DEFAULT '3 năm'",
         'interview_date'     => "VARCHAR(60) NOT NULL DEFAULT ''",
-        'specific_work'      => "LONGTEXT NOT NULL",
-        'work_environment'   => "TEXT NOT NULL",
-        'working_hours'      => "TEXT NOT NULL",
-        'holidays'           => "TEXT NOT NULL",
-        'experience'         => "TEXT NOT NULL",
-        'health_requirements'=> "TEXT NOT NULL",
+        'specific_work'      => "LONGTEXT NULL DEFAULT NULL",
+        'work_environment'   => "TEXT NULL DEFAULT NULL",
+        'working_hours'      => "TEXT NULL DEFAULT NULL",
+        'holidays'           => "TEXT NULL DEFAULT NULL",
+        'experience'         => "TEXT NULL DEFAULT NULL",
+        'health_requirements'=> "TEXT NULL DEFAULT NULL",
         'basic_salary'       => "VARCHAR(120) NOT NULL DEFAULT ''",
         'take_home_salary'   => "VARCHAR(120) NOT NULL DEFAULT ''",
-        'overtime'           => "TEXT NOT NULL",
-        'allowances'         => "TEXT NOT NULL",
-        'bonus'              => "TEXT NOT NULL",
-        'insurance'          => "TEXT NOT NULL",
-        'accommodation'      => "TEXT NOT NULL",
-        'meals'              => "TEXT NOT NULL",
-        'transport'          => "TEXT NOT NULL",
-        'other_benefits'     => "TEXT NOT NULL",
-        'post_content'       => "LONGTEXT NOT NULL",
-        'facebook_content'   => "LONGTEXT NOT NULL",
+        'overtime'           => "TEXT NULL DEFAULT NULL",
+        'allowances'         => "TEXT NULL DEFAULT NULL",
+        'bonus'              => "TEXT NULL DEFAULT NULL",
+        'insurance'          => "TEXT NULL DEFAULT NULL",
+        'accommodation'      => "TEXT NULL DEFAULT NULL",
+        'meals'              => "TEXT NULL DEFAULT NULL",
+        'transport'          => "TEXT NULL DEFAULT NULL",
+        'other_benefits'     => "TEXT NULL DEFAULT NULL",
+        'post_content'       => "LONGTEXT NULL DEFAULT NULL",
+        'facebook_content'   => "LONGTEXT NULL DEFAULT NULL",
         'post_template_id'   => "VARCHAR(80) NOT NULL DEFAULT 'standard_general'",
-        'post_blocks'        => "LONGTEXT NOT NULL",
-        'gallery_images'     => "LONGTEXT NOT NULL",
+        'post_blocks'        => "LONGTEXT NULL DEFAULT NULL",
+        'gallery_images'     => "LONGTEXT NULL DEFAULT NULL",
         'deleted_at'         => "DATETIME NULL DEFAULT NULL",
         'deleted_by'         => "VARCHAR(120) NOT NULL DEFAULT ''",
         'previous_status'    => "VARCHAR(40) NOT NULL DEFAULT 'draft'",
@@ -200,7 +200,9 @@ function admin_database_ensure_schema(PDO $database): void
             if (!is_array($existing)) {
                 $database->exec("ALTER TABLE job_orders ADD COLUMN {$colName} {$colDef}");
             }
-        } catch (Throwable) {}
+        } catch (Throwable $alterError) {
+            error_log("[VieJap db migration] Could not add column {$colName}: " . $alterError->getMessage());
+        }
     }
 
     $database->exec(

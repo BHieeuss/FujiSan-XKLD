@@ -431,8 +431,13 @@ function admin_require_csrf_token(?array $session = null): void
 
 function admin_handle_exception(Throwable $error): never
 {
-    error_log('[VieJap admin] ' . $error->getMessage());
-    admin_respond(500, ['message' => 'Hệ thống quản trị tạm thời không khả dụng.']);
+    $msg = $error->getMessage();
+    error_log('[VieJap admin] ' . $msg . ' at ' . $error->getFile() . ':' . $error->getLine());
+    admin_respond(500, [
+        'message' => 'Hệ thống quản trị tạm thời không khả dụng: ' . $msg,
+        'error' => $msg,
+        'source' => basename($error->getFile()) . ':' . $error->getLine(),
+    ]);
 }
 
 if (!function_exists('clean_text')) {
