@@ -128,8 +128,29 @@ if (empty($formData['idNumber'])) {
     $formData['idNumber'] = $idNumber;
 }
 
-// Generate Profile and File paths
-$profileId = admin_student_profile_generate_id();
+// Check if student profile already exists to link correctly and prevent duplicates
+$existingProfile = null;
+$allProfiles = admin_student_profiles_load_file();
+foreach ($allProfiles as $p) {
+    if (($phone !== '' && !empty($p['phone']) && $p['phone'] === $phone) ||
+        ($idNumber !== '' && !empty($p['idNumber']) && $p['idNumber'] === $idNumber)) {
+        $existingProfile = $p;
+        break;
+    }
+}
+$database = admin_student_profiles_database();
+if ($existingProfile === null && $database !== null) {
+    try {
+        $stmt = $database->prepare('SELECT id, student_code FROM student_profiles WHERE (phone = :p AND phone != "") OR (id_number = :idnum AND id_number != "") LIMIT 1');
+        $stmt->execute(['p' => $phone, 'idnum' => $idNumber]);
+        $row = $stmt->fetch();
+        if ($row) {
+            $existingProfile = ['id' => $row['id'], 'studentCode' => $row['student_code']];
+        }
+    } catch (Throwable) {}
+}
+
+$profileId = $existingProfile !== null ? (string) $existingProfile['id'] : admin_student_profile_generate_id();
 $dir = admin_student_files_directory($profileId);
 
 $safeName = preg_replace('/[^a-zA-Z0-9]+/', '_', strtoupper(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $fullName)));

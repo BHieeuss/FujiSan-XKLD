@@ -344,6 +344,32 @@ function admin_student_registration_code_create(array $input, string $adminName 
         }
     } catch (Throwable) {}
 
+    // Also check MySQL if not found in JSON
+    if ($existingStudentId === '') {
+        $database = admin_student_profiles_database();
+        if ($database !== null) {
+            try {
+                $stmt = $database->prepare('SELECT id, student_code FROM student_profiles WHERE (phone = :phone AND phone != "") LIMIT 1');
+                $stmt->execute(['phone' => $phone]);
+                $row = $stmt->fetch();
+                if ($row) {
+                    $existingStudentId = (string) $row['id'];
+                    $existingStudentCode = (string) $row['student_code'];
+                }
+            } catch (Throwable) {}
+        }
+    }
+
+    if ($existingStudentId !== '') {
+        $database = admin_student_profiles_database();
+        if ($database !== null) {
+            try {
+                $upStmt = $database->prepare('UPDATE student_profiles SET registration_code = :code, updated_at = :up WHERE id = :id');
+                $upStmt->execute(['code' => $code, 'up' => date('Y-m-d H:i:s'), 'id' => $existingStudentId]);
+            } catch (Throwable) {}
+        }
+    }
+
     $record = [
         'id' => $id,
         'studentId' => $existingStudentId,
@@ -1205,31 +1231,54 @@ function student_registration_submit(string $codeId, string $sessionToken, array
         $formData = $codeItem['draftData'];
     }
 
-    // Find target profile ID if one already exists
+    // Find target profile ID if one already exists across JSON and MySQL
     $existingStudentId = trim((string) ($codeItem['studentId'] ?? ''));
+    $existingStudentCode = trim((string) ($codeItem['studentCode'] ?? ''));
+
     if ($existingStudentId === '') {
         $allProfiles = admin_student_profiles_load_file();
         foreach ($allProfiles as $p) {
             if ($phone !== '' && !empty($p['phone']) && $p['phone'] === $phone) {
                 $existingStudentId = (string) $p['id'];
+                $existingStudentCode = (string) ($p['studentCode'] ?? '');
                 break;
             }
             if ($idNumber !== '' && !empty($p['idNumber']) && $p['idNumber'] === $idNumber) {
                 $existingStudentId = (string) $p['id'];
+                $existingStudentCode = (string) ($p['studentCode'] ?? '');
                 break;
             }
             if (($p['registrationCode'] ?? '') === $codeItem['code']) {
                 $existingStudentId = (string) $p['id'];
+                $existingStudentCode = (string) ($p['studentCode'] ?? '');
                 break;
             }
         }
     }
 
     if ($existingStudentId === '') {
-        $existingStudentId = admin_student_profile_generate_id();
+        $database = admin_student_profiles_database();
+        if ($database !== null) {
+            try {
+                $stmt = $database->prepare(
+                    'SELECT id, student_code FROM student_profiles WHERE (phone = :p1 AND phone != "") OR (id_number = :p2 AND id_number != "") OR (registration_code = :p3 AND registration_code != "") LIMIT 1'
+                );
+                $stmt->execute([
+                    'p1' => $phone,
+                    'p2' => $idNumber,
+                    'p3' => $codeItem['code'],
+                ]);
+                $dbRow = $stmt->fetch();
+                if ($dbRow) {
+                    $existingStudentId = (string) $dbRow['id'];
+                    $existingStudentCode = (string) $dbRow['student_code'];
+                }
+            } catch (Throwable) {}
+        }
     }
-    $profileId = $existingStudentId;
-    $studentCode = admin_student_profile_generate_code();
+
+    $profileId = $existingStudentId !== '' ? $existingStudentId : admin_student_profile_generate_id();
+    $studentCode = $existingStudentCode !== '' ? $existingStudentCode : admin_student_profile_generate_code();
 
     // Directory for files
     $studentDir = admin_student_files_directory($profileId);
@@ -1237,74 +1286,74 @@ function student_registration_submit(string $codeId, string $sessionToken, array
     $savedFiles = [];
 
     // 1. Workbook Excel
-    if (isset($filesData['workbook']) && is_array($filesData['workbook']) && ($filesData['workbook']['error'] ?? -1) === UPLOAD_ERR_OK) {
-        $wb = $filesData['workbook'];
+    $wbUpload = $filesData['workbook'] ?? null;
+    if (is_array($wbUpload) && ($wbUpload['error'] ?? -1) === UPLOAD_ERR_OK) {
         $safeWbName = 'HO_SO_' . $studentCode . '.xlsx';
         $wbPath = $studentDir . DIRECTORY_SEPARATOR . $safeWbName;
-        move_uploaded_file($wb['tmp_name'], $wbPath);
+        move_uploaded_file($wbUpload['tmp_name'], $wbPath);
         $savedFiles[] = [
             'id' => admin_student_profile_generate_id(),
             'fileType' => 'excel',
             'version' => 1,
             'fileName' => $safeWbName,
             'filePath' => $wbPath,
-            'fileSize' => (int) $wb['size'],
+            'fileSize' => (int) $wbUpload['size'],
             'mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'createdAt' => $now,
         ];
     }
 
-    // 2. CV PDF
-    if (isset($filesData['cv_pdf']) && is_array($filesData['cv_pdf']) && ($filesData['cv_pdf']['error'] ?? -1) === UPLOAD_ERR_OK) {
-        $cv = $filesData['cv_pdf'];
+    // 2. CV PDF (support both cv_pdf and cvPdf)
+    $cvUpload = $filesData['cv_pdf'] ?? ($filesData['cvPdf'] ?? null);
+    if (is_array($cvUpload) && ($cvUpload['error'] ?? -1) === UPLOAD_ERR_OK) {
         $safeCvName = 'CV_' . $studentCode . '.pdf';
         $cvPath = $studentDir . DIRECTORY_SEPARATOR . $safeCvName;
-        move_uploaded_file($cv['tmp_name'], $cvPath);
+        move_uploaded_file($cvUpload['tmp_name'], $cvPath);
         $savedFiles[] = [
             'id' => admin_student_profile_generate_id(),
             'fileType' => 'pdf',
             'version' => 1,
             'fileName' => $safeCvName,
             'filePath' => $cvPath,
-            'fileSize' => (int) $cv['size'],
+            'fileSize' => (int) $cvUpload['size'],
             'mimeType' => 'application/pdf',
             'createdAt' => $now,
         ];
     }
 
     // 3. Photo
-    if (isset($filesData['photo']) && is_array($filesData['photo']) && ($filesData['photo']['error'] ?? -1) === UPLOAD_ERR_OK) {
-        $ph = $filesData['photo'];
-        $ext = strtolower(pathinfo($ph['name'], PATHINFO_EXTENSION));
+    $phUpload = $filesData['photo'] ?? null;
+    if (is_array($phUpload) && ($phUpload['error'] ?? -1) === UPLOAD_ERR_OK) {
+        $ext = strtolower(pathinfo($phUpload['name'], PATHINFO_EXTENSION));
         if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) $ext = 'jpg';
         $safePhotoName = 'PHOTO_' . $studentCode . '.' . $ext;
         $phPath = $studentDir . DIRECTORY_SEPARATOR . $safePhotoName;
-        move_uploaded_file($ph['tmp_name'], $phPath);
+        move_uploaded_file($phUpload['tmp_name'], $phPath);
         $savedFiles[] = [
             'id' => admin_student_profile_generate_id(),
             'fileType' => 'photo',
             'version' => 1,
             'fileName' => $safePhotoName,
             'filePath' => $phPath,
-            'fileSize' => (int) $ph['size'],
+            'fileSize' => (int) $phUpload['size'],
             'mimeType' => $ext === 'jpg' || $ext === 'jpeg' ? 'image/jpeg' : 'image/png',
             'createdAt' => $now,
         ];
     }
 
-    // 4. Document PDF (attached)
-    if (isset($filesData['document_pdf']) && is_array($filesData['document_pdf']) && ($filesData['document_pdf']['error'] ?? -1) === UPLOAD_ERR_OK) {
-        $doc = $filesData['document_pdf'];
+    // 4. Document PDF (attached, support both document_pdf and documentPdf)
+    $docUpload = $filesData['document_pdf'] ?? ($filesData['documentPdf'] ?? null);
+    if (is_array($docUpload) && ($docUpload['error'] ?? -1) === UPLOAD_ERR_OK) {
         $safeDocName = 'TAI_LIEU_' . $studentCode . '.pdf';
         $docPath = $studentDir . DIRECTORY_SEPARATOR . $safeDocName;
-        move_uploaded_file($doc['tmp_name'], $docPath);
+        move_uploaded_file($docUpload['tmp_name'], $docPath);
         $savedFiles[] = [
             'id' => admin_student_profile_generate_id(),
             'fileType' => 'document',
             'version' => 1,
             'fileName' => $safeDocName,
             'filePath' => $docPath,
-            'fileSize' => (int) $doc['size'],
+            'fileSize' => (int) $docUpload['size'],
             'mimeType' => 'application/pdf',
             'createdAt' => $now,
         ];

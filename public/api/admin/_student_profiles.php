@@ -185,161 +185,234 @@ function admin_student_profiles_list(array $filters = []): array
     $sort = strtolower(trim((string) ($filters['sort'] ?? 'newest')));
 
     $database = admin_student_profiles_database();
+    $dbProfilesMap = [];
+    $results = [];
+
     if ($database !== null) {
-        $conditions = [];
-        $params = [];
+        try {
+            $conditions = [];
+            $params = [];
 
-        if ($search !== '') {
-            $conditions[] = '(full_name LIKE :search OR phone LIKE :search OR student_code LIKE :search OR id_number LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            if ($search !== '') {
+                $conditions[] = '(full_name LIKE :s1 OR phone LIKE :s2 OR student_code LIKE :s3 OR id_number LIKE :s4 OR registration_code LIKE :s5)';
+                $searchWildcard = '%' . $search . '%';
+                $params['s1'] = $searchWildcard;
+                $params['s2'] = $searchWildcard;
+                $params['s3'] = $searchWildcard;
+                $params['s4'] = $searchWildcard;
+                $params['s5'] = $searchWildcard;
+            }
+
+            // Lọc theo thùng rác hoặc trạng thái thông thường
+            if ($status === 'trash') {
+                $conditions[] = "status = 'trash'";
+            } else {
+                $conditions[] = "status != 'trash'";
+                if ($status !== '' && $status !== 'all') {
+                    $conditions[] = 'status = :status';
+                    $params['status'] = $status;
+                }
+            }
+
+            if ($fromDate !== '') {
+                $conditions[] = 'created_at >= :from_date';
+                $params['from_date'] = $fromDate . ' 00:00:00';
+            }
+
+            if ($toDate !== '') {
+                $conditions[] = 'created_at <= :to_date';
+                $params['to_date'] = $toDate . ' 23:59:59';
+            }
+
+            $sql = 'SELECT id, student_code, full_name, birth_date, phone, id_number, address, status, progress_percent, registration_code, assigned_to, assigned_staff_name, deleted_at, previous_status, created_at, updated_at FROM student_profiles';
+            if (!empty($conditions)) {
+                $sql .= ' WHERE ' . implode(' AND ', $conditions);
+            }
+
+            $orderDir = $sort === 'oldest' ? 'ASC' : 'DESC';
+            $sql .= " ORDER BY created_at {$orderDir}";
+
+            $stmt = $database->prepare($sql);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll();
+
+            foreach ($rows as $row) {
+                $profileId = (string) $row['id'];
+                $filesStmt = $database->prepare(
+                    'SELECT id, file_type, version, file_name, file_size, created_at FROM student_profile_files WHERE profile_id = :profile_id ORDER BY version DESC'
+                );
+                $filesStmt->execute(['profile_id' => $profileId]);
+                $files = $filesStmt->fetchAll();
+
+                $deletedAt = !empty($row['deleted_at']) ? (string) $row['deleted_at'] : null;
+                $daysRemaining = $deletedAt !== null ? max(0, 30 - (int) floor((time() - strtotime($deletedAt)) / 86400)) : null;
+
+                $item = [
+                    'id' => $profileId,
+                    'studentCode' => (string) $row['student_code'],
+                    'fullName' => (string) $row['full_name'],
+                    'birthDate' => (string) $row['birth_date'],
+                    'phone' => (string) $row['phone'],
+                    'idNumber' => (string) $row['id_number'],
+                    'address' => (string) $row['address'],
+                    'status' => (string) $row['status'],
+                    'progressPercent' => isset($row['progress_percent']) ? (int) $row['progress_percent'] : 45,
+                    'registrationCode' => (string) ($row['registration_code'] ?? ''),
+                    'assignedTo' => (string) ($row['assigned_to'] ?? ''),
+                    'assignedStaffName' => (string) ($row['assigned_staff_name'] ?? ''),
+                    'deletedAt' => $deletedAt,
+                    'previousStatus' => !empty($row['previous_status']) ? (string) $row['previous_status'] : null,
+                    'daysRemaining' => $daysRemaining,
+                    'createdAt' => (string) $row['created_at'],
+                    'updatedAt' => (string) $row['updated_at'],
+                    'files' => array_map(static fn($f) => [
+                        'id' => (string) $f['id'],
+                        'fileType' => (string) $f['file_type'],
+                        'version' => (int) $f['version'],
+                        'fileName' => (string) $f['file_name'],
+                        'fileSize' => (int) $f['file_size'],
+                        'createdAt' => (string) $f['created_at'],
+                    ], $files),
+                ];
+
+                $results[] = $item;
+                $dbProfilesMap[$profileId] = true;
+                $dbProfilesMap[(string) $row['student_code']] = true;
+            }
+        } catch (Throwable $e) {
+            error_log('[admin_student_profiles_list DB Error]: ' . $e->getMessage());
         }
+    }
 
-        // Lọc theo thùng rác hoặc trạng thái thông thường
-        if ($status === 'trash') {
-            $conditions[] = "status = 'trash'";
-        } else {
-            $conditions[] = "status != 'trash'";
-            if ($status !== '' && $status !== 'all') {
-                $conditions[] = 'status = :status';
-                $params['status'] = $status;
+    // 2. Dual-Store Sync & JSON Fallback
+    // Ensures that any student profile present in JSON file but missing in MySQL (or vice versa) is auto-synchronized!
+    $jsonProfiles = admin_student_profiles_load_file();
+    $needJsonSave = false;
+
+    foreach ($jsonProfiles as $p) {
+        $pId = (string) ($p['id'] ?? '');
+        $pCode = (string) ($p['studentCode'] ?? '');
+        $pStatus = (string) ($p['status'] ?? 'tiep_nhan');
+
+        // If DB is active and this JSON profile is not in DB, backfill to DB
+        if ($database !== null && $pId !== '' && empty($dbProfilesMap[$pId]) && empty($dbProfilesMap[$pCode])) {
+            try {
+                $upStmt = $database->prepare(
+                    'INSERT INTO student_profiles (
+                        id, student_code, full_name, birth_date, phone, id_number, address, data_json,
+                        status, progress_percent, registration_code, assigned_to, assigned_staff_name, notes,
+                        deleted_at, previous_status, created_at, updated_at
+                    ) VALUES (
+                        :id, :student_code, :full_name, :birth_date, :phone, :id_number, :address, :data_json,
+                        :status, :progress_percent, :registration_code, :assigned_to, :assigned_staff_name, :notes,
+                        :deleted_at, :previous_status, :created_at, :updated_at
+                    )
+                    ON DUPLICATE KEY UPDATE
+                        student_code = VALUES(student_code),
+                        full_name = VALUES(full_name),
+                        phone = VALUES(phone),
+                        id_number = VALUES(id_number),
+                        address = VALUES(address),
+                        status = VALUES(status),
+                        progress_percent = VALUES(progress_percent),
+                        registration_code = VALUES(registration_code),
+                        updated_at = VALUES(updated_at)'
+                );
+                $upStmt->execute([
+                    'id' => $pId,
+                    'student_code' => $pCode ?: admin_student_profile_generate_code(),
+                    'full_name' => (string) ($p['fullName'] ?? ''),
+                    'birth_date' => (string) ($p['birthDate'] ?? ''),
+                    'phone' => (string) ($p['phone'] ?? ''),
+                    'id_number' => (string) ($p['idNumber'] ?? ''),
+                    'address' => (string) ($p['address'] ?? ''),
+                    'data_json' => json_encode($p['data'] ?? [], JSON_UNESCAPED_UNICODE),
+                    'status' => $pStatus,
+                    'progress_percent' => (int) ($p['progressPercent'] ?? 45),
+                    'registration_code' => (string) ($p['registrationCode'] ?? ''),
+                    'assigned_to' => (string) ($p['assignedTo'] ?? ''),
+                    'assigned_staff_name' => (string) ($p['assignedStaffName'] ?? ''),
+                    'notes' => (string) ($p['notes'] ?? ''),
+                    'deleted_at' => !empty($p['deletedAt']) ? (string) $p['deletedAt'] : null,
+                    'previous_status' => !empty($p['previousStatus']) ? (string) $p['previousStatus'] : null,
+                    'created_at' => (string) ($p['createdAt'] ?? date('Y-m-d H:i:s')),
+                    'updated_at' => (string) ($p['updatedAt'] ?? date('Y-m-d H:i:s')),
+                ]);
+            } catch (Throwable $e) {
+                error_log('[Backfill to DB Error]: ' . $e->getMessage());
             }
         }
 
-        if ($fromDate !== '') {
-            $conditions[] = 'created_at >= :from_date';
-            $params['from_date'] = $fromDate . ' 00:00:00';
-        }
+        // Check if item matches current filter criteria for direct display
+        if (empty($dbProfilesMap[$pId]) && empty($dbProfilesMap[$pCode])) {
+            if ($status === 'trash') {
+                if ($pStatus !== 'trash') continue;
+            } else {
+                if ($pStatus === 'trash') continue;
+                if ($status !== '' && $status !== 'all' && $pStatus !== $status) {
+                    continue;
+                }
+            }
 
-        if ($toDate !== '') {
-            $conditions[] = 'created_at <= :to_date';
-            $params['to_date'] = $toDate . ' 23:59:59';
-        }
+            if ($search !== '') {
+                $matched = mb_stripos($p['fullName'] ?? '', $search) !== false
+                    || mb_stripos($p['phone'] ?? '', $search) !== false
+                    || mb_stripos($p['studentCode'] ?? '', $search) !== false
+                    || mb_stripos($p['idNumber'] ?? '', $search) !== false
+                    || mb_stripos($p['registrationCode'] ?? '', $search) !== false;
+                if (!$matched) continue;
+            }
 
-        $sql = 'SELECT id, student_code, full_name, birth_date, phone, id_number, address, status, progress_percent, registration_code, assigned_to, assigned_staff_name, deleted_at, previous_status, created_at, updated_at FROM student_profiles';
-        if (!empty($conditions)) {
-            $sql .= ' WHERE ' . implode(' AND ', $conditions);
-        }
+            $createdAt = $p['createdAt'] ?? '';
+            if ($fromDate !== '' && substr($createdAt, 0, 10) < $fromDate) {
+                continue;
+            }
+            if ($toDate !== '' && substr($createdAt, 0, 10) > $toDate) {
+                continue;
+            }
 
-        $orderDir = $sort === 'oldest' ? 'ASC' : 'DESC';
-        $sql .= " ORDER BY created_at {$orderDir}";
-
-        $stmt = $database->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll();
-
-        $results = [];
-        foreach ($rows as $row) {
-            $profileId = (string) $row['id'];
-            $filesStmt = $database->prepare(
-                'SELECT id, file_type, version, file_name, file_size, created_at FROM student_profile_files WHERE profile_id = :profile_id ORDER BY version DESC'
-            );
-            $filesStmt->execute(['profile_id' => $profileId]);
-            $files = $filesStmt->fetchAll();
-
-            $deletedAt = !empty($row['deleted_at']) ? (string) $row['deleted_at'] : null;
+            $deletedAt = !empty($p['deletedAt']) ? (string) $p['deletedAt'] : null;
             $daysRemaining = $deletedAt !== null ? max(0, 30 - (int) floor((time() - strtotime($deletedAt)) / 86400)) : null;
 
             $results[] = [
-                'id' => $profileId,
-                'studentCode' => (string) $row['student_code'],
-                'fullName' => (string) $row['full_name'],
-                'birthDate' => (string) $row['birth_date'],
-                'phone' => (string) $row['phone'],
-                'idNumber' => (string) $row['id_number'],
-                'address' => (string) $row['address'],
-                'status' => (string) $row['status'],
-                'progressPercent' => isset($row['progress_percent']) ? (int) $row['progress_percent'] : 45,
-                'registrationCode' => (string) ($row['registration_code'] ?? ''),
+                'id' => $pId,
+                'studentCode' => $pCode,
+                'fullName' => (string) ($p['fullName'] ?? ''),
+                'birthDate' => (string) ($p['birthDate'] ?? ''),
+                'phone' => (string) ($p['phone'] ?? ''),
+                'idNumber' => (string) ($p['idNumber'] ?? ''),
+                'address' => (string) ($p['address'] ?? ''),
+                'status' => $pStatus,
+                'progressPercent' => isset($p['progressPercent']) ? (int) $p['progressPercent'] : 45,
+                'registrationCode' => (string) ($p['registrationCode'] ?? ''),
+                'assignedTo' => (string) ($p['assignedTo'] ?? ''),
+                'assignedStaffName' => (string) ($p['assignedStaffName'] ?? ''),
                 'deletedAt' => $deletedAt,
-                'previousStatus' => !empty($row['previous_status']) ? (string) $row['previous_status'] : null,
+                'previousStatus' => !empty($p['previousStatus']) ? (string) $p['previousStatus'] : null,
                 'daysRemaining' => $daysRemaining,
-                'createdAt' => (string) $row['created_at'],
-                'updatedAt' => (string) $row['updated_at'],
+                'createdAt' => (string) ($p['createdAt'] ?? ''),
+                'updatedAt' => (string) ($p['updatedAt'] ?? ''),
                 'files' => array_map(static fn($f) => [
                     'id' => (string) $f['id'],
-                    'fileType' => (string) $f['file_type'],
-                    'version' => (int) $f['version'],
-                    'fileName' => (string) $f['file_name'],
-                    'fileSize' => (int) $f['file_size'],
-                    'createdAt' => (string) $f['created_at'],
-                ], $files),
+                    'fileType' => (string) $f['fileType'],
+                    'version' => (int) ($f['version'] ?? 1),
+                    'fileName' => (string) $f['fileName'],
+                    'fileSize' => (int) ($f['fileSize'] ?? 0),
+                    'createdAt' => (string) ($f['createdAt'] ?? ''),
+                ], $p['files'] ?? []),
             ];
+            $dbProfilesMap[$pId] = true;
+            if ($pCode !== '') $dbProfilesMap[$pCode] = true;
         }
-        return $results;
     }
 
-    // JSON file fallback
-    $profiles = admin_student_profiles_load_file();
-    $filtered = [];
-
-    foreach ($profiles as $p) {
-        $pStatus = (string) ($p['status'] ?? 'tiep_nhan');
-
-        // Phân loại thùng rác vs hoạt động
-        if ($status === 'trash') {
-            if ($pStatus !== 'trash') continue;
-        } else {
-            if ($pStatus === 'trash') continue;
-            if ($status !== '' && $status !== 'all' && $pStatus !== $status) {
-                continue;
-            }
-        }
-
-        if ($search !== '') {
-            $matched = mb_stripos($p['fullName'] ?? '', $search) !== false
-                || mb_stripos($p['phone'] ?? '', $search) !== false
-                || mb_stripos($p['studentCode'] ?? '', $search) !== false
-                || mb_stripos($p['idNumber'] ?? '', $search) !== false
-                || mb_stripos($p['registrationCode'] ?? '', $search) !== false;
-            if (!$matched) continue;
-        }
-
-        $createdAt = $p['createdAt'] ?? '';
-        if ($fromDate !== '' && substr($createdAt, 0, 10) < $fromDate) {
-            continue;
-        }
-        if ($toDate !== '' && substr($createdAt, 0, 10) > $toDate) {
-            continue;
-        }
-
-        $deletedAt = !empty($p['deletedAt']) ? (string) $p['deletedAt'] : null;
-        $daysRemaining = $deletedAt !== null ? max(0, 30 - (int) floor((time() - strtotime($deletedAt)) / 86400)) : null;
-
-        $filtered[] = [
-            'id' => (string) $p['id'],
-            'studentCode' => (string) ($p['studentCode'] ?? ''),
-            'fullName' => (string) ($p['fullName'] ?? ''),
-            'birthDate' => (string) ($p['birthDate'] ?? ''),
-            'phone' => (string) ($p['phone'] ?? ''),
-            'idNumber' => (string) ($p['idNumber'] ?? ''),
-            'address' => (string) ($p['address'] ?? ''),
-            'status' => $pStatus,
-            'progressPercent' => isset($p['progressPercent']) ? (int) $p['progressPercent'] : 45,
-            'registrationCode' => (string) ($p['registrationCode'] ?? ''),
-            'deletedAt' => $deletedAt,
-            'previousStatus' => !empty($p['previousStatus']) ? (string) $p['previousStatus'] : null,
-            'daysRemaining' => $daysRemaining,
-            'assignedTo' => (string) ($p['assignedTo'] ?? ''),
-            'assignedStaffName' => (string) ($p['assignedStaffName'] ?? ''),
-            'createdAt' => (string) ($p['createdAt'] ?? ''),
-            'updatedAt' => (string) ($p['updatedAt'] ?? ''),
-            'files' => array_map(static fn($f) => [
-                'id' => (string) $f['id'],
-                'fileType' => (string) $f['fileType'],
-                'version' => (int) ($f['version'] ?? 1),
-                'fileName' => (string) $f['fileName'],
-                'fileSize' => (int) ($f['fileSize'] ?? 0),
-                'createdAt' => (string) ($f['createdAt'] ?? ''),
-            ], $p['files'] ?? []),
-        ];
-    }
-
-    usort($filtered, static function ($a, $b) use ($sort) {
-        $c = strcmp($a['createdAt'], $b['createdAt']);
+    // Sort complete merged results
+    usort($results, static function ($a, $b) use ($sort) {
+        $c = strcmp((string) ($a['createdAt'] ?? ''), (string) ($b['createdAt'] ?? ''));
         return $sort === 'oldest' ? $c : -$c;
     });
 
-    return $filtered;
+    return $results;
 }
 
 function admin_student_profile_find(string $id): ?array
@@ -351,67 +424,70 @@ function admin_student_profile_find(string $id): ?array
 
     $database = admin_student_profiles_database();
     if ($database !== null) {
-        $stmt = $database->prepare('SELECT * FROM student_profiles WHERE id = :id OR student_code = :student_code OR registration_code = :reg_code LIMIT 1');
-        $stmt->execute(['id' => $id, 'student_code' => $id, 'reg_code' => $id]);
-        $row = $stmt->fetch();
-        if (!is_array($row)) {
-            return null;
+        try {
+            $stmt = $database->prepare('SELECT * FROM student_profiles WHERE id = :id OR student_code = :student_code OR registration_code = :reg_code LIMIT 1');
+            $stmt->execute(['id' => $id, 'student_code' => $id, 'reg_code' => $id]);
+            $row = $stmt->fetch();
+            if (is_array($row)) {
+                $realId = (string) $row['id'];
+                $filesStmt = $database->prepare(
+                    'SELECT * FROM student_profile_files WHERE profile_id = :profile_id ORDER BY file_type ASC, version DESC'
+                );
+                $filesStmt->execute(['profile_id' => $realId]);
+                $files = $filesStmt->fetchAll();
+
+                $logsStmt = $database->prepare(
+                    'SELECT * FROM student_profile_audit_logs WHERE profile_id = :profile_id ORDER BY created_at DESC'
+                );
+                $logsStmt->execute(['profile_id' => $realId]);
+                $logs = $logsStmt->fetchAll();
+
+                $formData = json_decode((string) $row['data_json'], true);
+
+                return [
+                    'id' => $realId,
+                    'studentCode' => (string) $row['student_code'],
+                    'fullName' => (string) $row['full_name'],
+                    'birthDate' => (string) $row['birth_date'],
+                    'phone' => (string) $row['phone'],
+                    'idNumber' => (string) $row['id_number'],
+                    'address' => (string) $row['address'],
+                    'status' => (string) $row['status'],
+                    'progressPercent' => isset($row['progress_percent']) ? (int) $row['progress_percent'] : 45,
+                    'registrationCode' => (string) ($row['registration_code'] ?? ''),
+                    'assignedTo' => (string) ($row['assigned_to'] ?? ''),
+                    'assignedStaffName' => (string) ($row['assigned_staff_name'] ?? ''),
+                    'notes' => (string) ($row['notes'] ?? ''),
+                    'deletedAt' => !empty($row['deleted_at']) ? (string) $row['deleted_at'] : null,
+                    'previousStatus' => !empty($row['previous_status']) ? (string) $row['previous_status'] : null,
+                    'daysRemaining' => !empty($row['deleted_at']) ? max(0, 30 - (int) floor((time() - strtotime((string) $row['deleted_at'])) / 86400)) : null,
+                    'createdAt' => (string) $row['created_at'],
+                    'updatedAt' => (string) $row['updated_at'],
+                    'data' => is_array($formData) ? $formData : [],
+                    'files' => array_map(static fn($f) => [
+                        'id' => (string) $f['id'],
+                        'fileType' => (string) $f['file_type'],
+                        'version' => (int) $f['version'],
+                        'fileName' => (string) $f['file_name'],
+                        'fileSize' => (int) $f['file_size'],
+                        'mimeType' => (string) $f['mime_type'],
+                        'createdAt' => (string) $f['created_at'],
+                    ], $files),
+                    'auditLogs' => array_map(static fn($l) => [
+                        'id' => (string) $l['id'],
+                        'action' => (string) $l['action'],
+                        'actor' => (string) $l['actor'],
+                        'details' => (string) $l['details'],
+                        'createdAt' => (string) $l['created_at'],
+                    ], $logs),
+                ];
+            }
+        } catch (Throwable $e) {
+            error_log('[admin_student_profile_find DB Error]: ' . $e->getMessage());
         }
-
-        $realId = (string) $row['id'];
-        $filesStmt = $database->prepare(
-            'SELECT * FROM student_profile_files WHERE profile_id = :profile_id ORDER BY file_type ASC, version DESC'
-        );
-        $filesStmt->execute(['profile_id' => $realId]);
-        $files = $filesStmt->fetchAll();
-
-        $logsStmt = $database->prepare(
-            'SELECT * FROM student_profile_audit_logs WHERE profile_id = :profile_id ORDER BY created_at DESC'
-        );
-        $logsStmt->execute(['profile_id' => $realId]);
-        $logs = $logsStmt->fetchAll();
-
-        $formData = json_decode((string) $row['data_json'], true);
-
-        return [
-            'id' => $realId,
-            'studentCode' => (string) $row['student_code'],
-            'fullName' => (string) $row['full_name'],
-            'birthDate' => (string) $row['birth_date'],
-            'phone' => (string) $row['phone'],
-            'idNumber' => (string) $row['id_number'],
-            'address' => (string) $row['address'],
-            'status' => (string) $row['status'],
-            'progressPercent' => isset($row['progress_percent']) ? (int) $row['progress_percent'] : 45,
-            'registrationCode' => (string) ($row['registration_code'] ?? ''),
-            'assignedTo' => (string) ($row['assigned_to'] ?? ''),
-            'assignedStaffName' => (string) ($row['assigned_staff_name'] ?? ''),
-            'deletedAt' => !empty($row['deleted_at']) ? (string) $row['deleted_at'] : null,
-            'previousStatus' => !empty($row['previous_status']) ? (string) $row['previous_status'] : null,
-            'daysRemaining' => !empty($row['deleted_at']) ? max(0, 30 - (int) floor((time() - strtotime((string) $row['deleted_at'])) / 86400)) : null,
-            'createdAt' => (string) $row['created_at'],
-            'updatedAt' => (string) $row['updated_at'],
-            'data' => is_array($formData) ? $formData : [],
-            'files' => array_map(static fn($f) => [
-                'id' => (string) $f['id'],
-                'fileType' => (string) $f['file_type'],
-                'version' => (int) $f['version'],
-                'fileName' => (string) $f['file_name'],
-                'fileSize' => (int) $f['file_size'],
-                'mimeType' => (string) $f['mime_type'],
-                'createdAt' => (string) $f['created_at'],
-            ], $files),
-            'auditLogs' => array_map(static fn($l) => [
-                'id' => (string) $l['id'],
-                'action' => (string) $l['action'],
-                'actor' => (string) $l['actor'],
-                'details' => (string) $l['details'],
-                'createdAt' => (string) $l['created_at'],
-            ], $logs),
-        ];
     }
 
-    // JSON file fallback
+    // JSON file fallback - if not found in DB or DB is null, check JSON!
     $profiles = admin_student_profiles_load_file();
     foreach ($profiles as $p) {
         if (($p['id'] ?? '') === $id || ($p['studentCode'] ?? '') === $id || ($p['registrationCode'] ?? '') === $id) {
@@ -437,10 +513,10 @@ function admin_student_profile_create(array $payload, array $initialFiles = []):
 
 /**
  * Authoritative unified submission handler for student profiles:
- * - Matches existing profile by ID, phone, or idNumber
+ * - Matches existing profile across BOTH stores (JSON and MySQL) by ID, studentCode, registrationCode, CCCD, or Phone
  * - Prevents duplicate student profiles
  * - Restores from trash if previously deleted
- * - Performs dual persistence (MySQL if active + JSON file fallback)
+ * - Performs dual persistence (MySQL ON DUPLICATE KEY UPDATE + JSON file fallback)
  * - Returns the saved profile
  */
 function admin_student_profile_upsert_submission(
@@ -471,7 +547,7 @@ function admin_student_profile_upsert_submission(
     }
     $dataJson = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-    // 1. Try to find existing profile in JSON file
+    // 1. Check existing in JSON file
     $allProfiles = admin_student_profiles_load_file();
     $foundIndex = -1;
 
@@ -515,11 +591,53 @@ function admin_student_profile_upsert_submission(
         }
     }
 
-    $isUpdate = ($foundIndex !== -1);
-    if ($isUpdate) {
+    // 2. Also check MySQL database for existing profile
+    $database = admin_student_profiles_database();
+    $dbExisting = null;
+    if ($database !== null) {
+        try {
+            $mConds = [];
+            $mParams = [];
+            if ($targetProfileId !== '') {
+                $mConds[] = 'id = :m_id OR student_code = :m_code';
+                $mParams['m_id'] = $targetProfileId;
+                $mParams['m_code'] = $targetProfileId;
+            }
+            if ($registrationCode !== '') {
+                $mConds[] = 'registration_code = :m_reg';
+                $mParams['m_reg'] = $registrationCode;
+            }
+            if ($idNumber !== '') {
+                $mConds[] = 'id_number = :m_idnum';
+                $mParams['m_idnum'] = $idNumber;
+            }
+            if ($phone !== '') {
+                $mConds[] = 'phone = :m_phone';
+                $mParams['m_phone'] = $phone;
+            }
+            if (!empty($mConds)) {
+                $mSql = 'SELECT id, student_code, created_at, registration_code, data_json, assigned_to, assigned_staff_name, notes FROM student_profiles WHERE ' . implode(' OR ', $mConds) . ' LIMIT 1';
+                $mStmt = $database->prepare($mSql);
+                $mStmt->execute($mParams);
+                $row = $mStmt->fetch();
+                if (is_array($row)) {
+                    $dbExisting = $row;
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('[admin_student_profile_upsert_submission DB Match Error]: ' . $e->getMessage());
+        }
+    }
+
+    $isUpdate = ($foundIndex !== -1 || $dbExisting !== null);
+    if ($foundIndex !== -1) {
         $profileId = (string) $allProfiles[$foundIndex]['id'];
-        $studentCode = (string) ($allProfiles[$foundIndex]['studentCode'] ?? admin_student_profile_generate_code());
-        $createdAt = (string) ($allProfiles[$foundIndex]['createdAt'] ?? $now);
+        $studentCode = (string) ($allProfiles[$foundIndex]['studentCode'] ?? ($dbExisting['student_code'] ?? admin_student_profile_generate_code()));
+        $createdAt = (string) ($allProfiles[$foundIndex]['createdAt'] ?? ($dbExisting['created_at'] ?? $now));
+    } elseif ($dbExisting !== null) {
+        $profileId = (string) $dbExisting['id'];
+        $studentCode = (string) $dbExisting['student_code'];
+        $createdAt = (string) $dbExisting['created_at'];
     } else {
         $profileId = $targetProfileId !== '' ? $targetProfileId : admin_student_profile_generate_id();
         $studentCode = admin_student_profile_generate_code();
@@ -550,7 +668,7 @@ function admin_student_profile_upsert_submission(
         'createdAt' => $now,
     ];
 
-    if ($isUpdate) {
+    if ($foundIndex !== -1) {
         // Merge with existing files
         $existingFiles = $allProfiles[$foundIndex]['files'] ?? [];
         foreach ($preparedFiles as $newF) {
@@ -610,66 +728,66 @@ function admin_student_profile_upsert_submission(
     // Dual persistence: 1. Save to JSON file
     admin_student_profiles_save_file($allProfiles);
 
-    // Dual persistence: 2. Save to MySQL (if configured)
-    $database = admin_student_profiles_database();
+    // Dual persistence: 2. Save to MySQL with atomic ON DUPLICATE KEY UPDATE
     if ($database !== null) {
         try {
-            if ($isUpdate) {
-                $stmt = $database->prepare(
-                    'UPDATE student_profiles
-                     SET student_code = :student_code, full_name = :full_name, birth_date = :birth_date,
-                         phone = :phone, id_number = :id_number, address = :address, data_json = :data_json,
-                         status = :status, deleted_at = NULL, previous_status = NULL,
-                         progress_percent = :progress_percent, registration_code = :registration_code,
-                         assigned_to = :assigned_to, assigned_staff_name = :assigned_staff_name,
-                         updated_at = :updated_at
-                     WHERE id = :id'
-                );
-                $stmt->execute([
-                    'id' => $profileId,
-                    'student_code' => $studentCode,
-                    'full_name' => $fullName,
-                    'birth_date' => $birthDate,
-                    'phone' => $phone,
-                    'id_number' => $idNumber,
-                    'address' => $address,
-                    'data_json' => $dataJson,
-                    'status' => 'tiep_nhan',
-                    'progress_percent' => $progressPercent,
-                    'registration_code' => $registrationCode,
-                    'assigned_to' => $assignedTo,
-                    'assigned_staff_name' => $assignedStaffName,
-                    'updated_at' => $now,
-                ]);
-            } else {
-                $stmt = $database->prepare(
-                    'INSERT INTO student_profiles (id, student_code, full_name, birth_date, phone, id_number, address, data_json, status, progress_percent, registration_code, assigned_to, assigned_staff_name, created_at, updated_at)
-                     VALUES (:id, :student_code, :full_name, :birth_date, :phone, :id_number, :address, :data_json, :status, :progress_percent, :registration_code, :assigned_to, :assigned_staff_name, :created_at, :updated_at)'
-                );
-                $stmt->execute([
-                    'id' => $profileId,
-                    'student_code' => $studentCode,
-                    'full_name' => $fullName,
-                    'birth_date' => $birthDate,
-                    'phone' => $phone,
-                    'id_number' => $idNumber,
-                    'address' => $address,
-                    'data_json' => $dataJson,
-                    'status' => 'tiep_nhan',
-                    'progress_percent' => $progressPercent,
-                    'registration_code' => $registrationCode,
-                    'assigned_to' => $assignedTo,
-                    'assigned_staff_name' => $assignedStaffName,
-                    'created_at' => $createdAt,
-                    'updated_at' => $now,
-                ]);
-            }
+            $stmt = $database->prepare(
+                'INSERT INTO student_profiles (
+                    id, student_code, full_name, birth_date, phone, id_number, address, data_json,
+                    status, progress_percent, registration_code, assigned_to, assigned_staff_name, notes,
+                    deleted_at, previous_status, created_at, updated_at
+                ) VALUES (
+                    :id, :student_code, :full_name, :birth_date, :phone, :id_number, :address, :data_json,
+                    :status, :progress_percent, :registration_code, :assigned_to, :assigned_staff_name, :notes,
+                    NULL, NULL, :created_at, :updated_at
+                )
+                ON DUPLICATE KEY UPDATE
+                    student_code = VALUES(student_code),
+                    full_name = VALUES(full_name),
+                    birth_date = VALUES(birth_date),
+                    phone = VALUES(phone),
+                    id_number = VALUES(id_number),
+                    address = VALUES(address),
+                    data_json = VALUES(data_json),
+                    status = \'tiep_nhan\',
+                    progress_percent = VALUES(progress_percent),
+                    registration_code = VALUES(registration_code),
+                    assigned_to = VALUES(assigned_to),
+                    assigned_staff_name = VALUES(assigned_staff_name),
+                    notes = VALUES(notes),
+                    deleted_at = NULL,
+                    previous_status = NULL,
+                    updated_at = VALUES(updated_at)'
+            );
+            $stmt->execute([
+                'id' => $profileId,
+                'student_code' => $studentCode,
+                'full_name' => $fullName,
+                'birth_date' => $birthDate,
+                'phone' => $phone,
+                'id_number' => $idNumber,
+                'address' => $address,
+                'data_json' => $dataJson,
+                'status' => 'tiep_nhan',
+                'progress_percent' => $progressPercent,
+                'registration_code' => $registrationCode,
+                'assigned_to' => $assignedTo,
+                'assigned_staff_name' => $assignedStaffName,
+                'notes' => $notes,
+                'created_at' => $createdAt,
+                'updated_at' => $now,
+            ]);
 
             // Insert new files into student_profile_files
             foreach ($preparedFiles as $file) {
                 $fileStmt = $database->prepare(
                     'INSERT INTO student_profile_files (id, profile_id, file_type, version, file_name, file_path, file_size, mime_type, created_at)
-                     VALUES (:id, :profile_id, :file_type, :version, :file_name, :file_path, :file_size, :mime_type, :created_at)'
+                     VALUES (:id, :profile_id, :file_type, :version, :file_name, :file_path, :file_size, :mime_type, :created_at)
+                     ON DUPLICATE KEY UPDATE
+                         file_name = VALUES(file_name),
+                         file_path = VALUES(file_path),
+                         file_size = VALUES(file_size),
+                         mime_type = VALUES(mime_type)'
                 );
                 $fileStmt->execute([
                     'id' => $file['id'],
@@ -698,7 +816,7 @@ function admin_student_profile_upsert_submission(
                 'created_at' => $now,
             ]);
         } catch (Throwable $e) {
-            // MySQL error fallback is safe since JSON was already saved
+            error_log('[Student Profile Dual Persistence Error]: ' . $e->getMessage());
         }
     }
 
@@ -1028,12 +1146,16 @@ function admin_student_profile_get_file_record(string $profileId, string $fileId
 {
     $database = admin_student_profiles_database();
     if ($database !== null) {
-        $stmt = $database->prepare(
-            'SELECT * FROM student_profile_files WHERE id = :id AND profile_id = :profile_id LIMIT 1'
-        );
-        $stmt->execute(['id' => $fileId, 'profile_id' => $profileId]);
-        $row = $stmt->fetch();
-        return is_array($row) ? $row : null;
+        try {
+            $stmt = $database->prepare(
+                'SELECT * FROM student_profile_files WHERE id = :id AND profile_id = :profile_id LIMIT 1'
+            );
+            $stmt->execute(['id' => $fileId, 'profile_id' => $profileId]);
+            $row = $stmt->fetch();
+            if (is_array($row)) {
+                return $row;
+            }
+        } catch (Throwable) {}
     }
 
     $profiles = admin_student_profiles_load_file();
