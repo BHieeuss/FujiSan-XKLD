@@ -98,7 +98,10 @@ function admin_assert_same_origin(): void
     $requestHost = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
     $requestHost = preg_replace('/:\d+$/', '', $requestHost) ?? $requestHost;
 
-    if ($originHost === '' || !hash_equals($requestHost, $originHost)) {
+    $originHostNorm = preg_replace('/^www\./', '', $originHost);
+    $requestHostNorm = preg_replace('/^www\./', '', $requestHost);
+
+    if ($originHost === '' || (!hash_equals($requestHost, $originHost) && !hash_equals($requestHostNorm, $originHostNorm))) {
         $isLocalOrigin = $originHost === 'localhost' || $originHost === '127.0.0.1' || $originHost === '::1';
         $isLocalHost = $requestHost === 'localhost' || $requestHost === '127.0.0.1' || $requestHost === '::1';
         if ($isLocalOrigin && $isLocalHost) {

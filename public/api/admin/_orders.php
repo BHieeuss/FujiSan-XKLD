@@ -834,10 +834,11 @@ function admin_job_order_move_to_trash(string $id, string $actor = 'Quản trị
             $stmt = $database->prepare(
                 "UPDATE job_orders
                  SET status = 'trash', deleted_at = :deleted_at, deleted_by = :deleted_by, previous_status = :previous_status, updated_at = :updated_at
-                 WHERE id = :id OR order_code = :id"
+                 WHERE id = :id OR order_code = :order_code"
             );
             $stmt->execute([
                 'id' => $targetId,
+                'order_code' => $targetId,
                 'deleted_at' => $now,
                 'deleted_by' => $actor,
                 'previous_status' => $previousStatus,
@@ -932,10 +933,11 @@ function admin_job_order_restore(string $id, string $actor = 'Quản trị viên
             $stmt = $database->prepare(
                 "UPDATE job_orders
                  SET status = :status, deleted_at = NULL, deleted_by = NULL, previous_status = NULL, updated_at = :updated_at
-                 WHERE id = :id OR order_code = :id"
+                 WHERE id = :id OR order_code = :order_code"
             );
             $stmt->execute([
                 'id' => $targetId,
+                'order_code' => $targetId,
                 'status' => $restoreStatus,
                 'updated_at' => $now,
             ]);
@@ -1030,12 +1032,11 @@ function admin_job_order_delete_permanent(string $id, string $actor = 'Quản tr
     $database = admin_job_orders_database();
     if ($database !== null) {
         try {
-            $stmt = $database->prepare('DELETE FROM job_orders WHERE id = :id OR order_code = :id OR TRIM(id) = :id');
-            $stmt->execute(['id' => $targetId]);
-            if ($targetCode !== '' && $targetCode !== $targetId) {
-                $stmt2 = $database->prepare('DELETE FROM job_orders WHERE order_code = :code OR id = :code');
-                $stmt2->execute(['code' => $targetCode]);
-            }
+            $stmt = $database->prepare('DELETE FROM job_orders WHERE id = :id OR order_code = :order_code');
+            $stmt->execute([
+                'id' => $targetId,
+                'order_code' => $targetCode !== '' ? $targetCode : $targetId,
+            ]);
             try {
                 $stmtIdem = $database->prepare('DELETE FROM job_order_idempotency WHERE order_id = :id');
                 $stmtIdem->execute(['id' => $targetId]);

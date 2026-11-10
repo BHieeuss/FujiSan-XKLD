@@ -351,8 +351,8 @@ function admin_student_profile_find(string $id): ?array
 
     $database = admin_student_profiles_database();
     if ($database !== null) {
-        $stmt = $database->prepare('SELECT * FROM student_profiles WHERE id = :id OR student_code = :id OR registration_code = :id LIMIT 1');
-        $stmt->execute(['id' => $id]);
+        $stmt = $database->prepare('SELECT * FROM student_profiles WHERE id = :id OR student_code = :student_code OR registration_code = :reg_code LIMIT 1');
+        $stmt->execute(['id' => $id, 'student_code' => $id, 'reg_code' => $id]);
         $row = $stmt->fetch();
         if (!is_array($row)) {
             return null;
